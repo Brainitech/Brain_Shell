@@ -19,9 +19,10 @@ QtObject {
 
     // -- Sizes --
     property int borderWidth: 6        // Thickness of the screen edge borders
-    property int cornerRadius: 10
+    property int cornerRadius: 17
 	property int notchRadius: 12      // The roundness of the bottom corners
     property int notchHeight: 40
+	property int exclusionGap:34
     property int lNotchWidth: 280
     property int cNotchWidth: 200
     property int rNotchWidth: 200

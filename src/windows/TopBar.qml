@@ -26,7 +26,7 @@ PanelWindow {
     
     // 2. Height - Enough to fit the notches
     implicitHeight: Theme.notchHeight // Extra space for shadows if needed
-    exclusiveZone: Theme.notchHeight
+    exclusiveZone: Theme.exclusionGap
 
     // 3. Background Shape
     SeamlessBarShape {

@@ -1,1 +1,2 @@
 singleton Theme theme/Theme.qml
+singleton Popups state/Popups.qml

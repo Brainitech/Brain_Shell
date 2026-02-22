@@ -9,5 +9,6 @@ IconBtn {
 		textColor: "#1793d1"
 		onClicked: {
             console.log("Arch icon clicked on screen:", screenName)
+			Popups.closeAll()
         }
 	}

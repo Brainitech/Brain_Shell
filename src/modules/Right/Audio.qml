@@ -1,10 +1,13 @@
 import QtQuick
 import Quickshell.Services.SystemTray
 import "../../components"
-import "../../windows"
 import "../../"
 
 IconBtn{
     text: ""
-    onClicked: console.log("Sound Popup")
+    onClicked: {
+        var next = !Popups.audioOpen
+        Popups.closeAll()
+        Popups.audioOpen = next
+    }
 }

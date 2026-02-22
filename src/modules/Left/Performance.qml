@@ -2,7 +2,7 @@ import Quickshell
 import QtQuick
 import "../../components"
 import "../../windows"
-import "../../theme/" 
+import "../../"
 
 IconBtn {
 		text: "⚡" 

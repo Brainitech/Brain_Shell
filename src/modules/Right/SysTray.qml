@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell.Services.SystemTray
 import "../../components"
 import "../../windows"
-import "../../theme/"
+import "../../"
 
 Row{
     id: root

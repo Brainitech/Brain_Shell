@@ -1,6 +1,5 @@
 import QtQuick
-import "../theme/"
-import "../windows/"
+import "../"
 
 Canvas {
     id: root

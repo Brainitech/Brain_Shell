@@ -1,6 +1,6 @@
 // src/components/NotchBackground.qml
 import QtQuick
-import "../theme/" // To access Theme
+import "../" // To access Theme
 
 Item {
     anchors.fill: parent

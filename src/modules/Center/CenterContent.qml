@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell.Hyprland
 import Quickshell.Services.Mpris
-import "../../theme/"
+import "../../"
 
 Item {
     width: 150 // Max width for the center notch content

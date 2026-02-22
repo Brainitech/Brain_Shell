@@ -1,5 +1,5 @@
 import QtQuick
-import "../../theme/"
+import "../../"
 
 Text {
         text: Qt.formatDateTime(new Date(), "hh:mm")

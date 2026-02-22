@@ -5,7 +5,7 @@ import "../components"
 import "../modules/Center/"
 import "../modules/Right/"
 import "../modules/Left/"
-import "../theme/"
+import "../"
 import "../shapes/"
 
 PanelWindow {

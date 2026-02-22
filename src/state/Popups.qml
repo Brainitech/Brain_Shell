@@ -1,22 +1,22 @@
 pragma Singleton
 import QtQuick
 
-// Central toggle state for all popups.
-// Each button sets its property to true/false.
-// Each PopupWindow binds its visible to its property.
 QtObject {
-    property bool audioOpen: false
-    property bool networkOpen: false
-    property bool batteryOpen: false
+    property bool audioOpen:         false
+    property bool networkOpen:       false
+    property bool batteryOpen:       false
     property bool notificationsOpen: false
-    property bool controlPanelOpen: false
+    property bool archMenuOpen:      false
 
-    // Helper: close all popups at once (e.g. on workspace switch)
+    // True whenever any popup is open — used by the overlay dismiss window
+    readonly property bool anyOpen: audioOpen || networkOpen || batteryOpen
+                                    || notificationsOpen || archMenuOpen
+
     function closeAll() {
-        audioOpen        = false
-        networkOpen      = false
-        batteryOpen      = false
+        audioOpen         = false
+        networkOpen       = false
+        batteryOpen       = false
         notificationsOpen = false
-        controlPanelOpen = false
+        archMenuOpen      = false
     }
 }

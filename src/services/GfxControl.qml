@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell.Io
+import Quickshell.Services.UPower
 import "../"
 
 // Graphics & power status panel.
@@ -11,17 +12,22 @@ Column {
     id: root
     spacing: 12
     width: parent.width
+    
+        readonly property var  bat:      UPower.displayDevice
+    readonly property bool charging: bat.ready
+                                     ? (bat.state === UPowerDeviceState.Charging ||
+                                        bat.state === UPowerDeviceState.PendingCharge ||
+                                        bat.state === UPowerDeviceState.FullyCharged)
+                                     : false
 
     // --- State ---
-    property string powerProfile: "..."   // from /sys/firmware/acpi/platform_profile
+    property string powerProfile: charging ? "Performance" : "Powersave"
     property string gfxMode:      "..."   // from supergfxctl -g
     property bool   dgpuEnabled:  false   // true = Hybrid, false = Integrated
 
     // --- Read power profile ---
     Process {
         id: profileReader
-        command: ["cat", "/sys/firmware/acpi/platform_profile"]
-        running: true
         stdout: StdioCollector {
             onStreamFinished: root.powerProfile = text.trim()
         }

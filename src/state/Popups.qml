@@ -8,7 +8,10 @@ QtObject {
     property bool notificationsOpen: false
     property bool archMenuOpen:      false
 
-    // True whenever any popup is open — used by the overlay dismiss window
+    // Graphics mode warning dialog
+    property bool   gfxWarningOpen:  false
+    property string pendingGfxMode:  ""    // "Integrated" | "Hybrid"
+
     readonly property bool anyOpen: audioOpen || networkOpen || batteryOpen
                                     || notificationsOpen || archMenuOpen
 

@@ -15,7 +15,7 @@ FloatingWindow {
     maximumSize: Qt.size(320, 100)
 
     color: "transparent"
-
+    
     // Auto-dismiss timer
     Timer {
         id: autoClose
@@ -33,7 +33,7 @@ FloatingWindow {
                                          warnLevel <= 10 ? "Very Low Battery"  : "Low Battery"
     readonly property string message:    warnLevel <= 5
                                              ? "Battery at " + warnLevel + "% — plug in now!"
-                                             : "Battery at " + warnLevel + "% — consider charging."
+                                             : "Battery at " + warnLevel + "% — consider charging." // for testing visuals without changing actual battery level
 
     // ── Visuals ───────────────────────────────────────────────────────────────
     Rectangle {
@@ -107,6 +107,10 @@ FloatingWindow {
             anchors.fill: parent
             cursorShape:  Qt.PointingHandCursor
             onClicked:    root.visible = false
+        }
+        Item {
+            anchors.fill: parent
+            Keys.onEscapePressed: root.visible = false
         }
     }
 }

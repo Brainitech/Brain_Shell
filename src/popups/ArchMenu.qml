@@ -14,13 +14,13 @@ PopupWindow {
 
     readonly property var pageHeights: ({
         "power":       220,
-        "stats":       230,
-        "performance": 200
+        "performance": 200,
+        "stats":       250
     })
 
     readonly property var pageWidths: ({
         "power":       180,
-        "performance": 200,
+        "performance": 250,
         "stats":       380
     })
 
@@ -87,8 +87,8 @@ PopupWindow {
                 Repeater {
                     model: [
                         { key: "power",       icon: "⏻" },
-                        { key: "stats",       icon: "📊" },
                         { key: "performance", icon: "⚡" },
+                        { key: "stats",       icon: "📊" },
                     ]
 
                     delegate: Rectangle {
@@ -140,7 +140,7 @@ PopupWindow {
                     visible:          root.page === "power"
                 }
 
-                PerformanceControl {
+                GfxControl {
                     anchors.centerIn: parent
                     width:            parent.width
                     height:           parent.height

@@ -26,6 +26,9 @@ ShellRoot {
 
                 // --- Popups ---
                 ArchMenu { anchorWindow: leftBorder }
+                
+                //--- GPU warning modal ---
+                GfxWarning { screen: modelData }
             }
         }
     }

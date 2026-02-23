@@ -11,25 +11,7 @@ Row {
 	// 1. Arch Icon (Power Menu Trigger)
 	ControlPanel{}
 
-	// 3. Vertical Separator
-	Rectangle {
-		width: 1; 
-		height: 16
-		color: Theme.border
-		anchors.verticalCenter: parent.verticalCenter
-	}
-
-	// 4. Workspaces
+	// 2. Workspaces
 	Workspaces {} 
 
-	// 5. Vertical Separator
-	Rectangle {
-		width: 1; 
-		height: 16
-		color: Theme.border
-		anchors.verticalCenter: parent.verticalCenter
-	}
-
-	// 6. Performance Control
-	Performance{}
 }

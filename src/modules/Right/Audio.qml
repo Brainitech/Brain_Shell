@@ -1,10 +1,15 @@
 import QtQuick
-import Quickshell.Services.SystemTray
 import "../../components"
 import "../../"
 
-IconBtn{
+IconBtn {
     text: ""
+
+    // Report hover state so AudioPopup can open on hover
+    // HoverHandler {
+    //     onHoveredChanged: Popups.audioTriggerHovered = hovered
+    // }
+
     onClicked: {
         var next = !Popups.audioOpen
         Popups.closeAll()

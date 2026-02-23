@@ -3,71 +3,76 @@ import Quickshell
 import "../shapes"
 import "../"
 
-// Audio popup - grows downward from the right notch of the TopBar.
-// Instantiate this inside TopBar.qml so it has access to the PanelWindow.
+// Audio popup — grows downward from the right notch of the TopBar.
+// Width tracks the actual right notch width (passed in from TopBar).
+// Height is clamped between Theme.popupMinHeight and Theme.popupMaxHeight.
 //
 // Usage in TopBar.qml:
-//   AudioPopup { anchorWindow: root }
+//   AudioPopup { anchorWindow: root; notchWidth: root.rWidth }
+
 PopupWindow {
     id: root
 
-    // The TopBar PanelWindow - must be set by the parent (TopBar.qml)
     required property var anchorWindow
 
-    // Dimensions
-    readonly property int popupWidth:  Theme.rNotchWidth
-    readonly property int popupHeight: 300
+    // The actual right-notch width — kept in sync by TopBar
+    property int notchWidth: Theme.rNotchMinWidth
 
-    // --- Popup Window Setup ---
-    color: "transparent"
+    // Desired content size before clamping
+    property int contentWidth:  notchWidth
+    property int contentHeight: 300
 
-    visible: Popups.audioOpen
-
-    // Position: directly below the right notch, right-aligned to screen edge
-    anchor.window: anchorWindow
-    anchor.rect: Qt.rect(
-        anchorWindow.width,  // x: right-aligned under right notch
-        popupHeight+50,  // y: top of the bar
-        popupWidth,
-        popupHeight   // width and height of the anchor rect (notch size)
+    // Final clamped popup dimensions
+    readonly property int popupWidth: Math.max(
+        Theme.popupMinWidth,
+        Math.min(Theme.popupMaxWidth, contentWidth)
     )
-    anchor.gravity: Edges.Bottom          // popup appears below the anchor rect
+    readonly property int popupHeight: Math.max(
+        Theme.popupMinHeight,
+        Math.min(Theme.popupMaxHeight, contentHeight)
+    )
+
+    // ── Window setup ─────────────────────────────────────────────────────────
+    color:   "transparent"
+    visible: Popups.audioOpen
 
     implicitWidth:  popupWidth
     implicitHeight: popupHeight
 
-    // --- Background Shape ---
-    // top-attached: top edge is flush, concave top corners melt into the bar bottom
+    // Position: flush under the right notch, right-aligned to screen edge
+    anchor.window: anchorWindow
+    anchor.rect: Qt.rect(
+        anchorWindow.width,   // x — right edge of the bar window
+        popupHeight + 50,     // y — just below the bar
+        popupWidth,
+        popupHeight
+    )
+    anchor.gravity: Edges.Bottom
+
+    // ── Background ───────────────────────────────────────────────────────────
     PopupShape {
         id: bg
         anchors.fill: parent
         attachedEdge: "right"
-        color: Theme.background
-        radius: Theme.notchRadius  // matches SeamlessBarShape radius for seamless melting
+        color:        Theme.background
+        radius:       Theme.notchRadius
     }
 
-    // --- Content ---
-    // Placeholder — replace with real audio controls
+    // ── Content ──────────────────────────────────────────────────────────────
     Item {
-        // Inset content so it doesn't render in the concave corner regions
         anchors {
-            fill: parent
-            topMargin: bg.radius
-            leftMargin: 4
-            rightMargin: 4
-            bottomMargin: 4
+            fill:          parent
+            topMargin:     bg.radius
+            leftMargin:    4
+            rightMargin:   4
+            bottomMargin:  4
         }
 
         Text {
             anchors.centerIn: parent
-            text: "🔊 Audio Controls"
-            color: Theme.text
+            text:           "🔊 Audio Controls"
+            color:          Theme.text
             font.pixelSize: 13
         }
     }
-
-    // Close when clicking outside (Escape or click-away)
-    // PopupWindow closes itself when it loses focus if this is set:
-    // closePolicy: PopupWindow.CloseOnEscape | PopupWindow.CloseOnPressOutside
-    // For now, toggling via the button handles open/close.
 }

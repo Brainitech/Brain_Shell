@@ -23,7 +23,7 @@ QtObject {
 	property int notchRadius: 12      // The roundness of the bottom corners
     property int notchHeight: 40
 	property int exclusionGap:34
-    property int lNotchWidth: 280
+    property int lNotchWidth: 230
     property int cNotchWidth: 200
     property int rNotchWidth: 200
 	property int spacing: 10

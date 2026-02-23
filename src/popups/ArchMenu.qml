@@ -9,20 +9,40 @@ PopupWindow {
 
     required property var anchorWindow
 
-    readonly property int fw:            Theme.cornerRadius
-    readonly property int fh:            Theme.cornerRadius
-    readonly property int contentWidth:  Theme.lNotchWidth / 1.5
-    readonly property int contentHeight: 200
+    readonly property int fw: Theme.cornerRadius
+    readonly property int fh: Theme.cornerRadius
+
+    readonly property var pageHeights: ({
+        "power":       220,
+        "stats":       230,
+        "performance": 200
+    })
+
+    readonly property var pageWidths: ({
+        "power":       180,
+        "performance": 200,
+        "stats":       380
+    })
+
+    readonly property int contentWidth:  pageWidths[page]  ?? 200
+    readonly property int contentHeight: pageHeights[page] ?? 200
 
     property string page: "power"
 
-    color:          "transparent"
-    visible:        Popups.archMenuOpen
+    color:   "transparent"
+    visible: Popups.archMenuOpen
 
-    implicitWidth:  contentWidth  + fw
+    Behavior on implicitWidth {
+        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+    }
+
+    Behavior on implicitHeight {
+        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+    }
+
+    implicitWidth:  contentWidth + fw
     implicitHeight: contentHeight + fh * 2
 
-    // Vertically centered on the left border
     anchor.window:  anchorWindow
     anchor.gravity: Edges.Right
     anchor.rect: Qt.rect(
@@ -44,7 +64,6 @@ PopupWindow {
     }
 
     // --- Content container ---
-    // Inset to stay inside the PopupShape body region
     Item {
         anchors {
             fill:         parent
@@ -61,20 +80,21 @@ PopupWindow {
             // --- Left: vertical tab column ---
             Column {
                 id: tabCol
-                width:   36
-                spacing: 6
+                width:   40
+                spacing: 30
                 anchors.verticalCenter: parent.verticalCenter
 
                 Repeater {
                     model: [
-                        { key: "power", icon: "⏻" },
-                        { key: "stats", icon: "📊" },
+                        { key: "power",       icon: "⏻" },
+                        { key: "stats",       icon: "📊" },
+                        { key: "performance", icon: "⚡" },
                     ]
 
                     delegate: Rectangle {
                         width:  tabCol.width
-                        height: tabCol.width   // square tab
-                        radius: Theme.cornerRadius
+                        height: tabCol.width
+                        radius: Theme.cornerRadius*2
 
                         color: root.page === modelData.key
                                    ? Theme.active
@@ -110,13 +130,21 @@ PopupWindow {
 
             // --- Right: page content ---
             Item {
-                width:  parent.width - tabCol.width - 9   // 9 = spacing + divider
+                width:  parent.width - tabCol.width - 9
                 height: parent.height
+                clip:   true   // clip during height animation
 
                 PowerMenu {
                     anchors.centerIn: parent
                     width:            parent.width
                     visible:          root.page === "power"
+                }
+
+                PerformanceControl {
+                    anchors.centerIn: parent
+                    width:            parent.width
+                    height:           parent.height
+                    visible:          root.page === "performance"
                 }
 
                 SystemStats {

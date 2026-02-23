@@ -12,23 +12,28 @@ ShellRoot {
             Scope {
                 required property var modelData
 
-                property string screenName: modelData.name
+                // ── Windows ──────────────────────────────────────
+                TopBar    { id: topBar;        screen: modelData }
 
-                // --- Windows ---
-                TopBar   { screen: modelData }
+                Border    { id: leftBorder;    screen: modelData; edge: "left"   }
+                Border    { id: rightBorder;   screen: modelData; edge: "right"  }
+                Border    { id: bottomBorder;  screen: modelData; edge: "bottom" }
 
-                Border   { screen: modelData; edge: "left";   id: leftBorder  }
-                Border   { screen: modelData; edge: "right"  }
-                Border   { screen: modelData; edge: "bottom" }
-
-                // Dismiss all popups on click-outside or Escape
+                // ── Overlays ─────────────────────────────────────
+                // Dismisses all popups on click-outside or Escape
                 PopupDismiss { screen: modelData }
 
-                // --- Popups ---
-                ArchMenu { anchorWindow: leftBorder }
-                
-                //--- GPU warning modal ---
-                GfxWarning { screen: modelData }
+                // GPU mode change confirmation modal
+                GfxWarning   { screen: modelData }
+
+                // ── All popups ───────────────────────────────────
+                // Add new popups in src/popups/PopupLayer.qml only
+                PopupLayer {
+                    topBar:       topBar
+                    leftBorder:   leftBorder
+                    rightBorder:  rightBorder
+                    bottomBorder: bottomBorder
+                }
             }
         }
     }

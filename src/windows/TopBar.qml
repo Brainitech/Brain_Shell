@@ -6,7 +6,9 @@ import "../modules/Right/"
 import "../modules/Left/"
 import "../"
 import "../shapes/"
-import "../popups/"
+
+// TopBar owns the notch layout and exposes clamped notch widths.
+// It does NOT instantiate any popups — that is PopupLayer's job.
 
 PanelWindow {
     id: root
@@ -24,12 +26,7 @@ PanelWindow {
     implicitHeight: Theme.notchHeight
     exclusiveZone:  Theme.exclusionGap
 
-    // ── Computed notch widths ────────────────────────────────────────────────
-    // Each notch measures its content's implicitWidth, adds padding, then
-    // clamps the result between the Theme min/max values.
-    // The shape and the item containers all read these same values so
-    // everything stays perfectly in sync.
-
+    // ── Clamped notch widths (read by PopupLayer / SeamlessBarShape) ─────────
     readonly property int lWidth: Math.max(
         Theme.lNotchMinWidth,
         Math.min(Theme.lNotchMaxWidth,
@@ -58,7 +55,6 @@ PanelWindow {
 
     // ── Left notch ───────────────────────────────────────────────────────────
     Item {
-        id: leftNotch
         implicitHeight: Theme.notchHeight
         implicitWidth:  root.lWidth
         anchors.left:   parent.left
@@ -71,7 +67,6 @@ PanelWindow {
 
     // ── Center notch ─────────────────────────────────────────────────────────
     Item {
-        id: centerNotch
         implicitHeight: Theme.notchHeight
         implicitWidth:  root.cWidth
         anchors.centerIn: parent
@@ -84,7 +79,6 @@ PanelWindow {
 
     // ── Right notch ──────────────────────────────────────────────────────────
     Item {
-        id: rightNotch
         implicitHeight: Theme.notchHeight
         implicitWidth:  root.rWidth
         anchors.right:  parent.right
@@ -93,12 +87,5 @@ PanelWindow {
             id: rightContent
             anchors.centerIn: parent
         }
-    }
-
-    // ── Popups ───────────────────────────────────────────────────────────────
-    // Declared here so they have access to this PanelWindow as anchorWindow.
-    AudioPopup {
-        anchorWindow: root
-        notchWidth:   root.rWidth
     }
 }

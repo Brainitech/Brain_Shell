@@ -8,6 +8,10 @@ QtObject {
     property bool notificationsOpen: false
     property bool archMenuOpen:      false
 
+    // Hover states — set by the trigger buttons in the bar.
+    // Each popup reads its own trigger state to implement openOnHover.
+    property bool audioTriggerHovered: false
+
     // Graphics mode warning dialog
     property bool   gfxWarningOpen:  false
     property string pendingGfxMode:  ""    // "Integrated" | "Hybrid"

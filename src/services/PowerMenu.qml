@@ -2,8 +2,7 @@ import QtQuick
 import Quickshell.Io
 import "../"
 
-// Power menu — a vertical list of power action buttons.
-// Embed inside ArchMenu.qml.
+// Power menu — vertical list of power action buttons.
 
 Column {
     id: root
@@ -11,12 +10,43 @@ Column {
     width: parent.width
 
     readonly property var actions: [
-        { label: "Shutdown",  icon: "⏻", cmd: ["systemctl", "poweroff"],             danger: true  },
-        { label: "Reboot",    icon: "↺",  cmd: ["systemctl", "reboot"],               danger: true  },
-        { label: "Suspend",   icon: "⏾", cmd: ["systemctl", "suspend"],              danger: false },
-        { label: "Lock",      icon: "🔒", cmd: ["loginctl",  "lock-session"],         danger: false },
+        {
+            label:   "Shutdown",
+            icon:    "⏻",
+            danger:  true,
+            confirm: true,
+            title:   "Shut Down?",
+            message: "Your computer will power off. Save your work before continuing.",
+            label2:  "Shut Down",
+            action:  "shutdown"
+        },
+        {
+            label:   "Reboot",
+            icon:    "↺",
+            danger:  true,
+            confirm: true,
+            title:   "Reboot?",
+            message: "Your computer will restart. Save your work before continuing.",
+            label2:  "Reboot",
+            action:  "reboot"
+        },
+        {
+            label:   "Suspend",
+            icon:    "⏾",
+            danger:  false,
+            confirm: false,
+            action:  "suspend"
+        },
+        {
+            label:   "Lock",
+            icon:    "🔒",
+            danger:  false,
+            confirm: false,
+            action:  "lock"
+        },
     ]
 
+    // Direct runner for non-confirm actions
     Process {
         id: runner
         property var pendingCmd: []
@@ -24,9 +54,13 @@ Column {
         onRunningChanged: if (!running) pendingCmd = []
     }
 
-    function run(cmd) {
-        runner.pendingCmd = cmd
-        runner.running    = true
+    function runDirect(action) {
+        switch (action) {
+            case "suspend": runner.pendingCmd = ["systemctl", "suspend"];        break
+            case "lock":    runner.pendingCmd = ["loginctl", "lock-session"];    break
+        }
+        runner.running = true
+        Popups.archMenuOpen = false
     }
 
     Repeater {
@@ -47,16 +81,16 @@ Column {
                 spacing: 10
 
                 Text {
-                    text:            modelData.icon
-                    font.pixelSize:  16
-                    color:           modelData.danger && hov.hovered ? "#ff6b6b" : Theme.text
+                    text:           modelData.icon
+                    font.pixelSize: 16
+                    color:          modelData.danger && hov.hovered ? "#ff6b6b" : Theme.text
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
                 Text {
-                    text:            modelData.label
-                    font.pixelSize:  13
-                    color:           modelData.danger && hov.hovered ? "#ff6b6b" : Theme.text
+                    text:           modelData.label
+                    font.pixelSize: 13
+                    color:          modelData.danger && hov.hovered ? "#ff6b6b" : Theme.text
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
@@ -66,8 +100,18 @@ Column {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    Popups.archMenuOpen = false
-                    root.run(modelData.cmd)
+                    if (modelData.confirm) {
+                        // Close menu first, then show confirm dialog
+                        Popups.closeAll()
+                        Popups.showConfirm(
+                            modelData.title,
+                            modelData.message,
+                            modelData.label2,
+                            modelData.action
+                        )
+                    } else {
+                        root.runDirect(modelData.action)
+                    }
                 }
             }
         }

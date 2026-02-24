@@ -10,21 +10,46 @@ QtObject {
     property bool archMenuOpen:      false
 
     // ── Per-popup trigger hover state ─────────────────────────────────────────
-    // Set true/false by the bar button's HoverHandler.
-    // Popups that support hover-to-open read their own entry here.
     property bool audioTriggerHovered:         false
-    property bool archMenuTriggerHovered:      false
     property bool networkTriggerHovered:       false
     property bool batteryTriggerHovered:       false
     property bool notificationsTriggerHovered: false
 
     // ── Universal popup behavior settings ─────────────────────────────────────
-    property int  slideDuration:    260   // ms — slide in/out animation
-    property int  hoverCloseDelay:  180   // ms — delay before closing on hover-leave
+    property int  slideDuration:   260
+    property int  hoverCloseDelay: 180
 
-    // ── GPU warning (not a regular popup — excluded from closeAll) ────────────
-    property bool   gfxWarningOpen: false
-    property string pendingGfxMode: ""    // "Integrated" | "Hybrid"
+    // ── Confirm dialog ────────────────────────────────────────────────────────
+    // Single reusable confirmation modal for any destructive action.
+    // Call showConfirm() to open it — ConfirmDialog reads these props.
+    //
+    // confirmAction keys:
+    //   "shutdown"    → systemctl poweroff
+    //   "reboot"      → systemctl reboot
+    //   "suspend"     → systemctl suspend
+    //   "lock"        → loginctl lock-session
+    //   "gfx-switch"  → supergfxctl -m confirmGfxMode, then hyprctl exit
+    property bool   confirmOpen:    false
+    property string confirmTitle:   ""
+    property string confirmMessage: ""
+    property string confirmLabel:   "Confirm"   // text on the confirm button
+    property string confirmAction:  ""
+    property string confirmGfxMode: ""          // only for "gfx-switch"
+
+    function showConfirm(title, message, label, action, gfxMode) {
+        confirmTitle   = title
+        confirmMessage = message
+        confirmLabel   = label
+        confirmAction  = action
+        confirmGfxMode = gfxMode ?? ""
+        confirmOpen    = true
+    }
+
+    function cancelConfirm() {
+        confirmOpen    = false
+        confirmAction  = ""
+        confirmGfxMode = ""
+    }
 
     // ── Global state ──────────────────────────────────────────────────────────
     readonly property bool anyOpen: audioOpen || networkOpen || batteryOpen

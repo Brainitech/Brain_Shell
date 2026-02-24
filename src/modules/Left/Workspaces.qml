@@ -16,7 +16,29 @@ Rectangle {
 
     // --- 2. LOGIC: Raw Event Listener ---
     property bool isScratchpad: false
+    
+    // ---Wheel: cycle through occupied workspaces ---
+    WheelHandler {
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        onWheel: function(event) {
+            // Fetch and sort occupied workspace IDs numerically
+            let occupied = Hyprland.workspaces.values.map(w => w.id).sort((a, b) => a - b);
+            if (occupied.length === 0) return; // Safety check
 
+            let currentId = Hyprland.focusedWorkspace?.id || occupied[0];
+            let idx = occupied.indexOf(currentId);
+            if (idx === -1) idx = 0; // Fallback if current isn't in the array
+
+            // Inverted scroll logic: Up (>0) goes to Next, Down (<0) goes to Prev
+            if (event.angleDelta.y > 0) {
+                idx = (idx + 1) % occupied.length;
+            } else {
+                idx = (idx - 1 + occupied.length) % occupied.length;
+            }
+            
+            Hyprland.dispatch(`workspace ${occupied[idx]}`);
+        }
+    }   
     Connections {
         target: Hyprland
         

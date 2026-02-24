@@ -3,3 +3,4 @@ SystemStats  SystemStats.qml
 BatteryStatus  BatteryStatus.qml
 BatteryWarning BatteryWarning.qml
 GfxControl GfxControl.qml
+AudioControl AudioControl.qml

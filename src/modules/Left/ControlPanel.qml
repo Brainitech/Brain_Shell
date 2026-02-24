@@ -10,4 +10,10 @@ IconBtn {
         Popups.closeAll()
         Popups.archMenuOpen = next
     }
+    
+        // ── Hover → show trigger state for AudioPopup hover-to-open ──────────────
+    HoverHandler {
+        id: hov
+        onHoveredChanged: Popups.archMenuTriggerHovered = hovered
+    }
 	}

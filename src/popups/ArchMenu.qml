@@ -2,63 +2,40 @@ import QtQuick
 import Quickshell
 import "../shapes"
 import "../services"
+import "../components"
 import "../"
-
-// Left-edge popup anchored to the left Border PanelWindow.
-// Each tab page declares its preferred (content) size; the window clamps
-// that to [Theme.popupMinWidth .. Theme.popupMaxWidth] and
-// [Theme.popupMinHeight .. Theme.popupMaxHeight] so the popup is always
-// within reasonable bounds regardless of content changes.
 
 PopupWindow {
     id: root
 
     required property var anchorWindow
 
-    // Flare sizes that match PopupShape's ear geometry
     readonly property int fw: Theme.cornerRadius
     readonly property int fh: Theme.cornerRadius
 
-    // ── Per-page preferred sizes ──────────────────────────────────────────────
-    // These are the desired *content* dimensions.  Adjust them to match your
-    // actual rendered content; the window will clamp them automatically.
-    readonly property var pagePreferredHeights: ({
+    // pageWidths drives the sizer width per page
+    // pageHeights drives the sizer height per page
+    readonly property var pageHeights: ({
         "power":       220,
-        "performance": 200,
+        "performance": 190,
         "stats":       250
     })
-
-    readonly property var pagePreferredWidths: ({
-        "power":       180,
-        "performance": 250,
-        "stats":       380
+    readonly property var pageWidths: ({
+        "power":       220,
+        "performance": 260,
+        "stats":       390
     })
+
+    readonly property int contentWidth:  pageWidths[page]  ?? 220
+    readonly property int contentHeight: pageHeights[page] ?? 220
 
     property string page: "power"
 
-    // ── Clamped dimensions ────────────────────────────────────────────────────
-    readonly property int contentWidth: Math.max(
-        Theme.popupMinWidth,
-        Math.min(Theme.popupMaxWidth,
-                 pagePreferredWidths[page]  ?? Theme.popupMinWidth)
-    )
-
-    readonly property int contentHeight: Math.max(
-        Theme.popupMinHeight,
-        Math.min(Theme.popupMaxHeight,
-                 pagePreferredHeights[page] ?? Theme.popupMinHeight)
-    )
-
-    // Add flare geometry to get final window size
-    implicitWidth:  contentWidth  + fw
-    implicitHeight: contentHeight + fh * 2
-
-    // ── Window setup ─────────────────────────────────────────────────────────
     color:   "transparent"
-    visible: Popups.archMenuOpen
+    visible: slide.windowVisible
 
-    Behavior on implicitWidth  { NumberAnimation { duration: 200; easing.type: Easing.InOutQuart } }
-    Behavior on implicitHeight { NumberAnimation { duration: 200; easing.type: Easing.InOutQuart } }
+    implicitWidth:  (pageWidths["stats"]  ?? 220) + fw
+    implicitHeight: (pageHeights["stats"] ?? 220) + fh * 2
 
     anchor.window:  anchorWindow
     anchor.gravity: Edges.Right
@@ -69,106 +46,112 @@ PopupWindow {
         implicitHeight
     )
 
-    // ── Background ───────────────────────────────────────────────────────────
-    PopupShape {
-        id: bg
+    PopupSlide {
+        id: slide
         anchors.fill: parent
-        attachedEdge: "left"
-        color:        Theme.background
-        radius:       Theme.cornerRadius
-        flareWidth:   root.fw
-        flareHeight:  root.fh
-    }
+        edge: "left"
+        hoverEnabled: false
+        triggerHovered:  Popups.archMenuTriggerHovered
+        open: Popups.archMenuOpen
 
-    // ── Content container ─────────────────────────────────────────────────────
-    Item {
-        anchors {
-            fill:         parent
-            leftMargin:   root.fw + 6
-            rightMargin:  8
-            topMargin:    root.fh + 6
-            bottomMargin: root.fh + 6
-        }
+        Item {
+            id: sizer
+            anchors.left:           parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            clip: true
 
-        Row {
-            anchors.fill: parent
-            spacing: 8
+            width:  root.contentWidth  + root.fw
+            height: root.contentHeight + root.fh * 2
 
-            // Vertical tab column
-            Column {
-                id: tabCol
-                width:   40
-                spacing: 30
-                anchors.verticalCenter: parent.verticalCenter
+            Behavior on width  { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+            Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
 
-                Repeater {
-                    model: [
-                        { key: "power",       icon: "⏻" },
-                        { key: "performance", icon: "⚡" },
-                        { key: "stats",       icon: "📊" },
-                    ]
+            PopupShape {
+                id: bg
+                anchors.fill: parent
+                attachedEdge: "left"
+                color:        Theme.background
+                radius:       Theme.cornerRadius
+                flareWidth:   root.fw
+                flareHeight:  root.fh
+            }
 
-                    delegate: Rectangle {
-                        width:  tabCol.width
-                        height: tabCol.width
-                        radius: Theme.cornerRadius * 2
+            Item {
+                anchors {
+                    fill:         parent
+                    leftMargin:   root.fw + 6
+                    rightMargin:  8
+                    topMargin:    root.fh + 6
+                    bottomMargin: root.fh + 6
+                }
 
-                        color: root.page === modelData.key
-                               ? Theme.active
-                               : (tabHov.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent")
+                Row {
+                    anchors.fill: parent
+                    spacing: 8
 
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                    // ── Tab switcher — left side ───────────────────────────────
+                    TabSwitcher {
+                        id: switcher
+                        anchors.verticalCenter: parent.verticalCenter
+                        model: [
+                            { key: "power",       icon: "⏻" },
+                            { key: "performance", icon: "⚡" },
+                            { key: "stats",       icon: "≡" },
+                        ]
+                        currentPage: root.page
+                        onPageChanged: function(key) { root.page = key }
+                    }
 
-                        Text {
-                            anchors.centerIn: parent
-                            text:            modelData.icon
-                            font.pixelSize:  16
-                            color: root.page === modelData.key
-                                   ? Theme.background
-                                   : Theme.text
+                    Rectangle {
+                        width: 1; height: parent.height
+                        color: Qt.rgba(1, 1, 1, 0.1)
+                    }
+
+                    // ── Page content ──────────────────────────────────────────
+                    Item {
+                        width:  parent.width - switcher.implicitWidth - 1 - parent.spacing * 2
+                        height: parent.height
+                        clip:   true
+
+                        // Power — PopupPage wraps a fixed-height Column, works fine
+                        PopupPage {
+                            anchors.fill: parent
+                            visible: root.page === "power"
+
+                            PowerMenu {
+                                // PowerMenu is a Column — just give it width,
+                                // it sizes itself by its children
+                                width: parent.width
+                            }
                         }
 
-                        HoverHandler { id: tabHov; cursorShape: Qt.PointingHandCursor }
-
-                        MouseArea {
+                        // Performance — GfxControl is a Column; give it width
+                        // and let it size itself. Do NOT pass height.
+                        PopupPage {
                             anchors.fill: parent
-                            onClicked:    root.page = modelData.key
+                            visible: root.page === "performance"
+
+                            GfxControl {
+                                width: parent.width
+                                // height intentionally omitted — Column auto-sizes
+                            }
+                        }
+
+                        // Stats — SystemStats root Item needs a height.
+                        // We give it the sizer content height minus padding.
+                        PopupPage {
+                            anchors.fill: parent
+                            visible: root.page === "stats"
+
+                            SystemStats {
+                                width:  parent.width
+                                // Item needs explicit height since it uses
+                                // internal anchors rather than implicitHeight.
+                                // Use the page content height minus PopupPage padding.
+                                height: root.contentHeight - root.fh * 2 - 12 - 16
+                            }
                         }
                     }
-                }
-            }
-
-            // Divider
-            Rectangle {
-                width:  1
-                height: parent.height
-                color:  Qt.rgba(1, 1, 1, 0.1)
-            }
-
-            // Page content
-            Item {
-                width:  parent.width - tabCol.width - 9
-                height: parent.height
-                clip:   true
-
-                PowerMenu {
-                    anchors.centerIn: parent
-                    width:            parent.width
-                    visible:          root.page === "power"
-                }
-
-                GfxControl {
-                    anchors.centerIn: parent
-                    width:            parent.width
-                    height:           parent.height
-                    visible:          root.page === "performance"
-                }
-
-                SystemStats {
-                    anchors.centerIn: parent
-                    width:            parent.width
-                    height:           parent.height
-                    visible:          root.page === "stats"
                 }
             }
         }

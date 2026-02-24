@@ -5,7 +5,7 @@ import "../../"
 Item {
     // Set to true to always show percentage beside the icon.
     // When false (default), percentage only shows on hover.
-    property bool showPercentage: true
+    property bool showPercentage: false
 
     implicitWidth:  status.implicitWidth
     implicitHeight: status.implicitHeight

@@ -13,7 +13,7 @@ Item {
 
     signal pageChanged(string key)
 
-    implicitWidth:  40
+    implicitWidth:  col.implicitWidth
     implicitHeight: col.implicitHeight
 
     // ── Wheel: cycle through pages ────────────────────────────────────────────
@@ -33,14 +33,15 @@ Item {
     Column {
         id: col
         anchors.centerIn: parent
-        spacing: 8
+        // spacing: 8
+        spacing : (parent.height - model.length * tabHeight) / (model.length - 1)
 
         Repeater {
             model: root.model
 
             delegate: Rectangle {
                 width:  40
-                height: 40
+                height: 60
                 radius: Theme.cornerRadius * 2
 
                 color: root.currentPage === modelData.key

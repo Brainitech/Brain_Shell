@@ -79,7 +79,7 @@ PopupWindow {
             Item {
                 anchors {
                     fill:         parent
-                    leftMargin:   root.fw + 6
+                    leftMargin:   root.fw - 4
                     rightMargin:  8
                     topMargin:    root.fh + 6
                     bottomMargin: root.fh + 6
@@ -88,7 +88,7 @@ PopupWindow {
                 Row {
                     anchors.fill: parent
                     spacing: 8
-
+                    
                     // ── Tab switcher — left side ───────────────────────────────
                     TabSwitcher {
                         id: switcher

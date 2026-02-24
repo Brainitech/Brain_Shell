@@ -9,7 +9,7 @@ Row{
     spacing: 8
     
     Row{
-        spacing: 2
+        spacing: 6
         
         Network{}
         

@@ -24,7 +24,7 @@ ShellRoot {
                 PopupDismiss { screen: modelData }
 
                 // GPU mode change confirmation modal
-                GfxWarning   { screen: modelData }
+                ConfirmDialog { screen: modelData }
 
                 // ── All popups ───────────────────────────────────
                 // Add new popups in src/popups/PopupLayer.qml only

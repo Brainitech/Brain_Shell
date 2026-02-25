@@ -95,7 +95,7 @@ PopupWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         model: [
                             { key: "power",       icon: "⏻" },
-                            { key: "performance", icon: "⚡" },
+                            { key: "performance", icon: "󰢮" },
                             { key: "stats",       icon: "≡" },
                         ]
                         currentPage: root.page

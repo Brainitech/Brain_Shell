@@ -21,7 +21,7 @@ Column {
             action:  "shutdown"
         },
         {
-            label:   "Reboot",
+            label:   "Reboot     ",
             icon:    "↺",
             danger:  true,
             confirm: true,
@@ -31,15 +31,15 @@ Column {
             action:  "reboot"
         },
         {
-            label:   "Suspend",
+            label:   "Suspend  ",
             icon:    "⏾",
             danger:  false,
             confirm: false,
             action:  "suspend"
         },
         {
-            label:   "Lock",
-            icon:    "🔒",
+            label:   "Lock        ",
+            icon:    "󰌾",
             danger:  false,
             confirm: false,
             action:  "lock"
@@ -83,14 +83,14 @@ Column {
                 Text {
                     text:           modelData.icon
                     font.pixelSize: 16
-                    color:          modelData.danger && hov.hovered ? "#ff6b6b" : Theme.text
+                    color:          modelData.danger && hov.hovered ? "#ff6b6b" : hov.hovered?"#000000":Theme.text
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
                 Text {
                     text:           modelData.label
                     font.pixelSize: 13
-                    color:          modelData.danger && hov.hovered ? "#ff6b6b" : Theme.text
+                    color:          modelData.danger && hov.hovered ? "#ff6b6b" : hov.hovered?"#000000":Theme.text
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }

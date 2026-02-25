@@ -3,7 +3,8 @@ import QtQuick
 
 QtObject {
     // -- Colors --
-    property color background: "#475c57"
+    // property color background: "#475c57"
+    property color background: "#1a282a"
     property color active:     "#a6d0f7"
     property color text:       "#cdd6f4"
     property color icon:       "#ffffff"

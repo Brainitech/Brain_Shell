@@ -17,10 +17,22 @@ Rectangle {
     // --- 2. LOGIC: Raw Event Listener ---
     property bool isScratchpad: false
     
+    property bool scrollBusy: false
+
+    Timer {
+        id: scrollCooldown
+        interval: 300   // ms — tune up if still too fast, down if sluggish
+        repeat:   false
+        onTriggered: root.scrollBusy = false
+    }
+    
     // ---Wheel: cycle through occupied workspaces ---
     WheelHandler {
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         onWheel: function(event) {
+            if (root.scrollBusy) return; // Ignore if still in cooldown
+            root.scrollBusy = true;
+            scrollCooldown.restart();
             // Fetch and sort occupied workspace IDs numerically
             let occupied = Hyprland.workspaces.values.map(w => w.id).sort((a, b) => a - b);
             if (occupied.length === 0) return; // Safety check

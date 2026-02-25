@@ -15,11 +15,23 @@ Item {
 
     implicitWidth:  col.implicitWidth
     implicitHeight: col.implicitHeight
+    
+    property bool scrollBusy: false
+
+    Timer {
+        id: scrollCooldown
+        interval: 300   // ms — tune up if still too fast, down if sluggish
+        repeat:   false
+        onTriggered: root.scrollBusy = false
+    }
 
     // ── Wheel: cycle through pages ────────────────────────────────────────────
     WheelHandler {
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         onWheel: function(event) {
+            if (root.scrollBusy) return; // Ignore if still in cooldown
+            root.scrollBusy = true;
+            scrollCooldown.restart();
             var keys = root.model.map(function(m) { return m.key })
             var idx  = keys.indexOf(root.currentPage)
             if (event.angleDelta.y < 0)

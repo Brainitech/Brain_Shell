@@ -23,13 +23,13 @@ Column {
 
     Process {
         id: gfxReader
-        command: ["supergfxctl", "-g"]
+        command: ["envycontrol", "-q"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
                 var mode = text.trim()
                 root.gfxMode     = mode
-                root.dgpuEnabled = (mode === "Hybrid")
+                root.dgpuEnabled = (mode === "hybrid")
             }
         }
     }
@@ -152,15 +152,17 @@ Column {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        var targetMode = root.dgpuEnabled ? "Integrated" : "Hybrid"
+                        // Display label is capitalised; CLI arg must be lowercase
+                        var displayMode = root.dgpuEnabled ? "Integrated" : "Hybrid"
+                        var cliMode     = displayMode.toLowerCase()
                         Popups.showConfirm(
                             "Switch Graphics Mode",
-                            "Switching to <b>" + targetMode + "</b> mode requires saving your "
-                            + "work and logging out. Your session will end immediately after "
+                            "Switching to <b>" + displayMode + "</b> mode requires saving your "
+                            + "work and rebooting. Your system will restart immediately after "
                             + "the change is applied.",
-                            "Switch & Log Out",
+                            "Switch & Reboot",
                             "gfx-switch",
-                            targetMode
+                            cliMode
                         )
                     }
                 }

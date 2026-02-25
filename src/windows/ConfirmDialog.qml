@@ -13,7 +13,7 @@ import "../"
 //   "reboot"     → systemctl reboot
 //   "suspend"    → systemctl suspend
 //   "lock"       → loginctl lock-session
-//   "gfx-switch" → supergfxctl -m <confirmGfxMode>, then hyprctl exit
+//   "gfx-switch" → envycontrol -s <confirmGfxMode>, then systemctl reboot
 
 PanelWindow {
     id: root
@@ -33,11 +33,11 @@ PanelWindow {
         id: proc
         property var pendingCmd: []
         command: pendingCmd
-        onRunningChanged: if (!running && logout.command.length > 0) logout.running = true
+        onRunningChanged: if (!running && reboot.command.length > 0) reboot.running = true
     }
 
     Process {
-        id: logout
+        id: reboot
         command: []   // only populated for gfx-switch
     }
 
@@ -64,8 +64,9 @@ PanelWindow {
                 proc.running = true
                 break
             case "gfx-switch":
-                logout.command = ["hyprctl", "dispatch", "exit", "0"]
-                proc.pendingCmd = ["supergfxctl", "-m", Popups.confirmGfxMode]
+                Popups.confirmRunning = true   // ← show spinner / status text
+                reboot.command  = ["systemctl", "reboot"]
+                proc.pendingCmd = ["pkexec", "envycontrol", "-s", Popups.confirmGfxMode.toLowerCase()]
                 proc.running = true
                 break
         }

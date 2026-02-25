@@ -2,5 +2,5 @@ PowerMenu    PowerMenu.qml
 SystemStats  SystemStats.qml
 BatteryStatus  BatteryStatus.qml
 BatteryWarning BatteryWarning.qml
-GfxControl GfxControl.qml
+EnvyControl EnvyControl.qml
 AudioControl AudioControl.qml

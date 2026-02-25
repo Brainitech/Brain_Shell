@@ -125,13 +125,13 @@ PopupWindow {
                             }
                         }
 
-                        // Performance — GfxControl is a Column; give it width
+                        // Performance — EnvyControl is a Column; give it width
                         // and let it size itself. Do NOT pass height.
                         PopupPage {
                             anchors.fill: parent
                             visible: root.page === "performance"
 
-                            GfxControl {
+                            EnvyControl {
                                 width: parent.width
                                 // height intentionally omitted — Column auto-sizes
                             }

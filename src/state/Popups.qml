@@ -35,6 +35,8 @@ QtObject {
     property string confirmLabel:   "Confirm"   // text on the confirm button
     property string confirmAction:  ""
     property string confirmGfxMode: ""          // only for "gfx-switch"
+    property bool confirmRunning: false
+    
 
     function showConfirm(title, message, label, action, gfxMode) {
         confirmTitle   = title

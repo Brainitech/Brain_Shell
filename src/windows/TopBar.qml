@@ -23,21 +23,35 @@ PanelWindow {
         right: true
     }
 
+    // FIXED — never changes. Dashboard expansion is handled by a
+    // separate PopupWindow (Dashboard.qml) that drops down below the notch.
+    // Animating implicitHeight on a PanelWindow causes a compositor
+    // window resize which is inherently jerky.
     implicitHeight: Theme.notchHeight
-    exclusiveZone:  Theme.exclusionGap
+
+    exclusiveZone: Theme.exclusionGap
 
     // ── Clamped notch widths (read by PopupLayer / SeamlessBarShape) ─────────
+
     readonly property int lWidth: Math.max(
         Theme.lNotchMinWidth,
         Math.min(Theme.lNotchMaxWidth,
                  leftContent.implicitWidth + Theme.notchPadding * 2)
     )
 
-    readonly property int cWidth: Math.max(
-        Theme.cNotchMinWidth,
-        Math.min(Theme.cNotchMaxWidth,
-                 centerContent.implicitWidth + Theme.notchPadding * 2)
-    )
+    // cWidth animates to dashboardWidth when the dashboard is open.
+    // Safe to animate — PanelWindow spans full screen width so no
+    // compositor resize occurs, only a QML canvas repaint.
+    property int cWidth: Popups.dashboardOpen
+        ? Theme.dashboardWidth
+        : Math.max(
+            Theme.cNotchMinWidth,
+            Math.min(Theme.cNotchMaxWidth,
+                     centerContent.implicitWidth + Theme.notchPadding * 2)
+          )
+    Behavior on cWidth {
+        NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+    }
 
     readonly property int rWidth: Math.max(
         Theme.rNotchMinWidth,

@@ -37,11 +37,17 @@ QtObject {
     property int lNotchMinWidth: 180
     property int lNotchMaxWidth: 360
 
-    property int cNotchMinWidth: 180
-    property int cNotchMaxWidth: 300
+    property int cNotchMinWidth: 300
+    property int cNotchMaxWidth: 360
 
     property int rNotchMinWidth: 200
     property int rNotchMaxWidth: 360
+
+    // -- Dashboard Dimensions --
+    // Target size the center notch expands to when the dashboard is open.
+    // Tune these values to taste.
+    property int dashboardWidth:  900
+    property int dashboardHeight: 520
 
     // -- Popup Size Constraints --
     property int popupMinWidth:  160
@@ -55,4 +61,7 @@ QtObject {
     property int wsSpacing:     6
     property int wsPadding:     8
     property int wsRadius:      16
+    
+    // -- Animations --
+    property int animDuration: 320
 }

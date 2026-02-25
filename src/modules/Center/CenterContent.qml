@@ -4,52 +4,73 @@ import Quickshell.Services.Mpris
 import "../../"
 
 Item {
-    width: 150 // Max width for the center notch content
+    width: 200
     height: 30
-    
-    // The "Carousel" or List
-    ListView {
-        id: statusList
-        anchors.fill: parent
-        orientation: ListView.Vertical
-        spacing: 15
-        clip: true // Cut off text that slides out
-        
-        // This makes it snap to items when you scroll
-        snapMode: ListView.SnapOneItem 
-        
-		model: ObjectModel {
-			Text {
-				width: 150; height: 30
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-				text: "Work In Progress"
-				color: "#ffffff"
-			}
-            // Item 1: Active Window
-            Text {
-                width: 150; height: 30
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                text: Hyprland.activeToplevel ? Hyprland.activeToplevel.title : "Desktop"
-                color: Theme.text
-                elide: Text.ElideRight
-            }
 
-            // Item 3: Hostname (Static for now)
-            Text {
-                width: 150; height: 30
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                text: "ArchLinux" 
-                color: "#FFFFFF"
+    // ── Carousel — fades out while dashboard is open ──────────────────────────
+    Item {
+        anchors.fill: parent
+
+        opacity: Popups.dashboardOpen ? 0 : 1
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 150 } }
+
+        ListView {
+            id: statusList
+            anchors.fill: parent
+            orientation: ListView.Vertical
+            spacing: 15
+            clip: true
+            snapMode: ListView.SnapOneItem
+
+            model: ObjectModel {
+                Text {
+                    width: 200; height: 30
+                    verticalAlignment:   Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    text:  "Work In Progress"
+                    color: "#ffffff"
+                }
+
+                Text {
+                    width: 200; height: 30
+                    verticalAlignment:   Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    text:  Hyprland.activeToplevel ? Hyprland.activeToplevel.title : "Desktop"
+                    color: Theme.text
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    width: 200; height: 30
+                    verticalAlignment:   Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    text:  "ArchLinux"
+                    color: "#FFFFFF"
+                }
             }
         }
     }
 
-    // "Open menu will be control panel"
+    // ── Dashboard-open indicator — fades in when dashboard is open ────────────
+    Text {
+        anchors.centerIn: parent
+        text:    "▾"
+        color:   Theme.active
+        font.pixelSize: 14
+        opacity: Popups.dashboardOpen ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 150 } }
+    }
+
+    // ── Click anywhere in the notch to toggle the dashboard ──────────────────
     MouseArea {
         anchors.fill: parent
-        onClicked: console.log("Open Control Panel")
+        cursorShape:  Qt.PointingHandCursor
+        onClicked: {
+            var next = !Popups.dashboardOpen
+            Popups.closeAll()
+            Popups.dashboardOpen = next
+        }
     }
 }

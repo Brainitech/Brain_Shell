@@ -8,6 +8,7 @@ QtObject {
     property bool batteryOpen:       false
     property bool notificationsOpen: false
     property bool archMenuOpen:      false
+    property bool dashboardOpen:     false
 
     // ── Per-popup trigger hover state ─────────────────────────────────────────
     property bool audioTriggerHovered:         false
@@ -56,6 +57,7 @@ QtObject {
     // ── Global state ──────────────────────────────────────────────────────────
     readonly property bool anyOpen: audioOpen || networkOpen || batteryOpen
                                     || notificationsOpen || archMenuOpen
+                                    || dashboardOpen
 
     function closeAll() {
         audioOpen         = false
@@ -63,5 +65,6 @@ QtObject {
         batteryOpen       = false
         notificationsOpen = false
         archMenuOpen      = false
+        dashboardOpen     = false
     }
 }

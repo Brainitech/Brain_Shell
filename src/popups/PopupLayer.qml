@@ -22,49 +22,37 @@ Item {
     required property var bottomBorder // bottom Border PanelWindow
 
     // ── Border-anchored popups ───────────────────────────────
-    // These slide out from a screen edge. The notch is unaffected.
 
     // Left border → center
     ArchMenu {
         anchorWindow: root.leftBorder
     }
 
-    // Right border → center  [placeholder — AudioMenu not built yet]
-    // AudioMenu {
-    //     anchorWindow: root.rightBorder
-    // }
-
-    // Bottom border → center  [placeholder — WallpaperMenu not built yet]
-    // WallpaperMenu {
-    //     anchorWindow: root.bottomBorder
-    // }
-
     // ── TopBar-anchored popups ───────────────────────────────
-    // These need the TopBar as anchor so they position correctly
-    // relative to the notches.
 
-    // Right notch area
+    // Right notch — audio
     AudioPopup {
         anchorWindow: root.rightBorder
+    }
+
+    // Center notch — dashboard (expands below the center notch)
+    Dashboard {
+        anchorWindow: root.topBar
     }
 
     // Right notch  [placeholders — not built yet]
     // NotificationsPopup {
     //     anchorWindow: root.topBar
-    //     notchWidth:   root.topBar.rWidth
     // }
     // NetworkPopup {
     //     anchorWindow: root.topBar
-    //     notchWidth:   root.topBar.rWidth
     // }
     // SysTrayPopup {
     //     anchorWindow: root.topBar
-    //     notchWidth:   root.topBar.rWidth
     // }
 
-    // Center notch  [placeholder — Dashboard not built yet]
-    // Dashboard {
-    //     anchorWindow: root.topBar
-    //     notchWidth:   root.topBar.cWidth
+    // Bottom border → center  [placeholder — WallpaperMenu not built yet]
+    // WallpaperMenu {
+    //     anchorWindow: root.bottomBorder
     // }
 }

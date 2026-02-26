@@ -22,6 +22,8 @@ PopupWindow {
     readonly property int fh: Theme.notchRadius
 
     readonly property int animDuration: Theme.animDuration
+    
+    property string page: "home"
 
     color:   "transparent"
     visible: windowVisible
@@ -117,12 +119,91 @@ PopupWindow {
             }
 
             // ── Placeholder ───────────────────────────────────────────────────
-            Text {
-                anchors.centerIn: parent
-                text:             "Dashboard"
-                color:            Qt.rgba(1, 1, 1, 0.4)
-                font.pixelSize:   20
-                font.bold:        true
+            Column {
+                anchors.fill: parent
+                spacing: 0
+
+                // ── Tab bar ───────────────────────────────────────────────────
+                TabSwitcher {
+                    id: tabBar
+                    orientation: "horizontal"
+                    width:       parent.width
+                    currentPage: root.page
+                    model: [
+                        { key: "home",     icon: "󰋜",  label: "Home"   },
+                        { key: "stats",    icon: "󰻠",  label: "System" },
+                        { key: "kanban",   icon: "󰄬",  label: "Tasks"  },
+                        { key: "launcher", icon: "󱓞",  label: "Apps"   },
+                        { key: "config",   icon: "󰒓",  label: "Config" },
+                    ]
+                    onPageChanged: function(key) { root.page = key }
+                }
+
+                // ── Page area ─────────────────────────────────────────────────
+                Item {
+                    width:  parent.width
+                    height: parent.height - tabBar.height
+
+                    // Home
+                    Item {
+                        anchors.fill: parent
+                        visible:      root.page === "home"
+                        Text {
+                            anchors.centerIn: parent
+                            text:  "🏠 Home"
+                            color: Qt.rgba(1,1,1,0.3)
+                            font.pixelSize: 16
+                        }
+                    }
+
+                    // Stats
+                    Item {
+                        anchors.fill: parent
+                        visible:      root.page === "stats"
+                        Text {
+                            anchors.centerIn: parent
+                            text:  "📊 System Stats"
+                            color: Qt.rgba(1,1,1,0.3)
+                            font.pixelSize: 16
+                        }
+                    }
+
+                    // Kanban
+                    Item {
+                        anchors.fill: parent
+                        visible:      root.page === "kanban"
+                        Text {
+                            anchors.centerIn: parent
+                            text:  "📋 Tasks"
+                            color: Qt.rgba(1,1,1,0.3)
+                            font.pixelSize: 16
+                        }
+                    }
+
+                    // App Launcher
+                    Item {
+                        anchors.fill: parent
+                        visible:      root.page === "launcher"
+                        Text {
+                            anchors.centerIn: parent
+                            text:  "🚀 App Launcher"
+                            color: Qt.rgba(1,1,1,0.3)
+                            font.pixelSize: 16
+                        }
+                    }
+
+                    // Config
+                    Item {
+                        anchors.fill: parent
+                        visible:      root.page === "config"
+                        Text {
+                            anchors.centerIn: parent
+                            text:  "⚙️ Config"
+                            color: Qt.rgba(1,1,1,0.3)
+                            font.pixelSize: 16
+                        }
+                    }
+                }
             }
         }
     }

@@ -1,64 +1,180 @@
 import QtQuick
 import "../"
 
-// Reusable vertical tab column.
-// Supports mouse wheel scrolling to cycle pages.
-// Parent Row decides whether it sits left or right.
+// Unified tab switcher — horizontal or vertical.
+//
+// orientation: "horizontal" (default) — Row, fills parent width, tabs spaced equally
+//              "vertical"             — Column, fills parent height, tabs spaced equally
+//
+// Horizontal: icon + label pill, bottom divider. Used by Dashboard.
+// Vertical:   icon-only solid pill. Used by ArchMenu.
+//
+// Model: [{ key: string, icon: string, label?: string }]
+// label is optional — only rendered in horizontal orientation.
+//
+// Sizing contract:
+//   Horizontal — parent MUST set width.  implicitHeight is 40.
+//   Vertical   — parent MUST set height. implicitWidth  is 40.
 
 Item {
     id: root
 
     property var    model:       []
     property string currentPage: ""
+    property string orientation: "horizontal"   // "horizontal" | "vertical"
 
     signal pageChanged(string key)
 
-    implicitWidth:  col.implicitWidth
-    implicitHeight: col.implicitHeight
-    
+    implicitWidth:  orientation === "vertical"   ? 40 : 0
+    implicitHeight: orientation === "horizontal" ? 40 : 0
+
+    // ── Scroll cooldown ───────────────────────────────────────────────────────
     property bool scrollBusy: false
 
     Timer {
         id: scrollCooldown
-        interval: 300   // ms — tune up if still too fast, down if sluggish
+        interval: 300
         repeat:   false
         onTriggered: root.scrollBusy = false
     }
 
-    // ── Wheel: cycle through pages ────────────────────────────────────────────
     WheelHandler {
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         onWheel: function(event) {
-            if (root.scrollBusy) return; // Ignore if still in cooldown
-            root.scrollBusy = true;
-            scrollCooldown.restart();
+            if (root.scrollBusy) return
+            root.scrollBusy = true
+            scrollCooldown.restart()
             var keys = root.model.map(function(m) { return m.key })
             var idx  = keys.indexOf(root.currentPage)
             if (event.angleDelta.y < 0)
-                idx = (idx + 1) % keys.length          // scroll down → next
+                idx = (idx + 1) % keys.length
             else
-                idx = (idx - 1 + keys.length) % keys.length  // scroll up → prev
+                idx = (idx - 1 + keys.length) % keys.length
             root.pageChanged(keys[idx])
         }
     }
 
-    Column {
-        id: col
-        anchors.centerIn: parent
-        // spacing: 8
-        spacing : (parent.height - model.length * tabHeight) / (model.length - 1)
+    // ── HORIZONTAL layout — Row ───────────────────────────────────────────────
+    Row {
+        id: hRow
+        anchors.fill: parent
+        visible: root.orientation === "horizontal"
 
         Repeater {
-            model: root.model
+            model: root.orientation === "horizontal" ? root.model : []
+
+            delegate: Item {
+                id: hTab
+                readonly property bool isActive: root.currentPage === modelData.key
+
+                width:  hRow.width / root.model.length
+                height: hRow.height
+
+                // Pill background
+                Rectangle {
+                    id: hBg
+                    anchors.centerIn: parent
+                    width:  hIcon.implicitWidth + hLabel.implicitWidth + 24
+                    height: parent.height - 8
+                    radius: height / 2
+
+                    color: hTab.isActive
+                               ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
+                               : (hHov.hovered ? Qt.rgba(1, 1, 1, 0.07) : "transparent")
+
+                    Behavior on color { ColorAnimation { duration: 120 } }
+                }
+
+                // Left accent bar on active tab
+                Rectangle {
+                    visible: hTab.isActive
+                    width:   2
+                    height:  14
+                    radius:  1
+                    color:   Theme.active
+                    anchors {
+                        left:           parent.left
+                        leftMargin:     (hTab.width - hBg.width) / 2
+                        verticalCenter: parent.verticalCenter
+                    }
+                }
+
+                // Icon + label
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 6
+
+                    Text {
+                        id: hIcon
+                        text:           modelData.icon
+                        font.pixelSize: 14
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: hTab.isActive
+                                   ? Theme.active
+                                   : (hHov.hovered ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.4))
+                        Behavior on color { ColorAnimation { duration: 120 } }
+                    }
+
+                    Text {
+                        id: hLabel
+                        visible:        modelData.label !== undefined
+                        text:           modelData.label ?? ""
+                        font.pixelSize: 12
+                        font.weight:    hTab.isActive ? Font.Medium : Font.Normal
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: hTab.isActive
+                                   ? Theme.active
+                                   : (hHov.hovered ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.4))
+                        Behavior on color { ColorAnimation { duration: 120 } }
+                    }
+                }
+
+                HoverHandler { id: hHov; cursorShape: Qt.PointingHandCursor }
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked:    root.pageChanged(modelData.key)
+                }
+            }
+        }
+    }
+
+    // Bottom divider — horizontal only
+    Rectangle {
+        visible:        root.orientation === "horizontal"
+        anchors.bottom: parent.bottom
+        anchors.left:   parent.left
+        anchors.right:  parent.right
+        height:         1
+        color:          Qt.rgba(1, 1, 1, 0.07)
+    }
+
+    // ── VERTICAL layout — Column ──────────────────────────────────────────────
+    Column {
+        id: vCol
+        anchors.centerIn: parent
+        visible: root.orientation === "vertical"
+
+        // Distribute tabs evenly: gap = (totalHeight - allTabHeights) / gaps
+        // Tab height is fixed at 60px to match original ArchMenu style.
+        readonly property int tabH: 60
+        spacing: root.model.length > 1
+                     ? (root.height - root.model.length * tabH) / (root.model.length - 1)
+                     : 0
+
+        Repeater {
+            model: root.orientation === "vertical" ? root.model : []
 
             delegate: Rectangle {
+                id: vTab
+                readonly property bool isActive: root.currentPage === modelData.key
+
                 width:  40
-                height: 60
+                height: vCol.tabH
                 radius: Theme.cornerRadius * 2
 
-                color: root.currentPage === modelData.key
+                color: vTab.isActive
                            ? Theme.active
-                           : (hov.hovered ? Qt.rgba(1,1,1,0.08) : "transparent")
+                           : (vHov.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent")
 
                 Behavior on color { ColorAnimation { duration: 120 } }
 
@@ -66,13 +182,11 @@ Item {
                     anchors.centerIn: parent
                     text:            modelData.icon
                     font.pixelSize:  16
-                    color: root.currentPage === modelData.key
-                               ? Theme.background
-                               : Theme.text
+                    color: vTab.isActive ? Theme.background : Theme.text
                     Behavior on color { ColorAnimation { duration: 120 } }
                 }
 
-                HoverHandler { id: hov; cursorShape: Qt.PointingHandCursor }
+                HoverHandler { id: vHov; cursorShape: Qt.PointingHandCursor }
                 MouseArea {
                     anchors.fill: parent
                     onClicked:    root.pageChanged(modelData.key)

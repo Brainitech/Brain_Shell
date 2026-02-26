@@ -162,6 +162,8 @@ Item {
         // Tab switcher — right side
         TabSwitcher {
             id: switcher
+            orientation: "vertical"
+            height: parent.height
             anchors.verticalCenter: parent.verticalCenter
             model: [
                 { key: "output", icon: "󰕾" },

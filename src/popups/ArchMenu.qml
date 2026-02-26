@@ -92,6 +92,8 @@ PopupWindow {
                     // ── Tab switcher — left side ───────────────────────────────
                     TabSwitcher {
                         id: switcher
+                        orientation: "vertical"
+                        height: parent.height
                         anchors.verticalCenter: parent.verticalCenter
                         model: [
                             { key: "power",       icon: "⏻" },

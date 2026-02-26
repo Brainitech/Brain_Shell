@@ -4,7 +4,7 @@ import Quickshell.Services.Mpris
 import "../../"
 
 Item {
-    width: 200
+    width: Theme.cNotchMinWidth
     height: 30
 
     // ── Carousel — fades out while dashboard is open ──────────────────────────
@@ -25,7 +25,7 @@ Item {
 
             model: ObjectModel {
                 Text {
-                    width: 200; height: 30
+                    width: Theme.cNotchMinWidth; height: 30
                     verticalAlignment:   Text.AlignVCenter
                     horizontalAlignment: Text.AlignHCenter
                     text:  "Work In Progress"
@@ -33,7 +33,7 @@ Item {
                 }
 
                 Text {
-                    width: 200; height: 30
+                    width: Theme.cNotchMinWidth; height: 30
                     verticalAlignment:   Text.AlignVCenter
                     horizontalAlignment: Text.AlignHCenter
                     text:  Hyprland.activeToplevel ? Hyprland.activeToplevel.title : "Desktop"
@@ -42,7 +42,7 @@ Item {
                 }
 
                 Text {
-                    width: 200; height: 30
+                    width: Theme.cNotchMinWidth; height: 30
                     verticalAlignment:   Text.AlignVCenter
                     horizontalAlignment: Text.AlignHCenter
                     text:  "ArchLinux"

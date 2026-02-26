@@ -42,7 +42,7 @@ Rectangle {
             if (idx === -1) idx = 0; // Fallback if current isn't in the array
 
             // Inverted scroll logic: Up (>0) goes to Next, Down (<0) goes to Prev
-            if (event.angleDelta.y > 0) {
+            if (event.angleDelta.y < 0) {
                 idx = (idx + 1) % occupied.length;
             } else {
                 idx = (idx - 1 + occupied.length) % occupied.length;

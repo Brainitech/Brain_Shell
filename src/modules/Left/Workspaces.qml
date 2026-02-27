@@ -97,6 +97,8 @@ Rectangle {
                 property var ws: Hyprland.workspaces.values.find(w => w.id === index + 1)
                 property bool isActive: Hyprland.focusedWorkspace?.id === (index + 1)
                 property bool isOccupied: ws !== undefined
+                property bool isUrgent:   ws !== undefined && ws.urgent
+
 
                 height: Theme.wsDotSize
                 radius: height / 2
@@ -104,12 +106,39 @@ Rectangle {
                 
                 color: {
                     if (isActive)   return Theme.wsActive
+                    if (isUrgent)   return Theme.wsUrgent
                     if (isOccupied) return Theme.wsOccupied
                     return Theme.wsEmpty
                 }
 
                 Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
                 Behavior on color { ColorAnimation { duration: 200 } }
+
+                // --- Urgent pulse ---
+                SequentialAnimation {
+                    running: dot.isUrgent && !dot.isActive
+                    loops:   Animation.Infinite
+
+                    NumberAnimation {
+                        target:   dot
+                        property: "scale"
+                        to:       1.35
+                        duration: 400
+                        easing.type: Easing.InOutSine
+                    }
+                    NumberAnimation {
+                        target:   dot
+                        property: "scale"
+                        to:       1.0
+                        duration: 400
+                        easing.type: Easing.InOutSine
+                    }
+                }
+
+                // Reset scale when no longer urgent
+                onIsUrgentChanged: {
+                    if (!isUrgent) scale = 1.0
+                }
 
                 MouseArea {
                     anchors.fill: parent

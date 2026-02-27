@@ -16,6 +16,9 @@ QtObject {
     property color wsOccupied:   "#80FFFFFF"
     property color wsEmpty:      "#30FFFFFF"
     property color wsOverlay:    "#CC1e1e2e"
+    property color wsUrgent:     "#fa6b94"
+    
+    
     
     // --Bar Toggle--
     property bool barEnabled: false
@@ -25,7 +28,7 @@ QtObject {
     property int cornerRadius:  17
     property int notchRadius:   15
     property int notchHeight:   40
-    property int exclusionGap:  40
+    property int exclusionGap:  34
     property int spacing:       10
 
     // -- Notch Content Padding --

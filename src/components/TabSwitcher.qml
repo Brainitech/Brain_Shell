@@ -85,20 +85,6 @@ Item {
                     Behavior on color { ColorAnimation { duration: 120 } }
                 }
 
-                // Left accent bar on active tab
-                Rectangle {
-                    visible: hTab.isActive
-                    width:   2
-                    height:  14
-                    radius:  1
-                    color:   Theme.active
-                    anchors {
-                        left:           parent.left
-                        leftMargin:     (hTab.width - hBg.width) / 2
-                        verticalCenter: parent.verticalCenter
-                    }
-                }
-
                 // Icon + label
                 Row {
                     anchors.centerIn: parent

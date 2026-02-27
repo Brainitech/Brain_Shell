@@ -3,7 +3,7 @@ import QtQuick
 
 QtObject {
     // -- Colors --
-    // property color background: "#475c57"
+    // property color background: "#00ffc3"
     property color background: "#1a282a"
     property color active:     "#a6d0f7"
     property color text:       "#cdd6f4"
@@ -16,13 +16,16 @@ QtObject {
     property color wsOccupied:   "#80FFFFFF"
     property color wsEmpty:      "#30FFFFFF"
     property color wsOverlay:    "#CC1e1e2e"
+    
+    // --Bar Toggle--
+    property bool barEnabled: false
 
     // -- Bar Sizes --
     property int borderWidth:   6
     property int cornerRadius:  17
     property int notchRadius:   15
     property int notchHeight:   40
-    property int exclusionGap:  34
+    property int exclusionGap:  40
     property int spacing:       10
 
     // -- Notch Content Padding --

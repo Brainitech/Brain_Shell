@@ -7,7 +7,7 @@ PanelWindow {
 
     // --- Configuration ---
     property string edge: "bottom"
-    
+    property bool isBarEnabled: Theme.barEnabled
     // --- Visuals ---
     property int thickness: Theme.borderWidth      
     property int radius: Theme.cornerRadius        
@@ -20,6 +20,7 @@ PanelWindow {
 
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
+    // exclusiveZone: Theme.borderWidth
 
     anchors {
         left: (edge === "left" || edge === "bottom")

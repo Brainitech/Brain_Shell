@@ -8,10 +8,10 @@ import "../"
 // Driven entirely by Popups.confirm* props.
 // Call Popups.showConfirm() to open, Popups.cancelConfirm() to close.
 //
-// Supported confirmAction values:
-//   "shutdown"   → systemctl poweroff
-//   "reboot"     → systemctl reboot
-//   "suspend"    → systemctl suspend
+// Supported confirmAction values — all routed through scripts/PowerControl.sh:
+//   "shutdown"   → hyprshutdown --post-cmd "systemctl poweroff"
+//   "reboot"     → hyprshutdown --post-cmd "systemctl reboot"
+//   "logout"     → hyprshutdown 
 //   "lock"       → loginctl lock-session
 //   "gfx-switch" → envycontrol -s <confirmGfxMode>, then systemctl reboot
 
@@ -46,21 +46,28 @@ PanelWindow {
         Popups.confirmOpen = false
         Popups.closeAll()
 
+        const script = Quickshell.shellDir + "/src/scripts/PowerControl.sh"
+        console.log(script)
+
         switch (Popups.confirmAction) {
             case "shutdown":
-                proc.pendingCmd = ["systemctl", "poweroff"]
+                proc.pendingCmd = ["bash", script, "shutdown"]
                 proc.running = true
                 break
             case "reboot":
-                proc.pendingCmd = ["systemctl", "reboot"]
+                proc.pendingCmd = ["bash", script, "reboot"]
+                proc.running = true
+                break
+            case "logout":
+                proc.pendingCmd = ["bash", script, "logout"]
+                proc.running = true
+                break
+            case "lock":
+                proc.pendingCmd = ["logindctl", "lock-session"]
                 proc.running = true
                 break
             case "suspend":
                 proc.pendingCmd = ["systemctl", "suspend"]
-                proc.running = true
-                break
-            case "lock":
-                proc.pendingCmd = ["loginctl", "lock-session"]
                 proc.running = true
                 break
             case "gfx-switch":
@@ -118,6 +125,7 @@ PanelWindow {
                     switch (Popups.confirmAction) {
                         case "shutdown":   return "⏻"
                         case "reboot":     return "↺"
+                        case "logout":     return "⎋"
                         case "gfx-switch": return "⚠️"
                         default:           return "⚠️"
                     }

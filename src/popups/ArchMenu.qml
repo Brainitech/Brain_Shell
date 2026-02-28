@@ -16,7 +16,7 @@ PopupWindow {
     // pageWidths drives the sizer width per page
     // pageHeights drives the sizer height per page
     readonly property var pageHeights: ({
-        "power":       220,
+        "power":       270,
         "performance": 190,
         "stats":       250
     })

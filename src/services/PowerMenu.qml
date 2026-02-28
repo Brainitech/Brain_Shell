@@ -31,11 +31,14 @@ Column {
             action:  "reboot"
         },
         {
-            label:   "Suspend  ",
-            icon:    "⏾",
-            danger:  false,
-            confirm: false,
-            action:  "suspend"
+            label:   "Log Out  ",
+            icon:    "󰍃",
+            danger:  true,
+            confirm: true,
+            title:   "Log Out?",
+            message: "You will be logged out of your session. Save your work before continuing.",
+            label2:  "Log Out",
+            action:  "logout" 
         },
         {
             label:   "Lock        ",
@@ -43,6 +46,13 @@ Column {
             danger:  false,
             confirm: false,
             action:  "lock"
+        },
+        {
+            label:   "Suspend ",
+            icon:    "⏾",
+            danger:  false,
+            confirm: false,
+            action:  "suspend"
         },
     ]
 
@@ -56,8 +66,8 @@ Column {
 
     function runDirect(action) {
         switch (action) {
-            case "suspend": runner.pendingCmd = ["systemctl", "suspend"];        break
             case "lock":    runner.pendingCmd = ["loginctl", "lock-session"];    break
+            case "suspend": runner.pendingCmd = ["systemctl", "suspend"];        break
         }
         runner.running = true
         Popups.archMenuOpen = false

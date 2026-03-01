@@ -13,5 +13,8 @@ Row {
 
 	// 2. Workspaces
 	Workspaces {} 
+	
+	//3. LayoutDisplay
+	LayoutDisplayer {}
 
 }

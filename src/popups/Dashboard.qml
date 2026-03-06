@@ -1,7 +1,8 @@
 import QtQuick
 import Quickshell
 import "../shapes"
-import "../components"
+import "../components"  
+import "../modules/Center/"
 import "../"
 
 // Dashboard — drops below the center notch when Popups.dashboardOpen is true.
@@ -23,7 +24,7 @@ PopupWindow {
 
     readonly property int animDuration: Theme.animDuration
     
-    property string page: "home"
+    property string page: "stats"
 
     color:   "transparent"
     visible: windowVisible
@@ -160,12 +161,7 @@ PopupWindow {
                     Item {
                         anchors.fill: parent
                         visible:      root.page === "stats"
-                        Text {
-                            anchors.centerIn: parent
-                            text:  "📊 System Stats"
-                            color: Qt.rgba(1,1,1,0.3)
-                            font.pixelSize: 16
-                        }
+                        DashStats {anchors.fill: parent}
                     }
 
                     // Kanban

@@ -62,15 +62,8 @@ PanelWindow {
         
         // Quickshell emits (name, data) for raw events
         function onRawEvent(event) {
-			// console.log("RawEvent_name: "+ event.name)
-			// console.log("RawEvent_data: "+ event.data)
-            // 1. Handle Scratchpad Toggle
-            if (event.name === "workspace") {
-                Popups.closeAll();
-            }
-            
-            // 2. Reset when switching to a normal workspace
-            if (event.name === "activespecial") {
+            console.log("Hyprland event:", event.name)
+            if (event.name === "workspace" || event.name === "activemonitor" || event.name === "activewindow" || event.name === "activespecial" || event.name === "openwindow") {
                 Popups.closeAll();
             }
         }

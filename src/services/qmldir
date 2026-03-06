@@ -4,3 +4,12 @@ BatteryStatus  BatteryStatus.qml
 BatteryWarning BatteryWarning.qml
 EnvyControl EnvyControl.qml
 AudioControl AudioControl.qml
+MemService MemService.qml
+NetService NetService.qml
+GpuService GpuService.qml
+EnvyControlService EnvyControlService.qml
+CpuService CpuService.qml
+CpuFreqService CpuFreqService.qml
+TempService TempService.qml
+DiskService DiskService.qml
+ThermalService ThermalService.qml

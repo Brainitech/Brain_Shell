@@ -2,35 +2,37 @@
 
 Tracking the active development of my modular, highly customizable session shell built with **Quickshell** and **Hyprland**.
 
-## 🚀 Latest Updates (Devlog 2)
+## 🚀 Latest Updates (Devlog 3)
 
-- **Audio is Alive:** `AudioPopup` is no longer a placeholder. It now features a fully functional 3-tab audio panel (Output, Input, Mixer) integrated with Pipewire, including drag-to-scrub volume, mouse-wheel support, and default device selection.
-- **Animation & Hover Engine:** Introduced `PopupSlide.qml`, a universal wrapper that standardizes slide-in/out animations and hover-to-open logic across all popups.
-- **Centralized Instantiation:** Moved away from scattered window creation. `PopupLayer.qml` is now the single source of truth for all popups, significantly cleaning up `shell.qml`.
+- **Hardware Dashboard is Live:** The System/Stats page of the Dashboard is fully wired. Built a massive suite of new modular services (`CpuService`, `GpuService`, `MemService`, `DiskService`, `NetService`, `ThermalService`) to feed live metrics into the new `TempPanel.qml`.
+- **Fan & GPU Control:** Integrated fan speed monitoring and control directly into the dashboard UI. Completely refactored the GPU switcher to use `envycontrol` (via `EnvyControlService` + `GfxSwitch.sh`), routing it safely through an updated `ConfirmDialog`.
+- **Massive UX Polish:** * `PopupDismiss` now smartly closes all popups on *workspace switch\*—no more orphaned menus floating around.
+  - Added reset functionality to `TabSwitcher` and `AudioControl`.
+  - Implemented scroll cooldowns and updated scroll directions for better feel.
+  - Added urgent workspace indications and visual effects.
+- **Power & Layout:** Added a basic `LayoutDisplayer` to the center module and fully integrated `PowerControl.sh` into the PowerMenu (now supporting proper logout alongside shutdown/reboot).
 
 ## 🏗️ Core Architecture
 
+- **Modular Service Backend:** Instead of a monolithic polling script, hardware monitoring is split into dedicated, single-responsibility QML services (CPU, GPU, RAM, Disk, Net, Thermals) that cleanly expose bindable properties to the UI.
 - **Single Source of Truth:** `shell.qml` creates the anchor windows (TopBar, Borders) and passes them into `PopupLayer.qml`, which handles instantiating all popup elements in one place.
 - **Standalone Popups:** Popups live independently in `src/popups/`. They maintain visual consistency through a `Theme` singleton and a shared `PopupShape` canvas, avoiding a bulky generic wrapper.
-- **Global State & Timing:** A central `Popups.qml` singleton manages all toggles and global timing configurations (like `slideDuration` and `hoverCloseDelay`), preventing messy prop-drilling.
-- **Smart Dismiss Layer:** `PopupDismiss.qml` acts as a transparent fullscreen overlay that cleanly catches clicks to close popups without blocking the TopBar triggers.
+- **Global State & Timing:** A central `Popups.qml` singleton manages all toggles and global timing configurations, preventing messy prop-drilling.
 
 ## ✅ What's Built (Progress)
 
 - **Custom UI & Layout Components:**
-  - `TabSwitcher.qml`: Reusable vertical icon tab column with wheel scroll support.
-  - `PopupPage.qml`: Standardized, scrollable popup page container.
-  - `PopupShape.qml`: Canvas for the seamless, "melted" edge effect.
-- **ArchMenu (`ArchMenu.qml`):** A left-edge popup featuring a dynamic 3-tab layout (Power, Gfx, Stats) with smooth, content-aware dimension animations.
+  - `TempPanel.qml`: Dashboard panel displaying live CPU/GPU temps and fan speeds.
+  - `TabSwitcher.qml` & `PopupPage.qml`: Reusable scrollable tab columns and pages (recently updated with layout height fixes and accent bar tweaks).
+  - `ConfirmDialog.qml`: Secure modal intercept for destructive or system-level actions (like GPU switching).
+- **Dashboard (`Dashboard.qml`):** The expanding notch popup is active, defaulting to the Home page, with a fully functional System page.
 - **Integrated Services:**
   - **AudioControl:** Complete volume and device management for Output, Input, and Mixers.
-  - **PowerMenu:** Wired up to `Quickshell.Io.Process` for Shutdown, Reboot, Suspend, and Lock.
-  - **SystemStats:** Wraps `fastfetch` and neatly formats the output into styled QML rows.
-  - **GfxControl:** Reads power profiles and handles dGPU toggles securely. Intercepts clicks with a `GfxWarning` modal before executing `supergfxctl -m <mode>`.
+  - **System Stats:** Live hardware metrics (CPU freq/usage, GPU VRAM/power, Mem, Disk, Net) backing the dashboard.
+  - **PowerMenu:** Wired securely to `PowerControl.sh` for session management.
 
 ## 🚧 Known Issues & WIP
 
-- **Missing Popups:** Network, Battery, and Notification popups are stubbed in `PopupLayer` and wired to their bar triggers, but the actual content menus are under construction.
-- **Center Bar Layout:** The `CenterContent` carousel is currently static (marked as "Work In Progress"), though active window title and hostname items exist.
-- **Hardcoded Sizes:** The `ArchMenu` page dimensions currently rely on estimated hardcoded values instead of truly dynamic sizing based on rendered content.
-- **Focus Quirk:** Opening a popup temporarily pulls focus from background apps. This is a known and acceptable trade-off due to the Top Layer dismiss overlay.
+- **Dashboard Incomplete:** The System stats page is done, but the Home, Kanban, App Launcher, and Config tabs are currently placeholders.
+- **Missing Popups:** Network, Battery, and Notification popups are stubbed in `PopupLayer` and wired to their bar triggers, but the actual content menus remain unbuilt.
+- **Center Bar Layout:** The `LayoutDisplayer` module is currently very basic and not in its final state.

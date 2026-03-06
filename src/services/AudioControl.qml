@@ -8,6 +8,8 @@ Item {
 
     readonly property var sink:   Pipewire.defaultAudioSink
     readonly property var source: Pipewire.defaultAudioSource
+    
+    function reset() { switcher.reset() }
 
     PwObjectTracker {
         objects: Pipewire.nodes.values

@@ -47,7 +47,10 @@ PopupWindow {
     Timer {
         id: closeTimer
         interval: root.animDuration + 20
-        onTriggered: root.windowVisible = false
+		onTriggered: {
+			root.windowVisible = false
+			tabBar.reset()
+		}
     }
 
     // ── Positioning ───────────────────────────────────────────────────────────

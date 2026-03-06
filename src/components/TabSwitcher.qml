@@ -17,167 +17,176 @@ import "../"
 //   Vertical   — parent MUST set height. implicitWidth  is 40.
 
 Item {
-    id: root
+	id: root
 
-    property var    model:       []
-    property string currentPage: ""
-    property string orientation: "horizontal"   // "horizontal" | "vertical"
+	property var    model:       []
+	property string currentPage: ""
+	property string orientation: "horizontal"   // "horizontal" | "vertical"
 
-    signal pageChanged(string key)
+	signal pageChanged(string key)
 
-    implicitWidth:  orientation === "vertical"   ? 40 : 0
-    implicitHeight: orientation === "horizontal" ? 40 : 0
+	// ── Default page & reset ──────────────────────────────────────────────────
+	// defaultPage auto-resolves to the first model entry.
+	// Call reset() from the popup's close handler to restore it off-screen.
+	property string defaultPage: model.length > 0 ? model[0].key : ""
 
-    // ── Scroll cooldown ───────────────────────────────────────────────────────
-    property bool scrollBusy: false
+	function reset() {
+		pageChanged(defaultPage)
+	}
 
-    Timer {
-        id: scrollCooldown
-        interval: 300
-        repeat:   false
-        onTriggered: root.scrollBusy = false
-    }
+	implicitWidth:  orientation === "vertical"   ? 40 : 0
+	implicitHeight: orientation === "horizontal" ? 40 : 0
 
-    WheelHandler {
-        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-        onWheel: function(event) {
-            if (root.scrollBusy) return
-            root.scrollBusy = true
-            scrollCooldown.restart()
-            var keys = root.model.map(function(m) { return m.key })
-            var idx  = keys.indexOf(root.currentPage)
-            if (event.angleDelta.y < 0)
-                idx = (idx + 1) % keys.length
-            else
-                idx = (idx - 1 + keys.length) % keys.length
-            root.pageChanged(keys[idx])
-        }
-    }
+	// ── Scroll cooldown ───────────────────────────────────────────────────────
+	property bool scrollBusy: false
 
-    // ── HORIZONTAL layout — Row ───────────────────────────────────────────────
-    Row {
-        id: hRow
-        anchors.fill: parent
-        visible: root.orientation === "horizontal"
+	Timer {
+		id: scrollCooldown
+		interval: 300
+		repeat:   false
+		onTriggered: root.scrollBusy = false
+	}
 
-        Repeater {
-            model: root.orientation === "horizontal" ? root.model : []
+	WheelHandler {
+		acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+		onWheel: function(event) {
+			if (root.scrollBusy) return
+			root.scrollBusy = true
+			scrollCooldown.restart()
+			var keys = root.model.map(function(m) { return m.key })
+			var idx  = keys.indexOf(root.currentPage)
+			if (event.angleDelta.y < 0)
+			idx = (idx + 1) % keys.length
+			else
+			idx = (idx - 1 + keys.length) % keys.length
+			root.pageChanged(keys[idx])
+		}
+	}
 
-            delegate: Item {
-                id: hTab
-                readonly property bool isActive: root.currentPage === modelData.key
+	// ── HORIZONTAL layout — Row ───────────────────────────────────────────────
+	Row {
+		id: hRow
+		anchors.fill: parent
+		visible: root.orientation === "horizontal"
 
-                width:  hRow.width / root.model.length
-                height: hRow.height
+		Repeater {
+			model: root.orientation === "horizontal" ? root.model : []
 
-                // Pill background
-                Rectangle {
-                    id: hBg
-                    anchors.centerIn: parent
-                    width:  hIcon.implicitWidth + hLabel.implicitWidth + 24
-                    height: parent.height - 8
-                    radius: height / 2
+			delegate: Item {
+				id: hTab
+				readonly property bool isActive: root.currentPage === modelData.key
 
-                    color: hTab.isActive
-                               ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
-                               : (hHov.hovered ? Qt.rgba(1, 1, 1, 0.07) : "transparent")
+				width:  hRow.width / root.model.length
+				height: hRow.height
 
-                    Behavior on color { ColorAnimation { duration: 120 } }
-                }
+				// Pill background
+				Rectangle {
+					id: hBg
+					anchors.centerIn: parent
+					width:  hIcon.implicitWidth + hLabel.implicitWidth + 24
+					height: parent.height - 8
+					radius: height / 2
 
-                // Icon + label
-                Row {
-                    anchors.centerIn: parent
-                    spacing: 6
+					color: hTab.isActive
+					? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
+					: (hHov.hovered ? Qt.rgba(1, 1, 1, 0.07) : "transparent")
 
-                    Text {
-                        id: hIcon
-                        text:           modelData.icon
-                        font.pixelSize: 14
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: hTab.isActive
-                                   ? Theme.active
-                                   : (hHov.hovered ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.4))
-                        Behavior on color { ColorAnimation { duration: 120 } }
-                    }
+					Behavior on color { ColorAnimation { duration: 120 } }
+				}
 
-                    Text {
-                        id: hLabel
-                        visible:        modelData.label !== undefined
-                        text:           modelData.label ?? ""
-                        font.pixelSize: 12
-                        font.weight:    hTab.isActive ? Font.Medium : Font.Normal
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: hTab.isActive
-                                   ? Theme.active
-                                   : (hHov.hovered ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.4))
-                        Behavior on color { ColorAnimation { duration: 120 } }
-                    }
-                }
+				// Icon + label
+				Row {
+					anchors.centerIn: parent
+					spacing: 6
 
-                HoverHandler { id: hHov; cursorShape: Qt.PointingHandCursor }
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked:    root.pageChanged(modelData.key)
-                }
-            }
-        }
-    }
+					Text {
+						id: hIcon
+						text:           modelData.icon
+						font.pixelSize: 14
+						anchors.verticalCenter: parent.verticalCenter
+						color: hTab.isActive
+						? Theme.active
+						: (hHov.hovered ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.4))
+						Behavior on color { ColorAnimation { duration: 120 } }
+					}
 
-    // Bottom divider — horizontal only
-    Rectangle {
-        visible:        root.orientation === "horizontal"
-        anchors.bottom: parent.bottom
-        anchors.left:   parent.left
-        anchors.right:  parent.right
-        height:         1
-        color:          Qt.rgba(1, 1, 1, 0.07)
-    }
+					Text {
+						id: hLabel
+						visible:        modelData.label !== undefined
+						text:           modelData.label ?? ""
+						font.pixelSize: 12
+						font.weight:    hTab.isActive ? Font.Medium : Font.Normal
+						anchors.verticalCenter: parent.verticalCenter
+						color: hTab.isActive
+						? Theme.active
+						: (hHov.hovered ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.4))
+						Behavior on color { ColorAnimation { duration: 120 } }
+					}
+				}
 
-    // ── VERTICAL layout — Column ──────────────────────────────────────────────
-    Column {
-        id: vCol
-        anchors.centerIn: parent
-        visible: root.orientation === "vertical"
+				HoverHandler { id: hHov; cursorShape: Qt.PointingHandCursor }
+				MouseArea {
+					anchors.fill: parent
+					onClicked:    root.pageChanged(modelData.key)
+				}
+			}
+		}
+	}
 
-        // Distribute tabs evenly: gap = (totalHeight - allTabHeights) / gaps
-        // Tab height is fixed at 60px to match original ArchMenu style.
-        readonly property int tabH: 60
-        spacing: root.model.length > 1
-                     ? (root.height - root.model.length * tabH) / (root.model.length - 1)
-                     : 0
+	// Bottom divider — horizontal only
+	Rectangle {
+		visible:        root.orientation === "horizontal"
+		anchors.bottom: parent.bottom
+		anchors.left:   parent.left
+		anchors.right:  parent.right
+		height:         1
+		color:          Qt.rgba(1, 1, 1, 0.07)
+	}
 
-        Repeater {
-            model: root.orientation === "vertical" ? root.model : []
+	// ── VERTICAL layout — Column ──────────────────────────────────────────────
+	Column {
+		id: vCol
+		anchors.centerIn: parent
+		visible: root.orientation === "vertical"
 
-            delegate: Rectangle {
-                id: vTab
-                readonly property bool isActive: root.currentPage === modelData.key
+		// Distribute tabs evenly: gap = (totalHeight - allTabHeights) / gaps
+		// Tab height is fixed at 60px to match original ArchMenu style.
+		readonly property int tabH: 60
+		spacing: root.model.length > 1
+		? (root.height - root.model.length * tabH) / (root.model.length - 1)
+		: 0
 
-                width:  40
-                height: vCol.tabH
-                radius: Theme.cornerRadius * 2
+		Repeater {
+			model: root.orientation === "vertical" ? root.model : []
 
-                color: vTab.isActive
-                           ? Theme.active
-                           : (vHov.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent")
+			delegate: Rectangle {
+				id: vTab
+				readonly property bool isActive: root.currentPage === modelData.key
 
-                Behavior on color { ColorAnimation { duration: 120 } }
+				width:  40
+				height: vCol.tabH
+				radius: Theme.cornerRadius * 2
 
-                Text {
-                    anchors.centerIn: parent
-                    text:            modelData.icon
-                    font.pixelSize:  16
-                    color: vTab.isActive ? Theme.background : Theme.text
-                    Behavior on color { ColorAnimation { duration: 120 } }
-                }
+				color: vTab.isActive
+				? Theme.active
+				: (vHov.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent")
 
-                HoverHandler { id: vHov; cursorShape: Qt.PointingHandCursor }
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked:    root.pageChanged(modelData.key)
-                }
-            }
-        }
-    }
+				Behavior on color { ColorAnimation { duration: 120 } }
+
+				Text {
+					anchors.centerIn: parent
+					text:            modelData.icon
+					font.pixelSize:  16
+					color: vTab.isActive ? Theme.background : Theme.text
+					Behavior on color { ColorAnimation { duration: 120 } }
+				}
+
+				HoverHandler { id: vHov; cursorShape: Qt.PointingHandCursor }
+				MouseArea {
+					anchors.fill: parent
+					onClicked:    root.pageChanged(modelData.key)
+				}
+			}
+		}
+	}
 }

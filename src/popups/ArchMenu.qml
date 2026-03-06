@@ -106,7 +106,7 @@ PopupWindow {
 					TabSwitcher {
 						id: switcher
 						orientation: "vertical"
-						height: parent.height
+						height: parent.height/1.5
 						anchors.verticalCenter: parent.verticalCenter
 						model: [
 							{ key: "power",       icon: "⏻" },

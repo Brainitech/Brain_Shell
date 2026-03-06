@@ -24,7 +24,7 @@ PopupWindow {
 
     readonly property int animDuration: Theme.animDuration
     
-    property string page: "stats"
+    property string page: "home"
 
     color:   "transparent"
     visible: windowVisible

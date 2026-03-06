@@ -78,7 +78,7 @@ Item {
 
     // Size info — below the bar, aligned with bar
     Text {
-        anchors.left:    barTrack.left
+        anchors.horizontalCenter: barTrack.horizontalCenter
         anchors.top:     barTrack.bottom
         anchors.topMargin: 3
         text:           root.usedStr + " / " + root.totalStr + "  ·  " + root.source

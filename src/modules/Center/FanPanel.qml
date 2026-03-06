@@ -2,16 +2,14 @@ import QtQuick
 import "../../"
 import "../../components"
 
-Item{
+Item {
     id: root
-    
-    required property var  service
-    property string fanMode: "quiet"
-    
-     // ── Fan control block — anchored right ────────────────────────────────────
+
+    required property var service
+
     Column {
-        anchors.horizontalCenter:          parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter:   parent.verticalCenter
         spacing: 10
 
         Text {
@@ -28,20 +26,20 @@ Item{
             ProfileButton {
                 icon:      "󱗰"
                 label:     "Quiet"
-                active:    root.fanMode === "quiet"
-                onClicked: root.fanMode = "quiet"
+                active:    service.mode === "quiet"
+                onClicked: service.setMode("quiet")
             }
             ProfileButton {
                 icon:      "󰁪"
                 label:     "Auto"
-                active:    root.fanMode === "auto"
-                onClicked: root.fanMode = "auto"
+                active:    service.mode === "auto"
+                onClicked: service.setMode("auto")
             }
             ProfileButton {
                 icon:      "󱓞"
                 label:     "Max"
-                active:    root.fanMode === "max"
-                onClicked: root.fanMode = "max"
+                active:    service.mode === "max"
+                onClicked: service.setMode("max")
             }
         }
     }

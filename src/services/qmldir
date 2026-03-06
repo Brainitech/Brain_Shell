@@ -13,3 +13,4 @@ CpuFreqService CpuFreqService.qml
 TempService TempService.qml
 DiskService DiskService.qml
 ThermalService ThermalService.qml
+FanControl FanControl.qml

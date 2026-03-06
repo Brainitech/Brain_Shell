@@ -92,7 +92,7 @@ QtObject {
 
     // ── Poll timers ───────────────────────────────────────────────────────────
     property var _igpuTimer: Timer {
-        interval: 2000
+        interval: 1000
         running:  root.active
         repeat:   true
         onTriggered: {
@@ -104,7 +104,7 @@ QtObject {
     }
 
     property var _nvTimer: Timer {
-        interval: 2000
+        interval: 1000
         running:  root.active && root.envyMode !== "integrated"
         repeat:   true
         onTriggered: {

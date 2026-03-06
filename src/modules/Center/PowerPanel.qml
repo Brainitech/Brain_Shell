@@ -41,16 +41,9 @@ Item {
                 spacing: 6
 
                 ProfileButton {
-                    label:     "Powersave"
-                    active:    root.cpuFreqService.activeProfile === "powersave"
-                    enabled:   !root.cpuFreqService.busy
-                    onClicked: root.cpuFreqService.setProfile("powersave")
-                }
-                ProfileButton {
-                    label:     "Performance"
-                    active:    root.cpuFreqService.activeProfile === "performance"
-                    enabled:   !root.cpuFreqService.busy
-                    onClicked: root.cpuFreqService.setProfile("performance")
+                    label:     root.cpuFreqService.activeProfile === "performance" ? "Performance" : "Power Saver"
+                    active:    true
+                    enabled:   true
                 }
             }
         }

@@ -10,7 +10,7 @@ Item {
     MemService         { id: mem;     active: root.visible }
     NetService         { id: net;     active: root.visible }
     ThermalService     { id: thermal; active: root.visible }
-    // FanService         { id: fan;     active: root.visible }
+    FanControl         { id: fan }
     DiskService        { id: disk;    active: root.visible }
     EnvyControlService { id: envy }
     CpuFreqService     { id: cpuFreq }

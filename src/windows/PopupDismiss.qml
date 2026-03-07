@@ -62,7 +62,6 @@ PanelWindow {
         
         // Quickshell emits (name, data) for raw events
         function onRawEvent(event) {
-            console.log("Hyprland event:", event.name)
             if (event.name === "workspace" || event.name === "activemonitor" || event.name === "activewindow" || event.name === "activespecial" || event.name === "openwindow") {
                 Popups.closeAll();
             }

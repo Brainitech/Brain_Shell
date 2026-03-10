@@ -14,3 +14,4 @@ TempService TempService.qml
 DiskService DiskService.qml
 ThermalService ThermalService.qml
 FanControl FanControl.qml
+DashHome DashHome.qml

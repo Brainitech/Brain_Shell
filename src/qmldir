@@ -1,2 +1,3 @@
-singleton Theme theme/Theme.qml
-singleton Popups state/Popups.qml
+singleton Theme      theme/Theme.qml
+singleton Popups     state/Popups.qml
+singleton ShellState state/ShellState.qml

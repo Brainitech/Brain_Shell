@@ -3,6 +3,7 @@ import Quickshell
 import "../shapes"
 import "../components"  
 import "../modules/Center/"
+import '../services/'
 import "../"
 
 // Dashboard — drops below the center notch when Popups.dashboardOpen is true.
@@ -149,16 +150,21 @@ PopupWindow {
                     height: parent.height - tabBar.height
 
                     // Home
-                    Item {
-                        anchors.fill: parent
-                        visible:      root.page === "home"
-                        Text {
-                            anchors.centerIn: parent
-                            text:  "🏠 Home"
-                            color: Qt.rgba(1,1,1,0.3)
-                            font.pixelSize: 16
-                        }
-                    }
+                    // Item {
+                    //     anchors.fill: parent
+                    //     visible:      root.page === "home"
+                    //     Text {
+                    //         anchors.centerIn: parent
+                    //         text:  "🏠 Home"
+                    //         color: Qt.rgba(1,1,1,0.3)
+                    //         font.pixelSize: 16
+                    //     }
+                    // }
+                                        Item {
+        anchors.fill: parent
+       visible:      root.page === "home"
+         DashHome { anchors.fill: parent }
+    }
 
                     // Stats
                     Item {

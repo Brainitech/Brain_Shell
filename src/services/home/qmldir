@@ -1,0 +1,6 @@
+ProfileCard    ProfileCard.qml
+CalendarCard   CalendarCard.qml
+ClockCard      ClockCard.qml
+PlayerCard     PlayerCard.qml
+BrightnessCard BrightnessCard.qml
+QuickSettings  QuickSettings.qml

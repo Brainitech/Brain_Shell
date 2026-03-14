@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell.Io
-import "../"
+import "../../"
 
 // Parses fastfetch output into key/value rows and renders them styled.
 // Each line from fastfetch is "Key: Value" — we split on ": " (first occurrence).

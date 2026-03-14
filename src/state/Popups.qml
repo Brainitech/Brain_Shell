@@ -11,6 +11,7 @@ QtObject {
     property bool dashboardOpen:     false
 
     // ── Per-popup trigger hover state ─────────────────────────────────────────
+    property bool archMenuTriggerHovered: false
     property bool audioTriggerHovered:         false
     property bool networkTriggerHovered:       false
     property bool batteryTriggerHovered:       false

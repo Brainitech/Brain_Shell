@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell.Io
-import "../"
+import "../../"
 
 // Queries envycontrol on load and after each switch.
 // Switching requires reboot — uses Popups.showConfirm().

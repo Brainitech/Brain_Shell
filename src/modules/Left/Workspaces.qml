@@ -172,7 +172,7 @@ Rectangle {
         
         MouseArea {
             anchors.fill: parent
-            onClicked: Hyprland.dispatch("togglespecialworkspace")
+            onClicked: Hyprland.dispatch("togglespecialworkspace magic")
         }
     }
 }

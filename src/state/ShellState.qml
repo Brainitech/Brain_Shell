@@ -2,13 +2,14 @@ pragma Singleton
 import QtQuick
 
 // Global shell state booleans.
-// WiFi and Bluetooth are NOT here — QuickSettings polls them directly
-// via nmcli/bluetoothctl and owns that state itself.
+//
+// WiFi / Bluetooth  — managed by QuickSettings (polls nmcli/bluetoothctl directly)
+// Night Light       — managed by QuickSettings (hyprsunset process)
+// Caffeine          — managed by QuickSettings (systemd-inhibit process)
+// Focus Mode        — managed by QuickSettings; TopBar reacts to hide bar + zero gaps
 
 QtObject {
-    property bool nightLight:   false   // managed by QuickSettings via hyprsunset
-    property bool caffeine:     false
+    property bool focusMode:    false
     property bool dnd:          false
-    property bool gameMode:     false
     property bool screenRecord: false
 }

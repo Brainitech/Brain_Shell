@@ -51,7 +51,7 @@ PopupWindow {
 		anchors.fill: parent
 		edge: "left"
 		hoverEnabled: false
-		triggerHovered:  Popups.archMenuTriggerHovered
+		triggerHovered: Popups.archMenuTriggerHovered
 		open: Popups.archMenuOpen
 
 		Connections {

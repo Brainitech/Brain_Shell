@@ -1,6 +1,7 @@
 import Quickshell
 import QtQuick
 import "../"
+import "../services/"
 
 PanelWindow {
     id: root
@@ -33,7 +34,10 @@ PanelWindow {
         top: (edge !== "bottom") ? Theme.notchHeight : 0
         bottom: (edge !== "bottom") ? radius : 0
     }
-
+Item {
+    anchors.fill: parent
+    opacity: ShellState.focusMode ? 0 : 1
+    Behavior on opacity { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }}
     Canvas {
         id: shape
         anchors.fill: parent
@@ -118,6 +122,6 @@ PanelWindow {
             }
 
             ctx.fill();
-        }
+        }}
     }
 }

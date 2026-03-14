@@ -15,3 +15,5 @@ DiskService ./system/DiskService.qml
 ThermalService ./system/ThermalService.qml
 FanControl ./system/FanControl.qml
 DashHome home/DashHome.qml
+singleton NotificationService 1.0 ./notifications/NotificationService.qml
+NotificationList ./notifications/NotificationList.qml

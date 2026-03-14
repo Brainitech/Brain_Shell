@@ -41,9 +41,13 @@ Item {
     }
 
     // Right notch  [placeholders — not built yet]
-    // NotificationsPopup {
-    //     anchorWindow: root.topBar
-    // }
+    NotificationsPopup {
+        anchorWindow: root.topBar
+    }
+    
+    NotificationToast {
+        anchorWindow: root.rightBorder
+    }
     // NetworkPopup {
     //     anchorWindow: root.topBar
     // }

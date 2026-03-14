@@ -29,7 +29,8 @@ PanelWindow {
     // window resize which is inherently jerky.
     implicitHeight: Theme.notchHeight
 
-    exclusiveZone: Theme.exclusionGap
+   exclusiveZone: ShellState.focusMode ? 0 : Theme.exclusionGap
+   Behavior on exclusiveZone { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
 
     // ── Clamped notch widths (read by PopupLayer / SeamlessBarShape) ─────────
 
@@ -53,12 +54,21 @@ PanelWindow {
         NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
     }
 
-    readonly property int rWidth: Math.max(
-        Theme.rNotchMinWidth,
-        Math.min(Theme.rNotchMaxWidth,
-                 rightContent.implicitWidth + Theme.notchPadding * 2)
-    )
+    property int rWidth: Popups.notificationsOpen
+        ? Theme.notificationsWidth+21
+        : Math.max(
+            Theme.rNotchMinWidth,
+            Math.min(Theme.rNotchMaxWidth,
+                     rightContent.implicitWidth + Theme.notchPadding * 2)
+          )
+    Behavior on rWidth {
+        NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+    }
 
+Item {
+    anchors.fill: parent
+    opacity: ShellState.focusMode ? 0 : 1
+    Behavior on opacity { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }}
     // ── Background shape ─────────────────────────────────────────────────────
     SeamlessBarShape {
         anchors.fill: parent
@@ -102,4 +112,5 @@ PanelWindow {
             anchors.centerIn: parent
         }
     }
+}
 }

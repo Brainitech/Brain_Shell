@@ -3,12 +3,14 @@ import QtQuick
 
 QtObject {
     // -- Colors --
-    // property color background: "#00ffc3"
+    // property color background: "#77959a"
     property color background: "#1a282a"
     property color active:     "#a6d0f7"
     property color text:       "#cdd6f4"
     property color icon:       "#ffffff"
     property color border:     "#ffffff"
+    property color subtext:    "#94e2d5"
+    property color iconFont:  "#2f8d97"
 
     // --- Workspace Visuals ---
     property color wsBackground: "#20000000"
@@ -55,11 +57,16 @@ QtObject {
     property int dashboardWidth:  900
     property int dashboardHeight: 520
 
+    // -- Notifications Popup Width --
+    // Width the right notch expands to when the notifications popup is open.
+    property int notificationsWidth: 400
+
     // -- Popup Size Constraints --
     property int popupMinWidth:  160
     property int popupMaxWidth:  420
     property int popupMinHeight:  80
     property int popupMaxHeight: 520
+    property int popupPadding:   16
 
     // -- Workspace Dot Sizes --
     property int wsDotSize:     10

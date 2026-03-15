@@ -30,9 +30,18 @@ PopupWindow {
     )
     anchor.gravity:    Edges.Bottom
     anchor.adjustment: PopupAdjustment.None
+    
+    Item {
+    id:      maskProxy
+    x:       root.implicitWidth - sizer.width-root.fw
+    y:       -root.fh
+    width:   sizer.width
+    height:  sizer.height
+    }
 
     color:   "transparent"
     visible: windowVisible
+    mask: Region { item: maskProxy }
 
     // ── Visibility gate ───────────────────────────────────────
     // Window stays alive until the close animation finishes.

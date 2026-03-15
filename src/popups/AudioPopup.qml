@@ -27,6 +27,7 @@ PopupWindow {
 
 	color:   "transparent"
 	visible: slide.windowVisible
+	mask: Region { item: maskProxy }
 
 	anchor.window:  anchorWindow
 	anchor.rect: Qt.rect(
@@ -36,6 +37,14 @@ PopupWindow {
 		popupHeight
 	)
 	anchor.gravity: Edges.Left
+	
+	Item {
+	    id:      maskProxy
+	    x:       root.maxWidth - sizer.width
+	    y:       ((root.popupHeight - sizer.height) / 2) -root.fh
+	    width:   sizer.width
+	    height:  sizer.height
+	}
 
 	implicitWidth:  maxWidth      // ← fixed, compositor never resizes
 	implicitHeight: popupHeight   // ← fixed

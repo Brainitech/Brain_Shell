@@ -17,6 +17,29 @@ PanelWindow {
 
     color: "transparent"
 
+    // Subtract the top notchHeight row so clicks there pass through to TopBar,
+    // keeping notches interactive while a popup is open.
+    mask: Region {
+        Region {
+            x:      Theme.borderWidth
+            y:      Theme.notchHeight - Theme.borderWidth
+            width:  root.width - (Theme.borderWidth * 2)
+            height: root.height - Theme.notchHeight - Theme.borderWidth
+        }
+        Region {
+            x:      ShellState.topBarLWidth - Theme.borderWidth
+            y:      0
+            width:  (root.width / 2) - (ShellState.topBarCWidth / 2) - ShellState.topBarLWidth+ Theme.borderWidth
+            height: Theme.notchHeight
+        }
+        Region{
+            x:     (root.width / 2) + (ShellState.topBarCWidth / 2)
+            y:     0
+            width: (root.width / 2) - (ShellState.topBarCWidth / 2) - ShellState.topBarRWidth + Theme.borderWidth
+            height: Theme.notchHeight
+        }
+    }
+
     // Span entire screen
     anchors {
         top:    true
@@ -25,7 +48,7 @@ PanelWindow {
         bottom: true
     }
     
-    margins.top: Theme.notchHeight // Start below the notch so it doesn't interfere with TopBar popups
+    margins.top: Theme.borderWidth // Start below the notch so it doesn't interfere with TopBar popups
     margins.left: Theme.borderWidth
     margins.right: Theme.borderWidth
     margins.bottom: Theme.borderWidth

@@ -17,11 +17,17 @@ PanelWindow {
 
     color: "transparent"
 
+    // Only the three notch Items receive input.
+    // Gaps between them are click-through so PopupDismiss can catch those clicks.
+
     anchors {
         top:   true
         left:  true
         right: true
     }
+    Binding { target: ShellState; property: "topBarLWidth"; value: root.lWidth }
+    Binding { target: ShellState; property: "topBarCWidth"; value: root.cWidth }
+    Binding { target: ShellState; property: "topBarRWidth"; value: root.rWidth }
 
     // FIXED — never changes. Dashboard expansion is handled by a
     // separate PopupWindow (Dashboard.qml) that drops down below the notch.
@@ -71,6 +77,7 @@ Item {
     Behavior on opacity { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }}
     // ── Background shape ─────────────────────────────────────────────────────
     SeamlessBarShape {
+        id: barShape
         anchors.fill: parent
         leftWidth:    root.lWidth
         centerWidth:  root.cWidth
@@ -79,8 +86,9 @@ Item {
 
     // ── Left notch ───────────────────────────────────────────────────────────
     Item {
-        implicitHeight: Theme.notchHeight
-        implicitWidth:  root.lWidth
+        id:             leftNotch
+        width:          root.lWidth
+        height:         Theme.notchHeight
         anchors.left:   parent.left
 
         LeftContent {
@@ -91,8 +99,9 @@ Item {
 
     // ── Center notch ─────────────────────────────────────────────────────────
     Item {
-        implicitHeight: Theme.notchHeight
-        implicitWidth:  root.cWidth
+        id:               centerNotch
+        width:            root.cWidth
+        height:           Theme.notchHeight
         anchors.centerIn: parent
 
         CenterContent {
@@ -103,8 +112,9 @@ Item {
 
     // ── Right notch ──────────────────────────────────────────────────────────
     Item {
-        implicitHeight: Theme.notchHeight
-        implicitWidth:  root.rWidth
+        id:             rightNotch
+        width:          root.rWidth
+        height:         Theme.notchHeight
         anchors.right:  parent.right
 
         RightContent {

@@ -33,6 +33,7 @@ PopupWindow {
 
 	color:   "transparent"
 	visible: slide.windowVisible
+	mask: Region { item: maskProxy }
 
 	implicitWidth:  (pageWidths["stats"]  ?? 220) + fw
 	implicitHeight: (pageHeights["stats"] ?? 220) + fh * 2
@@ -45,6 +46,14 @@ PopupWindow {
 		anchorWindow.width,
 		implicitHeight
 	)
+	
+	Item {
+		id:      maskProxy
+		x:       0
+		y:       (root.implicitHeight - sizer.height) / 2-root.fh
+		width:   sizer.width
+		height:  sizer.height
+	}
 
 	PopupSlide {
 		id: slide

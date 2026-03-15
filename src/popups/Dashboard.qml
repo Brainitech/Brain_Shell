@@ -29,10 +29,19 @@ PopupWindow {
 
 	color:   "transparent"
 	visible: windowVisible
-
+	mask: Region { item: maskProxy }
+	
 	// ── Window visibility gate ────────────────────────────────────────────────
 	// Keep the window alive until the close animation finishes, then hide it.
 	property bool windowVisible: false
+	
+	Item {
+    	id:      maskProxy
+    	x:       root.implicitWidth - sizer.width-root.fw
+    	y:       0
+    	width:   sizer.width
+    	height:  sizer.height
+    }
 
 	Connections {
 		target: Popups

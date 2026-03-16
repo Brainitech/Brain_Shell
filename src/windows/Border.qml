@@ -31,13 +31,13 @@ PanelWindow {
     }
 
     margins {
-        top: (edge !== "bottom") ? Theme.notchHeight : 0
+        top: (edge !== "bottom") ? ShellState.focusMode ? Theme.borderWidth : Theme.notchHeight: 0
+    Behavior on top { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }}
+        
         bottom: (edge !== "bottom") ? radius : 0
     }
 Item {
     anchors.fill: parent
-    opacity: ShellState.focusMode ? 0 : 1
-    Behavior on opacity { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }}
     Canvas {
         id: shape
         anchors.fill: parent

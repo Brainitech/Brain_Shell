@@ -23,7 +23,6 @@ NotificationServer {
     onNotification: function(n) {
         n.tracked = true
         root.list = [n, ...root.list]
-        console.log("New notification:", n.summary, "from", n.appName)
         root.notificationAdded(n)
          n.onClosed.connect(function() {
             root.list = root.list.filter(function(x) { return x !== n })

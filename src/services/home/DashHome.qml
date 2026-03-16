@@ -79,8 +79,9 @@ Item {
 
         PlayerCard {
             anchors {
-                left: parent.left; right: parent.right
-                top: clockCard.bottom; topMargin: root.gap
+                left:   parent.left
+                right:  parent.right
+                top:    clockCard.bottom; topMargin: root.gap
                 bottom: parent.bottom
             }
         }

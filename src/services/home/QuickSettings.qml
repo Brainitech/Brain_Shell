@@ -195,7 +195,7 @@ StatCard {
     Process {
         id: applyFocusGaps
         command: ["bash", "-c",
-            "hyprctl keyword general:gaps_in 0 && hyprctl keyword general:gaps_out 0"]
+            "hyprctl keyword general:gaps_in 0"]
         running: false
         onRunningChanged: if (!running) ShellState.focusMode = true
     }

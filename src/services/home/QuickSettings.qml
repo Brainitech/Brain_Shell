@@ -159,6 +159,16 @@ StatCard {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    //  Dark Mode  (stub — backend wired later)
+    // ─────────────────────────────────────────────────────────────────────────
+    property bool darkModeOn: true
+
+    function _darkModeToggle() {
+        darkModeOn = !darkModeOn
+        // TODO: wire backend
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     //  Hotspot  (nmcli)
     //  Creates a hotspot on first enable; subsequent toggles up/down by name.
     // ─────────────────────────────────────────────────────────────────────────
@@ -489,6 +499,13 @@ StatCard {
                         width: tileGrid.btnW; height: tileGrid.btnH
                         on: ShellState.screenRecord; icon: "󰻂"; label: "Screen Capture"
                         onToggled: ShellState.screenRecord = !ShellState.screenRecord
+                    }
+                    TglBtn {
+                        width: tileGrid.btnW; height: tileGrid.btnH
+                        on: root.darkModeOn
+                        icon: root.darkModeOn ? "󰖔" : "󰖙"
+                        label: root.darkModeOn ? "Dark Mode" : "Light Mode"
+                        onToggled: root._darkModeToggle()
                     }
                 }
             }

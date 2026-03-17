@@ -1,3 +1,4 @@
 singleton Theme      theme/Theme.qml
 singleton Popups     state/Popups.qml
 singleton ShellState state/ShellState.qml
+singleton ClockState state/ClockState.qml

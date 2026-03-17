@@ -1,31 +1,53 @@
 import QtQuick
+import Quickshell.Io
 import "../../"
 import "../../components"
 
-// Clock card — four modes: Clock, Timer, Alarm, Stopwatch.
-// TabSwitcher pinned to the bottom edge.
-// Self-contained: owns all time/timer/stopwatch state.
+// ClockCard — Clock / Timer / Alarm / Stopwatch
 
 StatCard {
     id: root
     padding: 0
 
-    // ── State ─────────────────────────────────────────────────────────────────
+    // ── Mode ──────────────────────────────────────────────────────────────────
     property string _mode: "clock"
 
-    // Clock
-    property string _hm:   "00:00"
-    property string _sec:  "00"
-    property string _ampm: "AM"
+    // ── Clock ─────────────────────────────────────────────────────────────────
+    property string _hm:       "00:00"
+    property string _sec:      "00"
+    property int    _currentH: 0
+    property int    _currentM: 0
 
-    // Timer
+    // ── Timer ─────────────────────────────────────────────────────────────────
     property int  _timerTotal:   25 * 60
     property int  _timerLeft:    25 * 60
     property bool _timerRunning: false
+    property bool _timerFired:   false
+    property bool _addTimerOpen: false
 
-    // Stopwatch
+    // ── Stopwatch ─────────────────────────────────────────────────────────────
     property int  _swMs:      0
     property bool _swRunning: false
+
+    // ── Alarms ────────────────────────────────────────────────────────────────
+    property var  _alarms:     []
+    property int  _alarmIdSeq: 0
+    property bool _addOpen:    false
+    property int  _addHour:    7
+    property int  _addMinute:  0
+
+    // ── Notification ─────────────────────────────────────────────────────────
+    Process {
+        id: notifyProc
+        command: []
+        running: false
+    }
+
+    function _notify(title, body) {
+        notifyProc.command = ["notify-send", "-a", "Brain Shell", "-i", "alarm", title, body]
+        notifyProc.running = false
+        notifyProc.running = true
+    }
 
     // ── Master tick ───────────────────────────────────────────────────────────
     Timer {
@@ -35,33 +57,129 @@ StatCard {
             if (root._swRunning) root._swMs += 1000
             if (root._timerRunning && root._timerLeft > 0) {
                 root._timerLeft--
-                if (root._timerLeft === 0) root._timerRunning = false
+                if (root._timerLeft === 0) {
+                    root._timerRunning = false
+                    if (!root._timerFired) {
+                        root._timerFired = true
+                        root._notify("Timer finished",
+                            "Your " + root._timerTotalLabel() + " timer is done.")
+                    }
+                }
             }
+            if (root._sec === "00") root._checkAlarms()
+            // Repaint ring only when on timer page and timer is running
+            if (root._mode === "timer") timerCanvas.requestPaint()
+            root._syncState()
         }
     }
 
-    Component.onCompleted: _tick()
+    Component.onCompleted: { _tick(); _syncState() }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     function _zp(n) { return n < 10 ? "0"+n : ""+n }
 
     function _tick() {
-        var d = new Date(); var h = d.getHours(); var m = d.getMinutes(); var s = d.getSeconds()
-        var pm = h >= 12; var h12 = h % 12; if (h12 === 0) h12 = 12
-        _hm   = _zp(h12) + ":" + _zp(m)
-        _sec  = _zp(s)
-        _ampm = pm ? "PM" : "AM"
+        var d = new Date()
+        var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds()
+        _currentH = h; _currentM = m
+        _hm  = _zp(h) + ":" + _zp(m) + ":" + _zp(s)
+        _sec = _zp(s)
     }
 
     function _timerDisplay() {
-        return _zp(Math.floor(_timerLeft / 60)) + ":" + _zp(_timerLeft % 60)
+        var h = Math.floor(_timerLeft / 3600)
+        var m = Math.floor((_timerLeft % 3600) / 60)
+        var s = _timerLeft % 60
+        return h > 0
+            ? _zp(h) + ":" + _zp(m) + ":" + _zp(s)
+            : _zp(m) + ":" + _zp(s)
     }
+
+    function _timerTotalLabel() {
+        var h = Math.floor(_timerTotal / 3600)
+        var m = Math.floor((_timerTotal % 3600) / 60)
+        return h > 0 ? h + "h " + _zp(m) + "m" : m + "m"
+    }
+
     function _timerProgress() {
         return _timerTotal > 0 ? (_timerTotal - _timerLeft) / _timerTotal : 0
     }
+
     function _swDisplay() {
         var t = Math.floor(_swMs / 1000)
         return _zp(Math.floor(t / 60)) + ":" + _zp(t % 60)
+    }
+
+    function _checkAlarms() {
+        var list = _alarms.slice(), changed = false
+        for (var i = 0; i < list.length; i++) {
+            var a = list[i]
+            if (!a.enabled) continue
+            if (a.hour === _currentH && a.minute === _currentM && !a.firedToday) {
+                list[i] = Object.assign({}, a, { firedToday: true })
+                changed = true
+                _notify("Alarm", (a.label !== "" ? a.label : "Alarm") +
+                        " — " + _zp(a.hour) + ":" + _zp(a.minute))
+            }
+            if (a.firedToday && !(a.hour === _currentH && a.minute === _currentM)) {
+                list[i] = Object.assign({}, a, { firedToday: false })
+                changed = true
+            }
+        }
+        if (changed) _alarms = list
+    }
+
+    function _addAlarm() {
+        var list = _alarms.slice()
+        list.push({
+            id:         _alarmIdSeq++,
+            hour:       _addHour,
+            minute:     _addMinute,
+            label:      "",
+            enabled:    true,
+            firedToday: false
+        })
+        _alarms  = list
+        _addOpen = false
+        _syncState()
+    }
+
+    function _toggleAlarm(id) {
+        var list = _alarms.slice()
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].id === id) {
+                list[i] = Object.assign({}, list[i], { enabled: !list[i].enabled })
+                break
+            }
+        }
+        _alarms = list
+        _syncState()
+    }
+
+    function _deleteAlarm(id) {
+        _alarms = _alarms.filter(function(a) { return a.id !== id })
+        _syncState()
+    }
+
+    function _syncState() {
+        ClockState.timerRunning = _timerRunning
+        ClockState.timerLeft    = _timerLeft
+        ClockState.timerTotal   = _timerTotal
+        ClockState.timerDisplay = _timerDisplay()
+        ClockState.swRunning    = _swRunning
+        ClockState.swDisplay    = _swDisplay()
+        ClockState.alarms       = _alarms
+
+        var now = _currentH * 60 + _currentM, best = null
+        for (var i = 0; i < _alarms.length; i++) {
+            var a = _alarms[i]
+            if (!a.enabled) continue
+            var t    = a.hour * 60 + a.minute
+            var diff = t >= now ? t - now : t + 1440 - now
+            if (best === null || diff < best.minsUntil)
+                best = { hour: a.hour, minute: a.minute, label: a.label, minsUntil: diff }
+        }
+        ClockState.nextAlarm = best
     }
 
     // ── UI ────────────────────────────────────────────────────────────────────
@@ -72,27 +190,12 @@ StatCard {
         Item {
             anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
             visible: root._mode === "clock"
-            Column {
-                anchors.centerIn: parent; spacing: 2
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root._hm; font.pixelSize: 72; font.weight: Font.Bold
-                    font.family: "JetBrains Mono"; font.letterSpacing: -3
-                    color: Qt.rgba(235/255,240/255,255/255,1); lineHeight: 1
-                }
-                Row {
-                    anchors.horizontalCenter: parent.horizontalCenter; spacing: 8
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: ":" + root._sec; font.pixelSize: 20; font.family: "JetBrains Mono"
-                        color: Qt.rgba(166/255,208/255,247/255,0.45)
-                    }
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: root._ampm; font.pixelSize: 11; font.weight: Font.Bold
-                        font.letterSpacing: 2; color: Qt.rgba(166/255,208/255,247/255,0.5)
-                    }
-                }
+            Text {
+                anchors.centerIn: parent
+                text: root._hm
+                font.pixelSize: 62; font.weight: Font.Bold
+                font.family: "JetBrains Mono"; font.letterSpacing: -3
+                color: Qt.rgba(235/255, 240/255, 255/255, 1)
             }
         }
 
@@ -100,57 +203,91 @@ StatCard {
         Item {
             anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
             visible: root._mode === "timer"
+
+            // "+" / "✕" toggle — top-right corner
+            Item {
+                id: addTimerBtn
+                anchors { top: parent.top; right: parent.right; topMargin: 8; rightMargin: 8 }
+                width: 24; height: 24
+
+                Rectangle {
+                    anchors.fill: parent; radius: 7
+                    color: _addTimerHov.hovered
+                           ? Qt.rgba(166/255, 208/255, 247/255, 0.15)
+                           : Qt.rgba(1,1,1,0.06)
+                    border.color: Qt.rgba(166/255, 208/255, 247/255, 0.2); border.width: 1
+                    Behavior on color { ColorAnimation { duration: 100 } }
+                    Text {
+                        anchors.centerIn: parent
+                        text: root._addTimerOpen ? "✕" : "+"
+                        font.pixelSize: 14; color: Theme.active
+                    }
+                }
+                HoverHandler { id: _addTimerHov; cursorShape: Qt.PointingHandCursor }
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: root._addTimerOpen = !root._addTimerOpen
+                }
+            }
+
             Column {
                 anchors.centerIn: parent; spacing: 10
 
+                // ── Ring — hidden while add-timer panel is open ────────────────
                 Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: 100; height: 100
+                    visible: !root._addTimerOpen
 
                     Canvas {
-                        id: timerCanvas; anchors.fill: parent
+                        id: timerCanvas
+                        anchors.fill: parent
                         onPaint: {
                             var ctx = getContext("2d")
                             ctx.clearRect(0, 0, width, height)
                             var cx = width/2, cy = height/2, r = 44
                             ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2)
-                            ctx.strokeStyle = Qt.rgba(1,1,1,0.08); ctx.lineWidth = 5; ctx.stroke()
+                            ctx.strokeStyle = Qt.rgba(1,1,1,0.08)
+                            ctx.lineWidth = 5; ctx.stroke()
                             var p = root._timerProgress()
                             if (p > 0) {
                                 ctx.beginPath()
                                 ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*p)
-                                ctx.strokeStyle = Qt.rgba(166/255,208/255,247/255,0.85)
+                                ctx.strokeStyle = Qt.rgba(166/255, 208/255, 247/255, 0.85)
                                 ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.stroke()
                             }
                         }
-                        Connections {
-                            target: root
-                            function on_TimerLeftChanged() { timerCanvas.requestPaint() }
-                        }
                     }
+
                     Column {
                         anchors.centerIn: parent; spacing: 1
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: root._timerDisplay(); font.pixelSize: 22; font.weight: Font.Bold
-                            font.family: "JetBrains Mono"; color: Qt.rgba(235/255,240/255,255/255,0.9)
+                            text: root._timerDisplay()
+                            font.pixelSize: root._timerLeft >= 3600 ? 16 : 22
+                            font.weight: Font.Bold; font.family: "JetBrains Mono"
+                            color: Qt.rgba(235/255, 240/255, 255/255, 0.9)
                         }
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: "remaining"; font.pixelSize: 8; color: Qt.rgba(1,1,1,0.25)
+                            text: "remaining"; font.pixelSize: 8
+                            color: Qt.rgba(1,1,1,0.25)
                         }
                     }
                 }
 
-                // Presets
+                // ── Presets — hidden while add-timer panel is open ─────────────
                 Row {
-                    anchors.horizontalCenter: parent.horizontalCenter; spacing: 5
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 5
+                    visible: !root._addTimerOpen
                     Repeater {
                         model: [5, 15, 25, 60]
                         delegate: Rectangle {
-                            required property var modelData; required property int index
+                            required property int modelData
+                            required property int index
                             width: 36; height: 22; radius: 6
-                            color: pH.hovered ? Qt.rgba(166/255,208/255,247/255,0.1) : Qt.rgba(1,1,1,0.05)
+                            color: _pH.hovered ? Qt.rgba(166/255,208/255,247/255,0.1) : Qt.rgba(1,1,1,0.05)
                             border.color: Qt.rgba(1,1,1,0.1); border.width: 1
                             Behavior on color { ColorAnimation { duration: 100 } }
                             Text {
@@ -159,40 +296,126 @@ StatCard {
                                 font.pixelSize: 9; font.family: "JetBrains Mono"; font.weight: Font.Bold
                                 color: Qt.rgba(1,1,1,0.45)
                             }
-                            HoverHandler { id: pH; cursorShape: Qt.PointingHandCursor }
+                            HoverHandler { id: _pH; cursorShape: Qt.PointingHandCursor }
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: {
                                     root._timerTotal   = modelData * 60
                                     root._timerLeft    = modelData * 60
                                     root._timerRunning = false
+                                    root._timerFired   = false
+                                    root._syncState()
+                                    timerCanvas.requestPaint()
                                 }
                             }
                         }
                     }
                 }
 
-                // Start/Pause + Reset
-                Row {
-                    anchors.horizontalCenter: parent.horizontalCenter; spacing: 6
-                    Repeater {
-                        model: [
-                            { label: root._timerRunning ? "Pause" : "Start", primary: true  },
-                            { label: "Reset",                                 primary: false }
-                        ]
-                        delegate: Rectangle {
-                            required property var modelData; required property int index
+                // ── Custom duration — visible only when add-timer panel is open
+                Item {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    visible: root._addTimerOpen
+                    width:  _timerInputCol.implicitWidth
+                    height: _timerInputCol.implicitHeight
+
+                    Column {
+                        id: _timerInputCol
+                        anchors.centerIn: parent
+                        spacing: 10
+
+                        TimeInput {
+                            id: timerTimeInput
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            minuteStep: 1
+                        }
+
+                        Rectangle {
+                            anchors.horizontalCenter: parent.horizontalCenter
                             width: 58; height: 26; radius: 8
-                            color: modelData.primary ? Qt.rgba(166/255,208/255,247/255,0.12) : Qt.rgba(1,1,1,0.05)
-                            border.color: modelData.primary ? Qt.rgba(166/255,208/255,247/255,0.22) : Qt.rgba(1,1,1,0.1)
-                            border.width: 1
-                            Text { anchors.centerIn: parent; text: modelData.label; font.pixelSize: 10; font.weight: Font.Medium; color: modelData.primary ? Theme.active : Qt.rgba(1,1,1,0.4) }
+                            color: _setTimerHov.hovered
+                                   ? Qt.rgba(166/255,208/255,247/255,0.18)
+                                   : Qt.rgba(166/255,208/255,247/255,0.1)
+                            border.color: Qt.rgba(166/255,208/255,247/255,0.25); border.width: 1
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Text {
+                                anchors.centerIn: parent; text: "Set Timer"
+                                font.pixelSize: 11; font.weight: Font.Medium
+                                color: Theme.active
+                            }
+                            HoverHandler { id: _setTimerHov; cursorShape: Qt.PointingHandCursor }
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: {
-                                    if (modelData.primary) root._timerRunning = !root._timerRunning
-                                    else { root._timerLeft = root._timerTotal; root._timerRunning = false }
+                                    var total = timerTimeInput.hours * 3600
+                                              + timerTimeInput.minutes * 60
+                                    if (total > 0) {
+                                        root._timerTotal   = total
+                                        root._timerLeft    = total
+                                        root._timerRunning = false
+                                        root._timerFired   = false
+                                        root._syncState()
+                                        timerCanvas.requestPaint()
+                                    }
+                                    root._addTimerOpen = false
                                 }
+                            }
+                        }
+                    }
+                }
+
+                // ── Start / Pause + Reset — always visible ─────────────────────
+                Row {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 6
+
+                    // Start / Pause
+                    Rectangle {
+                        width: 58; height: 26; radius: 8
+                        color: _startHov.hovered
+                               ? Qt.rgba(166/255,208/255,247/255,0.2)
+                               : Qt.rgba(166/255,208/255,247/255,0.12)
+                        border.color: Qt.rgba(166/255,208/255,247/255,0.22); border.width: 1
+                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Text {
+                            anchors.centerIn: parent
+                            text: root._timerRunning ? "Pause" : "Start"
+                            font.pixelSize: 10; font.weight: Font.Medium
+                            color: Theme.active
+                        }
+                        HoverHandler { id: _startHov; cursorShape: Qt.PointingHandCursor }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                root._timerRunning = !root._timerRunning
+                                root._timerFired   = false
+                                root._syncState()
+                            }
+                        }
+                    }
+
+                    // Reset
+                    Rectangle {
+                        width: 58; height: 26; radius: 8
+                        color: _resetHov.hovered
+                               ? Qt.rgba(1,1,1,0.1)
+                               : Qt.rgba(1,1,1,0.05)
+                        border.color: Qt.rgba(1,1,1,0.1); border.width: 1
+                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Text {
+                            anchors.centerIn: parent; text: "Reset"
+                            font.pixelSize: 10; font.weight: Font.Medium
+                            color: Qt.rgba(1,1,1,0.4)
+                        }
+                        HoverHandler { id: _resetHov; cursorShape: Qt.PointingHandCursor }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                root._timerLeft    = root._timerTotal
+                                root._timerRunning = false
+                                root._timerFired   = false
+                                root._syncState()
+                                timerCanvas.requestPaint()
                             }
                         }
                     }
@@ -204,11 +427,189 @@ StatCard {
         Item {
             anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
             visible: root._mode === "alarm"
-            Column {
-                anchors.centerIn: parent; spacing: 8
-                Text { anchors.horizontalCenter: parent.horizontalCenter; text: "󰀠"; font.pixelSize: 36; color: Qt.rgba(166/255,208/255,247/255,0.3) }
-                Text { anchors.horizontalCenter: parent.horizontalCenter; text: "No alarms set"; font.pixelSize: 13; font.weight: Font.Medium; color: Qt.rgba(1,1,1,0.3) }
-                Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Coming soon"; font.pixelSize: 9; color: Qt.rgba(1,1,1,0.18) }
+            clip: true
+
+            Item {
+                anchors { fill: parent; margins: 10 }
+
+                // ── Header — Item, not Row, so right-anchor on + button works ──
+                Item {
+                    id: alarmHeader
+                    anchors { left: parent.left; right: parent.right; top: parent.top }
+                    height: 28
+
+                    Text {
+                        anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                        text: "Alarms"; font.pixelSize: 12; font.weight: Font.DemiBold
+                        color: Qt.rgba(205/255, 214/255, 244/255, 0.7)
+                    }
+
+                    Item {
+                        id: addAlarmBtn
+                        anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                        width: 24; height: 24
+
+                        Rectangle {
+                            anchors.fill: parent; radius: 7
+                            color: _addHov.hovered
+                                   ? Qt.rgba(166/255,208/255,247/255,0.15)
+                                   : Qt.rgba(1,1,1,0.06)
+                            border.color: Qt.rgba(166/255,208/255,247/255,0.2); border.width: 1
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Text {
+                                anchors.centerIn: parent
+                                text: root._addOpen ? "✕" : "+"
+                                font.pixelSize: 14; color: Theme.active
+                            }
+                        }
+                        HoverHandler { id: _addHov; cursorShape: Qt.PointingHandCursor }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                var opening = !root._addOpen
+                                root._addOpen = opening
+                                if (opening) {
+                                    // Snap to next nearest 5-min mark from now
+                                    var d = new Date()
+                                    var totalMins = d.getHours() * 60 + d.getMinutes() + 1
+                                    var snapped   = Math.ceil(totalMins / 5) * 5
+                                    var h = Math.floor(snapped / 60) % 24
+                                    var m = snapped % 60
+                                    root._addHour   = h
+                                    root._addMinute = m
+                                    alarmTimeInput.initialize(h, m)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ── Add alarm panel ────────────────────────────────────────────
+                Rectangle {
+                    id: addPanel
+                    anchors { left: parent.left; right: parent.right; top: alarmHeader.bottom; topMargin: 6 }
+                    height:  root._addOpen ? 140 : 0
+                    clip:    true
+                    color:   Qt.rgba(166/255, 208/255, 247/255, 0.05)
+                    radius:  8
+                    border.color: Qt.rgba(166/255,208/255,247/255,0.1); border.width: 1
+                    opacity: root._addOpen ? 1 : 0
+                    Behavior on height  { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
+
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: 10
+
+                        TimeInput {
+                            id: alarmTimeInput
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            minuteStep: 5
+                        }
+
+                        Rectangle {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: 58; height: 26; radius: 8
+                            color: _setAlarmHov.hovered
+                                   ? Qt.rgba(166/255,208/255,247/255,0.18)
+                                   : Qt.rgba(166/255,208/255,247/255,0.1)
+                            border.color: Qt.rgba(166/255,208/255,247/255,0.25); border.width: 1
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Text {
+                                anchors.centerIn: parent; text: "Set Alarm"
+                                font.pixelSize: 11; font.weight: Font.Medium
+                                color: Theme.active
+                            }
+                            HoverHandler { id: _setAlarmHov; cursorShape: Qt.PointingHandCursor }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    root._addHour   = alarmTimeInput.hours
+                                    root._addMinute = alarmTimeInput.minutes
+                                    root._addAlarm()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ── Alarm list ─────────────────────────────────────────────────
+                ListView {
+                    id: alarmList
+                    anchors {
+                        left: parent.left; right: parent.right
+                        top: addPanel.bottom; topMargin: 6
+                        bottom: parent.bottom
+                    }
+                    model: root._alarms
+                    clip: true; spacing: 4
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    delegate: Rectangle {
+                        required property var modelData
+                        required property int index
+                        width: alarmList.width; height: 36; radius: 8
+                        color: Qt.rgba(1,1,1,0.04)
+                        border.color: modelData.enabled
+                                      ? Qt.rgba(166/255,208/255,247/255,0.15)
+                                      : Qt.rgba(1,1,1,0.07)
+                        border.width: 1
+
+                        // Time label
+                        Text {
+                            anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
+                            text: root._zp(modelData.hour) + ":" + root._zp(modelData.minute)
+                            font.pixelSize: 15; font.weight: Font.Bold; font.family: "JetBrains Mono"
+                            color: modelData.enabled
+                                   ? Qt.rgba(235/255,240/255,255/255,0.9)
+                                   : Qt.rgba(1,1,1,0.3)
+                        }
+
+                        // Toggle
+                        Rectangle {
+                            id: toggleBtn
+                            anchors { right: deleteBtn.left; rightMargin: 6; verticalCenter: parent.verticalCenter }
+                            width: 28; height: 18; radius: 9
+                            color: modelData.enabled
+                                   ? Qt.rgba(166/255,208/255,247/255,0.25)
+                                   : Qt.rgba(1,1,1,0.1)
+                            Behavior on color { ColorAnimation { duration: 130 } }
+                            Rectangle {
+                                width: 12; height: 12; radius: 6
+                                anchors.verticalCenter: parent.verticalCenter
+                                x: modelData.enabled ? parent.width - width - 3 : 3
+                                color: modelData.enabled ? Theme.active : Qt.rgba(1,1,1,0.3)
+                                Behavior on x     { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
+                                Behavior on color { ColorAnimation  { duration: 130 } }
+                            }
+                            MouseArea {
+                                anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                onClicked: root._toggleAlarm(modelData.id)
+                            }
+                        }
+
+                        // Delete
+                        Rectangle {
+                            id: deleteBtn
+                            anchors { right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
+                            width: 22; height: 22; radius: 6
+                            color: _delH.hovered ? Qt.rgba(248/255,113/255,113/255,0.18) : "transparent"
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: 10; color: Qt.rgba(248/255,113/255,113/255,0.6) }
+                            HoverHandler { id: _delH; cursorShape: Qt.PointingHandCursor }
+                            MouseArea { anchors.fill: parent; onClicked: root._deleteAlarm(modelData.id) }
+                        }
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+                        visible: root._alarms.length === 0 && !root._addOpen
+                        text: "No alarms set\nTap + to add one"
+                        horizontalAlignment: Text.AlignHCenter
+                        font.pixelSize: 11; color: Qt.rgba(1,1,1,0.2)
+                        lineHeight: 1.5
+                    }
+                }
             }
         }
 
@@ -216,42 +617,67 @@ StatCard {
         Item {
             anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
             visible: root._mode === "stopwatch"
+
             Column {
                 anchors.centerIn: parent; spacing: 12
+
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: root._swDisplay(); font.pixelSize: 52; font.weight: Font.Bold
+                    text: root._swDisplay()
+                    font.pixelSize: 52; font.weight: Font.Bold
                     font.family: "JetBrains Mono"; font.letterSpacing: -1
-                    color: Qt.rgba(235/255,240/255,255/255,0.9)
+                    color: Qt.rgba(235/255, 240/255, 255/255, 0.9)
                 }
+
                 Row {
-                    anchors.horizontalCenter: parent.horizontalCenter; spacing: 6
-                    Repeater {
-                        model: [
-                            { label: root._swRunning ? "Stop" : "Start", primary: true  },
-                            { label: "Reset",                             primary: false }
-                        ]
-                        delegate: Rectangle {
-                            required property var modelData; required property int index
-                            width: 58; height: 26; radius: 8
-                            color: modelData.primary ? Qt.rgba(166/255,208/255,247/255,0.12) : Qt.rgba(1,1,1,0.05)
-                            border.color: modelData.primary ? Qt.rgba(166/255,208/255,247/255,0.22) : Qt.rgba(1,1,1,0.1)
-                            border.width: 1
-                            Text { anchors.centerIn: parent; text: modelData.label; font.pixelSize: 10; font.weight: Font.Medium; color: modelData.primary ? Theme.active : Qt.rgba(1,1,1,0.4) }
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: {
-                                    if (modelData.primary) root._swRunning = !root._swRunning
-                                    else { root._swMs = 0; root._swRunning = false }
-                                }
-                            }
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 6
+
+                    // Start / Stop
+                    Rectangle {
+                        width: 58; height: 26; radius: 8
+                        color: _swStartHov.hovered
+                               ? Qt.rgba(166/255,208/255,247/255,0.2)
+                               : Qt.rgba(166/255,208/255,247/255,0.12)
+                        border.color: Qt.rgba(166/255,208/255,247/255,0.22); border.width: 1
+                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Text {
+                            anchors.centerIn: parent
+                            text: root._swRunning ? "Stop" : "Start"
+                            font.pixelSize: 10; font.weight: Font.Medium
+                            color: Theme.active
+                        }
+                        HoverHandler { id: _swStartHov; cursorShape: Qt.PointingHandCursor }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: { root._swRunning = !root._swRunning; root._syncState() }
+                        }
+                    }
+
+                    // Reset
+                    Rectangle {
+                        width: 58; height: 26; radius: 8
+                        color: _swResetHov.hovered
+                               ? Qt.rgba(1,1,1,0.1)
+                               : Qt.rgba(1,1,1,0.05)
+                        border.color: Qt.rgba(1,1,1,0.1); border.width: 1
+                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Text {
+                            anchors.centerIn: parent; text: "Reset"
+                            font.pixelSize: 10; font.weight: Font.Medium
+                            color: Qt.rgba(1,1,1,0.4)
+                        }
+                        HoverHandler { id: _swResetHov; cursorShape: Qt.PointingHandCursor }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: { root._swMs = 0; root._swRunning = false; root._syncState() }
                         }
                     }
                 }
             }
         }
 
-        // ── Tab bar — bottom ──────────────────────────────────────────────────
+        // ── Tab bar ───────────────────────────────────────────────────────────
         TabSwitcher {
             id: tabs
             anchors { left: parent.left; right: parent.right; bottom: parent.bottom }

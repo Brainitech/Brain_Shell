@@ -1,18 +1,20 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell.Io
 import "../../"
 import "../../components"
 
-// Profile card — username, avatar, live date.
-// Self-contained: owns its own date timer.
+// Profile card — circular avatar, username, window manager, uptime.
 
 StatCard {
     id: root
     padding: 0
 
-    // ── State ─────────────────────────────────────────────────────────────────
-    property string _dateStr: ""
-    property string _user:    ""
+    property string avatarPath: ""
+
+    property string _user:   ""
+    property string _wm:     ""
+    property string _uptime: ""
 
     Process {
         command: ["bash", "-c", "echo $USER"]
@@ -24,61 +26,127 @@ StatCard {
         }
     }
 
-    readonly property var _monthNames: [
-        "January","February","March","April","May","June",
-        "July","August","September","October","November","December"
-    ]
-
-    function _updateDate() {
-        var d    = new Date()
-        var dows = ["SUN","MON","TUE","WED","THU","FRI","SAT"]
-        var dd   = d.getDate(); var ds = dd < 10 ? "0"+dd : ""+dd
-        _dateStr = dows[d.getDay()] + "  " + ds + " " +
-                   _monthNames[d.getMonth()].substring(0,3).toUpperCase() + " " +
-                   d.getFullYear()
+    Process {
+        command: ["bash", "-c", "echo ${XDG_CURRENT_DESKTOP:-Hyprland}"]
+        running: true
+        stdout: SplitParser {
+            onRead: function(line) {
+                if (line.trim() !== "") root._wm = line.trim()
+            }
+        }
     }
 
-    Component.onCompleted: _updateDate()
+    Process {
+        id: uptimeProc
+        command: ["bash", "-c",
+            "uptime -p | sed 's/up //' | sed 's/ hours\\?/h/' | " +
+            "sed 's/ minutes\\?/m/' | sed 's/ days\\?/d/' | sed 's/, / /g'"]
+        running: false
+        stdout: SplitParser {
+            onRead: function(line) {
+                if (line.trim() !== "") root._uptime = line.trim()
+            }
+        }
+    }
 
-    // Updates once per minute — date never changes faster
-    Timer { interval: 60000; running: true; repeat: true; onTriggered: root._updateDate() }
+    Timer {
+        interval: 60000; running: true; repeat: true
+        onTriggered: { uptimeProc.running = false; uptimeProc.running = true }
+    }
 
-    // ── UI ────────────────────────────────────────────────────────────────────
-    Item {
-        anchors.fill: parent
+    Component.onCompleted: uptimeProc.running = true
 
-        Column {
-            anchors.centerIn: parent
-            spacing: 10
+    Row {
+        anchors {
+            left:           parent.left;  leftMargin:  16
+            right:          parent.right; rightMargin: 16
+            verticalCenter: parent.verticalCenter
+        }
+        spacing: 18
 
-            // Avatar circle
+        // Circular avatar
+        Item {
+            width: 72; height: 72
+            anchors.verticalCenter: parent.verticalCenter
+
             Rectangle {
-                width: 64; height: 64; radius: 32
-                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.fill: parent
+                radius: width / 2
                 gradient: Gradient {
                     GradientStop { position: 0.0; color: Qt.rgba(166/255,208/255,247/255,0.22) }
                     GradientStop { position: 1.0; color: Qt.rgba(80/255,130/255,190/255,0.14) }
                 }
                 border.color: Qt.rgba(166/255,208/255,247/255,0.22)
                 border.width: 1
-                Text {
-                    anchors.centerIn: parent
-                    text: "󰀄"; font.pixelSize: 28; color: Theme.active
+            }
+
+            Rectangle {
+                id: photoMask
+                anchors.fill: parent
+                radius: width / 2
+                visible: false
+                layer.enabled: true
+            }
+
+            Image {
+                anchors.fill: parent
+                source:   root.avatarPath !== "" ? ("file://" + root.avatarPath) : ""
+                fillMode: Image.PreserveAspectCrop
+                smooth:   true
+                visible:  root.avatarPath !== ""
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    maskEnabled:      true
+                    maskSource:       photoMask
+                    maskThresholdMin: 0.5
+                    maskSpreadAtMin:  1.0
                 }
             }
 
-            Column {
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 4
+            Text {
+                anchors.centerIn: parent
+                text:           "󰀄"
+                font.pixelSize: 28
+                color:          Theme.active
+                visible:        root.avatarPath === ""
+            }
+        }
+
+        // Text stats
+        Column {
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 10
+
+            Text {
+                text:           root._user
+                font.pixelSize: 17; font.weight: Font.DemiBold
+                color:          Qt.rgba(235/255,240/255,255/255,0.92)
+            }
+
+            Row {
+                spacing: 8
                 Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root._user; font.pixelSize: 14; font.weight: Font.DemiBold
-                    color: Qt.rgba(235/255,240/255,255/255,0.9)
+                    text: "󰣇"; font.pixelSize: 12; color: Theme.active
+                    anchors.verticalCenter: parent.verticalCenter
                 }
                 Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: root._dateStr; font.pixelSize: 9; font.family: "JetBrains Mono"
-                    color: Qt.rgba(205/255,214/255,244/255,0.35)
+                    text: root._wm; font.pixelSize: 12
+                    color: Qt.rgba(205/255,214/255,244/255,0.55)
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
+
+            Row {
+                spacing: 8
+                Text {
+                    text: "󰔚"; font.pixelSize: 12; color: Theme.active
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+                Text {
+                    text: root._uptime; font.pixelSize: 12
+                    font.family: "JetBrains Mono"
+                    color: Qt.rgba(205/255,214/255,244/255,0.55)
+                    anchors.verticalCenter: parent.verticalCenter
                 }
             }
         }

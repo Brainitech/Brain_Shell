@@ -113,12 +113,6 @@ Item {
         opacity:       0        // invisible to user, still rasterised for MultiEffect
         layer.enabled: true
 
-        // Base dark colour
-        Rectangle {
-            anchors.fill: parent
-            color: "#0d1e2b"
-        }
-
         // Art image source for blur
         Item {
             id: artSource
@@ -173,30 +167,6 @@ Item {
         maskSource:       bgMask
         maskThresholdMin: 0.5
         maskSpreadAtMin:  1.0
-    }
-
-    // ── Fallback disc rings — shown when no art ───────────────────────────────
-    Item {
-        anchors.centerIn: parent
-        width: 64; height: 64
-        visible: root.artUrl === ""
-        opacity: 0.5
-        Rectangle {
-            anchors.centerIn: parent
-            width: parent.width; height: parent.width; radius: parent.width / 2
-            color: "transparent"
-            border.color: Qt.rgba(166/255,208/255,247/255,0.18); border.width: 1
-        }
-        Rectangle {
-            anchors.centerIn: parent; width: 46; height: 46; radius: 23
-            color: "transparent"
-            border.color: Qt.rgba(166/255,208/255,247/255,0.09); border.width: 1
-        }
-        Rectangle {
-            anchors.centerIn: parent; width: 14; height: 14; radius: 7
-            color: "#0a1420"
-            border.color: Qt.rgba(166/255,208/255,247/255,0.22); border.width: 1
-        }
     }
 
     // ── Track name + artist — top, centered ───────────────────────────────────

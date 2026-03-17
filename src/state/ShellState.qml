@@ -1,12 +1,15 @@
 pragma Singleton
 import QtQuick
 
-// Global shell state booleans.
+// Global shell state.
 //
-// WiFi / Bluetooth  — managed by QuickSettings (polls nmcli/bluetoothctl directly)
-// Night Light       — managed by QuickSettings (hyprsunset process)
-// Caffeine          — managed by QuickSettings (systemd-inhibit process)
-// Focus Mode        — managed by QuickSettings; TopBar reacts to hide bar + zero gaps
+// WiFi / Bluetooth  — owned by QuickSettings (nmcli / bluetoothctl)
+// Night Light       — owned by QuickSettings (hyprsunset)
+// Caffeine          — owned by QuickSettings (systemd-inhibit)
+// Hotspot           — owned by QuickSettings (nmcli hotspot)
+// Airplane Mode     — owned by QuickSettings (rfkill)
+// Focus Mode        — owned by QuickSettings; TopBar reacts to hide + zero gaps
+// DND               — read by NotificationService to suppress incoming notifications
 
 QtObject {
     property int topBarLWidth: 0
@@ -17,4 +20,6 @@ QtObject {
     property bool focusMode:    false
     property bool dnd:          false
     property bool screenRecord: false
+    property bool hotspot:      false
+    property bool airplane:     false
 }

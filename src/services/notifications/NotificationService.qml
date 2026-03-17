@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell.Services.Notifications
+import "../../"
 
 // ─────────────────────────────────────────────────────────────
 // NotificationService — global singleton
@@ -23,6 +24,7 @@ NotificationServer {
     onNotification: function(n) {
         n.tracked = true
         root.list = [n, ...root.list]
+        if(ShellState.dnd) return
         root.notificationAdded(n)
          n.onClosed.connect(function() {
             root.list = root.list.filter(function(x) { return x !== n })

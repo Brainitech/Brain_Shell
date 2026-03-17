@@ -504,7 +504,7 @@ StatCard {
                         TimeInput {
                             id: alarmTimeInput
                             anchors.horizontalCenter: parent.horizontalCenter
-                            minuteStep: 5
+                            minuteStep: 1
                         }
 
                         Rectangle {

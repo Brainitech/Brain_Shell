@@ -5,19 +5,6 @@ import "../../"
 import "../../components"
 
 // Right column — brightness slider + scrollable quick-settings grid.
-//
-// Functional tiles:
-//   Wi-Fi        nmcli radio wifi on/off          — SSID sublabel
-//   Bluetooth    bluetoothctl power on/off         — device sublabel
-//   Night Light  hyprsunset start/pkill
-//   Caffeine     systemd-inhibit sleep infinity
-//   Focus Mode   hyprctl gaps → 0 / restore
-//   Do Not Disturb  ShellState.dnd → NotificationService suppresses incoming
-//   Hotspot      nmcli device wifi hotspot / con down
-//   Airplane     rfkill block all / rfkill unblock all
-//
-// Stub tiles (no backend yet):
-//   Screen Rec, Screenshot
 
 StatCard {
     id: root
@@ -152,28 +139,16 @@ StatCard {
 
     // ─────────────────────────────────────────────────────────────────────────
     //  Do Not Disturb
-    //  Toggling on also dismisses all current notifications immediately.
     // ─────────────────────────────────────────────────────────────────────────
     function _dndToggle() {
         ShellState.dnd = !ShellState.dnd
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    //  Dark Mode  (stub — backend wired later)
-    // ─────────────────────────────────────────────────────────────────────────
-    property bool darkModeOn: true
-
-    function _darkModeToggle() {
-        darkModeOn = !darkModeOn
-        // TODO: wire backend
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
     //  Hotspot  (nmcli)
-    //  Creates a hotspot on first enable; subsequent toggles up/down by name.
     // ─────────────────────────────────────────────────────────────────────────
     property bool   hotspotOn:   false
-    property string hotspotSSID: ""   // name of the active hotspot connection
+    property string hotspotSSID: ""
 
     Process { id: hotspotCheck
         command: ["bash", "-c",
@@ -189,8 +164,6 @@ StatCard {
         }
     }
     Process { id: hotspotUp
-        // Start hotspot — uses existing "Hotspot" connection if present,
-        // otherwise nmcli creates one automatically
         command: ["bash", "-c", "nmcli device wifi hotspot 2>/dev/null || nmcli con up Hotspot"]
         running: false
         onRunningChanged: if (!running) hotspotCheck.running = true }
@@ -269,6 +242,57 @@ StatCard {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    //  Filter  (hyprshade)
+    //
+    //  Tile click: runs `hyprshade ls`, opens picker popup above the tile.
+    //  Picker has "Off" at top + all available shaders.
+    //  Selecting a shader: `hyprshade on <name>` and stores in currentFilter.
+    //  Selecting the active shader or "Off": `hyprshade off`, clears currentFilter.
+    // ─────────────────────────────────────────────────────────────────────────
+    property string currentFilter:    ""
+    property var    filterList:       []
+    property bool   filterPickerOpen: false
+
+    Process {
+        id: filterListProc
+        command: ["hyprshade", "ls"]
+        running: false
+        stdout: SplitParser {
+            onRead: function(l) {
+                var n = l.trim()
+                if (n !== "") root.filterList = root.filterList.concat([n])
+            }
+        }
+    }
+
+    Process {
+        id: filterApplyProc
+        command: []
+        running: false
+    }
+
+    function _filterOpen() {
+        root.filterList = []
+        filterListProc.running = false
+        filterListProc.running = true
+        root.filterPickerOpen  = true
+    }
+
+    function _filterApply(name) {
+        if (name === "" || name === root.currentFilter) {
+            // "Off" or same filter → turn off
+            filterApplyProc.command = ["hyprshade", "off"]
+            root.currentFilter = ""
+        } else {
+            filterApplyProc.command = ["hyprshade", "on", name]
+            root.currentFilter = name
+        }
+        filterApplyProc.running = false
+        filterApplyProc.running = true
+        root.filterPickerOpen   = false
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     //  Polling timer
     // ─────────────────────────────────────────────────────────────────────────
     Timer {
@@ -296,7 +320,7 @@ StatCard {
         anchors { fill: parent; margins: 12 }
         spacing: 0
 
-        // Brightness section
+        // ── Brightness ────────────────────────────────────────────────────────
         Item {
             width: parent.width
             height: 52
@@ -305,21 +329,24 @@ StatCard {
                 id: brightLbl
                 anchors { left: parent.left; top: parent.top }
                 text: "BRIGHTNESS"; font.pixelSize: 9; font.weight: Font.Bold
-                color: Qt.rgba(166/255,208/255,247/255,0.35)
+                color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
             }
             Text {
                 anchors { right: parent.right; top: parent.top }
                 text: Math.round(root._brightVal * 100) + "%"
                 font.pixelSize: 9; font.family: "JetBrains Mono"; font.weight: Font.Bold
-                color: Qt.rgba(166/255,208/255,247/255,0.6)
+                color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.7)
             }
 
             Row {
                 anchors { left: parent.left; right: parent.right; top: brightLbl.bottom; topMargin: 8 }
                 spacing: 8
 
-                Text { anchors.verticalCenter: parent.verticalCenter
-                    text: "󰃞"; font.pixelSize: 13; color: Qt.rgba(1,1,1,0.28) }
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "󰃞"; font.pixelSize: 13
+                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.35)
+                }
 
                 Item {
                     id: btw
@@ -331,7 +358,7 @@ StatCard {
                         id: btrack
                         anchors.verticalCenter: parent.verticalCenter
                         width: parent.width; height: 5; radius: height / 2
-                        color: Qt.rgba(1,1,1,0.08)
+                        color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
                         Rectangle {
                             anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
                             width: Math.max(parent.radius * 2, parent.width * root._brightVal)
@@ -362,36 +389,40 @@ StatCard {
                     }
                 }
 
-                Text { anchors.verticalCenter: parent.verticalCenter
-                    text: "󰃠"; font.pixelSize: 13; color: Qt.rgba(166/255,208/255,247/255,0.65) }
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "󰃠"; font.pixelSize: 13
+                    color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.75)
+                }
             }
         }
 
-        // Divider
-        Rectangle { width: parent.width; height: 1; color: Qt.rgba(1,1,1,0.06) }
-        Item      { width: parent.width; height: 8 }
+        Rectangle {
+            width: parent.width; height: 1
+            color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
+        }
+        Item { width: parent.width; height: 8 }
 
         Text {
             id: qsLbl; width: parent.width
             text: "QUICK SETTINGS"; font.pixelSize: 9; font.weight: Font.Bold
-            color: Qt.rgba(166/255,208/255,247/255,0.35)
+            color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
         }
         Item { width: parent.width; height: 8 }
 
-        // Scrollable grid
+        // ── Tile grid ─────────────────────────────────────────────────────────
         Item {
             width:  parent.width
-            height: root.height - 12 - 52 - 1 - 8 - qsLbl.height -8
+            height: root.height - 12 - 52 - 1 - 8 - qsLbl.height - 8
 
             Flickable {
                 id: flick
                 anchors.fill:   parent
                 contentWidth:   width
-                contentHeight:  tileGrid.implicitHeight +8
+                contentHeight:  tileGrid.implicitHeight + 8
                 clip:           true
                 boundsBehavior: Flickable.StopAtBounds
 
-                // ── Toggle button component ───────────────────────────────────
                 component TglBtn: Rectangle {
                     id: btn
                     required property bool   on
@@ -401,18 +432,22 @@ StatCard {
                     signal toggled()
 
                     radius: 10
-                    color: on ? Qt.rgba(166/255,208/255,247/255,0.10)
-                           : bH.hovered ? Qt.rgba(1,1,1,0.06) : Qt.rgba(1,1,1,0.03)
-                    border.color: on ? Qt.rgba(166/255,208/255,247/255,0.22) : Qt.rgba(1,1,1,0.07)
+                    color: on
+                        ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
+                        : bH.hovered
+                            ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
+                            : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+                    border.color: on
+                        ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30)
+                        : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.10)
                     border.width: 1
                     Behavior on color        { ColorAnimation { duration: 130 } }
                     Behavior on border.color { ColorAnimation { duration: 130 } }
 
-                    // Status dot — top right
                     Rectangle {
                         anchors { top: parent.top; right: parent.right; margins: 8 }
                         width: 6; height: 6; radius: 3
-                        color: btn.on ? Theme.active : Qt.rgba(1,1,1,0.15)
+                        color: btn.on ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.18)
                         Behavior on color { ColorAnimation { duration: 130 } }
                     }
 
@@ -421,20 +456,19 @@ StatCard {
                         spacing: 2
                         Text {
                             text: btn.icon; font.pixelSize: 17
-                            color: btn.on ? Theme.active : Qt.rgba(1,1,1,0.28)
+                            color: btn.on ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.40)
                             Behavior on color { ColorAnimation { duration: 130 } }
                         }
                         Text {
                             text: btn.label; font.pixelSize: 9; font.weight: Font.Medium
-                            color: btn.on ? Qt.rgba(205/255,214/255,244/255,0.9)
-                                          : Qt.rgba(205/255,214/255,244/255,0.35)
+                            color: btn.on ? Theme.text : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
                             Behavior on color { ColorAnimation { duration: 130 } }
                         }
                         Text {
                             visible: btn.sublabel !== ""
                             text:    btn.sublabel
                             font.pixelSize: 8; font.family: "JetBrains Mono"
-                            color: Qt.rgba(166/255,208/255,247/255,0.55)
+                            color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.65)
                             width: btn.width - 18; elide: Text.ElideRight
                         }
                     }
@@ -500,15 +534,180 @@ StatCard {
                         on: ShellState.screenRecord; icon: "󰻂"; label: "Screen Capture"
                         onToggled: ShellState.screenRecord = !ShellState.screenRecord
                     }
+                    // Filter tile — opens picker, does not toggle directly
                     TglBtn {
                         width: tileGrid.btnW; height: tileGrid.btnH
-                        on: root.darkModeOn
-                        icon: root.darkModeOn ? "󰖔" : "󰖙"
-                        label: root.darkModeOn ? "Dark Mode" : "Light Mode"
-                        onToggled: root._darkModeToggle()
+                        on:       root.currentFilter !== ""
+                        icon:     "󱡓"
+                        label:    "Filter"
+                        sublabel: root.currentFilter !== "" ? root.currentFilter : ""
+                        onToggled: root._filterOpen()
                     }
                 }
             }
         }
+    }
+
+    // ── Filter picker popup ───────────────────────────────────────────────────
+    // Floats above the bottom-right tile. z:20 renders it over the grid.
+    // Anchored bottom-right of the StatCard's inner area.
+    Rectangle {
+        id: filterPicker
+        visible:  root.filterPickerOpen
+        z:        20
+
+        anchors {
+            right:        parent.right
+            bottom:       parent.bottom
+            rightMargin:  12
+            bottomMargin: 12
+        }
+
+        width:  180
+        // Height fits "Off" row + all shader rows, capped at 280
+        height: Math.min(280, pickerCol.implicitHeight + 16)
+        radius: Theme.cornerRadius
+
+        color: Qt.rgba(
+            Math.min(1, Theme.background.r + 0.05),
+            Math.min(1, Theme.background.g + 0.05),
+            Math.min(1, Theme.background.b + 0.05),
+            0.98)
+        border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.10)
+        border.width: 1
+
+        // Subtle entrance scale + fade
+        opacity: root.filterPickerOpen ? 1 : 0
+        scale:   root.filterPickerOpen ? 1 : 0.95
+        Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+        Behavior on scale   { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+        transformOrigin: Item.BottomRight
+
+        // Dismiss when clicking outside the picker
+        MouseArea {
+            anchors.fill: parent
+            // Swallow clicks so they don't fall through to tiles below
+            onClicked: {} // intentionally empty — keeps picker open on internal clicks
+        }
+
+        Flickable {
+            anchors { fill: parent; margins: 8 }
+            contentWidth:   width
+            contentHeight:  pickerCol.implicitHeight
+            clip:           true
+            boundsBehavior: Flickable.StopAtBounds
+
+            Column {
+                id: pickerCol
+                width: parent.width
+                spacing: 2
+
+                // Header label
+                Text {
+                    width: parent.width
+                    text: "SHADER"
+                    font.pixelSize: 9; font.weight: Font.Bold
+                    color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
+                    leftPadding: 4
+                    bottomPadding: 4
+                }
+
+                // "Off" row — always first
+                Rectangle {
+                    width:  parent.width
+                    height: 28
+                    radius: 6
+                    property bool isActive: root.currentFilter === ""
+                    color: isActive
+                        ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
+                        : offH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
+                    Behavior on color { ColorAnimation { duration: 100 } }
+
+                    Row {
+                        anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
+                        spacing: 8
+                        Text {
+                            text:           parent.parent.isActive ? "●" : "○"
+                            font.pixelSize: 9
+                            color: parent.parent.isActive ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.30)
+                            anchors.verticalCenter: parent.verticalCenter
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                        }
+                        Text {
+                            text:           "Off"
+                            font.pixelSize: 12
+                            color: parent.parent.isActive ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.65)
+                            anchors.verticalCenter: parent.verticalCenter
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                        }
+                    }
+                    HoverHandler { id: offH; cursorShape: Qt.PointingHandCursor }
+                    TapHandler   { onTapped: root._filterApply("") }
+                }
+
+                // Divider
+                Rectangle {
+                    width: parent.width; height: 1
+                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
+                }
+
+                // Shader rows — populated by hyprshade ls
+                Repeater {
+                    model: root.filterList
+                    delegate: Rectangle {
+                        required property string modelData
+                        property bool isActive: root.currentFilter === modelData
+
+                        width:  pickerCol.width
+                        height: 28
+                        radius: 6
+                        color: isActive
+                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
+                            : itemH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
+                        Behavior on color { ColorAnimation { duration: 100 } }
+
+                        Row {
+                            anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
+                            spacing: 8
+                            Text {
+                                text:           parent.parent.isActive ? "●" : "○"
+                                font.pixelSize: 9
+                                color: parent.parent.isActive ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.30)
+                                anchors.verticalCenter: parent.verticalCenter
+                                Behavior on color { ColorAnimation { duration: 100 } }
+                            }
+                            Text {
+                                text:           modelData
+                                font.pixelSize: 12
+                                color: parent.parent.isActive ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.65)
+                                anchors.verticalCenter: parent.verticalCenter
+                                elide: Text.ElideRight
+                                width: pickerCol.width - 38
+                                Behavior on color { ColorAnimation { duration: 100 } }
+                            }
+                        }
+                        HoverHandler { id: itemH; cursorShape: Qt.PointingHandCursor }
+                        TapHandler   { onTapped: root._filterApply(modelData) }
+                    }
+                }
+
+                // Empty state — shown while hyprshade ls is still running
+                Text {
+                    width:   parent.width
+                    visible: root.filterList.length === 0
+                    text:    "Loading…"
+                    font.pixelSize: 11
+                    color:   Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
+                    horizontalAlignment: Text.AlignHCenter
+                    topPadding: 4
+                }
+            }
+        }
+    }
+
+    // Tap outside the picker to close it
+    TapHandler {
+        enabled: root.filterPickerOpen
+        onTapped: root.filterPickerOpen = false
     }
 }

@@ -221,9 +221,9 @@ Item {
                     width:  isPlay ? 44 : 36; height: isPlay ? 44 : 36
                     radius: height / 2
                     color: isPlay
-                           ? Qt.rgba(166/255,208/255,247/255,0.18)
+                           ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
                            : cH.hovered ? Qt.rgba(1,1,1,0.14) : Qt.rgba(1,1,1,0.06)
-                    border.color: isPlay ? Qt.rgba(166/255,208/255,247/255,0.3) : "transparent"
+                    border.color: isPlay ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.3) : "transparent"
                     border.width: 1
                     Behavior on color { ColorAnimation { duration: 100 } }
                     Text {
@@ -316,7 +316,7 @@ Item {
                             width:  parent.width
                             height: Math.max(2, (modelData / 100) * 32)
                             radius: width / 2
-                            color:  Qt.rgba(166/255,208/255,247/255, 0.25 + (modelData / 100) * 0.65)
+                            color:  Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.25 + (modelData / 100) * 0.65)
                             Behavior on height { NumberAnimation { duration: 50; easing.type: Easing.OutCubic } }
                         }
                     }

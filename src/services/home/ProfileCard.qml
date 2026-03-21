@@ -120,7 +120,7 @@ StatCard {
             Text {
                 text:           root._user
                 font.pixelSize: 17; font.weight: Font.DemiBold
-                color:          Qt.rgba(235/255,240/255,255/255,0.92)
+                color:          Theme.active
             }
 
             Row {

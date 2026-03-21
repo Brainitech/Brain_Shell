@@ -195,7 +195,7 @@ StatCard {
                 text: root._hm
                 font.pixelSize: 62; font.weight: Font.Bold
                 font.family: "JetBrains Mono"; font.letterSpacing: -3
-                color: Qt.rgba(235/255, 240/255, 255/255, 1)
+                color: Theme.text
             }
         }
 
@@ -213,9 +213,9 @@ StatCard {
                 Rectangle {
                     anchors.fill: parent; radius: 7
                     color: _addTimerHov.hovered
-                           ? Qt.rgba(166/255, 208/255, 247/255, 0.15)
+                           ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
                            : Qt.rgba(1,1,1,0.06)
-                    border.color: Qt.rgba(166/255, 208/255, 247/255, 0.2); border.width: 1
+                    border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2); border.width: 1
                     Behavior on color { ColorAnimation { duration: 100 } }
                     Text {
                         anchors.centerIn: parent
@@ -253,9 +253,13 @@ StatCard {
                             if (p > 0) {
                                 ctx.beginPath()
                                 ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*p)
-                                ctx.strokeStyle = Qt.rgba(166/255, 208/255, 247/255, 0.85)
+                                ctx.strokeStyle = Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.85)
                                 ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.stroke()
                             }
+                        }
+                        Connections {
+                            target: Theme
+                            function onActiveChanged() { timerCanvas.requestPaint() }
                         }
                     }
 
@@ -266,7 +270,7 @@ StatCard {
                             text: root._timerDisplay()
                             font.pixelSize: root._timerLeft >= 3600 ? 16 : 22
                             font.weight: Font.Bold; font.family: "JetBrains Mono"
-                            color: Qt.rgba(235/255, 240/255, 255/255, 0.9)
+                            color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.9)
                         }
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
@@ -287,7 +291,7 @@ StatCard {
                             required property int modelData
                             required property int index
                             width: 36; height: 22; radius: 6
-                            color: _pH.hovered ? Qt.rgba(166/255,208/255,247/255,0.1) : Qt.rgba(1,1,1,0.05)
+                            color: _pH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1) : Qt.rgba(1,1,1,0.05)
                             border.color: Qt.rgba(1,1,1,0.1); border.width: 1
                             Behavior on color { ColorAnimation { duration: 100 } }
                             Text {
@@ -334,9 +338,9 @@ StatCard {
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: 58; height: 26; radius: 8
                             color: _setTimerHov.hovered
-                                   ? Qt.rgba(166/255,208/255,247/255,0.18)
-                                   : Qt.rgba(166/255,208/255,247/255,0.1)
-                            border.color: Qt.rgba(166/255,208/255,247/255,0.25); border.width: 1
+                                   ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.18)
+                                   : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1)
+                            border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.25); border.width: 1
                             Behavior on color { ColorAnimation { duration: 100 } }
                             Text {
                                 anchors.centerIn: parent; text: "Set Timer"
@@ -373,9 +377,9 @@ StatCard {
                     Rectangle {
                         width: 58; height: 26; radius: 8
                         color: _startHov.hovered
-                               ? Qt.rgba(166/255,208/255,247/255,0.2)
-                               : Qt.rgba(166/255,208/255,247/255,0.12)
-                        border.color: Qt.rgba(166/255,208/255,247/255,0.22); border.width: 1
+                               ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.2)
+                               : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.12)
+                        border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.22); border.width: 1
                         Behavior on color { ColorAnimation { duration: 100 } }
                         Text {
                             anchors.centerIn: parent
@@ -441,7 +445,7 @@ StatCard {
                     Text {
                         anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                         text: "Alarms"; font.pixelSize: 12; font.weight: Font.DemiBold
-                        color: Qt.rgba(205/255, 214/255, 244/255, 0.7)
+                        color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.7)
                     }
 
                     Item {
@@ -452,9 +456,9 @@ StatCard {
                         Rectangle {
                             anchors.fill: parent; radius: 7
                             color: _addHov.hovered
-                                   ? Qt.rgba(166/255,208/255,247/255,0.15)
+                                   ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.15)
                                    : Qt.rgba(1,1,1,0.06)
-                            border.color: Qt.rgba(166/255,208/255,247/255,0.2); border.width: 1
+                            border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.2); border.width: 1
                             Behavior on color { ColorAnimation { duration: 100 } }
                             Text {
                                 anchors.centerIn: parent
@@ -490,9 +494,9 @@ StatCard {
                     anchors { left: parent.left; right: parent.right; top: alarmHeader.bottom; topMargin: 6 }
                     height:  root._addOpen ? 140 : 0
                     clip:    true
-                    color:   Qt.rgba(166/255, 208/255, 247/255, 0.05)
+                    color:   Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.05)
                     radius:  8
-                    border.color: Qt.rgba(166/255,208/255,247/255,0.1); border.width: 1
+                    border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1); border.width: 1
                     opacity: root._addOpen ? 1 : 0
                     Behavior on height  { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
                     Behavior on opacity { NumberAnimation { duration: 150 } }
@@ -511,9 +515,9 @@ StatCard {
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: 58; height: 26; radius: 8
                             color: _setAlarmHov.hovered
-                                   ? Qt.rgba(166/255,208/255,247/255,0.18)
-                                   : Qt.rgba(166/255,208/255,247/255,0.1)
-                            border.color: Qt.rgba(166/255,208/255,247/255,0.25); border.width: 1
+                                   ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.18)
+                                   : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1)
+                            border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.25); border.width: 1
                             Behavior on color { ColorAnimation { duration: 100 } }
                             Text {
                                 anchors.centerIn: parent; text: "Set Alarm"
@@ -551,7 +555,7 @@ StatCard {
                         width: alarmList.width; height: 36; radius: 8
                         color: Qt.rgba(1,1,1,0.04)
                         border.color: modelData.enabled
-                                      ? Qt.rgba(166/255,208/255,247/255,0.15)
+                                      ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.15)
                                       : Qt.rgba(1,1,1,0.07)
                         border.width: 1
 
@@ -561,7 +565,7 @@ StatCard {
                             text: root._zp(modelData.hour) + ":" + root._zp(modelData.minute)
                             font.pixelSize: 15; font.weight: Font.Bold; font.family: "JetBrains Mono"
                             color: modelData.enabled
-                                   ? Qt.rgba(235/255,240/255,255/255,0.9)
+                                   ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.9)
                                    : Qt.rgba(1,1,1,0.3)
                         }
 
@@ -571,7 +575,7 @@ StatCard {
                             anchors { right: deleteBtn.left; rightMargin: 6; verticalCenter: parent.verticalCenter }
                             width: 28; height: 18; radius: 9
                             color: modelData.enabled
-                                   ? Qt.rgba(166/255,208/255,247/255,0.25)
+                                   ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.25)
                                    : Qt.rgba(1,1,1,0.1)
                             Behavior on color { ColorAnimation { duration: 130 } }
                             Rectangle {
@@ -626,7 +630,7 @@ StatCard {
                     text: root._swDisplay()
                     font.pixelSize: 52; font.weight: Font.Bold
                     font.family: "JetBrains Mono"; font.letterSpacing: -1
-                    color: Qt.rgba(235/255, 240/255, 255/255, 0.9)
+                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.9)
                 }
 
                 Row {
@@ -637,9 +641,9 @@ StatCard {
                     Rectangle {
                         width: 58; height: 26; radius: 8
                         color: _swStartHov.hovered
-                               ? Qt.rgba(166/255,208/255,247/255,0.2)
-                               : Qt.rgba(166/255,208/255,247/255,0.12)
-                        border.color: Qt.rgba(166/255,208/255,247/255,0.22); border.width: 1
+                               ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.2)
+                               : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.12)
+                        border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.22); border.width: 1
                         Behavior on color { ColorAnimation { duration: 100 } }
                         Text {
                             anchors.centerIn: parent

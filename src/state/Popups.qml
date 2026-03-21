@@ -9,6 +9,7 @@ QtObject {
     property bool notificationsOpen: false
     property bool archMenuOpen:      false
     property bool dashboardOpen:     false
+    property bool wallpaperOpen:     false
 
     // ── Per-popup trigger hover state ─────────────────────────────────────────
     property bool archMenuTriggerHovered: false
@@ -30,15 +31,14 @@ QtObject {
     //   "reboot"      → systemctl reboot
     //   "suspend"     → systemctl suspend
     //   "lock"        → loginctl lock-session
-    //   "gfx-switch"  → supergfxctl -m confirmGfxMode, then hyprctl exit
+    //   "gfx-switch"  → envycontrol -m confirmGfxMode, then hyprctl exit
     property bool   confirmOpen:    false
     property string confirmTitle:   ""
     property string confirmMessage: ""
-    property string confirmLabel:   "Confirm"   // text on the confirm button
+    property string confirmLabel:   "Confirm"
     property string confirmAction:  ""
-    property string confirmGfxMode: ""          // only for "gfx-switch"
-    property bool confirmRunning: false
-    
+    property string confirmGfxMode: ""
+    property bool   confirmRunning: false
 
     function showConfirm(title, message, label, action, gfxMode) {
         confirmTitle   = title
@@ -58,7 +58,7 @@ QtObject {
     // ── Global state ──────────────────────────────────────────────────────────
     readonly property bool anyOpen: audioOpen || networkOpen || batteryOpen
                                     || notificationsOpen || archMenuOpen
-                                    || dashboardOpen
+                                    || dashboardOpen || wallpaperOpen
 
     function closeAll() {
         audioOpen         = false
@@ -67,5 +67,6 @@ QtObject {
         notificationsOpen = false
         archMenuOpen      = false
         dashboardOpen     = false
+        wallpaperOpen     = false
     }
 }

@@ -10,10 +10,11 @@ GpuService ./system/GpuService.qml
 EnvyControlService ./system/EnvyControlService.qml
 CpuService ./system/CpuService.qml
 CpuFreqService ./system/CpuFreqService.qml
-TempService T./system/empService.qml
+TempService ./system/empService.qml
 DiskService ./system/DiskService.qml
 ThermalService ./system/ThermalService.qml
 FanControl ./system/FanControl.qml
 DashHome home/DashHome.qml
 singleton NotificationService 1.0 ./notifications/NotificationService.qml
 NotificationList ./notifications/NotificationList.qml
+singleton WallpaperService 1.0 WallpaperService.qml

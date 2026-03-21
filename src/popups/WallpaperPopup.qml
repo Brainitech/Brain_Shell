@@ -1,0 +1,619 @@
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Effects
+import Quickshell
+import Quickshell.Wayland
+import "../shapes"
+import "../components"
+import "../services"
+import "../"
+
+// ============================================================
+// WallpaperPopup — bottom-anchored PanelWindow.
+//
+// Surface only covers the bottom panelHeight + borderWidth px,
+// so there is no full-screen transparent overlay to cause strip
+// artifacts. PopupDismiss handles click-outside dismiss.
+//
+// Animation: same grow pattern as Dashboard — sizer starts at
+// cNotchMinWidth × 0 and expands to panelWidth × panelHeight
+// simultaneously, centered horizontally. PopupShape melts into
+// the bottom border strip.
+//
+//  ┌─ tiles (horizontal scroll) ────────────────────────────┐
+//  │  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐              │
+//  │  │  img │  │  img │  │  img │  │  img │              │
+//  │  │ name │  │ name │  │ name │  │ name │              │
+//  └──┴──────┴──┴──────┴──┴──────┴──┴──────┴──────────────┘
+//         [📁]  [Search……………]  [🎨 scheme ▾]     [Apply]
+// ============================================================
+
+PanelWindow {
+    id: root
+
+    // ── Surface covers only the bottom portion — no full-screen strip ─────────
+    anchors.left:   true
+    anchors.right:  true
+    anchors.bottom: true
+
+    implicitHeight: root.panelHeight + Theme.borderWidth
+
+    exclusionMode: ExclusionMode.Ignore
+    color:         "transparent"
+
+    WlrLayershell.layer:         WlrLayer.Overlay
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+
+    // ── Dimensions ────────────────────────────────────────────────────────────
+    readonly property int panelWidth:  980
+    readonly property int panelHeight: 420
+    readonly property int fw:          Theme.notchRadius
+    readonly property int fh:          Theme.notchRadius
+
+    // ── Mask tracks sizer — limits input + render region to visible content ───
+    mask: Region { item: maskProxy }
+    Item {
+        id: maskProxy
+        x:      (root.width - sizer.width) / 2
+        y:      root.height - sizer.height - Theme.borderWidth
+        width:  sizer.width
+        height: sizer.height
+    }
+
+    // ── Visibility gate — window alive until close animation finishes ─────────
+    property bool windowVisible: false
+    visible: windowVisible
+
+    Timer {
+        id: closeTimer
+        interval: Theme.animDuration + 20
+        onTriggered: {
+            // Only hide if the popup is genuinely still closed
+            if (!Popups.wallpaperOpen) root.windowVisible = false
+        }
+    }
+
+    // ── Open / close ──────────────────────────────────────────────────────────
+    Connections {
+        target: Popups
+        function onWallpaperOpenChanged() {
+            if (Popups.wallpaperOpen) {
+                closeTimer.stop()         // cancel any pending hide
+                root.windowVisible   = true
+                WallpaperService.refresh()
+                WallpaperService.previewWall   = ""
+                content.schemePopupOpen        = false
+                content.folderMode             = false
+                content.appliedScheme          = WallpaperService.scheme
+                searchInput.text               = ""
+                searchInput.forceActiveFocus()
+            } else {
+                closeTimer.restart()
+            }
+        }
+    }
+
+    // ── Sizer — grows from cNotchMinWidth×0 → panelWidth×panelHeight ─────────
+    // Centered horizontally, anchored to bottom border.
+    // Same pattern as Dashboard: clip:true so content never bleeds outside.
+    Item {
+        id: sizer
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom:           parent.bottom
+        anchors.bottomMargin:     Theme.borderWidth
+        clip: true
+
+        width:  Popups.wallpaperOpen
+                    ? root.panelWidth  + 2 * root.fw
+                    : Theme.cNotchMinWidth + 2 * root.fw
+
+        height: Popups.wallpaperOpen ? root.panelHeight : 0
+
+        Behavior on width  { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+        Behavior on height { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+
+        // Background — melts into the bottom border strip
+        PopupShape {
+            anchors.fill: parent
+            attachedEdge: "bottom"
+            color:        Theme.background
+            radius:       Theme.cornerRadius
+            flareWidth:   root.fw
+            flareHeight:  root.fh
+        }
+
+        // ── Content — fades in after expand, out before collapse ──────────────
+        Item {
+            id: content
+            anchors {
+                fill:         parent
+                topMargin:    16
+                bottomMargin: root.fh + 8
+                leftMargin:   root.fw + 16
+                rightMargin:  root.fw + 16
+            }
+
+            property string searchQuery:     ""
+            property bool   schemePopupOpen: false
+            property bool   folderMode:      false
+            property string appliedScheme:   WallpaperService.scheme
+
+            readonly property bool applyActive:
+                WallpaperService.previewWall !== "" ||
+                (WallpaperService.currentWall !== "" &&
+                 WallpaperService.scheme !== content.appliedScheme)
+
+            opacity: Popups.wallpaperOpen ? 1 : 0
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: Popups.wallpaperOpen
+                        ? Theme.animDuration * 0.5
+                        : Theme.animDuration * 0.15
+                }
+            }
+
+            // ── Wallpaper grid ─────────────────────────────────────────────────
+            ListView {
+                id: wallGrid
+                anchors.top:          parent.top
+                anchors.left:         parent.left
+                anchors.right:        parent.right
+                anchors.bottom:       divider.top
+                anchors.bottomMargin: 8
+
+                orientation:    ListView.Horizontal
+                spacing:        14
+                clip:           true
+                boundsBehavior: Flickable.StopAtBounds
+                interactive:    false
+
+                ScrollBar.horizontal: ScrollBar {
+                    policy: ScrollBar.AsNeeded
+                    height: 6
+                }
+
+                model: {
+                    var q = content.searchQuery.toLowerCase()
+                    if (q === "") return WallpaperService.wallpapers
+                    return WallpaperService.wallpapers.filter(function(p) {
+                        return p.split("/").pop().toLowerCase().indexOf(q) !== -1
+                    })
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    visible:        wallGrid.count === 0
+                    text:           "No wallpapers found in " + WallpaperService.wallpaperDir
+                    color:          Qt.rgba(1,1,1,0.25)
+                    font.pixelSize: 13
+                }
+
+                delegate: Item {
+                    id: cardDelegate
+                    width:  130
+                    height: wallGrid.height - 14
+
+                    required property string modelData
+                    required property int    index
+
+                    property bool isPreview: WallpaperService.previewWall === modelData
+                    property bool isCurrent: WallpaperService.currentWall === modelData
+
+                    readonly property int labelH: 30
+
+                    // 1. All content — not drawn directly
+                    Item {
+                        id: cardContent
+                        anchors.fill: parent
+                        visible: false
+
+                        // Image — top portion
+                        Image {
+                            anchors.left:   parent.left
+                            anchors.right:  parent.right
+                            anchors.top:    parent.top
+                            height:         parent.height - cardDelegate.labelH
+                            source:         "file://" + modelData
+                            fillMode:       Image.PreserveAspectCrop
+                            asynchronous:   true
+                            cache:          true
+                        }
+
+                        // Label block — distinct background flush with image
+                        Rectangle {
+                            anchors.left:   parent.left
+                            anchors.right:  parent.right
+                            anchors.bottom: parent.bottom
+                            height:         cardDelegate.labelH
+                            color: isPreview
+                                ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
+                                : Qt.rgba(1, 1, 1, 0.09)
+
+                            Text {
+                                anchors.centerIn:    parent
+                                width:               parent.width - 10
+                                text:                modelData.split("/").pop().replace(/\.[^/.]+$/, "")
+                                color:               isPreview ? Theme.active : Qt.rgba(1,1,1,0.65)
+                                font.pixelSize:      10
+                                font.weight:         isPreview ? Font.Medium : Font.Normal
+                                elide:               Text.ElideRight
+                                horizontalAlignment: Text.AlignHCenter
+                            }
+                        }
+                    }
+
+                    // 2. Rounded mask for whole card
+                    Rectangle {
+                        id: cardMask
+                        anchors.fill:  parent
+                        radius:        10
+                        visible:       false
+                        layer.enabled: true
+                    }
+
+                    // 3. MultiEffect — clips cardContent to cardMask radius
+                    MultiEffect {
+                        source:           cardContent
+                        anchors.fill:     parent
+                        maskEnabled:      true
+                        maskSource:       cardMask
+                        maskThresholdMin: 0.5
+                        maskSpreadAtMin:  1.0
+                    }
+
+                    // 4. Single border wrapping the whole card
+                    Rectangle {
+                        anchors.fill: parent
+                        radius:       10
+                        color:        "transparent"
+                        border.width: isPreview ? 2 : 1
+                        border.color: isPreview
+                            ? Theme.active
+                            : isCurrent
+                                ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.45)
+                                : Qt.rgba(1,1,1,0.15)
+                        Behavior on border.color { ColorAnimation { duration: 120 } }
+                        Behavior on border.width { NumberAnimation { duration: 120 } }
+                    }
+
+                    TapHandler {
+                        onTapped: {
+                            content.schemePopupOpen = false
+                            WallpaperService.previewWall = cardDelegate.isPreview
+                                ? "" : cardDelegate.modelData
+                        }
+                    }
+                }
+            }
+
+            // Wheel scroll overlay — passes clicks through, intercepts wheel only
+            MouseArea {
+                anchors.top:          parent.top
+                anchors.left:         parent.left
+                anchors.right:        parent.right
+                anchors.bottom:       divider.top
+                anchors.bottomMargin: 8
+                z:                    wallGrid.z + 1
+                acceptedButtons:      Qt.NoButton
+                onWheel: function(wheel) {
+                    wallGrid.contentX = Math.max(0,
+                        Math.min(wallGrid.contentWidth - wallGrid.width,
+                            wallGrid.contentX - wheel.angleDelta.y))
+                }
+            }
+
+            // Divider
+            Rectangle {
+                id: divider
+                anchors.bottom:       utilBar.top
+                anchors.bottomMargin: 8
+                anchors.left:         parent.left
+                anchors.right:        parent.right
+                height: 1
+                color:  Qt.rgba(1,1,1,0.07)
+            }
+
+            // ── Utility bar ────────────────────────────────────────────────────
+            Item {
+                id: utilBar
+                anchors.bottom: parent.bottom
+                anchors.left:   parent.left
+                anchors.right:  parent.right
+                height: 32
+
+                // ── Centered cluster: folder + search + scheme ─────────────────
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 8
+
+                    // Folder button
+                    Rectangle {
+                        id: folderBtn
+                        width:  32; height: 32; radius: 8
+                        color: content.folderMode
+                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
+                            : folderHov.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
+                        border.color: content.folderMode
+                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
+                            : Qt.rgba(1,1,1,0.09)
+                        border.width: 1
+                        Behavior on color        { ColorAnimation { duration: 100 } }
+                        Behavior on border.color { ColorAnimation { duration: 100 } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text:           "󰉋"
+                            font.pixelSize: 15
+                            color: content.folderMode ? Theme.active : Qt.rgba(1,1,1,0.5)
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                        }
+
+                        HoverHandler { id: folderHov; cursorShape: Qt.PointingHandCursor }
+                        TapHandler {
+                            onTapped: {
+                                content.folderMode = !content.folderMode
+                                if (content.folderMode) {
+                                    dirInput.text = WallpaperService.wallpaperDir
+                                    dirInput.forceActiveFocus()
+                                    dirInput.selectAll()
+                                } else {
+                                    searchInput.forceActiveFocus()
+                                }
+                            }
+                        }
+                    }
+
+                    // Search / folder input
+                    Rectangle {
+                        width:  300; height: 32; radius: 8
+                        color:        Qt.rgba(1,1,1,0.06)
+                        border.color: (searchInput.activeFocus || dirInput.activeFocus)
+                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5)
+                            : Qt.rgba(1,1,1,0.1)
+                        border.width: 1
+
+                        // Search mode
+                        Item {
+                            anchors.fill:        parent
+                            anchors.leftMargin:  10
+                            anchors.rightMargin: 10
+                            visible: !content.folderMode
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text:           "Search wallpapers…"
+                                color:          Qt.rgba(1,1,1,0.28)
+                                font.pixelSize: 12
+                                visible:        searchInput.text === ""
+                            }
+
+                            TextInput {
+                                id: searchInput
+                                anchors.fill:       parent
+                                verticalAlignment:  TextInput.AlignVCenter
+                                color:              Theme.text
+                                font.pixelSize:     12
+                                selectionColor:     Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)
+                                clip: true
+                                onTextChanged: content.searchQuery = text
+                            }
+                        }
+
+                        // Folder / path mode
+                        Item {
+                            anchors.fill:        parent
+                            anchors.leftMargin:  10
+                            anchors.rightMargin: 10
+                            visible: content.folderMode
+
+                            Text {
+                                id: pathLbl
+                                anchors.left:           parent.left
+                                anchors.verticalCenter: parent.verticalCenter
+                                text:           "Path: "
+                                color:          Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.7)
+                                font.pixelSize: 11
+                            }
+
+                            TextInput {
+                                id: dirInput
+                                anchors.left:       pathLbl.right
+                                anchors.right:      parent.right
+                                anchors.top:        parent.top
+                                anchors.bottom:     parent.bottom
+                                verticalAlignment:  TextInput.AlignVCenter
+                                color:              Theme.text
+                                font.pixelSize:     12
+                                font.family:        "JetBrains Mono"
+                                selectionColor:     Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)
+                                clip: true
+
+                                Keys.onReturnPressed: {
+                                    WallpaperService.wallpaperDir = dirInput.text
+                                    WallpaperService.refresh()
+                                    content.folderMode = false
+                                    searchInput.forceActiveFocus()
+                                }
+                                Keys.onEscapePressed: {
+                                    content.folderMode = false
+                                    searchInput.forceActiveFocus()
+                                }
+                            }
+                        }
+                    }
+
+                    // Scheme button
+                    Rectangle {
+                        id: schemeBtn
+                        width:  schemeBtnRow.implicitWidth + 20
+                        height: 32; radius: 8
+                        color: content.schemePopupOpen
+                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
+                            : schemeBtnHov.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
+                        border.color: content.schemePopupOpen
+                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
+                            : Qt.rgba(1,1,1,0.09)
+                        border.width: 1
+                        Behavior on color        { ColorAnimation { duration: 100 } }
+                        Behavior on border.color { ColorAnimation { duration: 100 } }
+
+                        Row {
+                            id: schemeBtnRow
+                            anchors.centerIn: parent
+                            spacing: 7
+
+                            Text {
+                                text: "󰏘"
+                                font.pixelSize: 14
+                                color: content.schemePopupOpen ? Theme.active : Qt.rgba(1,1,1,0.55)
+                                anchors.verticalCenter: parent.verticalCenter
+                                Behavior on color { ColorAnimation { duration: 100 } }
+                            }
+                            Text {
+                                text: WallpaperService.scheme
+                                font.pixelSize: 12
+                                color: content.schemePopupOpen ? Theme.active : Qt.rgba(1,1,1,0.7)
+                                anchors.verticalCenter: parent.verticalCenter
+                                Behavior on color { ColorAnimation { duration: 100 } }
+                            }
+                            Text {
+                                text: content.schemePopupOpen ? "▴" : "▾"
+                                font.pixelSize: 8
+                                color: Qt.rgba(1,1,1,0.35)
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+
+                        HoverHandler { id: schemeBtnHov; cursorShape: Qt.PointingHandCursor }
+                        TapHandler {
+                            onTapped: content.schemePopupOpen = !content.schemePopupOpen
+                        }
+
+                        // Scheme nested popup — floats above the button
+                        Rectangle {
+                            visible: content.schemePopupOpen
+                            z:       20
+
+                            anchors.left:         parent.left
+                            anchors.bottom:       parent.top
+                            anchors.bottomMargin: 6
+
+                            width:  schemeCol.implicitWidth + 24
+                            height: schemeCol.implicitHeight + 16
+                            radius: Theme.cornerRadius
+                            color:  Qt.rgba(
+                                Math.min(1, Theme.background.r + 0.06),
+                                Math.min(1, Theme.background.g + 0.08),
+                                Math.min(1, Theme.background.b + 0.06),
+                                0.98)
+                            border.color: Qt.rgba(1,1,1,0.1)
+                            border.width: 1
+
+                            opacity: content.schemePopupOpen ? 1 : 0
+                            Behavior on opacity { NumberAnimation { duration: 140 } }
+
+                            Column {
+                                id: schemeCol
+                                anchors.centerIn: parent
+                                spacing: 2
+
+                                Repeater {
+                                    model: WallpaperService.schemes
+                                    delegate: Rectangle {
+                                        required property string modelData
+                                        property bool sel: WallpaperService.scheme === modelData
+
+                                        width:  schemeItemLbl.implicitWidth + 32
+                                        height: 28
+                                        radius: 6
+                                        color: sel
+                                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
+                                            : itemHov.hovered ? Qt.rgba(1,1,1,0.07) : "transparent"
+                                        Behavior on color { ColorAnimation { duration: 100 } }
+
+                                        Row {
+                                            anchors.centerIn: parent
+                                            spacing: 10
+                                            Text {
+                                                text:           sel ? "●" : "○"
+                                                font.pixelSize: 9
+                                                color: sel ? Theme.active : Qt.rgba(1,1,1,0.3)
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                Behavior on color { ColorAnimation { duration: 100 } }
+                                            }
+                                            Text {
+                                                id: schemeItemLbl
+                                                text:           modelData
+                                                font.pixelSize: 12
+                                                color: sel ? Theme.active : Qt.rgba(1,1,1,0.65)
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                Behavior on color { ColorAnimation { duration: 100 } }
+                                            }
+                                        }
+
+                                        HoverHandler { id: itemHov; cursorShape: Qt.PointingHandCursor }
+                                        TapHandler {
+                                            onTapped: {
+                                                WallpaperService.scheme = modelData
+                                                content.schemePopupOpen = false
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ── Apply button — slides in from right when active ────────────
+                Rectangle {
+                    id: applyBtn
+                    anchors.right:          parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    property bool active: content.applyActive
+                    width:   active ? 90 : 0
+                    height:  32; radius: 8
+                    opacity: active ? 1 : 0
+                    clip:    true
+
+                    color:        Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
+                    border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
+                    border.width: 1
+
+                    Behavior on width   { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                    Behavior on opacity { NumberAnimation { duration: 160 } }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text:           WallpaperService.applying ? "…" : "Apply"
+                        font.pixelSize: 12
+                        font.weight:    Font.Medium
+                        color:          Theme.active
+                        opacity:        applyBtn.active ? 1 : 0
+                        Behavior on opacity { NumberAnimation { duration: 100 } }
+                    }
+
+                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        enabled: applyBtn.active && !WallpaperService.applying
+                        onTapped: {
+                            var target = WallpaperService.previewWall !== ""
+                                ? WallpaperService.previewWall
+                                : WallpaperService.currentWall
+                            content.appliedScheme = WallpaperService.scheme
+                            WallpaperService.apply(target)
+                            Popups.wallpaperOpen = false
+                        }
+                    }
+                }
+            }
+
+            // Tap outside scheme popup to close it
+            TapHandler {
+                enabled: content.schemePopupOpen
+                onTapped: content.schemePopupOpen = false
+            }
+        }
+    }
+}

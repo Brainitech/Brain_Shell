@@ -1,16 +1,19 @@
 pragma Singleton
 import QtQuick
+import "."
 
 QtObject {
-    // -- Colors --
-    // property color background: "#77959a"
-    property color background: "#1a282a"
-    property color active:     "#a6d0f7"
-    property color text:       "#cdd6f4"
-    property color icon:       "#ffffff"
-    property color border:     "#ffffff"
-    property color subtext:    "#94e2d5"
-    property color iconFont:  "#2f8d97"
+    // ── Color loader — watches matugen output and updates live ────────────────
+    property var _loader: ColorLoader { id: loader }
+
+    // ── Colors — bound to loader, update automatically when matugen runs ──────
+    property color background: loader.background
+    property color active:     loader.active
+    property color text:       loader.text
+    property color subtext:    loader.subtext
+    property color icon:       loader.icon
+    property color border:     loader.border
+    property color iconFont:   loader.iconFont
 
     // --- Workspace Visuals ---
     property color wsBackground: "#20000000"
@@ -19,9 +22,7 @@ QtObject {
     property color wsEmpty:      "#30FFFFFF"
     property color wsOverlay:    "#CC1e1e2e"
     property color wsUrgent:     "#fa6b94"
-    
-    
-    
+
     // --Bar Toggle--
     property bool barEnabled: false
 
@@ -53,20 +54,18 @@ QtObject {
 
     // -- Dashboard Dimensions --
     // Target size the center notch expands to when the dashboard is open.
-    // Tune these values to taste.
     property int dashboardWidth:  900
     property int dashboardHeight: 520
 
     // -- Notifications Popup Width --
-    // Width the right notch expands to when the notifications popup is open.
     property int notificationsWidth: 400
 
     // -- Popup Size Constraints --
-    property int popupMinWidth:  160
-    property int popupMaxWidth:  420
-    property int popupMinHeight:  80
-    property int popupMaxHeight: 520
-    property int popupPadding:   16
+    property int popupMinWidth:   160
+    property int popupMaxWidth:   420
+    property int popupMinHeight:   80
+    property int popupMaxHeight:  520
+    property int popupPadding:     16
 
     // -- Workspace Dot Sizes --
     property int wsDotSize:     10
@@ -74,7 +73,7 @@ QtObject {
     property int wsSpacing:     6
     property int wsPadding:     8
     property int wsRadius:      16
-    
+
     // -- Animations --
     property int animDuration: 320
 }

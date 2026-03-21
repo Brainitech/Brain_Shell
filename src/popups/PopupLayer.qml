@@ -28,6 +28,9 @@ Item {
         anchorWindow: root.leftBorder
     }
 
+    // Bottom border → slides up
+    WallpaperPopup {}
+
     // ── TopBar-anchored popups ───────────────────────────────
 
     // Right notch — audio
@@ -44,7 +47,7 @@ Item {
     NotificationsPopup {
         anchorWindow: root.topBar
     }
-    
+
     NotificationToast {
         anchorWindow: root.rightBorder
     }
@@ -53,10 +56,5 @@ Item {
     // }
     // SysTrayPopup {
     //     anchorWindow: root.topBar
-    // }
-
-    // Bottom border → center  [placeholder — WallpaperMenu not built yet]
-    // WallpaperMenu {
-    //     anchorWindow: root.bottomBorder
     // }
 }

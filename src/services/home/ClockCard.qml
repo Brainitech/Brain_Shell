@@ -14,6 +14,8 @@ StatCard {
 
     // ── Clock ─────────────────────────────────────────────────────────────────
     property string _hm:       "00:00"
+    property string _hStr:     "00"
+    property string _mStr:     "00"
     property string _sec:      "00"
     property int    _currentH: 0
     property int    _currentM: 0
@@ -83,6 +85,8 @@ StatCard {
         var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds()
         _currentH = h; _currentM = m
         _hm  = _zp(h) + ":" + _zp(m) + ":" + _zp(s)
+        _hStr = _zp(h)
+        _mStr = _zp(m)
         _sec = _zp(s)
     }
 
@@ -190,12 +194,49 @@ StatCard {
         Item {
             anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
             visible: root._mode === "clock"
-            Text {
+
+            Row {
                 anchors.centerIn: parent
-                text: root._hm
-                font.pixelSize: 62; font.weight: Font.Bold
-                font.family: "JetBrains Mono"; font.letterSpacing: -3
-                color: Theme.text
+                spacing: 10
+
+                // HH stacked above MM with diagonal offset
+                Item {
+                    anchors.verticalCenter: parent.verticalCenter
+                    // Width fits both texts plus the one-char offset
+                    readonly property int charOffset: 40
+                    width:  hhText.implicitWidth + charOffset
+                    height: hhText.implicitHeight + mmText.implicitHeight - 8
+
+                    Text {
+                        id: hhText
+                        anchors.left: parent.left
+                        anchors.top:  parent.top
+                        text: root._hStr
+                        font.pixelSize: 72; font.weight: Font.Bold
+                        font.family: "JetBrains Mono"; font.letterSpacing: -4
+                        color: Theme.text
+                    }
+                    Text {
+                        id: mmText
+                        anchors.left: parent.left
+                        anchors.leftMargin: parent.charOffset
+                        anchors.top:  hhText.bottom
+                        anchors.topMargin: -8
+                        text: root._mStr
+                        font.pixelSize: 72; font.weight: Font.Bold
+                        font.family: "JetBrains Mono"; font.letterSpacing: -4
+                        color: Theme.active
+                    }
+                }
+
+                // Seconds — vertically centered beside the stack
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root._sec
+                    font.pixelSize: 22; font.weight: Font.Medium
+                    font.family: "JetBrains Mono"
+                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
+                }
             }
         }
 

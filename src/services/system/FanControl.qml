@@ -22,45 +22,6 @@ QtObject {
     property string mode: "auto"
     property bool   busy: false
     
-    // ── Status query — runs once on load ──────────────────────────────────────
-property var _statusProc: Process {
-    command: ["sh", "-c", "nbfc status 2>/dev/null"]
-    running: false
-    stdout: StdioCollector {
-        onStreamFinished: root._parseStatus(text)
-    }
-}
-
-function _parseStatus(text) {
-    var autoEnabled = false
-    var requestedSpeed = -1
-
-    var lines = text.split("\n")
-    for (var i = 0; i < lines.length; i++) {
-        var line = lines[i]
-
-        var autoMatch = line.match(/Auto Control Enabled\s*:\s*(true|false)/i)
-        if (autoMatch) {
-            autoEnabled = autoMatch[1].toLowerCase() === "true"
-            continue
-        }
-
-        var speedMatch = line.match(/Requested Fan Speed\s*:\s*([0-9.]+)/i)
-        if (speedMatch) {
-            requestedSpeed = parseFloat(speedMatch[1])
-        }
-    }
-
-    if (autoEnabled) {
-        root.mode = "auto"
-    } else {
-        root.mode = (requestedSpeed === 100.00) ? "max" : "quiet"
-    }
-}
-
-Component.onCompleted: {
-    _statusProc.running = true
-}
 
     property var _proc: Process {
         command: []

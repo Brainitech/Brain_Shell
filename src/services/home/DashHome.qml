@@ -29,7 +29,7 @@ Item {
             id: profileCard
             anchors { left: parent.left; right: parent.right; top: parent.top }
             height: root.profileH
-            avatarPath: "/home/brainiac/Pictures/Wallpapers/2b.jpg"
+            avatarPath: "/home/brainiac/.curr_wall_static"
         }
         CalendarCard {
             anchors {

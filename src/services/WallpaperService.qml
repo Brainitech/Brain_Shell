@@ -48,18 +48,21 @@ QtObject {
     }
 
     // ── Apply pipeline ────────────────────────────────────────────────────────
-    function apply(path) {
-        if (root.applying || path === "") return
-        root.applying    = true
-        root.currentWall = path
-        applyProc.command = [
-            "bash", "-c",
-            "swww img --transition-type grow --transition-step 200 --transition-duration 1.2 --transition-fps 60 --transition-pos bottom \"" + path + "\" " +
-            "&& ln -sf \"" + path + "\" ~/.curr_wall " +
-            "&& matugen image \"$(readlink -f ~/.curr_wall)\" --source-color-index 0 --type scheme-" + root.scheme
-        ]
-        applyProc.running = true
-    }
+function apply(path) {
+    if (root.applying || path === "") return
+    root.applying    = true
+    root.currentWall = path
+    applyProc.command = [
+        "bash", "-c",
+        "swww img --transition-type grow --transition-step 200 --transition-duration 1.2 --transition-fps 60 --transition-pos bottom \"" + path + "\" " +
+        "&& ln -sf \"" + path + "\" ~/.curr_wall " +
+        "&& if [[ \"" + path + "\" == *.gif ]]; then " +
+        "magick \"" + path + "[0]\" /tmp/hyprlock_static.png && ln -sf /tmp/hyprlock_static.png ~/.curr_wall_static; " +
+        "else ln -sf \"" + path + "\" ~/.curr_wall_static; fi " +
+        "&& matugen image \"$(readlink -f ~/.curr_wall)\" --source-color-index 0 --type scheme-" + root.scheme
+    ]
+    applyProc.running = true
+}
 
     property var applyProc: Process {
         onExited: function(exitCode, exitStatus) {

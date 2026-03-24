@@ -21,7 +21,7 @@ PopupWindow {
     anchor.window: root.anchorWindow
     anchor.rect: Qt.rect(
         root.anchorWindow.width - toastWidth/2-fw+1,
-        20,
+        -Theme.notchHeight-20,
         toastWidth,
         Theme.notchHeight
     )
@@ -53,11 +53,13 @@ PopupWindow {
         root.showing       = false
         root.windowVisible = true
         slideInTimer.restart()
+        Popups.notificationToastOpen = false
     }
 
     function startDismiss() {
         autoTimer.stop()
         root.showing = false
+        Popups.notificationToastOpen = false
         slideOutTimer.restart()
     }
 
@@ -70,7 +72,7 @@ PopupWindow {
     Timer {
         id:          slideInTimer
         interval:    30
-        onTriggered: { root.showing = true; autoTimer.restart() }
+        onTriggered: { root.showing = true; Popups.notificationToastOpen = true; autoTimer.restart() }
     }
 
     Timer {
@@ -130,11 +132,11 @@ PopupWindow {
             width:  3
             radius: 2
             color: {
-                if (!root.current) return Theme.active
+                if (!root.current) return "#5697b8"
                 switch (root.current.urgency) {
                     case NotificationUrgency.Critical: return "#e06c75"
                     case NotificationUrgency.Low:      return Qt.rgba(1,1,1,0.25)
-                    default:                           return Theme.active
+                    default:                           return "#5697b8"
                 }
             }
         }

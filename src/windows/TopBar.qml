@@ -54,8 +54,8 @@ PanelWindow {
         NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
     }
 
-    property int rWidth: Popups.notificationsOpen
-        ? Theme.notificationsWidth + 21
+    property int rWidth: Popups.notificationsOpen || Popups.notificationToastOpen
+        ?Popups.notificationToastOpen ? (Theme.notificationsWidth/1.2)+(Theme.notchRadius*1.6)-3 : Theme.notificationsWidth +21
         : Math.max(
             Theme.rNotchMinWidth,
             Math.min(Theme.rNotchMaxWidth,

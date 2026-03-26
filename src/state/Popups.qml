@@ -59,7 +59,7 @@ QtObject {
     // ── Global state ──────────────────────────────────────────────────────────
     readonly property bool anyOpen: audioOpen || networkOpen || batteryOpen
                                     || notificationsOpen || archMenuOpen
-                                    || dashboardOpen || wallpaperOpen || notificationToastOpen
+                                    || dashboardOpen || wallpaperOpen
 
     function closeAll() {
         audioOpen         = false

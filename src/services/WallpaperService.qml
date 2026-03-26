@@ -7,7 +7,7 @@ import Quickshell.Io
 //
 // Flow:
 //   refresh()   → lists wallpaperDir via find
-//   apply(path) → swww img + ln -sf ~/.curr_wall + matugen
+//   apply(path) → awww img + ln -sf ~/.curr_wall + matugen
 // ============================================================
 
 QtObject {
@@ -58,7 +58,7 @@ QtObject {
         root.currentWall = path
         applyProc.command = [
             "bash", "-c",
-            "swww img --transition-type grow --transition-step 200 --transition-duration 1.2 --transition-fps 60 --transition-pos bottom \"" + path + "\" " +
+            "awww img --transition-type grow --transition-step 200 --transition-duration 1.2 --transition-fps 60 --transition-pos bottom \"" + path + "\" " +
             "&& ln -sf \"" + path + "\" ~/.curr_wall " +
             "&& if [[ \"" + path + "\" == *.gif ]]; then " +
             "rm -f ~/.curr_wall_static.jpg && magick \"" + path + "[0]\" ~/.curr_wall_static.jpg; " +

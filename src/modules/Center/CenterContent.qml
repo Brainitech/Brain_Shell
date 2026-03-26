@@ -27,6 +27,18 @@ Item {
     width:  Theme.cNotchMinWidth
     height: 30
 
+    // ── Required notch width for the current carousel item ────────────────────
+    // TopBar.cWidth reads this so the notch always matches what is visible,
+    // even if the user scrolls away from record_active while recording.
+    readonly property int requiredWidth: {
+        var current = (_items.length > _carouselIndex) ? _items[_carouselIndex] : "title"
+        switch (current) {
+            case "record_setup":  return Theme.screenRecSetupWidth
+            case "record_active": return Theme.screenRecActiveWidth
+            default:              return Theme.cNotchMinWidth
+        }
+    }
+
     // ── MPRIS ─────────────────────────────────────────────────────────────────
     readonly property var    player:    Mpris.players.values.length > 0
                                         ? Mpris.players.values[0] : null
@@ -58,18 +70,27 @@ Item {
                           ? _items[_carouselIndex] : "title"
 
         var list = ["title"]
-        if (root.player        !== null) list.push("music")
-        if (ClockState.timerRunning)     list.push("timer")
-        if (ClockState.swRunning)        list.push("stopwatch")
+        if (root.player                    !== null) list.push("music")
+        if (ClockState.timerRunning)                 list.push("timer")
+        if (ClockState.swRunning)                    list.push("stopwatch")
+        if (ShellState.screenRecord && !ScreenRecService.recording) list.push("record_setup")
+        if (ScreenRecService.recording)           list.push("record_active")
 
         root._items = list
 
         var idx = list.indexOf(currentType)
         if (idx < 0) idx = 0
 
-        if (autoScrollType && currentType === "title") {
+        if (autoScrollType) {
             var nIdx = list.indexOf(autoScrollType)
-            if (nIdx >= 0) idx = nIdx
+            if (nIdx >= 0) {
+                // Screen rec always takes priority — scroll regardless of where we are.
+                // Other items only auto-scroll when coming from "title".
+                var isScreenRec = (autoScrollType === "record_setup" ||
+                                   autoScrollType === "record_active")
+                if (isScreenRec || currentType === "title")
+                    idx = nIdx
+            }
         }
 
         root._carouselIndex = idx
@@ -87,8 +108,6 @@ Item {
     onPlayerChanged: _rebuildItems(player !== null ? "music" : null)
 
     // ── State monitor — timer urgency + carousel transitions ─────────────────
-    // timerUrgent drives the red blink in the timer delegate.
-    // Connections on ClockState rebuild the item list and force-scroll when needed.
     readonly property bool timerUrgent:
         ClockState.timerRunning && ClockState.timerLeft <= 30 && ClockState.timerLeft > 0
 
@@ -104,10 +123,28 @@ Item {
         }
 
         function onTimerLeftChanged() {
-            // Force-scroll to timer the moment the last 30 seconds begin
-            if (ClockState.timerRunning && ClockState.timerLeft === 30) {
+            if (ClockState.timerRunning && ClockState.timerLeft === 30)
                 root._forceScrollTo("timer")
-            }
+        }
+    }
+
+    Connections {
+        target: ShellState
+        function onScreenRecordChanged() {
+            if (ShellState.screenRecord && !ScreenRecService.recording)
+                root._rebuildItems("record_setup")
+            else if (!ShellState.screenRecord)
+                root._rebuildItems(null)
+        }
+    }
+
+    Connections {
+        target: ScreenRecService
+        function onRecordingChanged() {
+            if (ScreenRecService.recording)
+                root._rebuildItems("record_active")
+            else
+                root._rebuildItems(null)
         }
     }
 
@@ -173,6 +210,8 @@ Item {
         WheelHandler {
             acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
             onWheel: function(event) {
+                // Block scroll only during setup (not during active recording)
+                if (ShellState.screenRecord && !ScreenRecService.recording) return
                 if (root._scrollBusy) return
                 root._scrollBusy = true
                 scrollCooldown.restart()
@@ -413,26 +452,316 @@ Item {
                     }
                 }
 
+                // ── Record setup — strip buttons + Record button ───────────────
+                Item {
+                    anchors.fill: parent
+                    visible:      modelData === "record_setup"
+
+                    Row {
+                        anchors { fill: parent; leftMargin: 8; rightMargin: 8 }
+                        spacing: 6
+
+                        // ── Capture strip button ───────────────────────────────
+                        Item {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width:  csRow.implicitWidth + 14
+                            height: 22
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius:       height / 2
+                                color: ScreenRecService.openStrip === "capture"
+                                       ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
+                                       : csH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
+                                border.color: ScreenRecService.openStrip === "capture"
+                                              ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.3)
+                                              : Qt.rgba(1,1,1,0.1)
+                                border.width: 1
+                                Behavior on color        { ColorAnimation { duration: 100 } }
+                                Behavior on border.color { ColorAnimation { duration: 100 } }
+                            }
+                            Row {
+                                id: csRow
+                                anchors.centerIn: parent
+                                spacing: 5
+                                Text {
+                                    text: ScreenRecService.captureIcon
+                                    font.pixelSize: 13
+                                    color: ScreenRecService.openStrip === "capture"
+                                           ? Theme.active : Qt.rgba(1,1,1,0.7)
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    Behavior on color { ColorAnimation { duration: 100 } }
+                                }
+                                Text {
+                                    text: ScreenRecService.captureLabel
+                                    font.pixelSize: 11
+                                    color: ScreenRecService.openStrip === "capture"
+                                           ? Theme.active : Qt.rgba(1,1,1,0.7)
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    Behavior on color { ColorAnimation { duration: 100 } }
+                                }
+                                Text {
+                                    text: "▾"; font.pixelSize: 8
+                                    color: Qt.rgba(1,1,1,0.35)
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+                            HoverHandler {
+    id: csH
+    onHoveredChanged: {
+        if (hovered) {
+            var pos = parent.mapToItem(null, 0, 0)
+            ScreenRecService.popupTargetX = pos.x
+            ScreenRecService.popupTargetWidth = parent.width
+            
+            ScreenRecService.openStrip = "capture"
+            ScreenRecService.keepStripOpen()
+        } else {
+            ScreenRecService.scheduleStripClose()
+        }
+    }
+}
+                        }
+
+                        // ── Audio strip button ─────────────────────────────────
+                        Item {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width:  asRow.implicitWidth + 14
+                            height: 22
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius:       height / 2
+                                color: ScreenRecService.openStrip === "audio"
+                                       ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
+                                       : asH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
+                                border.color: ScreenRecService.openStrip === "audio"
+                                              ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.3)
+                                              : Qt.rgba(1,1,1,0.1)
+                                border.width: 1
+                                Behavior on color        { ColorAnimation { duration: 100 } }
+                                Behavior on border.color { ColorAnimation { duration: 100 } }
+                            }
+                            Row {
+                                id: asRow
+                                anchors.centerIn: parent
+                                spacing: 5
+                                Text {
+                                    text: "🎙"; font.pixelSize: 12
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                                Text {
+                                    text: ScreenRecService.audioLabel
+                                    font.pixelSize: 11
+                                    color: ScreenRecService.openStrip === "audio"
+                                           ? Theme.active : Qt.rgba(1,1,1,0.7)
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    Behavior on color { ColorAnimation { duration: 100 } }
+                                }
+                                Text {
+                                    text: "▾"; font.pixelSize: 8
+                                    color: Qt.rgba(1,1,1,0.35)
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+                            HoverHandler {
+    id: asH
+    onHoveredChanged: {
+        if (hovered) {
+            var pos = parent.mapToItem(null, 0, 0)
+            ScreenRecService.popupTargetX = pos.x
+            ScreenRecService.popupTargetWidth = parent.width
+            
+            ScreenRecService.openStrip = "audio"
+            ScreenRecService.keepStripOpen()
+        } else {
+            ScreenRecService.scheduleStripClose()
+        }
+    }
+}
+                        }
+
+                        // Flexible spacer
+                        Item {
+                            anchors.verticalCenter: parent.verticalCenter
+                            height: 1
+                            width: parent.width
+                                   - csRow.implicitWidth - 14
+                                   - asRow.implicitWidth - 14
+                                   - recBtnLabel.implicitWidth - 24
+                                   - parent.spacing * 3
+                        }
+
+                        // ── Record button ──────────────────────────────────────
+                        Rectangle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width:  recBtnLabel.implicitWidth + 24
+                            height: 22
+                            radius: height / 2
+                            color:  recBtnH.hovered
+                                    ? Qt.rgba(0.9, 0.2, 0.2, 0.85)
+                                    : Qt.rgba(0.8, 0.1, 0.1, 0.7)
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Row {
+                                anchors.centerIn: parent
+                                spacing: 5
+                                Rectangle {
+                                    width: 7; height: 7; radius: 4
+                                    color: "#ffffff"
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                                Text {
+                                    id: recBtnLabel
+                                    text: "Record"
+                                    font.pixelSize: 11; font.weight: Font.Medium
+                                    color: "#ffffff"
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+                            HoverHandler { id: recBtnH; cursorShape: Qt.PointingHandCursor }
+                            MouseArea { anchors.fill: parent; onClicked: ScreenRecService.startRecording() }
+                        }
+                    }
+                }
+
+                // ── Record active — ● (Left) | Timer + Cava (Center) | Trash + Stop (Right) ──
+                Item {
+                    anchors.fill: parent
+                    visible:      modelData === "record_active"
+
+                    // Left: dot + timer, anchored left
+                    Row {
+                        anchors {
+                            left:           parent.left
+                            leftMargin:    10
+                            verticalCenter: parent.verticalCenter
+                        }
+                        spacing: 7
+
+                        // Pulsing red dot
+                        Rectangle {
+                            width:  8; height: 8; radius: 4
+                            color:  "#ff4444"
+                            anchors.verticalCenter: parent.verticalCenter
+                            SequentialAnimation on opacity {
+                                running: ScreenRecService.recording
+                                loops:   Animation.Infinite
+                                NumberAnimation { to: 0.25; duration: 600; easing.type: Easing.InOutSine }
+                                NumberAnimation { to: 1.0;  duration: 600; easing.type: Easing.InOutSine }
+                            }
+                        }
+
+                        // Elapsed time
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text:           ScreenRecService.elapsedDisplay
+                            font.pixelSize: 13; font.weight: Font.Bold
+                            font.family:    "JetBrains Mono"
+                            color:          Theme.text
+                        }
+                    }
+
+                    // Center: cava
+                    Item {
+                        id: recCava
+                        anchors.centerIn: parent
+                        width:  44
+                        height: 20
+
+                        readonly property real _bw:   4
+                        readonly property real _sp:   Math.max(1, (width - _bw * 12) / 5)
+                        readonly property real _maxH: height / 2
+
+                        Row {
+                            anchors.fill: parent
+                            spacing:      recCava._sp
+
+                            Repeater {
+                                model: ScreenRecService.audioBars
+                                delegate: Item {
+                                    required property int modelData
+                                    width:  recCava._bw
+                                    height: recCava.height
+                                    readonly property real _amp: modelData / 100.0
+                                    Rectangle {
+                                        anchors.centerIn: parent
+                                        width:  recCava._bw
+                                        height: Math.max(2, _amp * recCava._maxH * 2)
+                                        radius: width / 2
+                                        color: ScreenRecService.audioMic || ScreenRecService.audioSystem
+                                               ? Qt.rgba(0.95, 0.3, 0.3, 0.30 + _amp * 0.70)
+                                               : Qt.rgba(1, 1, 1, 0.10)
+                                        Behavior on height {
+                                            NumberAnimation { duration: 50; easing.type: Easing.OutCubic }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Right: trash + stop, anchored right
+                    Row {
+                        anchors {
+                            right:          parent.right
+                            rightMargin:    10
+                            verticalCenter: parent.verticalCenter
+                        }
+                        spacing: 6
+
+                        // Discard button
+                        Rectangle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 22; height: 22; radius: 5
+                            color: recDiscardH.hovered
+                                   ? Qt.rgba(1, 1, 1, 0.12)
+                                   : Qt.rgba(1, 1, 1, 0.05)
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Text {
+                                anchors.centerIn: parent
+                                text:           "󰩺"
+                                font.pixelSize: 11
+                                color:          recDiscardH.hovered
+                                                ? Qt.rgba(1, 0.4, 0.4, 1.0)
+                                                : Qt.rgba(1, 1, 1, 0.4)
+                                Behavior on color { ColorAnimation { duration: 100 } }
+                            }
+                            HoverHandler { id: recDiscardH; cursorShape: Qt.PointingHandCursor }
+                            MouseArea { anchors.fill: parent; onClicked: ScreenRecService.discardRecording() }
+                        }
+
+                        // Stop button
+                        Rectangle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 22; height: 22; radius: 5
+                            color: recStopH.hovered
+                                   ? Qt.rgba(0.9, 0.2, 0.2, 0.55)
+                                   : Qt.rgba(0.8, 0.1, 0.1, 0.32)
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Text {
+                                anchors.centerIn: parent
+                                text:           "⏹"
+                                font.pixelSize: 10
+                                color:          "#ff9999"
+                            }
+                            HoverHandler { id: recStopH; cursorShape: Qt.PointingHandCursor }
+                            MouseArea { anchors.fill: parent; onClicked: ScreenRecService.stopRecording() }
+                        }
+                    }
+                }
+
             } // delegate
         }
     }
 
-    // ── Dashboard-open indicator ──────────────────────────────────────────────
-    Text {
-        anchors.centerIn: parent
-        text:           "▾"
-        color:          Theme.active
-        font.pixelSize: 14
-        opacity:        Popups.dashboardOpen ? 1 : 0
-        visible:        opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 150 } }
-    }
-
     // ── Click to toggle dashboard ─────────────────────────────────────────────
-    MouseArea {
-        anchors.fill: parent
-        cursorShape:  Qt.PointingHandCursor
-        onClicked: {
+    // TapHandler has lower implicit grab priority than child MouseAreas.
+    // Clicks on Stop / Discard buttons are handled by their own MouseAreas
+    // first and never reach here. Tapping empty notch space opens dashboard.
+    TapHandler {
+        onTapped: {
+            // Do nothing during screen rec setup — ESC / cancel button handles it
+            if (ShellState.screenRecord && !ScreenRecService.recording) return
             var next = !Popups.dashboardOpen
             Popups.closeAll()
             Popups.dashboardOpen = next

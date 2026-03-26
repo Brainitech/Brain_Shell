@@ -51,10 +51,12 @@ Item {
     NotificationToast {
         anchorWindow: root.rightBorder
     }
-    // NetworkPopup {
-    //     anchorWindow: root.topBar
-    // }
-    // SysTrayPopup {
-    //     anchorWindow: root.topBar
-    // }
+
+    // Screen recorder strip options — appears below center notch on hover
+    ScreenRecOptionsPopup {
+        anchorWindow: root.topBar
+    }
+
+    // NetworkPopup { anchorWindow: root.topBar }
+    // SysTrayPopup { anchorWindow: root.topBar }
 }

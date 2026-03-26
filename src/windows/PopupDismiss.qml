@@ -8,17 +8,14 @@ import Quickshell.Hyprland
 //   - The user clicks anywhere on screen
 //   - The user presses Escape
 //
-// Only active (visible + input-capturing) when Popups.anyOpen is true.
-// Uses ExclusionMode.Ignore so it never reserves screen space.
-// Sits on the Background layer so popups render above it.
+// Also active when screen rec setup is showing (ShellState.screenRecord
+// without recording) so ESC can cancel it even with no other popup open.
 
 PanelWindow {
     id: root
 
     color: "transparent"
 
-    // Subtract the top notchHeight row so clicks there pass through to TopBar,
-    // keeping notches interactive while a popup is open.
     mask: Region {
         Region {
             x:      Theme.borderWidth
@@ -77,7 +74,10 @@ PanelWindow {
         anchors.fill: parent
         focus:        root.visible
 
-        Keys.onEscapePressed: Popups.closeAll()
+        Keys.onEscapePressed: {
+            Popups.closeAll()
+            ScreenRecService.cancelSetup()
+        }
     }
     
         Connections {

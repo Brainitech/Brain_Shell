@@ -531,8 +531,19 @@ StatCard {
                     }
                     TglBtn {
                         width: tileGrid.btnW; height: tileGrid.btnH
-                        on: ShellState.screenRecord; icon: "󰻂"; label: "Screen Capture"
-                        onToggled: ShellState.screenRecord = !ShellState.screenRecord
+                        on:    ShellState.screenRecord || ScreenRecService.recording
+                        icon:  ScreenRecService.recording ? "⏹" : "󰻂"
+                        label: ScreenRecService.recording ? "Recording" : "Screen Capture"
+                        onToggled: {
+                            if (ScreenRecService.recording) {
+                                ScreenRecService.stopRecording()
+                            } else if (ShellState.screenRecord) {
+                                ScreenRecService.cancelSetup()
+                            } else {
+                                Popups.closeAll()
+                                ShellState.screenRecord = true
+                            }
+                        }
                     }
                     // Filter tile — opens picker, does not toggle directly
                     TglBtn {

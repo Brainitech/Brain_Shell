@@ -22,7 +22,7 @@ QtObject {
     property string wallpaperDir: "~/Pictures/Wallpapers"
 
     readonly property var schemes: [
-        "content", "tonal-spot", "fidelity", "neutral", "monochrome"
+        "content", "tonal-spot", "fidelity","fruit-salad", "neutral", "monochrome"
     ]
 
     // Emitted when the full apply pipeline exits cleanly (exitCode === 0).

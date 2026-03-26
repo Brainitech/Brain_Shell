@@ -85,7 +85,7 @@ PanelWindow {
         
         // Quickshell emits (name, data) for raw events
         function onRawEvent(event) {
-            if (event.name === "workspace" || event.name === "activemonitor" || event.name === "activewindow" || event.name === "activespecial" || event.name === "openwindow") {
+            if (event.name === "workspace" || event.name === "activemonitor" || event.name === "activespecial" || event.name === "openwindow") {
                 Popups.closeAll();
             }
         }

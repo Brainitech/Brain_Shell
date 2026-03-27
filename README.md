@@ -2,24 +2,24 @@
 
 A modular session shell for Hyprland, built on Quickshell.
 
-## Devlog 6: Wallpaper Picker and Live Matugen Theming
+## Devlog 7: Dynamic Pill, Screen Recording, and Filters
 
 **Core Additions**
 
-- **Wallpaper Picker Popup:** Added a bottom-anchored panel featuring a horizontal thumbnail filmstrip, search bar, folder switcher, and nested scheme picker.
-- **Live Matugen Theming:** Picking a wallpaper triggers `swww` and `matugen`, instantly recoloring the entire shell live via a `colors.json` file watcher without requiring a restart.
-- **Dashboard Refinements:** Redesigned the clock into a diagonal staircase format and migrated `PlayerCard` and `ClockCard` to use dynamic theme accent colors instead of hardcoded values.
+- **Dynamic Center Pill:** The center notch carousel now reactively builds its item list based on active shell state. It smoothly scrolls between active media (via MPRIS), running timers, and the active window title.
+- **Screen Recording Engine:** Built a complete recording lifecycle via `ScreenRecService.qml`. It supports Screen, Window, and Region captures (using `slurp` ) with configurable audio sources. Settings are persisted across reloads via `screenrec.json`.
+- **Screen Rec Options Popup:** Added a dedicated options UI that appears when starting a recording, featuring dropdowns for capture targets, a mirrored Cava visualization, an elapsed timer, and Stop/Discard controls.
+- **Filters QuickSetting:** Added a new Filters toggle to the QuickSettings grid. It features a nested shader picker popup that lists and applies available Hyprland screen shaders live via `hyprctl`.
 
 **Compositor & Rendering Fixes**
 
-- **Wayland Keyboard Focus:** Switched the wallpaper popup from `PopupWindow` to a `PanelWindow` with `WlrKeyboardFocus.OnDemand` so the search `TextInput` properly receives keyboard events.
-- **Canvas Repaint Triggers:** Fixed a bug where `Border` and timer canvases wouldn't update on theme change by explicitly wiring them to call `requestPaint()` when color properties shift.
-- **Animation Artifacts:** Applied a `Region` mask to the wallpaper popup to eliminate visual strip artifacts that appeared during the expand animation.
+- **Global Popup State Bug:** Removed `notificationToastOpen` from the global `anyOpen` state. This fixes a critical bug where transient notification toasts were triggering the global dismiss overlay and blocking desktop interactions.
+- **Notch Anchoring & Expansion:** Fixed the notification toast anchor position to prevent overlap with the right notch, and corrected the left notch so it no longer erroneously expands when a toast appears.
 
 **Architecture Refactoring**
 
-- **ColorLoader Pipeline:** Created `ColorLoader.qml` as a plain type instantiated inside `Theme.qml` to handle file watching. This cleanly prevents circular dependency crashes between singletons.
-- **Wallpaper Service:** Abstracted the entire wallpaper state, `find` operations, and bash command chains into a dedicated `WallpaperService.qml` singleton.
+- **Wallpaper Service Migration:** Updated the wallpaper apply pipeline to use `awww` instead of `swww` following the upstream package rename, restoring live matugen recoloring.
+- **Dynamic Paths:** Updated the avatar path in `DashHome.qml` to resolve dynamically via `$HOME`, ensuring the shell remains portable across different user accounts without hardcoding paths.
 
 ---
 
@@ -31,8 +31,7 @@ A modular session shell for Hyprland, built on Quickshell.
 
 ## Roadmap / Up Next
 
-- **CenterNotch Media Pill:** Building a compact, dynamic media island using the existing MPRIS backend.
-- **Network Popup:** Building the content menu and finalizing the Hotspot toggle logic.
-- **Dark Mode Wiring:** Connecting the QuickSettings placeholder now that the theming pipeline is live.
+- **Network Popup:** Building the full WiFi management panel (connection list, signal strength, password entry) and finalizing the QuickSettings Hotspot toggle.
+- **Dark Mode Wiring:** Connecting the QuickSettings placeholder.
 - **Pending Dashboard Tabs:** Kanban, App Launcher, and Config.
-- **Pending Popups:** System Tray, Network, Connections
+- **Pending Popups:** Battery.

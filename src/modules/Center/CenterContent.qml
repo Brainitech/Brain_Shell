@@ -30,15 +30,7 @@ Item {
 	// ── Required notch width for the current carousel item ────────────────────
 	// TopBar.cWidth reads this so the notch always matches what is visible,
 	// even if the user scrolls away from record_active while recording.
-	readonly property int requiredWidth: {
-		var current = (_items.length > _carouselIndex) ? _items[_carouselIndex] : "title"
-		switch (current) {
-			case "record_setup":  return Theme.screenRecSetupWidth
-			case "record_active": return Theme.screenRecActiveWidth
-			default:              return Theme.cNotchMinWidth
-		}
-	}
-
+	readonly property int requiredWidth: Theme.cNotchMinWidth
 	// ── MPRIS ─────────────────────────────────────────────────────────────────
 	readonly property var    player:    Mpris.players.values.length > 0
 	? Mpris.players.values[0] : null

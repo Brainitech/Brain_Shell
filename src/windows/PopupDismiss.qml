@@ -54,7 +54,7 @@ PanelWindow {
 
     // Only grab input when a popup is actually open
     // When false, input passes through as if this window doesn't exist
-    visible: Popups.anyOpen
+    visible: Popups.anyOpen || (ShellState.screenRecord && !ShellState.screenRecRecording)
 
     // Sit below popups but above the desktop
     WlrLayershell.layer: WlrLayer.Top

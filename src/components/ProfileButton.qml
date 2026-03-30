@@ -7,7 +7,7 @@ Item {
     property string label:   ""
     property string icon:    ""
     property bool   active:  false
-    property bool   enabled: true
+    // `enabled` is inherited from Item — no redeclaration needed
 
     signal clicked()
 

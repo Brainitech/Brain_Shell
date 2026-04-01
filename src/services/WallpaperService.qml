@@ -6,12 +6,18 @@ import Quickshell.Io
 // WallpaperService — wallpaper list + apply pipeline
 //
 // Flow:
-//   refresh()   → lists wallpaperDir via find
-//   apply(path) → awww img + ln -sf ~/.curr_wall + matugen
+//   Component.onCompleted → readConfigProc (sets currentWall etc.)
+//                         → refresh() (populates wallpapers list)
+//   apply(path)           → awww img + ln -sf ~/.curr_wall + matugen
+//                         → saveConfig() (writes src/config/wallpaper.json)
 // ============================================================
 
 QtObject {
     id: root
+
+    // ── Config path — src/config/wallpaper.json (relative to this file) ──────
+    readonly property string configPath: Qt.resolvedUrl("../config/wallpaper.json")
+                                            .toString().replace(/^file:\/\//, "")
 
     // ── State ─────────────────────────────────────────────────────────────────
     property var    wallpapers:   []
@@ -26,7 +32,6 @@ QtObject {
     ]
 
     // Emitted when the full apply pipeline exits cleanly (exitCode === 0).
-    // path is the absolute path that was applied.
     signal wallpaperApplied(string path)
 
     // ── File listing ──────────────────────────────────────────────────────────
@@ -51,6 +56,45 @@ QtObject {
         }
     }
 
+    // ── Config read — runs on startup, then calls refresh() ──────────────────
+    property string _cfgBuf: ""
+    property var readConfigProc: Process {
+        command: ["bash", "-c", "cat '" + root.configPath + "' 2>/dev/null"]
+        stdout: SplitParser {
+            onRead: function(line) { root._cfgBuf += line }
+        }
+        onExited: function() {
+            if (root._cfgBuf !== "") {
+                try {
+                    var obj = JSON.parse(root._cfgBuf)
+                    if (obj.currentWall  && obj.currentWall  !== "") root.currentWall  = obj.currentWall
+                    if (obj.wallpaperDir && obj.wallpaperDir !== "") root.wallpaperDir = obj.wallpaperDir
+                    if (obj.scheme       && obj.scheme       !== "") root.scheme       = obj.scheme
+                } catch(e) {}
+            }
+            root.refresh()
+        }
+    }
+
+    // ── Config write — called after a successful apply ────────────────────────
+    function saveConfig() {
+        var json = JSON.stringify({
+            currentWall:  root.currentWall,
+            wallpaperDir: root.wallpaperDir,
+            scheme:       root.scheme
+        })
+        // Use printf so the content is never misinterpreted as shell commands.
+        // Single-quote the config path (paths rarely contain single quotes).
+        saveConfigProc.command = [
+            "bash", "-c",
+            "mkdir -p \"$(dirname '" + root.configPath + "')\" && " +
+            "printf '%s' '" + json.replace(/'/g, "'\\''") + "' > '" + root.configPath + "'"
+        ]
+        saveConfigProc.running = true
+    }
+
+    property var saveConfigProc: Process {}   // silent — no stdout/stderr needed
+
     // ── Apply pipeline ────────────────────────────────────────────────────────
     function apply(path) {
         if (root.applying || path === "") return
@@ -71,10 +115,13 @@ QtObject {
     property var applyProc: Process {
         onExited: function(exitCode, exitStatus) {
             root.applying = false
-            if (exitCode === 0)
+            if (exitCode === 0) {
                 root.wallpaperApplied(root.currentWall)
+                root.saveConfig()
+            }
         }
     }
 
-    Component.onCompleted: refresh()
+    // Read config first (sets currentWall/wallpaperDir/scheme), then refresh()
+    Component.onCompleted: readConfigProc.running = true
 }

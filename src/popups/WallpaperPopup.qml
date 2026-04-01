@@ -93,6 +93,25 @@ PanelWindow {
         }
     }
 
+    // When the wallpaper list finishes loading, select and scroll to currentWall.
+    // Only acts while the popup is open and currentWall is in the list.
+    Connections {
+        target: WallpaperService
+        function onWallpapersChanged() {
+            if (!Popups.wallpaperOpen) return
+            var walls = WallpaperService.wallpapers
+            if (!walls || walls.length === 0) return
+            var target = WallpaperService.currentWall
+            for (var i = 0; i < walls.length; i++) {
+                if (walls[i] === target) {
+                    WallpaperService.previewWall = target
+                    wallGrid.positionViewAtIndex(i, ListView.Center)
+                    return
+                }
+            }
+        }
+    }
+
     // ── Sizer — grows from cNotchMinWidth×0 → panelWidth×panelHeight ─────────
     // Centered horizontally, anchored to bottom border.
     // Same pattern as Dashboard: clip:true so content never bleeds outside.
@@ -138,6 +157,14 @@ PanelWindow {
             property bool   folderMode:      false
             property string appliedScheme:   WallpaperService.scheme
 
+            readonly property var filteredWallpapers: {
+                var q = searchQuery.toLowerCase()
+                if (q === "") return WallpaperService.wallpapers
+                return WallpaperService.wallpapers.filter(function(p) {
+                    return p.split("/").pop().toLowerCase().indexOf(q) !== -1
+                })
+            }
+
             readonly property bool applyActive:
                 WallpaperService.previewWall !== "" ||
                 (WallpaperService.currentWall !== "" &&
@@ -172,13 +199,7 @@ PanelWindow {
                     height: 6
                 }
 
-                model: {
-                    var q = content.searchQuery.toLowerCase()
-                    if (q === "") return WallpaperService.wallpapers
-                    return WallpaperService.wallpapers.filter(function(p) {
-                        return p.split("/").pop().toLowerCase().indexOf(q) !== -1
-                    })
-                }
+                model: content.filteredWallpapers
 
                 Text {
                     anchors.centerIn: parent
@@ -396,6 +417,44 @@ PanelWindow {
                                 selectionColor:     Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)
                                 clip: true
                                 onTextChanged: content.searchQuery = text
+
+                                Keys.onReturnPressed: {
+                                    var walls = content.filteredWallpapers
+                                    if (!walls || walls.length === 0) return
+                                    var target = walls.length === 1
+                                        ? walls[0]
+                                        : WallpaperService.previewWall
+                                    if (target === "") return
+                                    content.appliedScheme = WallpaperService.scheme
+                                    WallpaperService.apply(target)
+                                    Popups.wallpaperOpen = false
+                                }
+
+                                Keys.onLeftPressed: {
+                                    var walls = content.filteredWallpapers
+                                    if (!walls || walls.length === 0) return
+                                    var cur = WallpaperService.previewWall
+                                    var idx = -1
+                                    for (var i = 0; i < walls.length; i++) {
+                                        if (walls[i] === cur) { idx = i; break }
+                                    }
+                                    idx = (idx <= 0) ? walls.length - 1 : idx - 1
+                                    WallpaperService.previewWall = walls[idx]
+                                    wallGrid.positionViewAtIndex(idx, ListView.Center)
+                                }
+
+                                Keys.onRightPressed: {
+                                    var walls = content.filteredWallpapers
+                                    if (!walls || walls.length === 0) return
+                                    var cur = WallpaperService.previewWall
+                                    var idx = -1
+                                    for (var i = 0; i < walls.length; i++) {
+                                        if (walls[i] === cur) { idx = i; break }
+                                    }
+                                    idx = (idx < 0 || idx >= walls.length - 1) ? 0 : idx + 1
+                                    WallpaperService.previewWall = walls[idx]
+                                    wallGrid.positionViewAtIndex(idx, ListView.Center)
+                                }
                             }
                         }
 

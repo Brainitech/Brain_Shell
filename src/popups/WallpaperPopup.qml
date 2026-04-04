@@ -211,9 +211,12 @@ PanelWindow {
 
                 delegate: Item {
                     id: cardDelegate
-                    width:  130
-                    height: wallGrid.height - 14
+                    width:  isPreview? (130*1.2) : 130
+                    height: isPreview? wallGrid.height : wallGrid.height - 14
 
+                    Behavior on width  { NumberAnimation { duration: 120; easing.type: Easing.InOutCubic } }
+			        Behavior on height { NumberAnimation { duration: 120; easing.type: Easing.InOutCubic } }
+                    
                     required property string modelData
                     required property int    index
 

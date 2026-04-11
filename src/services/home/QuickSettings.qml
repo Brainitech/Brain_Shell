@@ -66,9 +66,11 @@ StatCard {
         wifiSSIDRead.running  = false; wifiSSIDRead.running  = true
     }
     function _wifiToggle() {
+        root.wifiOn = !root.wifiOn           // optimistic — tile updates now
         wifiToggleProc.command = ["bash", "-c",
-            "nmcli radio wifi " + (root.wifiOn ? "off" : "on")]
-        wifiToggleProc.running = false; wifiToggleProc.running = true
+            "nmcli radio wifi " + (root.wifiOn ? "on" : "off")]
+        wifiToggleProc.running = false
+        wifiToggleProc.running = true
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -88,15 +90,27 @@ StatCard {
         running: false
         stdout: SplitParser { onRead: function(l) { root.btDevice = l.trim() } } }
     Process { id: btToggleProc; command: []; running: false
-        onRunningChanged: if (!running) _btPoll() }
+        onRunningChanged: if (!running) {
+            _btPoll()
+            ShellState.btPowered = root.btOn
+            if (!root.btOn) ShellState.btConnected = false
+        }
+    }        
     function _btPoll() {
         btPowerRead.running  = false; btPowerRead.running  = true
         btDeviceRead.running = false; btDeviceRead.running = true
     }
     function _btToggle() {
+        var turningOn = !root.btOn
+        root.btOn = turningOn                // optimistic
+        // Mirror to ShellState immediately so Network.qml bar icon reacts
+        ShellState.btPowered = turningOn
+        if (!turningOn) ShellState.btConnected = false
+
         btToggleProc.command = ["bash", "-c",
-            "bluetoothctl power " + (root.btOn ? "off" : "on")]
-        btToggleProc.running = false; btToggleProc.running = true
+            "bluetoothctl power " + (turningOn ? "on" : "off")]
+        btToggleProc.running = false
+        btToggleProc.running = true
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -189,10 +203,15 @@ StatCard {
 
     Process { id: airplaneCheck
         command: ["bash", "-c",
-            "rfkill list wifi 2>/dev/null | grep -c 'Soft blocked: yes'"]
+            // Airplane = ALL radios soft-blocked.
+            // nmcli radio wifi off blocks only wifi via rfkill — not bluetooth/wwan.
+            // So count devices that are NOT blocked; if zero, airplane mode is on.
+            "notBlocked=$(rfkill list all 2>/dev/null | grep -c 'Soft blocked: no');" +
+            " total=$(rfkill list all 2>/dev/null | grep -c 'Soft blocked:');" +
+            " [ \"$total\" -gt 0 ] && [ \"$notBlocked\" -eq 0 ] && echo yes || echo no"]
         running: false
         stdout: SplitParser {
-            onRead: function(l) { root.airplaneOn = parseInt(l.trim()) > 0 }
+            onRead: function(l) { root.airplaneOn = l.trim() === "yes" }
         }
     }
     Process { id: airplaneOn_proc

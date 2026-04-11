@@ -11,7 +11,7 @@ PopupWindow {
 
 	required property var anchorWindow
 
-	readonly property int toastWidth: Theme.notificationsWidth / 1.2
+	readonly property int toastWidth: Theme.notificationToastWidth+(fw/2)
 	readonly property int fw: Theme.notchRadius
 	readonly property int fh: Theme.notchRadius
 

@@ -33,9 +33,9 @@ PanelWindow {
     }
 
     exclusiveZone: ShellState.focusMode ? 0 : Theme.exclusionGap
-    Behavior on exclusiveZone { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
-
-    // ── Clamped notch widths ─────────────────────────────────────────────────
+    Behavior on exclusiveZone {
+        NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+    }
 
     readonly property int lWidth: Math.max(
         Theme.lNotchMinWidth,
@@ -54,13 +54,16 @@ PanelWindow {
         NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
     }
 
-    property int rWidth: Popups.notificationsOpen || Popups.notificationToastOpen
-        ?Popups.notificationToastOpen ? (Theme.notificationsWidth/1.2)+(Theme.notchRadius*1.6)-3 : Theme.notificationsWidth +21
-        : Math.max(
-            Theme.rNotchMinWidth,
-            Math.min(Theme.rNotchMaxWidth,
-                     rightContent.implicitWidth + Theme.notchPadding * 2)
-          )
+    // Width matches sizer open width: popupWidth + notchRadius (fw) in both popups
+    property int rWidth: Popups.notificationsOpen
+        ? Theme.notificationsWidth + Theme.notchRadius
+        : Popups.networkOpen
+            ? Theme.networkPopupWidth + Theme.notchRadius
+            : Math.max(
+                Theme.rNotchMinWidth,
+                Math.min(Theme.rNotchMaxWidth,
+                         rightContent.implicitWidth + Theme.notchPadding * 2)
+              )
     Behavior on rWidth {
         NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
     }

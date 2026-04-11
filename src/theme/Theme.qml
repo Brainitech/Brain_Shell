@@ -59,6 +59,8 @@ QtObject {
 
     // -- Notifications Popup Width --
     property int notificationsWidth: 400
+    property int notificationToastWidth: notificationsWidth / 1.2
+    property int networkPopupWidth:  480
 
     // -- Popup Size Constraints --
     property int popupMinWidth:   160

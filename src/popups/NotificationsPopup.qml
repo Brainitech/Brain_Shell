@@ -23,7 +23,7 @@ PopupWindow {
 
     anchor.window: root.anchorWindow
     anchor.rect: Qt.rect(
-        (anchorWindow.width - Theme.notificationsWidth / 2)-(fw-1),
+        (anchorWindow.width - Theme.notificationsWidth / 2)-(fw/2),
         0,
         Theme.notificationsWidth,
         Theme.notchHeight

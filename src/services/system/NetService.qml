@@ -21,14 +21,24 @@ QtObject {
     property real _prevTx:    0
     property bool _firstRead: true
 
-    // ── Detect interface once on load ─────────────────────────────────────────
+    // ── Detect active interface — re-checked on every poll tick ──────────────
+    // Running once at startup missed interface changes (VPN, cable, network switch).
+    // Now re-runs every second alongside the stats read. If iface changes, counters
+    // reset so the first delta is not a huge spike.
     property var _ifaceProc: Process {
-        command: ["sh", "-c", "ip route get 1.1.1.1 2>/dev/null | awk '/dev/{for(i=1;i<=NF;i++) if($i==\"dev\") print $(i+1)}'"]
+        command: ["sh", "-c",
+            "ip route get 1.1.1.1 2>/dev/null" +
+            " | awk '/dev/{for(i=1;i<=NF;i++) if($i==\"dev\") print $(i+1)}'"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
                 var name = text.trim()
-                if (name !== "") root.iface = name
+                if (name !== "" && name !== root.iface) {
+                    root.iface      = name
+                    root._firstRead = true   // reset counters — avoid spike
+                    root._prevRx    = 0
+                    root._prevTx    = 0
+                }
             }
         }
     }
@@ -47,6 +57,9 @@ QtObject {
         running:  root.active
         repeat:   true
         onTriggered: {
+            // Re-detect interface every tick — catches VPN, cable, network changes
+            _ifaceProc.running = false
+            _ifaceProc.running = true
             _proc.running = false
             _proc.running = true
         }

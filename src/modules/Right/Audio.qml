@@ -24,10 +24,10 @@ Item {
     // High "▊"  Med "▌"  Low "▍"  Muted "✕"  Not ready "–"
     readonly property string icon: {
         if (!sink?.ready)            return "󰕾"
-        if (sink.audio.muted)        return "󰖁"
+        if (sink.audio.muted)        return "󰝟"
         if (sink.audio.volume > 0.6) return "󰕾"
         if (sink.audio.volume > 0.2) return "󰖀"
-        return "▍"
+        return "󰕿"
     }
 
     readonly property int pct: sink?.ready ? Math.round(sink.audio.volume * 100) : 0

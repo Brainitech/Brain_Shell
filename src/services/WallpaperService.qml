@@ -9,14 +9,14 @@ import Quickshell.Io
 //   Component.onCompleted → readConfigProc (sets currentWall etc.)
 //                         → refresh() (populates wallpapers list)
 //   apply(path)           → awww img + ln -sf ~/.curr_wall + matugen
-//                         → saveConfig() (writes src/config/wallpaper.json)
+//                         → saveConfig() (writes src/user_data/wallpaper.json)
 // ============================================================
 
 QtObject {
     id: root
 
-    // ── Config path — src/config/wallpaper.json (relative to this file) ──────
-    readonly property string configPath: Qt.resolvedUrl("../config/wallpaper.json")
+    // ── Config path — src/user_data/wallpaper.json (relative to this file) ──────
+    readonly property string configPath: Qt.resolvedUrl("../user_data/wallpaper.json")
                                             .toString().replace(/^file:\/\//, "")
 
     // ── State ─────────────────────────────────────────────────────────────────

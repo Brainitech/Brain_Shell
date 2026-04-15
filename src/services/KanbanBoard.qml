@@ -299,6 +299,7 @@ Item {
     Row {
         id: mainRow
         anchors.fill: parent
+        anchors.topMargin: 8
         spacing: 8
 
         Repeater {

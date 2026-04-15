@@ -43,8 +43,10 @@ PanelWindow {
                  leftContent.implicitWidth + Theme.notchPadding * 2)
     )
 
+    // cWidth uses Popups.dashboardPageWidth when the dashboard is open,
+    // so the center notch tracks the active tab's declared width.
     property int cWidth: Popups.dashboardOpen
-        ? Theme.dashboardWidth
+        ? Popups.dashboardPageWidth
         : Math.max(
             Theme.cNotchMinWidth,
             Math.min(Theme.cNotchMaxWidth,

@@ -12,6 +12,11 @@ QtObject {
     property bool wallpaperOpen:     false
     property bool notificationToastOpen:    false
 
+    // ── Dashboard — per-page width (px, content only, excluding fw padding) ───
+    // Dashboard.qml writes this on every page change + on open.
+    // TopBar.qml and Dashboard sizer both read it.
+    property int dashboardPageWidth: 900
+
     // ── Per-popup trigger hover state ─────────────────────────────────────────
     property bool archMenuTriggerHovered: false
     property bool audioTriggerHovered:         false

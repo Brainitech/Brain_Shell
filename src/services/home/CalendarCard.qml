@@ -55,6 +55,25 @@ StatCard {
         _rebuild()
     }
 
+	Timer {
+		running: true
+		Component.onCompleted: {
+			var now = new Date()
+			var tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+			interval = tomorrow - now // Set interval to exact time until midnight
+		}
+		onTriggered: {
+			var now = new Date()
+			root._year  = now.getFullYear()
+			root._month = now.getMonth()
+			root._today = now.getDate()
+			root._rebuild()
+
+			interval = 86400000 // Reset to 24 hours for the next day
+			restart()
+		}
+	}
+
     // ── UI ────────────────────────────────────────────────────────────────────
     Item {
         anchors { fill: parent; margins: 12 }

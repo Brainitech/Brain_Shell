@@ -1,34 +1,32 @@
 import QtQuick
 import Quickshell
-import "../shapes"
 import Quickshell.Wayland
+import "../shapes"
 import "../components"
 import "../modules/Center/"
 import '../services/'
 import "../"
 
-// Dashboard — drops below the center notch when Popups.dashboardOpen is true.
+// Dashboard — PanelWindow required for TextInput keyboard focus on Wayland.
+// Uses WlrKeyboardFocus.OnDemand so TextInputs inside pages receive key events.
 //
-// Animation: sizer starts at notch width + 0 height, then both width and
-// height grow simultaneously to full dashboard size. This creates a "growing
-// from the notch" effect — narrow at first, widening as the panel descends.
-//
-// The PopupWindow is fixed size — no compositor resize ever occurs.
+// Positioning mirrors the original PopupWindow behaviour: the sizer's top sits
+// exactly at the notch-bar bottom (topMargin: Theme.notchHeight), so there is
+// no vertical offset compared to the PopupWindow version.
 
-PopupWindow {
-	id: root
+PanelWindow {
+    id: root
 
-	required property var anchorWindow
+    // Kept so existing instantiation sites that pass anchorWindow: … still compile.
+    required property var anchorWindow
 
-	// Flare connects the popup seamlessly to the underside of the notch bar
-	readonly property int fw: Theme.notchRadius
-	readonly property int fh: Theme.notchRadius
+    readonly property int fw: Theme.notchRadius
+    readonly property int fh: Theme.notchRadius
+    readonly property int animDuration: Theme.animDuration
 
-	readonly property int animDuration: Theme.animDuration
+    property string page: "home"
 
-	property string page: "home"
-    
-      // ── Per-page content widths ───────────────────────────────────────────────
+    // ── Per-page content widths ───────────────────────────────────────────────
     readonly property var _pageWidths: ({
         "home":     900,
         "stats":    900,
@@ -43,181 +41,165 @@ PopupWindow {
     }
 
     onPageChanged: _applyPageWidth(page)
+
     // ── Surface config ────────────────────────────────────────────────────────
-	color:   "transparent"
-	visible: windowVisible
-	mask: Region { item: maskProxy }
-	
-	// ── Window visibility gate ────────────────────────────────────────────────
-	// Keep the window alive until the close animation finishes, then hide it.
-	property bool windowVisible: false
-	
-	Item {
-    	id:      maskProxy
-    	x:       root.implicitWidth - sizer.width-root.fw
-    	y:       0
-    	width:   sizer.width
-    	height:  sizer.height
+    color:   "transparent"
+    visible: windowVisible
+
+    anchors.top:   true
+    anchors.left:  true
+    anchors.right: true
+
+    implicitHeight: Theme.notchHeight + Theme.dashboardHeight
+    exclusionMode:  ExclusionMode.Ignore
+
+    WlrLayershell.layer:         WlrLayer.Overlay
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+
+    // ── Mask — input/paint region limited to sizer only ──────────────────────
+    mask: Region { item: maskProxy }
+    Item {
+        id:     maskProxy
+        x:      (root.width - sizer.width) / 2
+        // topMargin matches sizer exactly — no fh offset
+        y:      Theme.notchHeight
+        width:  sizer.width
+        height: sizer.height
     }
 
-	Connections {
-		target: Popups
-		function onDashboardOpenChanged() {
-			if (Popups.dashboardOpen) {
-				closeTimer.stop()
+    // ── Window visibility gate ────────────────────────────────────────────────
+    property bool windowVisible: false
+
+    Connections {
+        target: Popups
+        function onDashboardOpenChanged() {
+            if (Popups.dashboardOpen) {
+                closeTimer.stop()
                 root.windowVisible = true
                 root._applyPageWidth(root.page)
-			} else {
-				closeTimer.restart()
-			}
-		}
-	}
+            } else {
+                closeTimer.restart()
+            }
+        }
+    }
 
-	Timer {
-		id: closeTimer
-		interval: root.animDuration + 20
-		onTriggered: {
-			root.windowVisible = false
-			tabBar.reset()
-		}
-	}
+    Timer {
+        id: closeTimer
+        interval: root.animDuration + 20
+        onTriggered: {
+            root.windowVisible = false
+            tabBar.reset()
+        }
+    }
 
-	// ── Positioning ───────────────────────────────────────────────────────────
-	// Sits at the bottom edge of the center notch, centered horizontally.
-	// The sizer fans outward from this anchor point.
-	anchor.window:  anchorWindow
-	anchor.gravity: Edges.Bottom
-	anchor.rect: Qt.rect(
-		anchorWindow.width / 2,
-		0,
-		Theme.dashboardWidth,
-		Theme.notchHeight
-	)
+    // ── Sizer ─────────────────────────────────────────────────────────────────
+    // topMargin: Theme.notchHeight places the sizer top exactly at the notch
+    // bottom — identical to where PopupWindow put it. No fh subtraction, which
+    // was the source of the vertical offset in the text-working variant.
+    Item {
+        id: sizer
+        anchors.top:              parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        clip: true
 
-	// Fixed at max dimensions — the sizer clips internally
-	implicitWidth:  Theme.dashboardWidth
-	implicitHeight: Theme.dashboardHeight
+        width:  Popups.dashboardOpen ? Popups.dashboardPageWidth + 2 * root.fw : Theme.cNotchMinWidth + 2 * root.fw
+        height: Popups.dashboardOpen ? Theme.dashboardHeight : Theme.notchHeight / 2
 
-	// ── Sizer ─────────────────────────────────────────────────────────────────
-	// Anchored top-center so growth radiates outward and downward from the notch.
-	// Width follows Popups.dashboardPageWidth so the notch and popup
-    // animate together when switching between wide and narrow pages.
-	// height starts at 0.
-	Item {
-		id: sizer
-		anchors.top:              parent.top
-		anchors.horizontalCenter: parent.horizontalCenter
-		clip: true
+        Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic } }
+        Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic } }
 
-		width:  Popups.dashboardOpen ? Popups.dashboardPageWidth + 2 * root.fw  : Theme.cNotchMinWidth+2*root.fw
-		height: Popups.dashboardOpen ? Theme.dashboardHeight : Theme.notchHeight /2
+        // ── Background ────────────────────────────────────────────────────────
+        PopupShape {
+            id: bg
+            anchors.fill: parent
+            attachedEdge: "top"
+            color:        Theme.background
+            radius:       Theme.cornerRadius
+            flareWidth:   root.fw
+            flareHeight:  root.fh
+        }
 
-		Behavior on width {
-			NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic }
-		}
-		Behavior on height {
-			NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic }
-		}
+        // ── Content ───────────────────────────────────────────────────────────
+        Item {
+            id: content
+            anchors {
+                fill:         parent
+                topMargin:    root.fh + 8
+                leftMargin:   root.fw + 8
+                rightMargin:  root.fw + 8
+                bottomMargin: 8
+            }
 
-		// ── Background ────────────────────────────────────────────────────────
-		PopupShape {
-			id: bg
-			anchors.fill: parent
-			attachedEdge: "top"
-			color:        Theme.background
-			radius:       Theme.cornerRadius
-			flareWidth:   root.fw
-			flareHeight:  root.fh
-		}
+            opacity: Popups.dashboardOpen ? 1 : 0
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: Popups.dashboardOpen
+                        ? root.animDuration * 0.5
+                        : root.animDuration * 0.15
+                }
+            }
 
-		// ── Content ───────────────────────────────────────────────────────────
-		// Inset clear of the flare region. Fades in after the panel has
-		// mostly expanded, fades out immediately on close.
-		Item {
-			id: content
-			anchors {
-				fill:         parent
-				topMargin:    root.fh + 8
-				leftMargin:   root.fw + 8
-				rightMargin:  root.fw + 8
-				bottomMargin: 8
-			}
+            Column {
+                anchors.fill: parent
+                spacing: 0
 
-			opacity: Popups.dashboardOpen ? 1 : 0
-			Behavior on opacity {
-				NumberAnimation {
-					duration: Popups.dashboardOpen
-					? root.animDuration * 0.5
-					: root.animDuration * 0.15
-				}
-			}
+                // ── Tab bar ───────────────────────────────────────────────────
+                TabSwitcher {
+                    id: tabBar
+                    orientation: "horizontal"
+                    width:       parent.width
+                    currentPage: root.page
+                    model: [
+                        { key: "home",     icon: "󰋜",  label: "Home"   },
+                        { key: "stats",    icon: "󰻠",  label: "System" },
+                        { key: "kanban",   icon: "󰄬",  label: "Tasks"  },
+                        { key: "launcher", icon: "󱓞",  label: "Apps"   },
+                        { key: "config",   icon: "󰒓",  label: "Config" },
+                    ]
+                    onPageChanged: function(key) { root.page = key }
+                }
 
-			// ── Placeholder ───────────────────────────────────────────────────
-			Column {
-				anchors.fill: parent
-				spacing: 0
+                // ── Page area ─────────────────────────────────────────────────
+                Item {
+                    width:  parent.width
+                    height: parent.height - tabBar.height
 
-				// ── Tab bar ───────────────────────────────────────────────────
-				TabSwitcher {
-					id: tabBar
-					orientation: "horizontal"
-					width:       parent.width
-					currentPage: root.page
-					model: [
-						{ key: "home",     icon: "󰋜",  label: "Home"   },
-						{ key: "stats",    icon: "󰻠",  label: "System" },
-						{ key: "kanban",   icon: "󰄬",  label: "Tasks"  },
-						{ key: "launcher", icon: "󱓞",  label: "Apps"   },
-						{ key: "config",   icon: "󰒓",  label: "Config" },
-					]
-					onPageChanged: function(key) { root.page = key }
-				}
+                    Item {
+                        anchors.fill: parent
+                        visible:      root.page === "home"
+                        DashHome { anchors.fill: parent }
+                    }
 
-				// ── Page area ─────────────────────────────────────────────────
-				Item {
-					width:  parent.width
-					height: parent.height - tabBar.height
+                    Item {
+                        anchors.fill: parent
+                        visible:      root.page === "stats"
+                        DashStats { anchors.fill: parent }
+                    }
 
-					Item {
-						anchors.fill: parent
-						visible:      root.page === "home"
-						DashHome { anchors.fill: parent }
-					}
+                    Item {
+                        anchors.fill: parent
+                        visible:      root.page === "kanban"
+                        KanbanBoard { anchors.fill: parent }
+                    }
 
-					// Stats
-					Item {
-						anchors.fill: parent
-						visible:      root.page === "stats"
-						DashStats {anchors.fill: parent}
-					}
+                    Item {
+                        anchors.fill: parent
+                        visible:      root.page === "launcher"
+                        AppLauncher { anchors.fill: parent }
+                    }
 
-					// Kanban
-					Item {
-						anchors.fill: parent
-						visible:      root.page === "kanban"
-						KanbanBoard { anchors.fill: parent }
-					}
-
-					// App Launcher
-					Item {
-						anchors.fill: parent
-						visible:      root.page === "launcher"
-						AppLauncher { anchors.fill: parent }
-					}
-
-					// Config
-					Item {
-						anchors.fill: parent
-						visible:      root.page === "config"
-						Text {
-							anchors.centerIn: parent
-							text:  "⚙️ Config"
-							color: Qt.rgba(1,1,1,0.3)
-							font.pixelSize: 16
-						}
-					}
-				}
-			}
-		}
-	}
+                    Item {
+                        anchors.fill: parent
+                        visible:      root.page === "config"
+                        Text {
+                            anchors.centerIn: parent
+                            text:  "⚙️ Config"
+                            color: Qt.rgba(1,1,1,0.3)
+                            font.pixelSize: 16
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

@@ -192,48 +192,9 @@ Item {
 		onTriggered: root._scrollBusy = false
 	}
 
-	// ── Cava (24 bars) ────────────────────────────────────────────────────────
-	readonly property int _cavaBars: 24
-
-	property var _bars: (function() {
-		var a = []; for (var i = 0; i < 24; i++) a.push(0); return a
-	})()
-
-	onIsPlayingChanged: {
-		if (!isPlaying) {
-			var a = []; for (var i = 0; i < 24; i++) a.push(0)
-			_bars = a
-		}
-	}
-
-	Process {
-		id: cavaProc
-		command: [
-			"bash", "-c",
-			"mkdir -p /tmp/brain_shell && " +
-			"printf '[general]\\nbars = 24\\nframerate = 30\\nnoise_reduction = 77\\n\\n" +
-			"[output]\\nmethod = raw\\nraw_target = /dev/stdout\\n" +
-			"data_format = ascii\\nascii_max_range = 100\\n" +
-			"bar_delimiter = 59\\nframe_delimiter = 10\\n' " +
-			"> /tmp/brain_shell/cava_notch.ini && " +
-			"exec cava -p /tmp/brain_shell/cava_notch.ini 2>/dev/null"
-		]
-		running: true
-		stdout: SplitParser {
-			onRead: function(line) {
-				if (!root.isPlaying) return
-				var t = line.trim()
-				if (t === "") return
-				if (t.endsWith(";")) t = t.slice(0, -1)
-				var parts = t.split(";")
-				if (parts.length !== root._cavaBars) return
-				var bars = []
-				for (var i = 0; i < parts.length; i++)
-				bars.push(parseInt(parts[i]) || 0)
-				root._bars = bars
-			}
-		}
-	}
+	// ── Cava — shared via CavaService singleton ─────────────────────────────
+	readonly property int _cavaBars: CavaService.barCount
+	readonly property var _bars:     CavaService.bars
 
 	// ── Carousel ──────────────────────────────────────────────────────────────
 	Item {

@@ -60,11 +60,11 @@ PanelWindow {
     mask: Region { item: maskProxy }
     Item {
         id:     maskProxy
-        x:      (root.width - sizer.width) / 2
+        x:      ((root.width - sizer.width) / 2) + root.fw
         // topMargin matches sizer exactly — no fh offset
         y:      Theme.notchHeight
-        width:  sizer.width
-        height: sizer.height
+        width:  sizer.width -root.fw
+        height: sizer.height-Theme.notchHeight
     }
 
     // ── Window visibility gate ────────────────────────────────────────────────

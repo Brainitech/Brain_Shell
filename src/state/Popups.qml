@@ -16,7 +16,9 @@ QtObject {
     // Dashboard.qml writes this on every page change + on open.
     // TopBar.qml and Dashboard sizer both read it.
     property int dashboardPageWidth: 900
-
+    
+    // ── Network popup — per-page content (string key) ─────────────────────────
+    property string networkPage: ""
     // ── Per-popup trigger hover state ─────────────────────────────────────────
     property bool archMenuTriggerHovered: false
     property bool audioTriggerHovered:         false

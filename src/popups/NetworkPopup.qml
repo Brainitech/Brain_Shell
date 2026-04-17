@@ -68,11 +68,12 @@ PanelWindow {
     Item {
         id: sizer
         anchors.right: parent.right
+        anchors.rightMargin: Theme.borderWidth
         y: 0
         clip: true
 
         width: Popups.networkOpen
-               ? root.popupWidth + root.fw
+               ? root.popupWidth + 9
                : Theme.rNotchMinWidth + root.fw
 
         height: Popups.networkOpen ? root.popupHeight : 0
@@ -93,7 +94,7 @@ PanelWindow {
             id: contentArea
             anchors {
                 fill:         parent
-                topMargin:    Theme.notchHeight + 4
+                topMargin:    Theme.notchHeight
                 leftMargin:   10
                 rightMargin:  root.fw + 8
                 bottomMargin: root.fh + Theme.cornerRadius

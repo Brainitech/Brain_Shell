@@ -2,24 +2,25 @@
 
 A modular session shell for Hyprland, built on Quickshell.
 
-## Devlog 7: Dynamic Pill, Screen Recording, and Filters
+## Devlog 8: Network Popup, Dashboard Apps, and Massive Bug Squashing
 
 **Core Additions**
 
-- **Dynamic Center Pill:** The center notch carousel now reactively builds its item list based on active shell state. It smoothly scrolls between active media (via MPRIS), running timers, and the active window title.
-- **Screen Recording Engine:** Built a complete recording lifecycle via `ScreenRecService.qml`. It supports Screen, Window, and Region captures (using `slurp` ) with configurable audio sources. Settings are persisted across reloads via `screenrec.json`.
-- **Screen Rec Options Popup:** Added a dedicated options UI that appears when starting a recording, featuring dropdowns for capture targets, a mirrored Cava visualization, an elapsed timer, and Stop/Discard controls.
-- **Filters QuickSetting:** Added a new Filters toggle to the QuickSettings grid. It features a nested shader picker popup that lists and applies available Hyprland screen shaders live via `hyprctl`.
+- **Network Popup:** Built a fully functional three-tab panel covering Wi-Fi, Bluetooth, and VPN (WireGuard). Features include inline password entry requiring `WlrKeyboardFocus.OnDemand`, a pulsating `ScanRings` animation during scans, and interactive Bluetooth pairing via a `bluetoothctl` stdin pipe.
+- **Kanban Board:** The Kanban dashboard tab is now fully wired, fixing an input focus bug and saving state persistently.
+- **App Launcher:** Added a new dashboard tab that runs `list_apps.py` to parse installed `.desktop` files, resolve icon themes, and launch applications as detached processes.
 
 **Compositor & Rendering Fixes**
 
-- **Global Popup State Bug:** Removed `notificationToastOpen` from the global `anyOpen` state. This fixes a critical bug where transient notification toasts were triggering the global dismiss overlay and blocking desktop interactions.
-- **Notch Anchoring & Expansion:** Fixed the notification toast anchor position to prevent overlap with the right notch, and corrected the left notch so it no longer erroneously expands when a toast appears.
+- **Dashboard Masking:** Corrected the mask proxy geometry to eliminate a dead zone at the notch-to-panel junction, ensuring the click-to-close behavior works accurately.
+- **Notification Alignment:** Unified the widths of notification toasts and the list popup through `Theme` constants to prevent visual misalignment when both are active.
+- **TopBar Margin:** Resolved a stale top margin that was causing a one-pixel gap between the bar and the screen edge on certain compositor setups.
 
 **Architecture Refactoring**
 
-- **Wallpaper Service Migration:** Updated the wallpaper apply pipeline to use `awww` instead of `swww` following the upstream package rename, restoring live matugen recoloring.
-- **Dynamic Paths:** Updated the avatar path in `DashHome.qml` to resolve dynamically via `$HOME`, ensuring the shell remains portable across different user accounts without hardcoding paths.
+- **User Data Consolidation:** Moved `tasks.json`, `wallpaper.json`, and `screenrec.json` from scattered config paths into a unified `src/user_data/` directory to cleanly manage runtime-mutable data.
+- **QuickSettings Synchronization:** Fixed a race condition where rapid toggling caused state desyncs against in-flight commands. The Dark Mode toggle is now fully implemented, updating Matugen, `gsettings`, and GTK 3/4 settings simultaneously.
+- **Widget Polish:** Added a Cava source selector to `PlayerCard` and refactored its bar rendering to remove rounding artifacts. Implemented a midnight rollover timer fix for the `CalendarCard` and added a smooth scaling animation for selected tiles in the wallpaper picker.
 
 ---
 
@@ -31,7 +32,5 @@ A modular session shell for Hyprland, built on Quickshell.
 
 ## Roadmap / Up Next
 
-- **Network Popup:** Building the full WiFi management panel (connection list, signal strength, password entry) and finalizing the QuickSettings Hotspot toggle.
-- **Dark Mode Wiring:** Connecting the QuickSettings placeholder.
-- **Pending Dashboard Tabs:** Kanban, App Launcher, and Config.
-- **Pending Popups:** Battery.
+- **Dashboard Config Tab:** Currently a placeholder, slated for post-completion scope.
+- **App Launcher Enhancements:** Adding a pinned or recent applications row to supplement the current search-only grid.

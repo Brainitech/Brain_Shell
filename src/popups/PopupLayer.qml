@@ -57,6 +57,6 @@ Item {
         anchorWindow: root.topBar
     }
 
-    // NetworkPopup { anchorWindow: root.topBar }
+    NetworkPopup {}
     // SysTrayPopup { anchorWindow: root.topBar }
 }

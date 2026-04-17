@@ -1,8 +1,10 @@
+import Quickshell
 import QtQuick
 import QtQuick.Controls
 import Quickshell.Io
 import "../../"
 import "../../components"
+import "../"
 
 // Right column — brightness slider + scrollable quick-settings grid.
 
@@ -53,7 +55,11 @@ StatCard {
     property string wifiSSID: ""
 
     Process { id: wifiRadioRead; command: ["bash", "-c", "nmcli radio wifi"]; running: false
-        stdout: SplitParser { onRead: function(l) { root.wifiOn = l.trim() === "enabled" } } }
+        stdout: SplitParser { onRead: function(l) {
+            root.wifiOn = l.trim() === "enabled"
+            // Expose to ShellState — suppressed while hotspot owns the interface
+            ShellState.wifiOn = root.wifiOn && !ShellState.hotspot
+        } } }
     Process { id: wifiSSIDRead
         command: ["bash", "-c",
             "nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | grep '^yes:' | head -1 | cut -d: -f2"]
@@ -66,7 +72,10 @@ StatCard {
         wifiSSIDRead.running  = false; wifiSSIDRead.running  = true
     }
     function _wifiToggle() {
+        // Do not allow wifi toggle while hotspot is using the interface
+        if (root.hotspotOn || root.hotspotBusy) return
         root.wifiOn = !root.wifiOn           // optimistic — tile updates now
+        ShellState.wifiOn = root.wifiOn
         wifiToggleProc.command = ["bash", "-c",
             "nmcli radio wifi " + (root.wifiOn ? "on" : "off")]
         wifiToggleProc.running = false
@@ -159,40 +168,226 @@ StatCard {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    //  Hotspot  (nmcli)
+    //  Hotspot — direct toggle; requires ethernet connection
     // ─────────────────────────────────────────────────────────────────────────
-    property bool   hotspotOn:   false
-    property string hotspotSSID: ""
+    property bool   hotspotOn:     false
+    property bool   hotspotBusy:   false
+    property bool   _hsWifiWasOff: false  // wifi radio was off when hotspot started; restore on stop
+    property string hotspotLabel:  ""    // sublabel: "Active" | "Not on ethernet" | ""
+    property string _hsSSID:       "BrainShell"
+    property string _hsPassword:   "changeme1"
+    property string _hsWifiIface:  "wlan0"
 
-    Process { id: hotspotCheck
+    readonly property string _hsCfgPath:
+        Quickshell.shellDir + "/src/user_data/hotspot.json"
+
+    // Load config on startup
+    Process {
+        id: hsCfgLoadProc
         command: ["bash", "-c",
-            "nmcli -t -f NAME,TYPE,STATE con show --active 2>/dev/null" +
-            " | grep ':802-11-wireless:' | grep -i hotspot | head -1 | cut -d: -f1"]
+            "[ -f '" + root._hsCfgPath + "' ] || " +
+            "(mkdir -p \"$(dirname '" + root._hsCfgPath + "')\" && " +
+            "printf '%s' '{\"ssid\":\"BrainShell\",\"password\":\"changeme1\"}' > '" + root._hsCfgPath + "'); " +
+            "cat '" + root._hsCfgPath + "'"]
         running: false
-        stdout: SplitParser {
-            onRead: function(l) {
-                var n = l.trim()
-                root.hotspotOn   = n !== ""
-                root.hotspotSSID = n
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    var o = JSON.parse(text.trim())
+                    if (o.ssid)     root._hsSSID     = o.ssid
+                    if (o.password) root._hsPassword = o.password
+                } catch(e) {}
             }
         }
     }
-    Process { id: hotspotUp
-        command: ["bash", "-c", "nmcli device wifi hotspot 2>/dev/null || nmcli con up Hotspot"]
+
+    // Detect WiFi interface name
+    Process {
+        id: hsIfaceProc
+        command: ["bash", "-c",
+            "nmcli -g DEVICE,TYPE dev 2>/dev/null | awk -F: '$2==\"wifi\"{print $1; exit}'"]
         running: false
-        onRunningChanged: if (!running) hotspotCheck.running = true }
-    Process { id: hotspotDown; command: []; running: false
-        onRunningChanged: if (!running) {
-            root.hotspotOn = false; root.hotspotSSID = ""
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var n = text.trim()
+                if (n !== "") root._hsWifiIface = n
+            }
         }
     }
+
+    // Check if ethernet is connected
+    Process {
+        id: hsEthernetCheck
+        command: ["bash", "-c",
+            "nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -c 'ethernet:connected'"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var hasEth = parseInt(text.trim()) > 0
+                if (!hasEth) {
+                    root.hotspotLabel = "Not on ethernet"
+                    root.hotspotBusy  = false
+                    return
+                }
+                // Remember whether wifi radio was off so we can restore it on stop
+                root._hsWifiWasOff = !root.wifiOn
+                // Ethernet confirmed — start hotspot
+                root._hsDoStart()
+            }
+        }
+    }
+
+    // Check hotspot status
+    Process {
+        id: hotspotCheck
+        command: ["bash", "-c",
+            "nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -c 'wifi:connected'"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                // If WiFi device shows 'connected' in AP mode that's our hotspot
+                // Cross-check with ap-like connection
+                hsActiveCheckProc.running = false; hsActiveCheckProc.running = true
+            }
+        }
+    }
+
+    Process {
+        id: hsActiveCheckProc
+        command: ["bash", "-c",
+            "nmcli -t -f NAME,STATE,DEVICE con show --active 2>/dev/null" +
+            " | awk -F: '$1~/[Hh]otspot/{found=1} END{print found+0}'"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.hotspotOn     = parseInt(text.trim()) > 0
+                ShellState.hotspot = root.hotspotOn
+                root.hotspotLabel  = root.hotspotOn ? "Active" : ""
+                // WiFi interface is owned by hotspot — suppress from ShellState
+                if (root.hotspotOn) ShellState.wifiOn = false
+            }
+        }
+    }
+
+    // Start hotspot
+    Process {
+        id: hsStartProc
+        command: []
+        running: false
+        stderr: StdioCollector { id: hsStartErr }
+        onRunningChanged: if (!running) {
+            root.hotspotBusy = false
+            // Re-check actual state after nmcli exits
+            hsActiveCheckProc.running = false; hsActiveCheckProc.running = true
+        }
+        onExited: function(code, status) {
+            if (code === 0) {
+                root.hotspotOn     = true
+                root.hotspotLabel  = "Active"
+                ShellState.hotspot = true
+                // WiFi interface now owned by hotspot
+                ShellState.wifiOn  = false
+            } else {
+                root.hotspotOn    = false
+                root.hotspotLabel = "Failed"
+                ShellState.hotspot = false
+                hsLabelResetTimer.restart()
+            }
+        }
+    }
+
+    // Stop hotspot
+    Process {
+        id: hsStopProc
+        // Disconnect by interface — works regardless of what nmcli named the connection
+        command: ["bash", "-c",
+            "nmcli device disconnect " + root._hsWifiIface + " 2>/dev/null; " +
+            "nmcli con delete BrainShellHotspot 2>/dev/null; true"]
+        running: false
+        onRunningChanged: if (!running) {
+            root.hotspotBusy   = false
+            root.hotspotOn     = false
+            ShellState.hotspot = false
+            if (root._hsWifiWasOff) {
+                // Wifi radio was off before hotspot started — restore that state.
+                // Turn the radio back off so the interface cycle is clean.
+                root.wifiOn       = false
+                ShellState.wifiOn = false
+                wifiToggleProc.command = ["bash", "-c", "nmcli radio wifi off"]
+                wifiToggleProc.running = false
+                wifiToggleProc.running = true
+                root._hsWifiWasOff = false
+            } else {
+                // Radio was already on — just re-expose wifi state and re-poll for SSID
+                ShellState.wifiOn = root.wifiOn
+                _wifiPoll()
+            }
+        }
+    }
+
+    Timer { id: hsLabelResetTimer; interval: 3000; repeat: false
+        onTriggered: { if (root.hotspotLabel === "Failed") root.hotspotLabel = "" } }
+
+    // Ethernet disconnect watcher — runs during polling when hotspot is active
+    Process {
+        id: hsEthernetLiveCheck
+        command: ["bash", "-c",
+            "nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -c 'ethernet:connected'"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (!root.hotspotOn || root.hotspotBusy) return
+                var hasEth = parseInt(text.trim()) > 0
+                if (!hasEth) {
+                    // Ethernet lost — tear down hotspot automatically
+                    root.hotspotLabel = "Ethernet lost"
+                    root.hotspotBusy  = true
+                    // Rebuild stop command with current iface before running
+                    hsStopProc.command = ["bash", "-c",
+                        "nmcli device disconnect " + root._hsWifiIface + " 2>/dev/null; " +
+                        "nmcli con delete BrainShellHotspot 2>/dev/null; true"]
+                    hsStopProc.running = false; hsStopProc.running = true
+                    hsLabelResetTimer.restart()
+                }
+            }
+        }
+    }
+
+    function _hsDoStart() {
+        var ssid = root._hsSSID
+        var pass = root._hsPassword
+        var iface = root._hsWifiIface
+        hsStartProc.command = ["bash", "-c",
+            // Silently bring the wifi radio up if it was off (ethernet-only scenario).
+            // nmcli needs the radio enabled before it can create an AP connection.
+            "nmcli radio wifi on 2>/dev/null; " +
+            "sleep 1; " +
+            // Disconnect whatever is currently on the interface 
+            "nmcli device disconnect \"" + iface + "\" 2>/dev/null; " +
+            "nmcli con delete BrainShellHotspot 2>/dev/null; " +
+            "nmcli device wifi hotspot " +
+                "ifname \"" + iface + "\" " +
+                "ssid \"" + ssid + "\" " +
+                "password \"" + pass + "\" " +
+                "con-name BrainShellHotspot 2>&1"]
+        hsStartProc.running = false; hsStartProc.running = true
+    }
+
     function _hotspotToggle() {
+        if (root.hotspotBusy) return
         if (root.hotspotOn) {
-            var name = root.hotspotSSID !== "" ? root.hotspotSSID : "Hotspot"
-            hotspotDown.command = ["bash", "-c", "nmcli con down '" + name + "'"]
-            hotspotDown.running = false; hotspotDown.running = true
+            root.hotspotBusy  = true
+            root.hotspotLabel = ""
+            // Rebuild with current iface (detected after startup)
+            hsStopProc.command = ["bash", "-c",
+                "nmcli device disconnect \"" + root._hsWifiIface + "\" 2>/dev/null; " +
+                "nmcli con delete BrainShellHotspot 2>/dev/null; true"]
+            hsStopProc.running = false; hsStopProc.running = true
         } else {
-            hotspotUp.running = false; hotspotUp.running = true
+            root.hotspotBusy  = true
+            root.hotspotLabel = ""
+            // Check ethernet first, then start
+            hsEthernetCheck.running = false; hsEthernetCheck.running = true
         }
     }
 
@@ -272,6 +467,66 @@ StatCard {
     property var    filterList:       []
     property bool   filterPickerOpen: false
 
+    // Read the actual active shader from Hyprland on startup and after wallpaper change.
+    // Hyprland stores the full path; normalize to the stem (filename without extension)
+    // so it matches what hyprshade ls returns, enabling correct picker highlighting.
+    Process {
+        id: filterCheckProc
+        command: ["bash", "-c",
+            "hyprctl getoption decoration:screen_shader -j 2>/dev/null" +
+            " | python3 -c \"" +
+            "import sys,json,os;" +
+            "d=json.load(sys.stdin);" +
+            "s=d.get('str','').strip();" +
+            "print('' if s in ('','[[EMPTY]]') else os.path.splitext(os.path.basename(s))[0])\""]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.currentFilter = text.trim()
+            }
+        }
+    }
+
+    Process {
+        id: filterApplyProc
+        command: []
+        running: false
+        // Re-check confirmed state after apply — hyprshade may normalise the name differently
+        onRunningChanged: if (!running) {
+            filterCheckProc.running = false
+            filterCheckProc.running = true
+        }
+    }
+
+    function _filterApply(name) {
+        var turningOff = (name === "" || name === root.currentFilter)
+        filterApplyProc.command = turningOff
+            ? ["hyprshade", "off"]
+            : ["hyprshade", "on", name]
+        // Optimistic update — confirmed by filterCheckProc after proc exits
+        root.currentFilter  = turningOff ? "" : name
+        filterApplyProc.running = false
+        filterApplyProc.running = true
+        root.filterPickerOpen   = false
+    }
+
+    // Wallpaper change resets the shader — re-check actual state
+    Connections {
+        target: WallpaperService
+        function onWallpaperApplied(path) {
+            filterCheckProc.running = false
+            filterCheckProc.running = true
+        }
+    }
+
+    // Close filter picker when dashboard closes
+    Connections {
+        target: Popups
+        function onDashboardOpenChanged() {
+            if (!Popups.dashboardOpen) root.filterPickerOpen = false
+        }
+    }
+
     Process {
         id: filterListProc
         command: ["hyprshade", "ls"]
@@ -284,31 +539,11 @@ StatCard {
         }
     }
 
-    Process {
-        id: filterApplyProc
-        command: []
-        running: false
-    }
-
     function _filterOpen() {
         root.filterList = []
         filterListProc.running = false
         filterListProc.running = true
         root.filterPickerOpen  = true
-    }
-
-    function _filterApply(name) {
-        if (name === "" || name === root.currentFilter) {
-            // "Off" or same filter → turn off
-            filterApplyProc.command = ["hyprshade", "off"]
-            root.currentFilter = ""
-        } else {
-            filterApplyProc.command = ["hyprshade", "on", name]
-            root.currentFilter = name
-        }
-        filterApplyProc.running = false
-        filterApplyProc.running = true
-        root.filterPickerOpen   = false
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -318,18 +553,26 @@ StatCard {
         interval: 5000; running: true; repeat: true
         onTriggered: {
             _wifiPoll(); _btPoll()
-            hotspotCheck.running = false; hotspotCheck.running = true
+            hsActiveCheckProc.running = false; hsActiveCheckProc.running = true
             airplaneCheck.running = false; airplaneCheck.running = true
+            // Monitor ethernet while hotspot is active
+            if (root.hotspotOn && !root.hotspotBusy) {
+                hsEthernetLiveCheck.running = false; hsEthernetLiveCheck.running = true
+            }
         }
     }
 
     Component.onCompleted: {
-        brightRead.running    = true
+        brightRead.running      = true
         _wifiPoll(); _btPoll()
-        nlCheck.running       = true
-        caffeineCheck.running = true
-        hotspotCheck.running  = true
-        airplaneCheck.running = true
+        nlCheck.running         = true
+        caffeineCheck.running   = true
+        hotspotCheck.running    = true
+        airplaneCheck.running   = true
+        filterCheckProc.running = true
+        hsCfgLoadProc.running   = true
+        hsIfaceProc.running     = true
+        hsActiveCheckProc.running = true
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -505,8 +748,9 @@ StatCard {
 
                     TglBtn {
                         width: tileGrid.btnW; height: tileGrid.btnH
-                        on: root.wifiOn; icon: root.wifiOn ? "󰤨" : "󰤭"; label: "Wi-Fi"
-                        sublabel: root.wifiOn && root.wifiSSID !== "" ? root.wifiSSID : ""
+                        on: root.wifiOn && !root.hotspotOn
+                        icon: (root.wifiOn && !root.hotspotOn) ? "󰤨" : "󰤭"; label: "Wi-Fi"
+                        sublabel: (root.wifiOn && !root.hotspotOn) && root.wifiSSID !== "" ? root.wifiSSID : (root.hotspotOn ? "Used by Hotspot" : "")
                         onToggled: root._wifiToggle()
                     }
                     TglBtn {
@@ -522,8 +766,10 @@ StatCard {
                     }
                     TglBtn {
                         width: tileGrid.btnW; height: tileGrid.btnH
-                        on: root.hotspotOn; icon: "󰀃"; label: "Hotspot"
-                        sublabel: root.hotspotOn && root.hotspotSSID !== "" ? root.hotspotSSID : ""
+                        on: root.hotspotOn || root.hotspotBusy
+                        icon: "󰀃"
+                        label: "Hotspot"
+                        sublabel: root.hotspotLabel
                         onToggled: root._hotspotToggle()
                     }
                     TglBtn {

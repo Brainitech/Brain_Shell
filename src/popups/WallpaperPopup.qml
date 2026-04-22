@@ -8,26 +8,6 @@ import "../components"
 import "../services"
 import "../"
 
-// ============================================================
-// WallpaperPopup — bottom-anchored PanelWindow.
-//
-// Surface only covers the bottom panelHeight + borderWidth px,
-// so there is no full-screen transparent overlay to cause strip
-// artifacts. PopupDismiss handles click-outside dismiss.
-//
-// Animation: same grow pattern as Dashboard — sizer starts at
-// cNotchMinWidth × 0 and expands to panelWidth × panelHeight
-// simultaneously, centered horizontally. PopupShape melts into
-// the bottom border strip.
-//
-//  ┌─ tiles (horizontal scroll) ────────────────────────────┐
-//  │  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐              │
-//  │  │  img │  │  img │  │  img │  │  img │              │
-//  │  │ name │  │ name │  │ name │  │ name │              │
-//  └──┴──────┴──┴──────┴──┴──────┴──┴──────┴──────────────┘
-//         [📁]  [Search……………]  [🎨 scheme ▾]     [Apply]
-// ============================================================
-
 PanelWindow {
     id: root
 
@@ -343,6 +323,7 @@ PanelWindow {
                 anchors.bottom: parent.bottom
                 anchors.left:   parent.left
                 anchors.right:  parent.right
+                anchors.bottomMargin: -20
                 height: 32
 
                 // ── Centered cluster: folder + search + scheme ─────────────────

@@ -269,13 +269,15 @@ Item {
 				// ── Music ──────────────────────────────────────────────────────
 				Item {
 					anchors.fill: parent
+					anchors.leftMargin: root.fw/2
+					anchors.rightMargin: root.fw/2
 					visible:      modelData === "music"
 
 					readonly property int artSize: 20
 					readonly property int artPad:   7
 
 					Item {
-						x:      parent.artPad
+						x:    parent.artPad
 						anchors.verticalCenter: parent.verticalCenter
 						width:  parent.artSize
 						height: parent.artSize
@@ -540,7 +542,12 @@ Item {
 
 						// ── Record setup — strip buttons + Record button ───────────────
 						Item {
-							anchors.fill: parent
+							anchors{
+								fill: parent
+								leftMargin: root.fw/2
+								rightMargin: root.fw/2
+							}
+							
 							visible:      modelData === "record_setup"
 
 							Row {
@@ -704,15 +711,19 @@ Item {
 											anchors.verticalCenter: parent.verticalCenter
 										}
 									}
-									HoverHandler { id: recBtnH; cursorShape: Qt.PointingHandCursor }
-									MouseArea { anchors.fill: parent; onClicked: ScreenRecService.startRecording() }
+									HoverHandler { id: recBtnH}
+									MouseArea { anchors.fill: parent;cursorShape: Qt.PointingHandCursor; onClicked: ScreenRecService.startRecording() }
 								}
 							}
 						}
 
 						// ── Record active — ● (Left) | Timer + Cava (Center) | Trash + Stop (Right) ──
 						Item {
-							anchors.fill: parent
+							anchors{
+								fill: parent
+								leftMargin: root.fw/2
+								rightMargin: root.fw/2
+							}
 							visible:      modelData === "record_active"
 
 							// Left: dot + timer, anchored left
@@ -793,7 +804,7 @@ Item {
 									rightMargin:    10
 									verticalCenter: parent.verticalCenter
 								}
-								spacing: 6
+								spacing: root.fw/2
 
 								// Discard button
 								Rectangle {
@@ -812,8 +823,8 @@ Item {
 										: Qt.rgba(1, 1, 1, 0.4)
 										Behavior on color { ColorAnimation { duration: 100 } }
 									}
-									HoverHandler { id: recDiscardH; cursorShape: Qt.PointingHandCursor }
-									MouseArea { anchors.fill: parent; onClicked: ScreenRecService.discardRecording() }
+									HoverHandler { id: recDiscardH }
+									MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ScreenRecService.discardRecording() }
 								}
 
 								// Stop button
@@ -830,8 +841,8 @@ Item {
 										font.pixelSize: 10
 										color:          "#ff9999"
 									}
-									HoverHandler { id: recStopH; cursorShape: Qt.PointingHandCursor }
-									MouseArea { anchors.fill: parent; onClicked: ScreenRecService.stopRecording() }
+									HoverHandler { id: recStopH }
+									MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ScreenRecService.stopRecording() }
 								}
 							}
 						}

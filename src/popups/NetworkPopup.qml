@@ -95,8 +95,8 @@ PanelWindow {
             anchors {
                 fill:         parent
                 topMargin:    Theme.notchHeight
-                leftMargin:   10
-                rightMargin:  root.fw + 8
+                leftMargin:   root.fw
+                rightMargin:  root.fw/2
                 bottomMargin: root.fh + Theme.cornerRadius
             }
 

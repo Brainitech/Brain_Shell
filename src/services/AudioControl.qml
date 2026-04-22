@@ -89,7 +89,7 @@ Item {
                 ChannelColumn {
                     width:  parent.width
                     label:  root.source?.ready ? root.deviceName(root.source) : "Input"
-                    icon:   root.source?.audio.muted ? "󰍭" : "▬"
+                    icon:   root.source?.audio.muted ? "󰍭" : "󰍬"
                     value:  root.source?.ready ? root.source.audio.volume : 0
                     muted:  root.source?.audio.muted ?? false
                     active: root.source?.ready ?? false
@@ -165,7 +165,7 @@ Item {
         TabSwitcher {
             id: switcher
             orientation: "vertical"
-            height: parent.height
+            height: (parent.height - 17)
             anchors.verticalCenter: parent.verticalCenter
             model: [
                 { key: "output", icon: "󰕾" },

@@ -21,15 +21,16 @@ StatCard {
     property int    _currentM: 0
 
     // ── Timer ─────────────────────────────────────────────────────────────────
-    property int  _timerTotal:   25 * 60
-    property int  _timerLeft:    25 * 60
+    property int  _timerTotal:   10 * 60
+    property int  _timerLeft:    10 * 60
     property bool _timerRunning: false
-    property bool _timerFired:   false
+    property bool _timerStarted:   false
     property bool _addTimerOpen: false
 
     // ── Stopwatch ─────────────────────────────────────────────────────────────
     property int  _swMs:      0
     property bool _swRunning: false
+    property bool _swStarted:   false
 
     // ── Alarms ────────────────────────────────────────────────────────────────
     property var  _alarms:     []
@@ -173,6 +174,8 @@ StatCard {
         ClockState.swRunning    = _swRunning
         ClockState.swDisplay    = _swDisplay()
         ClockState.alarms       = _alarms
+        ClockState.swStarted    = _swStarted
+        ClockState.timerStarted = _timerStarted
 
         var now = _currentH * 60 + _currentM, best = null
         for (var i = 0; i < _alarms.length; i++) {
@@ -185,7 +188,39 @@ StatCard {
         }
         ClockState.nextAlarm = best
     }
-
+    
+    Connections {
+        target: ClockState
+      
+        function onSwRunningChanged() {
+            // Sync internal state if the singleton is changed externally (e.g., from the notch)
+            if (root._swRunning !== ClockState.swRunning) {
+                root._swRunning = ClockState.swRunning
+            }
+        }
+        
+        function onRequestStopwatchReset() {
+            root._swMs = 0
+            root._swRunning = false
+            root._swStarted = false
+            root._syncState()
+        }
+        
+        function onTimerRunningChanged() {
+            if (root._timerRunning !== ClockState.timerRunning) {
+                root._timerRunning = ClockState.timerRunning
+            }
+        }
+        
+        function onRequestTimerReset() {
+            root._timerLeft    = root._timerTotal
+            root._timerRunning = false
+            root._timerStarted = false
+            root._syncState()
+            timerCanvas.requestPaint()
+        }
+    }
+    
     // ── UI ────────────────────────────────────────────────────────────────────
     Item {
         anchors.fill: parent
@@ -245,7 +280,7 @@ StatCard {
             anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
             visible: root._mode === "timer"
 
-            // "+" / "✕" toggle — top-right corner
+            // "+" / "x" toggle — top-right corner
             Item {
                 id: addTimerBtn
                 anchors { top: parent.top; right: parent.right; topMargin: 8; rightMargin: 8 }
@@ -260,7 +295,7 @@ StatCard {
                     Behavior on color { ColorAnimation { duration: 100 } }
                     Text {
                         anchors.centerIn: parent
-                        text: root._addTimerOpen ? "✕" : "+"
+                        text: root._addTimerOpen ? "x" : "+"
                         font.pixelSize: 14; color: Theme.active
                     }
                 }
@@ -325,9 +360,9 @@ StatCard {
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 5
-                    visible: !root._addTimerOpen
+                    visible: !root._addTimerOpen && !root._timerRunning
                     Repeater {
-                        model: [5, 15, 25, 60]
+                        model: [5, 10, 15, 30]
                         delegate: Rectangle {
                             required property int modelData
                             required property int index
@@ -409,10 +444,11 @@ StatCard {
                     }
                 }
 
-                // ── Start / Pause + Reset — always visible ─────────────────────
+                // ── Start / Pause + Reset ─────────────────────
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 6
+                    visible: !root._addTimerOpen
 
                     // Start / Pause
                     Rectangle {
@@ -433,6 +469,7 @@ StatCard {
                             anchors.fill: parent
                             onClicked: {
                                 root._timerRunning = !root._timerRunning
+                                root._timerStarted = true
                                 root._timerFired   = false
                                 root._syncState()
                             }
@@ -459,6 +496,7 @@ StatCard {
                                 root._timerLeft    = root._timerTotal
                                 root._timerRunning = false
                                 root._timerFired   = false
+                                root._timerStarted = false
                                 root._syncState()
                                 timerCanvas.requestPaint()
                             }
@@ -695,10 +733,10 @@ StatCard {
                         HoverHandler { id: _swStartHov; cursorShape: Qt.PointingHandCursor }
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: { root._swRunning = !root._swRunning; root._syncState() }
+                            onClicked: { root._swRunning = !root._swRunning; root._swStarted = true; root._syncState();}
+                            
                         }
                     }
-
                     // Reset
                     Rectangle {
                         width: 58; height: 26; radius: 8
@@ -715,7 +753,7 @@ StatCard {
                         HoverHandler { id: _swResetHov; cursorShape: Qt.PointingHandCursor }
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: { root._swMs = 0; root._swRunning = false; root._syncState() }
+                            onClicked: { root._swMs = 0; root._swRunning = false; root._swStarted = false; root._syncState() }
                         }
                     }
                 }

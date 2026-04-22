@@ -4,6 +4,7 @@ import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import Quickshell.Io
 import "../../"
+import "../../services/home/."
 
 // CenterContent — scrollable dynamic island carousel.
 //
@@ -30,6 +31,7 @@ Item {
 	// ── Required notch width for the current carousel item ────────────────────
 	// TopBar.cWidth reads this so the notch always matches what is visible,
 	// even if the user scrolls away from record_active while recording.
+	readonly property int fw: Theme.notchRadius
 	readonly property int requiredWidth: Theme.cNotchMinWidth
 	// ── MPRIS ─────────────────────────────────────────────────────────────────
 	readonly property var    player:    Mpris.players.values.length > 0
@@ -107,8 +109,8 @@ Item {
 
 		var list = ["title"]
 		if (root.player                    !== null) list.push("music")
-		if (ClockState.timerRunning)                 list.push("timer")
-		if (ClockState.swRunning)                    list.push("stopwatch")
+		if (ClockState.timerStarted)                   list.push("timer")
+		if (ClockState.swStarted)                      list.push("stopwatch")
 		if (ShellState.screenRecord && !ScreenRecService.recording) list.push("record_setup")
 		if (ScreenRecService.recording)           list.push("record_active")
 
@@ -154,12 +156,18 @@ Item {
 			root._rebuildItems(ClockState.timerRunning ? "timer" : null)
 		}
 
-		function onSwRunningChanged() {
-			root._rebuildItems(ClockState.swRunning ? "stopwatch" : null)
+		function onSwStartedChanged() {
+			root._rebuildItems(ClockState.swStarted ? "stopwatch" : null)
+			root._forceScrollTo("stopwatch")
 		}
 
 		function onTimerLeftChanged() {
-			if (ClockState.timerRunning && ClockState.timerLeft === 30)
+			if (ClockState.timerRunning && ClockState.timerLeft === 30 || ClockState.timerRunning && ClockState.timerLeft === 10)
+			root._forceScrollTo("timer")
+		}
+		
+		function onTimerStartedChanged() {
+			root._rebuildItems(ClockState.timerStarted ? "timer" : null)
 			root._forceScrollTo("timer")
 		}
 	}
@@ -254,8 +262,7 @@ Item {
 					font.pixelSize: 13
 					verticalAlignment:   Text.AlignVCenter
 					horizontalAlignment: Text.AlignHCenter
-					leftPadding:  8
-					rightPadding: 8
+					// leftPadding:  8u					rightPadding: 8
 					elide:        Text.ElideRight
 				}
 
@@ -368,10 +375,10 @@ Item {
 							Text {
 								anchors {
 									left:           parent.left
-									leftMargin:     10
+									leftMargin:     root.fw
 									verticalCenter: parent.verticalCenter
 								}
-								text:           "⏱"
+								text:           "󰔟"
 								font.pixelSize: 16
 								color:          root.timerUrgent ? "#ff5555" : Theme.active
 								Behavior on color { ColorAnimation { duration: 200 } }
@@ -382,7 +389,7 @@ Item {
 								id: timerText
 								anchors {
 									left:           parent.left
-									leftMargin:     34
+									leftMargin:     8
 									right:          parent.right
 									rightMargin:    8
 									verticalCenter: parent.verticalCenter
@@ -412,8 +419,47 @@ Item {
 									}
 								}
 							}
-						}
+							// Icon — right edge of notch
+							Row{
+								anchors {
+									right:          parent.right
+									rightMargin:    root.fw
+									verticalCenter: parent.verticalCenter
+								}
+								spacing: root.fw
 
+								Text {
+									anchors {
+										verticalCenter: parent.verticalCenter
+									}
+									text:           ClockState.timerRunning ? "󱫟" : "󱫡"
+									font.pixelSize: 16
+									color:          _timerPauseHov.hovered ? Theme.active : Theme.text
+									HoverHandler { id: _timerPauseHov;  }
+									MouseArea {
+										anchors.fill: parent
+										cursorShape: Qt.PointingHandCursor
+										onClicked: ClockState.timerRunning = !ClockState.timerRunning
+									}
+								}
+								Text {
+									anchors {
+										verticalCenter: parent.verticalCenter
+									}
+									text:			"󱫥"
+									font.pixelSize: 16
+									color:			_timerResetHov.hovered ? Theme.active : Theme.text
+									HoverHandler { id: _timerResetHov; cursorShape: Qt.PointingHandCursor }
+									MouseArea {
+										anchors.fill: parent
+										cursorShape: Qt.PointingHandCursor
+										onClicked: {
+											ClockState.requestTimerReset()
+										}
+									}
+								}
+							}
+						}
 						// ── Stopwatch ──────────────────────────────────────────────────
 						Item {
 							anchors.fill: parent
@@ -423,10 +469,10 @@ Item {
 							Text {
 								anchors {
 									left:           parent.left
-									leftMargin:     10
+									leftMargin:     root.fw
 									verticalCenter: parent.verticalCenter
 								}
-								text:           "⏲"
+								text:           ""
 								font.pixelSize: 16
 								color:          Theme.active
 							}
@@ -435,7 +481,7 @@ Item {
 							Text {
 								anchors {
 									left:           parent.left
-									leftMargin:     34
+									leftMargin:     8
 									right:          parent.right
 									rightMargin:    8
 									verticalCenter: parent.verticalCenter
@@ -446,6 +492,49 @@ Item {
 								font.family:    "JetBrains Mono"
 								horizontalAlignment: Text.AlignHCenter
 								color:          Theme.text
+							}
+							// Icon — right edge of notch
+							Row{
+								anchors {
+									right:          parent.right
+									rightMargin:    root.fw
+									verticalCenter: parent.verticalCenter
+								}
+								spacing: root.fw
+								
+								Text {
+									anchors {
+										verticalCenter: parent.verticalCenter
+									}
+									text:           ClockState.swRunning ? "󱫟" : "󱫡"
+									font.pixelSize: 16
+									color:          _pauseHov.hovered ? Theme.active : Theme.text
+									HoverHandler { id: _pauseHov;  }
+									MouseArea {
+										anchors.fill: parent
+										cursorShape: Qt.PointingHandCursor
+										onClicked: {
+										ClockState.swRunning = !ClockState.swRunning
+										}
+									}
+								}
+								Text {
+									anchors {
+										verticalCenter: parent.verticalCenter
+									}
+									text:			"󱫥"
+									font.pixelSize: 16
+									color:			_notchResetHov.hovered ? Theme.active : Theme.text
+										
+									HoverHandler { id: _notchResetHov; cursorShape: Qt.PointingHandCursor }
+									MouseArea {
+											anchors.fill: parent
+											cursorShape: Qt.PointingHandCursor
+											onClicked: {
+												ClockState.requestStopwatchReset()
+											}
+										}
+									}
 							}
 						}
 

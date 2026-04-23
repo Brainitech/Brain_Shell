@@ -11,7 +11,6 @@ import "../"
 PanelWindow {
     id: root
 
-    // ── Surface covers only the bottom portion — no full-screen strip ─────────
     anchors.left:   true
     anchors.right:  true
     anchors.bottom: true
@@ -24,13 +23,11 @@ PanelWindow {
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
-    // ── Dimensions ────────────────────────────────────────────────────────────
     readonly property int panelWidth:  980
     readonly property int panelHeight: 420
     readonly property int fw:          Theme.notchRadius
     readonly property int fh:          Theme.notchRadius
 
-    // ── Mask tracks sizer — limits input + render region to visible content ───
     mask: Region { item: maskProxy }
     Item {
         id: maskProxy
@@ -40,26 +37,62 @@ PanelWindow {
         height: sizer.height
     }
 
-    // ── Visibility gate — window alive until close animation finishes ─────────
     property bool windowVisible: false
     visible: windowVisible
 
+    // ── Self-hover tracking ───────────────────────────────────────────────────
+    property bool selfHovered: true
+    
+    property bool allowHover: false
+
+    // ── Hover close timer ─────────────────────────────────────────────────────
+    // Fires when both the trigger region and the popup itself are no longer hovered.
     Timer {
-        id: closeTimer
-        interval: Theme.animDuration + 20
+        id: hoverCloseTimer
+        interval: Popups.hoverCloseDelay * 2
         onTriggered: {
-            // Only hide if the popup is genuinely still closed
-            if (!Popups.wallpaperOpen) root.windowVisible = false
+            if (!Popups.wallpaperTriggerHovered && !root.selfHovered) {
+                Popups.wallpaperOpen = false
+            }
         }
     }
 
-    // ── Open / close ──────────────────────────────────────────────────────────
+    onSelfHoveredChanged: {
+        if (!selfHovered && !Popups.wallpaperTriggerHovered) {
+            hoverCloseTimer.restart()
+        } else {
+            hoverCloseTimer.stop()
+        }
+    }
+
+    // ── Trigger hover — open on hover, schedule close on leave ───────────────
     Connections {
         target: Popups
+        function onWallpaperTriggerHoveredChanged() {
+            if (Popups.wallpaperTriggerHovered && root.allowHover) {
+                hoverCloseTimer.stop()
+                if (!Popups.wallpaperOpen) {
+                    closeTimer.stop()
+                    root.windowVisible       = true
+                    Popups.wallpaperOpen     = true
+                    WallpaperService.refresh()
+                    WallpaperService.previewWall   = ""
+                    content.schemePopupOpen        = false
+                    content.folderMode             = false
+                    content.appliedScheme          = WallpaperService.scheme
+                    searchInput.text               = ""
+                    searchInput.forceActiveFocus()
+                }
+            } else if (!root.selfHovered) {
+                hoverCloseTimer.restart()
+            }
+        }
+
         function onWallpaperOpenChanged() {
             if (Popups.wallpaperOpen) {
-                closeTimer.stop()         // cancel any pending hide
-                root.windowVisible   = true
+                closeTimer.stop()
+                hoverCloseTimer.stop()
+                root.windowVisible             = true
                 WallpaperService.refresh()
                 WallpaperService.previewWall   = ""
                 content.schemePopupOpen        = false
@@ -73,8 +106,14 @@ PanelWindow {
         }
     }
 
-    // When the wallpaper list finishes loading, select and scroll to currentWall.
-    // Only acts while the popup is open and currentWall is in the list.
+    Timer {
+        id: closeTimer
+        interval: Theme.animDuration + 20
+        onTriggered: {
+            if (!Popups.wallpaperOpen) root.windowVisible = false
+        }
+    }
+
     Connections {
         target: WallpaperService
         function onWallpapersChanged() {
@@ -92,9 +131,6 @@ PanelWindow {
         }
     }
 
-    // ── Sizer — grows from cNotchMinWidth×0 → panelWidth×panelHeight ─────────
-    // Centered horizontally, anchored to bottom border.
-    // Same pattern as Dashboard: clip:true so content never bleeds outside.
     Item {
         id: sizer
         anchors.horizontalCenter: parent.horizontalCenter
@@ -111,7 +147,11 @@ PanelWindow {
         Behavior on width  { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
         Behavior on height { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
 
-        // Background — melts into the bottom border strip
+        // Track whether user is hovering inside the popup itself
+        HoverHandler {
+            onHoveredChanged: root.selfHovered = hovered
+        }
+
         PopupShape {
             anchors.fill: parent
             attachedEdge: "bottom"
@@ -121,7 +161,6 @@ PanelWindow {
             flareHeight:  root.fh
         }
 
-        // ── Content — fades in after expand, out before collapse ──────────────
         Item {
             id: content
             anchors {
@@ -159,7 +198,6 @@ PanelWindow {
                 }
             }
 
-            // ── Wallpaper grid ─────────────────────────────────────────────────
             ListView {
                 id: wallGrid
                 anchors.top:          parent.top
@@ -205,13 +243,11 @@ PanelWindow {
 
                     readonly property int labelH: 30
 
-                    // 1. All content — not drawn directly
                     Item {
                         id: cardContent
                         anchors.fill: parent
                         visible: false
 
-                        // Image — top portion
                         Image {
                             anchors.left:   parent.left
                             anchors.right:  parent.right
@@ -223,7 +259,6 @@ PanelWindow {
                             cache:          true
                         }
 
-                        // Label block — distinct background flush with image
                         Rectangle {
                             anchors.left:   parent.left
                             anchors.right:  parent.right
@@ -246,7 +281,6 @@ PanelWindow {
                         }
                     }
 
-                    // 2. Rounded mask for whole card
                     Rectangle {
                         id: cardMask
                         anchors.fill:  parent
@@ -255,7 +289,6 @@ PanelWindow {
                         layer.enabled: true
                     }
 
-                    // 3. MultiEffect — clips cardContent to cardMask radius
                     MultiEffect {
                         source:           cardContent
                         anchors.fill:     parent
@@ -265,7 +298,6 @@ PanelWindow {
                         maskSpreadAtMin:  1.0
                     }
 
-                    // 4. Single border wrapping the whole card
                     Rectangle {
                         anchors.fill: parent
                         radius:       10
@@ -290,7 +322,6 @@ PanelWindow {
                 }
             }
 
-            // Wheel scroll overlay — passes clicks through, intercepts wheel only
             MouseArea {
                 anchors.top:          parent.top
                 anchors.left:         parent.left
@@ -306,7 +337,6 @@ PanelWindow {
                 }
             }
 
-            // Divider
             Rectangle {
                 id: divider
                 anchors.bottom:       utilBar.top
@@ -317,7 +347,6 @@ PanelWindow {
                 color:  Qt.rgba(1,1,1,0.07)
             }
 
-            // ── Utility bar ────────────────────────────────────────────────────
             Item {
                 id: utilBar
                 anchors.bottom: parent.bottom
@@ -326,12 +355,10 @@ PanelWindow {
                 anchors.bottomMargin: -20
                 height: 32
 
-                // ── Centered cluster: folder + search + scheme ─────────────────
                 Row {
                     anchors.centerIn: parent
                     spacing: 8
 
-                    // Folder button
                     Rectangle {
                         id: folderBtn
                         width:  32; height: 32; radius: 8
@@ -368,7 +395,6 @@ PanelWindow {
                         }
                     }
 
-                    // Search / folder input
                     Rectangle {
                         width:  300; height: 32; radius: 8
                         color:        Qt.rgba(1,1,1,0.06)
@@ -377,7 +403,6 @@ PanelWindow {
                             : Qt.rgba(1,1,1,0.1)
                         border.width: 1
 
-                        // Search mode
                         Item {
                             anchors.fill:        parent
                             anchors.leftMargin:  10
@@ -442,7 +467,6 @@ PanelWindow {
                             }
                         }
 
-                        // Folder / path mode
                         Item {
                             anchors.fill:        parent
                             anchors.leftMargin:  10
@@ -485,7 +509,6 @@ PanelWindow {
                         }
                     }
 
-                    // Scheme button
                     Rectangle {
                         id: schemeBtn
                         width:  schemeBtnRow.implicitWidth + 20
@@ -532,7 +555,6 @@ PanelWindow {
                             onTapped: content.schemePopupOpen = !content.schemePopupOpen
                         }
 
-                        // Scheme nested popup — floats above the button
                         Rectangle {
                             visible: content.schemePopupOpen
                             z:       20
@@ -608,7 +630,6 @@ PanelWindow {
                     }
                 }
 
-                // ── Apply button — slides in from right when active ────────────
                 Rectangle {
                     id: applyBtn
                     anchors.right:          parent.right
@@ -652,7 +673,6 @@ PanelWindow {
                 }
             }
 
-            // Tap outside scheme popup to close it
             TapHandler {
                 enabled: content.schemePopupOpen
                 onTapped: content.schemePopupOpen = false

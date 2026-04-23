@@ -6,22 +6,17 @@ import "../../"
 Item {
     id: root
 
-    // ── Config ────────────────────────────────────────────────────────────────
-    property bool showPercentage: false   // always show %; false = hover only
+    property bool showPercentage: false
 
     implicitWidth:  row.implicitWidth + 6
     implicitHeight: row.implicitHeight
 
-    // ── Pipewire ──────────────────────────────────────────────────────────────
     readonly property var sink: Pipewire.defaultAudioSink
 
-    // Guard null — PwObjectTracker crashes if objects contains null
     PwObjectTracker {
         objects: root.sink ? [root.sink] : []
     }
 
-    // ── Icon: plain Unicode symbols, no Nerd Font required ────────────────────
-    // High "▊"  Med "▌"  Low "▍"  Muted "✕"  Not ready "–"
     readonly property string icon: {
         if (!sink?.ready)            return "󰕾"
         if (sink.audio.muted)        return "󰝟"
@@ -32,13 +27,10 @@ Item {
 
     readonly property int pct: sink?.ready ? Math.round(sink.audio.volume * 100) : 0
 
-    // ── Hover → show trigger state for AudioPopup hover-to-open ──────────────
     HoverHandler {
         id: hov
-        onHoveredChanged: Popups.audioTriggerHovered = hovered
     }
 
-    // ── Layout ────────────────────────────────────────────────────────────────
     Row {
         id: row
         anchors.centerIn: parent
@@ -63,18 +55,15 @@ Item {
         }
     }
 
-    // ── Left click — toggle popup ─────────────────────────────────────────────
     MouseArea {
         anchors.fill:        parent
         acceptedButtons:     Qt.LeftButton | Qt.RightButton
 
         onClicked: function(mouse) {
             if (mouse.button === Qt.RightButton) {
-                // Right click — mute toggle, no popup
                 if (root.sink?.ready)
                     root.sink.audio.muted = !root.sink.audio.muted
             } else {
-                // Left click — toggle popup
                 var next = !Popups.audioOpen
                 Popups.closeAll()
                 Popups.audioOpen = next

@@ -11,35 +11,28 @@ QtObject {
     property bool dashboardOpen:     false
     property bool wallpaperOpen:     false
     property bool notificationToastOpen:    false
+    property bool quickOpen: false
 
     // ── Dashboard — per-page width (px, content only, excluding fw padding) ───
-    // Dashboard.qml writes this on every page change + on open.
-    // TopBar.qml and Dashboard sizer both read it.
     property int dashboardPageWidth: 900
     
     // ── Network popup — per-page content (string key) ─────────────────────────
     property string networkPage: ""
+
     // ── Per-popup trigger hover state ─────────────────────────────────────────
     property bool archMenuTriggerHovered: false
     property bool audioTriggerHovered:         false
     property bool networkTriggerHovered:       false
     property bool batteryTriggerHovered:       false
     property bool notificationsTriggerHovered: false
+    property bool wallpaperTriggerHovered:     false
+    property bool quickTriggerHovered: false
 
     // ── Universal popup behavior settings ─────────────────────────────────────
     property int  slideDuration:   260
     property int  hoverCloseDelay: 180
 
     // ── Confirm dialog ────────────────────────────────────────────────────────
-    // Single reusable confirmation modal for any destructive action.
-    // Call showConfirm() to open it — ConfirmDialog reads these props.
-    //
-    // confirmAction keys:
-    //   "shutdown"    → systemctl poweroff
-    //   "reboot"      → systemctl reboot
-    //   "suspend"     → systemctl suspend
-    //   "lock"        → loginctl lock-session
-    //   "gfx-switch"  → envycontrol -m confirmGfxMode, then hyprctl exit
     property bool   confirmOpen:    false
     property string confirmTitle:   ""
     property string confirmMessage: ""
@@ -66,7 +59,7 @@ QtObject {
     // ── Global state ──────────────────────────────────────────────────────────
     readonly property bool anyOpen: audioOpen || networkOpen || batteryOpen
                                     || notificationsOpen || archMenuOpen
-                                    || dashboardOpen || wallpaperOpen
+                                    || dashboardOpen || wallpaperOpen || quickOpen
 
     function closeAll() {
         audioOpen         = false
@@ -76,5 +69,6 @@ QtObject {
         archMenuOpen      = false
         dashboardOpen     = false
         wallpaperOpen     = false
+        quickOpen           = false
     }
 }

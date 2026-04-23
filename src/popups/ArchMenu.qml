@@ -13,8 +13,6 @@ PopupWindow {
 	readonly property int fw: Theme.cornerRadius
 	readonly property int fh: Theme.cornerRadius
 
-	// pageWidths drives the sizer width per page
-	// pageHeights drives the sizer height per page
 	readonly property var pageHeights: ({
 		"power":       270,
 		"performance": 190,
@@ -58,10 +56,11 @@ PopupWindow {
 	PopupSlide {
 		id: slide
 		anchors.fill: parent
-		edge: "left"
-		hoverEnabled: false
-		triggerHovered: Popups.archMenuTriggerHovered
-		open: Popups.archMenuOpen
+		edge:             "left"
+		hoverEnabled:     false
+		triggerHovered:   Popups.archMenuTriggerHovered
+		open:             Popups.archMenuOpen
+		onCloseRequested: Popups.archMenuOpen = false
 
 		Connections {
 			target: Popups
@@ -136,29 +135,21 @@ PopupWindow {
 						height: parent.height
 						clip:   true
 
-						// Power — PopupPage wraps a fixed-height Column, works fine
 						PopupPage {
 							anchors.fill: parent
 							visible: root.page === "power"
 
 							PowerMenu {
-								// PowerMenu is a Column — just give it width,
-								// it sizes itself by its children
 								width: parent.width
 							}
 						}
 
-						// Stats — SystemStats root Item needs a height.
-						// We give it the sizer content height minus padding.
 						PopupPage {
 							anchors.fill: parent
 							visible: root.page === "stats"
 
 							SystemStats {
 								width:  parent.width
-								// Item needs explicit height since it uses
-								// internal anchors rather than implicitHeight.
-								// Use the page content height minus PopupPage padding.
 								height: root.contentHeight - root.fh * 2 - 12 - 16
 							}
 						}

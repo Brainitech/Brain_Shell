@@ -6,16 +6,12 @@ import "../services/"
 PanelWindow {
     id: root
 
-    // --- Configuration ---
     property string edge: "bottom"
     property bool isBarEnabled: Theme.barEnabled
-    // --- Visuals ---
     property int thickness: Theme.borderWidth      
     property int radius: Theme.cornerRadius        
     property color fillColor: Theme.background 
     
-    // --- Logic ---
-    // Side borders must be 'radius' wide to fit the top melt curve
     implicitWidth: (edge === "left" || edge === "right") ? radius : 0
     implicitHeight: (edge === "bottom") ? radius : 0
 
@@ -131,10 +127,57 @@ PanelWindow {
             }
         }
 
-        // Bottom border click → toggle wallpaper popup
-        TapHandler {
-            enabled: root.edge === "bottom"
-            onTapped: Popups.wallpaperOpen = !Popups.wallpaperOpen
+        // ── Left border — hover opens ArchMenu ────────────────────────────────
+        Item {
+            visible: root.edge === "left"
+            anchors{
+                verticalCenter: parent.verticalCenter
+                left: parent.left
+                right: parent.right
+            }
+            height: 300
+            HoverHandler {
+                enabled: root.edge === "left"
+                onHoveredChanged: Popups.archMenuTriggerHovered = hovered
+            }
+        }
+
+        // ── Right border — hover opens AudioPopup ─────────────────────────────
+        Item {
+            visible: root.edge === "right"
+            anchors{
+                verticalCenter: parent.verticalCenter
+                left: parent.left
+                right: parent.right
+            }
+            height: 300
+            HoverHandler {
+                enabled: root.edge === "right"
+                onHoveredChanged: {
+                    Popups.quickTriggerHovered = hovered  
+                    Popups.audioTriggerHovered = hovered
+                }
+            }
+        }
+
+
+        // ── Bottom border — centered region only, click + hover for wallpaper ─
+        // Only a fixed-width centered strip triggers the wallpaper popup.
+        // Full-width taps on the rest of the border do nothing.
+        Item {
+            visible:                  root.edge === "bottom"
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top:              parent.top
+            anchors.bottom:           parent.bottom
+            width:                    420
+
+            HoverHandler {
+                onHoveredChanged: Popups.wallpaperTriggerHovered = hovered
+            }
+
+            TapHandler {
+                onTapped: Popups.wallpaperOpen = !Popups.wallpaperOpen
+            }
         }
     }
 }

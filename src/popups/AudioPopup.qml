@@ -13,7 +13,6 @@ PopupWindow {
 	readonly property int fw: Theme.cornerRadius
 	readonly property int fh: Theme.cornerRadius
 
-	// Content width per page — only the inner sizer animates, not the window
 	readonly property var pageWidths: ({
 		"output": 200,
 		"input":  200,
@@ -22,7 +21,6 @@ PopupWindow {
 
 	readonly property int popupHeight: 340
 
-	// Window is FIXED at max width — never animates
 	readonly property int maxWidth: 300
 
 	color:   "transparent"
@@ -46,8 +44,8 @@ PopupWindow {
 	    height:  sizer.height
 	}
 
-	implicitWidth:  maxWidth      // ← fixed, compositor never resizes
-	implicitHeight: popupHeight   // ← fixed
+	implicitWidth:  maxWidth
+	implicitHeight: popupHeight
 
 	PopupSlide {
 		id: slide
@@ -71,14 +69,12 @@ PopupWindow {
 			onTriggered: audioControl.reset()
 		}
 
-		// ── Inner sizer: animates width per page, clips content ───────────────
 		Item {
 			id: sizer
 			anchors.right:          parent.right
 			anchors.verticalCenter: parent.verticalCenter
 			clip: true
 
-			// Width is the only thing that animates — smooth because it's pure QML
 			width:  (root.pageWidths[audioControl.page] ?? root.maxWidth)
 			height: root.popupHeight
 

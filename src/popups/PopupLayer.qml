@@ -37,13 +37,16 @@ Item {
     AudioPopup {
         anchorWindow: root.rightBorder
     }
+    QuickControl {
+        anchorWindow: root.topBar
+    }
 
     // Center notch — dashboard (expands below the center notch)
     Dashboard {
         anchorWindow: root.topBar
     }
 
-    // Right notch  [placeholders — not built yet]
+    // Right notch
     NotificationsPopup {
         anchorWindow: root.topBar
     }

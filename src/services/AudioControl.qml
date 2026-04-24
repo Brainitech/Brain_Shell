@@ -66,7 +66,7 @@ Item {
                         if (root.sink.audio.muted)        return "󰖁"
                         if (root.sink.audio.volume > 0.6) return "󰕾"
                         if (root.sink.audio.volume > 0.2) return "󰖀"
-                        return "▍"
+                        return "󰕿"
                     }
                     value:  root.sink?.ready ? root.sink.audio.volume : 0
                     muted:  root.sink?.audio.muted ?? false

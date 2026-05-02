@@ -153,7 +153,6 @@ QtObject {
             id: regionPickerOut
             onStreamFinished: {
                 var g = regionPickerOut.text.trim()
-                console.log("Region picker output:", g)
                 if (g !== "") root._pendingGeometry = g
             }
         }

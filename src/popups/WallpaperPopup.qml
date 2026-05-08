@@ -315,8 +315,13 @@ PanelWindow {
                     TapHandler {
                         onTapped: {
                             content.schemePopupOpen = false
-                            WallpaperService.previewWall = cardDelegate.isPreview
-                                ? "" : cardDelegate.modelData
+                            if (cardDelegate.isPreview) {
+                                content.appliedScheme = WallpaperService.scheme
+                                WallpaperService.apply(cardDelegate.modelData)
+                                Popups.wallpaperOpen = false
+                            } else {
+                                WallpaperService.previewWall = cardDelegate.modelData
+                            }
                         }
                     }
                 }

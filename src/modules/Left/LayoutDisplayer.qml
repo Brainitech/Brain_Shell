@@ -30,6 +30,7 @@ Item {
 
     property string currentLayout: ""
     property string numWindows: ""
+    property var availableLayouts: ["dwindle", "master", "monocle", "scrolling"]
 
     // ── Symbol map ───────────────────────────────────────────────────────────
 
@@ -95,6 +96,27 @@ Item {
         repeat:   true
         onTriggered: root.refresh()
     }
+    // ── Layout Changer ───────────────────────────────────────────────────────
+    Process {
+        id: setLayoutProc
+        running: false
+    }
+
+    function cycleLayout(step) {
+        let idx = availableLayouts.indexOf(root.currentLayout)
+        if (idx === -1) idx = 0 // Fallback if unknown
+        
+        // Calculate next index (handles negative steps for right-click)
+        idx = (idx + step + availableLayouts.length) % availableLayouts.length
+        let newLayout = availableLayouts[idx]
+
+        // 1. Run the hyprctl command silently
+        setLayoutProc.command = ["hyprctl", "keyword", "general:layout", newLayout]
+        setLayoutProc.running = true
+
+        // 2. Optimistically update the UI instantly (no waiting for IPC/Timer)
+        root.currentLayout = newLayout
+    }
 
     // ── Visual ───────────────────────────────────────────────────────────────
 
@@ -102,13 +124,26 @@ Item {
         id: bg
         anchors.fill: parent
         radius: 6
-        color: hov.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
+        color: mouseArea.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
 
         Behavior on color {
             ColorAnimation { duration: 120 }
         }
 
-        HoverHandler { id: hov }
+        MouseArea {
+            id: mouseArea
+            anchors.fill: parent
+            hoverEnabled: true
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+            
+            onClicked: (mouse) => {
+                if (mouse.button === Qt.LeftButton) {
+                    cycleLayout(1)  // Forward
+                } else if (mouse.button === Qt.RightButton) {
+                    cycleLayout(-1) // Backward
+                }
+            }
+        }
 
         Text {
             id: icon

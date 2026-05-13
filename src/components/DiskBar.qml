@@ -37,6 +37,7 @@ Item {
         anchors.left:    mountLabel.right
         anchors.right:   pctLabel.left
         anchors.top:     parent.top
+        anchors.topMargin:   12
         anchors.leftMargin:  6
         anchors.rightMargin: 6
         height: 6
@@ -80,9 +81,9 @@ Item {
     Text {
         anchors.horizontalCenter: barTrack.horizontalCenter
         anchors.top:     barTrack.bottom
-        anchors.topMargin: 3
+        anchors.topMargin: 4
         text:           root.usedStr + " / " + root.totalStr + "  ·  " + root.source
-        font.pixelSize: 8
-        color:          Qt.rgba(1, 1, 1, 0.25)
+        font.pixelSize: 9
+        color:          Qt.rgba(1, 1, 1, 0.45)
     }
 }

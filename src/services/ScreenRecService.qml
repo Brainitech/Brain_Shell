@@ -6,17 +6,16 @@ import "../"
 
 // ScreenRecService — owns all screen recording state.
 //
-// Recording bug fix: ~ does not expand inside double-quoted bash strings.
-// Use $HOME instead throughout all path construction.
+// Audio routing (fixed):
+//   none        → no -a flag; launch directly
+//   mic only    → pactl get-default-source → pass directly to wf-recorder
+//   system only → BrainShellMixer null sink + loopback from sink.monitor
+//   both        → BrainShellMixer null sink + loopback from sink.monitor
+//                 + loopback from default source (mic)
 //
-// Cava always runs during recording — source depends on audio selection:
-//   mic only      → default PulseAudio source (microphone)
-//   system only   → default sink .monitor
-//   both          → sink .monitor (PipeWire mixes both at capture level)
-//   none          → sink .monitor (visualiser stays alive, just silent)
-//
-// wl-screenrec audio: single --audio flag with one resolved device.
-// If both mic+system selected we use the sink monitor (PipeWire routes both).
+// The null sink is torn down after every recording (saved or discarded).
+// Notifications are sent via notify-send with action buttons (requires
+// libnotify ≥ 0.8 and a daemon that supports actions, e.g. dunst/mako).
 
 QtObject {
     id: root
@@ -52,9 +51,11 @@ QtObject {
     function scheduleStripClose() { _stripTimer.restart() }
 
     // ── Recording state ───────────────────────────────────────────────────────
-    property bool   recording: false
-    property int    elapsed:   0
-    property string _currentFile: ""   // tracked so discard can delete it
+    property bool   recording:      false
+    property int    elapsed:        0
+    property string _currentFile:   ""   // tracked so discard can delete it
+    property bool   _discarding:    false // true when discardRecording() was called
+    property bool   _usingNullSink: false // true while BrainShellMixer is active
 
     readonly property string elapsedDisplay: {
         var m = Math.floor(elapsed / 60)
@@ -79,7 +80,6 @@ QtObject {
         onLoaded: root._parseConfig(configView.text())
     }
 
-    // Create defaults if missing, then load — prevents FileView warning
     property var _initConfig: Process {
         command: []
         running: false
@@ -164,7 +164,8 @@ QtObject {
         }
     }
 
-    // Step 1: resolve audio device, then launch
+    // Step 1: resolve/set up audio device, then launch.
+    // Reads the resolved device name from stdout (last non-empty line).
     property var _audioDeviceProc: Process {
         command: []
         running: false
@@ -179,28 +180,87 @@ QtObject {
         }
     }
 
+    // ── Audio resolution ──────────────────────────────────────────────────────
+    //
+    // none:        call _launch() immediately — no audio device, no null sink.
+    // mic only:    get default PulseAudio source; pass straight to wf-recorder.
+    // system only: create BrainShellMixer null sink, route sink.monitor into it.
+    // both:        create BrainShellMixer null sink, route sink.monitor AND
+    //              default source (mic) into it via two loopback modules.
+    //
     function _resolveAudio() {
         root._resolvedAudioDevice = ""
+        root._usingNullSink       = false
+
         if (!root.audioMic && !root.audioSystem) {
-            // No audio capture — still resolve sink monitor for cava visualiser
-            _audioDeviceProc.command = ["bash", "-c",
-                "pactl get-default-sink | tr -d '\\n' && printf '.monitor'"]
-        } else if (root.audioMic && !root.audioSystem) {
-            _audioDeviceProc.command = ["pactl", "get-default-source"]
-        } else {
-            // system audio or both — use sink monitor
-            // PipeWire routes mic into the combined stream at capture level
-            _audioDeviceProc.command = ["bash", "-c",
-                "pactl get-default-sink | tr -d '\\n' && printf '.monitor'"]
+            // No audio — skip device resolution entirely
+            root._launch()
+            return
         }
+
+        if (root.audioMic && !root.audioSystem) {
+            // Mic only — use the default source directly; no null sink needed
+            _audioDeviceProc.command = ["bash", "-c",
+                "printf '%s\\n' \"$(pactl get-default-source)\""]
+            _audioDeviceProc.running = false
+            _audioDeviceProc.running = true
+            return
+        }
+
+        // System audio (alone or combined with mic) — needs BrainShellMixer
+        root._usingNullSink = true
+
+        var script =
+            // Clean up any stale modules from a previous crashed session
+            "pactl unload-module module-loopback 2>/dev/null; " +
+            "pactl unload-module module-null-sink 2>/dev/null; " +
+            "sleep 0.3; " +
+            // Create the virtual mixer sink
+            "pactl load-module module-null-sink sink_name=BrainShellMixer >/dev/null; " +
+            "sleep 0.3; " +
+            // Route system audio (default sink monitor) into BrainShellMixer
+            "pactl load-module module-loopback " +
+            "sink=BrainShellMixer source=$(pactl get-default-sink).monitor >/dev/null"
+
+        if (root.audioMic && root.audioSystem) {
+            // Also route mic into BrainShellMixer
+            script += "; pactl load-module module-loopback " +
+                      "sink=BrainShellMixer source=$(pactl get-default-source) >/dev/null"
+        }
+
+        // Emit the recording device name as the final stdout line
+        script += "; printf 'BrainShellMixer.monitor\\n'"
+
+        _audioDeviceProc.command = ["bash", "-c", script]
         _audioDeviceProc.running = false
         _audioDeviceProc.running = true
     }
 
+    // ── Null-sink teardown — run after every recording ends ───────────────────
+    property var _cleanupAudioProc: Process { command: []; running: false }
+
+    function _teardownNullSink() {
+        if (!root._usingNullSink) return
+        root._usingNullSink = false
+        _cleanupAudioProc.command = ["bash", "-c",
+            "pactl unload-module module-loopback 2>/dev/null; " +
+            "pactl unload-module module-null-sink 2>/dev/null"]
+        _cleanupAudioProc.running = false
+        _cleanupAudioProc.running = true
+    }
+
+    // ── Notification process ──────────────────────────────────────────────────
+    // Uses notify-send --wait + --action (libnotify ≥ 0.8 required).
+    // Saved recording: shows "View Folder" (xdg-open dir) and "Open in MPV".
+    property var _notifyProc: Process { command: []; running: false }
+
+    // ── wf-recorder process ───────────────────────────────────────────────────
     property var _recProc: Process {
         command: []
         running: false
         onExited: function(exitCode, exitStatus) {
+            var savedFile = root._currentFile   // capture before it is cleared
+
             root.recording        = false
             root.elapsed          = 0
             root._pendingGeometry = ""
@@ -208,21 +268,45 @@ QtObject {
             root._cavaRecProc.running = false
             root.audioBars        = [0, 0, 0, 0, 0, 0]
             ShellState.screenRecord = false
+
+            // Always tear down the null sink (no-op when mic-only or no-audio)
+            root._teardownNullSink()
+
+            if (!root._discarding && savedFile !== "") {
+                // Normal stop — notify with interactive action buttons.
+                // FILE/"$FILE" expands $HOME correctly inside bash.
+                _notifyProc.command = ["bash", "-c",
+                    "FILE=\"" + savedFile + "\"; " +
+                    "DIR=\"$(dirname \"$FILE\")\"; " +
+                    "ACTION=$(notify-send" +
+                    " --app-name 'ScreenRec'" +
+                    " --icon 'video-x-generic'" +
+                    " --action 'view=View Folder'" +
+                    " --action 'open=Open in MPV'" +
+                    " --wait" +
+                    " 'Recording Saved' \"$FILE\"); " +
+                    "case \"$ACTION\" in" +
+                    "  view) xdg-open \"$DIR\" ;;" +
+                    "  open) mpv \"$FILE\" ;;" +
+                    "esac"]
+                _notifyProc.running = false
+                _notifyProc.running = true
+            }
+            // Discard path: _discardTimer handles file deletion + notification
         }
     }
 
     function _buildCmd() {
-        // Use $HOME — ~ does NOT expand inside double-quoted bash strings
         var ts  = Qt.formatDateTime(new Date(), "yyyyMMdd_HHmmss")
         root._currentFile = "$HOME/Videos/screen_recordings/" + ts + ".mp4"
         var cmd = "mkdir -p $HOME/Videos/screen_recordings && " +
-                  "LIBVA_DRIVER_NAME=iHD wl-screenrec" +
-                  " --filename " + root._currentFile
+                  "wf-recorder -c libx264rgb" +
+                  " -f " + root._currentFile
         if (root._pendingGeometry !== "")
-            cmd += " --geometry '" + root._pendingGeometry + "'"
-        var hasAudio = root.audioMic || root.audioSystem
-        if (hasAudio && root._resolvedAudioDevice !== "")
-            cmd += " --audio --audio-device " + root._resolvedAudioDevice
+            cmd += " -g '" + root._pendingGeometry + "'"
+        // Use --audio=DEVICE (matches wf-recorder working script convention)
+        if ((root.audioMic || root.audioSystem) && root._resolvedAudioDevice !== "")
+            cmd += " --audio=" + root._resolvedAudioDevice
         return cmd
     }
 
@@ -239,6 +323,7 @@ QtObject {
 
     function startRecording() {
         root._pendingGeometry = ""
+        root._discarding      = false
         saveConfig()
         if (root.captureTarget === "screen") {
             root._resolveAudio()
@@ -265,33 +350,40 @@ QtObject {
     }
 
     function stopRecording() {
-        _sigProc.command = ["bash", "-c", "pkill -INT wl-screenrec"]
+        _sigProc.command = ["bash", "-c", "pkill -INT wf-recorder"]
         _sigProc.running = false
         _sigProc.running = true
     }
 
     function discardRecording() {
-        // Stop recording and delete the file
+        root._discarding = true
         var fileToDelete = root._currentFile
-        _sigProc.command = ["bash", "-c", "pkill -INT wl-screenrec"]
+        // Kill wf-recorder; _recProc.onExited will see _discarding=true and skip
+        // the saved notification. The timer below handles delete + notify.
+        _sigProc.command = ["bash", "-c", "pkill -INT wf-recorder"]
         _sigProc.running = false
         _sigProc.running = true
-        // Delete after a short delay so wl-screenrec has time to close the file
         _discardTimer.fileToDelete = fileToDelete
         _discardTimer.restart()
     }
 
-property var _discardTimer: Timer {
+    property var _discardTimer: Timer {
         property string fileToDelete: ""
         interval: 800
         onTriggered: {
             if (fileToDelete !== "") {
-                // Use double quotes so Bash expands $HOME
+                var f = fileToDelete
                 _discardDeleteProc.command = ["bash", "-c",
-                    "rm -f \"" + fileToDelete + "\""]
+                    "rm -f \"" + f + "\" && " +
+                    "notify-send" +
+                    " --app-name 'ScreenRec'" +
+                    " --icon 'video-x-generic'" +
+                    " 'Recording Discarded'" +
+                    " 'The recording was deleted.'"]
                 _discardDeleteProc.running = false
                 _discardDeleteProc.running = true
-                fileToDelete = ""
+                fileToDelete        = ""
+                root._discarding    = false
             }
         }
     }
@@ -305,7 +397,7 @@ property var _discardTimer: Timer {
 
     property var _sigProc: Process { command: []; running: false }
 
-    // ── Cava — always runs during recording ───────────────────────────────────
+    // ── Cava — runs during recording, source mirrors wf-recorder's audio ──────
     property var _cavaRecProc: Process {
         command: []
         running: false

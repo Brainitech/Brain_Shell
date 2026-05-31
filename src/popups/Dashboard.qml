@@ -54,24 +54,14 @@ PanelWindow {
     anchors.top:   true
     anchors.left:  true
     anchors.right: true
+    anchors.bottom: true
 
     implicitHeight: Theme.notchHeight + Theme.dashboardHeight
     exclusionMode:  ExclusionMode.Ignore
 
     WlrLayershell.layer:         WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-
-    // ── Mask — input/paint region limited to sizer only ──────────────────────
-    mask: Region { item: maskProxy }
-    Item {
-        id:     maskProxy
-        x:      ((root.width - sizer.width) / 2) + root.fw
-        // topMargin matches sizer exactly — no fh offset
-        y:      Theme.notchHeight
-        width:  sizer.width -root.fw
-        height: sizer.height-Theme.notchHeight
-    }
-
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    
     // ── Window visibility gate ────────────────────────────────────────────────
     property bool windowVisible: false
 
@@ -183,6 +173,13 @@ PanelWindow {
         onTriggered: {
             root.windowVisible = false
             tabBar.reset()
+        }
+    }
+
+    Item {
+        anchors.fill: parent
+        TapHandler {
+            onTapped: Popups.dashboardOpen = false // or wallpaperOpen = false
         }
     }
 

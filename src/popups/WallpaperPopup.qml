@@ -12,9 +12,10 @@ import "../"
 PanelWindow {
     id: root
 
+    anchors.top:    true
     anchors.left:   true
     anchors.right:  true
-    anchors.bottom: true
+    anchors.bottom: true 
 
     implicitHeight: root.panelHeight + Theme.borderWidth
 
@@ -22,21 +23,12 @@ PanelWindow {
     color:         "transparent"
 
     WlrLayershell.layer:         WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
     readonly property int panelWidth:  980
     readonly property int panelHeight: 420
     readonly property int fw:          Theme.notchRadius
     readonly property int fh:          Theme.notchRadius
-
-    mask: Region { item: maskProxy }
-    Item {
-        id: maskProxy
-        x:      (root.width - sizer.width) / 2
-        y:      root.height - sizer.height - Theme.borderWidth
-        width:  sizer.width
-        height: sizer.height
-    }
 
     property bool windowVisible: false
     visible: windowVisible
@@ -109,6 +101,13 @@ PanelWindow {
             } else {
                 closeTimer.restart()
             }
+        }
+    }
+
+    Item {
+        anchors.fill: parent
+        TapHandler {
+            onTapped: Popups.wallpaperOpen = false // or wallpaperOpen = false
         }
     }
 

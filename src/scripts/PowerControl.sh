@@ -6,7 +6,7 @@ case "$1" in
     reboot)
         (setsid bash -c 'hyprshutdown --post-cmd "systemctl reboot"' &>/dev/null &);;
     logout)
-        (setsid bash -c 'hyprshutdown --no-exit; hyprlock' &>/dev/null &);;
+        (setsid bash -c 'hyprshutdown --post-cmd "loginctl terminate-user $USER"' &>/dev/null &);;
     *)
         exit 1
         ;;

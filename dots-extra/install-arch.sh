@@ -1,6 +1,9 @@
 #!/bin/bash
-#Brain Shell — Arch Linux Installer                        
-# Handles pacman + AUR packages                                                                                                   
+
+
+#Brain Shell — Arch Linux Installer                         
+#Handles pacman + AUR packages                       
+                                                                             
 
 
 set -e
@@ -33,6 +36,7 @@ log_warn() {
 log_error() {
     echo -e "${RED}[✗]${NC} $1"
 }
+
 
 # AUR HELPER DETECTION & SELECTION
 
@@ -154,8 +158,8 @@ PACMAN_DEPS=(
     "ttf-jetbrains-mono-nerd"
 )
 
-sudo pacman -Syu --noconfirm
-sudo pacman -S --noconfirm "${PACMAN_DEPS[@]}"
+sudo pacman -Syu --needed
+sudo pacman -S --needed "${PACMAN_DEPS[@]}"
 
 log_success "Pacman packages installed."
 echo ""
@@ -199,6 +203,7 @@ echo ""
 
 # ENABLE SYSTEMD SERVICES
 
+
 log_info "Enabling system services..."
 
 sudo systemctl enable --now NetworkManager 2>/dev/null || true
@@ -211,12 +216,13 @@ systemctl --user enable --now wireplumber 2>/dev/null || true
 log_success "System services configured."
 echo ""
 
+
 # CLONE BRAIN SHELL REPOSITORY
 
 
 log_info "Cloning Brain Shell repository..."
 
-REPO_DIR="$HOME/.local/src/"
+REPO_DIR="$HOME/.local/src"
 mkdir -p "$REPO_DIR"
 
 if [[ -d "$REPO_DIR/Brain_Shell" ]]; then
@@ -234,6 +240,7 @@ echo ""
 
 
 # UPDATE HYPRLAND CONFIG
+
 
 log_info "Updating Hyprland configuration..."
 
@@ -302,9 +309,7 @@ mkdir -p "$HOME/.config/matugen/templates"
 log_success "Configuration directories created."
 echo ""
 
-
 # COMPLETION MESSAGE
-
 
 log_success "Arch Linux installation complete!"
 echo ""

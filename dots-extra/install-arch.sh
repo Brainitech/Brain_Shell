@@ -1,7 +1,7 @@
 #!/bin/bash
+#Brain Shell — Arch Linux Installer                        
+# Handles pacman + AUR packages                                                                                                   
 
-# Brain Shell — Arch Linux Installer
-# Handles pacman + AUR packages
 
 set -e
 
@@ -98,7 +98,9 @@ fi
 
 echo ""
 
+
 # DEPENDENCY INSTALLATION
+
 
 log_info "Installing dependencies from pacman..."
 
@@ -194,8 +196,8 @@ fi
 
 echo ""
 
-# ENABLE SYSTEMD SERVICES
 
+# ENABLE SYSTEMD SERVICES
 
 log_info "Enabling system services..."
 
@@ -214,7 +216,7 @@ echo ""
 
 log_info "Cloning Brain Shell repository..."
 
-REPO_DIR="$HOME/.local/src/shell"
+REPO_DIR="$HOME/.local/src/"
 mkdir -p "$REPO_DIR"
 
 if [[ -d "$REPO_DIR/Brain_Shell" ]]; then
@@ -230,10 +232,13 @@ fi
 log_success "Repository cloned/updated to: $REPO_DIR/Brain_Shell"
 echo ""
 
+
 # UPDATE HYPRLAND CONFIG
 
-
 log_info "Updating Hyprland configuration..."
+
+# Check for hyprland.conf
+HYPRLAND_LUA="$HOME/.config/hypr/hyprland.lua"
 
 # Create backup if not already done by main script
 if [[ ! -f "${HYPRLAND_CONF}.backup" ]]; then
@@ -241,22 +246,15 @@ if [[ ! -f "${HYPRLAND_CONF}.backup" ]]; then
     log_info "Backup created: ${HYPRLAND_CONF}.backup"
 fi
 
-# Check if Brain Shell exec-once already exists
-if grep -q "exec-once.*quickshell.*-c.*Brain_Shell" "$HYPRLAND_CONF"; then
-    log_warn "Brain Shell exec-once already present in hyprland.conf. Skipping..."
+# Update hyprland.conf if it exists
+if grep -q "exec-once.*quickshell.*-c.*Brain_Shell" "$HYPRLAND_CONF" 2>/dev/null; then
+    log_warn "Brain Shell exec-once already present in hyprland.conf"
 else
-    # Add exec-once line for Brain Shell
-    # Find the exec-once section or add it at the end before the closing brace
+    EXEC_CMD="exec-once = quickshell -c \$HOME/.local/src/Brain_Shell"
     
-    # Create the exec-once command
-    EXEC_CMD="exec-once = quickshell -c \$HOME/.local/src/repo/Brain_Shell"
-    
-    # Check if file ends with a closing brace or brace comment
     if tail -1 "$HYPRLAND_CONF" | grep -q '}'; then
-        # Insert before the last closing brace
         sed -i "$ s/^/# Brain Shell\n$EXEC_CMD\n\n/" "$HYPRLAND_CONF"
     else
-        # Just append at the end
         echo "" >> "$HYPRLAND_CONF"
         echo "# Brain Shell" >> "$HYPRLAND_CONF"
         echo "$EXEC_CMD" >> "$HYPRLAND_CONF"
@@ -265,9 +263,32 @@ else
     log_success "Added Brain Shell to hyprland.conf"
 fi
 
+# Update hyprland.lua if it exists
+if [[ -f "$HYPRLAND_LUA" ]]; then
+    if grep -q "quickshell.*Brain_Shell" "$HYPRLAND_LUA" 2>/dev/null; then
+        log_warn "Brain Shell exec-once already present in hyprland.lua"
+    else
+        # Create backup of lua file
+        if [[ ! -f "${HYPRLAND_LUA}.backup" ]]; then
+            cp "$HYPRLAND_LUA" "${HYPRLAND_LUA}.backup"
+            log_info "Backup created: ${HYPRLAND_LUA}.backup"
+        fi
+        
+        # Add to lua file
+        echo "" >> "$HYPRLAND_LUA"
+        echo "-- Brain Shell" >> "$HYPRLAND_LUA"
+        echo "hl.exec_once(\"quickshell -c \$HOME/.local/src/Brain_Shell\")" >> "$HYPRLAND_LUA"
+        
+        log_success "Added Brain Shell to hyprland.lua"
+    fi
+else
+    log_info "hyprland.lua not found (using hyprland.conf only)"
+fi
+
 echo ""
 
 # CONFIGURATION SETUP
+
 
 log_info "Setting up configuration directories..."
 
@@ -281,7 +302,9 @@ mkdir -p "$HOME/.config/matugen/templates"
 log_success "Configuration directories created."
 echo ""
 
+
 # COMPLETION MESSAGE
+
 
 log_success "Arch Linux installation complete!"
 echo ""

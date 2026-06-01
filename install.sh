@@ -1,19 +1,16 @@
 #!/bin/bash
-#Brain Shell — Main Installation Script
-#github.com/Brainitech/Brain_Shell           
 
+# Brain Shell — Main Installation Script
 
 set -e
 
-# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 BOLD='\033[1m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Logging functions
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
 }
@@ -30,31 +27,26 @@ log_error() {
     echo -e "${RED}[✗]${NC} $1"
 }
 
-# WELCOME & VALIDATION
 clear
-cat << "EOF"
-#replace this line with ur ascii art 
-EOF
+echo "Brain Shell — Installation"
+echo "github.com/Brainitech/Brain_Shell v0.1.0"
+echo ""
 
 log_info "Starting Brain Shell installation..."
 echo ""
 
-# Check if running in Hyprland
 if [[ -z "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
     log_warn "Not running in Hyprland. Installation will proceed, but you must"
     log_warn "restart Hyprland after completion for changes to take effect."
     echo ""
 fi
 
-# Validate we're on Linux
 if [[ ! "$OSTYPE" =~ ^linux ]]; then
     log_error "This installer only supports Linux systems."
     exit 1
 fi
 
 log_info "Detecting Linux distribution..."
-
-# DISTRO DETECTION
 
 DISTRO=""
 
@@ -71,6 +63,10 @@ case "$DISTRO" in
         log_success "Detected: Arch Linux / Manjaro"
         DISTRO_TYPE="arch"
         ;;
+    nixos)
+        log_success "Detected: NixOS"
+        DISTRO_TYPE="nix"
+        ;;
     *)
         log_error "Unsupported distribution: $DISTRO"
         log_error "Currently supported: Arch Linux, Manjaro, NixOS"
@@ -79,8 +75,6 @@ case "$DISTRO" in
 esac
 
 echo ""
-
-# BACKUP ~/.config
 
 log_info "Backing up ~/.config directory..."
 
@@ -98,9 +92,6 @@ fi
 
 echo ""
 
-# HYPRLAND VALIDATION
-
-
 log_info "Validating Hyprland configuration..."
 
 HYPRLAND_CONF="$CONFIG_DIR/hypr/hyprland.conf"
@@ -114,10 +105,26 @@ fi
 log_success "Hyprland config found."
 echo ""
 
-# DISTRO-SPECIFIC INSTALLER
+log_info "Downloading Brain Shell repository..."
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DISTRO_INSTALLER="${SCRIPT_DIR}/dots-extra/install-${DISTRO_TYPE}.sh"
+REPO_DIR="$HOME/.local/src"
+mkdir -p "$REPO_DIR"
+
+if [[ -d "$REPO_DIR/Brain_Shell" ]]; then
+    log_warn "Brain Shell repo already exists. Updating..."
+    cd "$REPO_DIR/Brain_Shell"
+    git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || true
+else
+    log_info "Cloning from GitHub..."
+    cd "$REPO_DIR"
+    git clone https://github.com/Brainitech/Brain_Shell.git
+fi
+
+cd "$REPO_DIR/Brain_Shell"
+log_success "Repository ready at: $REPO_DIR/Brain_Shell"
+echo ""
+
+DISTRO_INSTALLER="./dots-extra/install-${DISTRO_TYPE}.sh"
 
 if [[ ! -f "$DISTRO_INSTALLER" ]]; then
     log_error "Distro installer not found: $DISTRO_INSTALLER"
@@ -127,10 +134,7 @@ fi
 log_info "Executing distro-specific installer..."
 echo ""
 
-# Pass backup directory path to distro installer
 bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$BACKUP_DIR"
-
-# COMPLETION
 
 echo ""
 log_success "Brain Shell installation complete!"
@@ -144,7 +148,7 @@ echo ""
 log_info "After restart, Brain Shell will launch automatically via exec-once."
 echo ""
 log_info "Configuration located at: ~/.config/Brain_Shell"
-log_info "Repository cloned to: ~/.local/src/repo/Brain_Shell"
+log_info "Repository cloned to: ~/.local/src/Brain_Shell"
 echo ""
 
 exit 0

@@ -1,9 +1,10 @@
 #!/bin/bash
 
 
-#Brain Shell — Arch Linux Installer                         
-#Handles pacman + AUR packages                       
-                                                                             
+#                                                                              #
+#                  Brain Shell — Arch Linux Installer                         #
+#                         Handles pacman + AUR packages                       #
+#                                                                              #
 
 
 set -e
@@ -158,8 +159,8 @@ PACMAN_DEPS=(
     "ttf-jetbrains-mono-nerd"
 )
 
-sudo pacman -Syu --needed
-sudo pacman -S --needed "${PACMAN_DEPS[@]}"
+sudo pacman -Syu --noconfirm
+sudo pacman -S --needed --noconfirm "${PACMAN_DEPS[@]}"
 
 log_success "Pacman packages installed."
 echo ""
@@ -271,6 +272,8 @@ else
 fi
 
 # Update hyprland.lua if it exists
+HYPRLAND_LUA="$HOME/.config/hypr/hyprland.lua"
+
 if [[ -f "$HYPRLAND_LUA" ]]; then
     if grep -q "quickshell.*Brain_Shell" "$HYPRLAND_LUA" 2>/dev/null; then
         log_warn "Brain Shell exec-once already present in hyprland.lua"
@@ -288,11 +291,10 @@ if [[ -f "$HYPRLAND_LUA" ]]; then
         
         log_success "Added Brain Shell to hyprland.lua"
     fi
-else
-    log_info "hyprland.lua not found (using hyprland.conf only)"
 fi
 
 echo ""
+
 
 # CONFIGURATION SETUP
 
@@ -309,7 +311,9 @@ mkdir -p "$HOME/.config/matugen/templates"
 log_success "Configuration directories created."
 echo ""
 
+
 # COMPLETION MESSAGE
+
 
 log_success "Arch Linux installation complete!"
 echo ""

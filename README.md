@@ -44,8 +44,13 @@
   Installation
 </h2>
 
-### Quick Install (Arch Linux)
 
+### One line installer 
+```bash
+https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh
+```
+
+### Manual installation
 ```bash
 git clone https://github.com/Brainitech/Brain_Shell.git
 cd Brain_Shell

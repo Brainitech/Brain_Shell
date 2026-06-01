@@ -47,7 +47,7 @@
 
 ### One line installer 
 ```bash
-https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh
+curl -fsSL https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh | bash
 ```
 
 ### Manual installation

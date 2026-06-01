@@ -1,10 +1,7 @@
 #!/bin/bash
-
-
-#                                                                              #
-#                  Brain Shell — Arch Linux Installer                         #
-#                         Handles pacman + AUR packages                       #
-#                                                                              #
+                                                                            
+#Brain Shell — Arch Linux Installer                         
+#Handles pacman + AUR packages                                                                                                 
 
 
 set -e

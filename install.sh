@@ -113,7 +113,7 @@ mkdir -p "$REPO_DIR"
 if [[ -d "$REPO_DIR/Brain_Shell" ]]; then
     log_warn "Brain Shell repo already exists. Updating..."
     cd "$REPO_DIR/Brain_Shell"
-    git pull origin main 2>/dev/null || git pull origin feat/Installer 2>/dev/null || true
+    git pull origin feat/installer 2>/dev/null || git pull origin feat/Installer 2>/dev/null || true
 else
     log_info "Cloning from GitHub..."
     cd "$REPO_DIR"

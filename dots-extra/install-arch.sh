@@ -58,14 +58,12 @@ else
     echo "  2) paru (faster builds, more features)"
     echo "  3) Skip AUR packages (will install pacman packages only)"
     echo ""
-    read -p "Enter choice [1/2/3]: " AUR_CHOICE
+    read -p "Enter choice [1/2/3]: " AUR_CHOICE < /dev/tty
 
     case "$AUR_CHOICE" in
         1)
             log_info "Installing yay..."
-            if ! command -v git &> /dev/null; then
-                sudo pacman -S --noconfirm git base-devel
-            fi
+            sudo pacman -S --needed --noconfirm git base-devel
             cd /tmp
             git clone https://aur.archlinux.org/yay.git
             cd yay
@@ -76,9 +74,7 @@ else
             ;;
         2)
             log_info "Installing paru..."
-            if ! command -v git &> /dev/null; then
-                sudo pacman -S --noconfirm git base-devel
-            fi
+            sudo pacman -S --needed --noconfirm git base-devel
             cd /tmp
             git clone https://aur.archlinux.org/paru.git
             cd paru
@@ -284,7 +280,7 @@ if [[ -f "$HYPRLAND_LUA" ]]; then
         # Add to lua file
         echo "" >> "$HYPRLAND_LUA"
         echo "-- Brain Shell" >> "$HYPRLAND_LUA"
-        echo "hl.exec_once(\"quickshell -c \$HOME/.local/src/Brain_Shell\")" >> "$HYPRLAND_LUA"
+        echo "hl.exec_cmd(\"quickshell -c \$HOME/.local/src/Brain_Shell\")" >> "$HYPRLAND_LUA"
         
         log_success "Added Brain Shell to hyprland.lua"
     fi

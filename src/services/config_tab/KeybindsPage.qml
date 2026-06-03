@@ -181,8 +181,7 @@ Item {
                 }
             }
         }
-https://github.com/Brainitech/Brain_Shell/commit/dbd2cb443317f35c488676e5bb5ff80868a3acaf    }
-
+    }
     // ── BindRow ───────────────────────────────────────────────────────────────
     component BindRow: Item {
         id: br

@@ -59,8 +59,8 @@ elif [[ -f /etc/lsb-release ]]; then
 fi
 
 case "$DISTRO" in
-    arch|manjaro)
-        log_success "Detected: Arch Linux / Manjaro / Garuda"
+    arch|manjaro|garuda|cachyos|endeavouros)
+        log_success "Detected: Arch-based distro ($DISTRO)"
         DISTRO_TYPE="arch"
         ;;
     nixos)
@@ -69,7 +69,7 @@ case "$DISTRO" in
         ;;
     *)
         log_error "Unsupported distribution: $DISTRO"
-        log_error "Currently supported: Arch Linux, Manjaro, NixOS"
+        log_error "Currently supported: Arch Linux, Manjaro, Garuda, CachyOS, EndeavourOS, NixOS"
         exit 1
         ;;
 esac

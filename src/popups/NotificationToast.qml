@@ -167,6 +167,7 @@ PopupWindow {
 				// Use toastWidth so the bar stays within the visible body, not the flare
 				width: running ? 0 : root.toastWidth - 10
 				Behavior on width {
+					enabled: progressBar.running
 					NumberAnimation { duration: 5000; easing.type: Easing.Linear }
 				}
 

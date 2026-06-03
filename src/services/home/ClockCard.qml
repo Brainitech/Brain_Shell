@@ -24,7 +24,8 @@ StatCard {
     property int  _timerTotal:   10 * 60
     property int  _timerLeft:    10 * 60
     property bool _timerRunning: false
-    property bool _timerStarted:   false
+    property bool _timerStarted: false
+    property bool _timerFired:   false
     property bool _addTimerOpen: false
 
     // ── Stopwatch ─────────────────────────────────────────────────────────────

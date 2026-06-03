@@ -93,12 +93,17 @@ PanelWindow {
             name: "network"
             when: Popups.networkOpen && !Popups.notificationsOpen
             PropertyChanges { target: root; rWidth: Theme.networkPopupWidth + Theme.notchRadius }
+        },
+        State {
+            name: "toast"
+            when: Popups.notificationToastOpen && !Popups.notificationsOpen && !Popups.networkOpen
+            PropertyChanges { target: root; rWidth: Theme.notificationToastWidth + Theme.notchRadius + Theme.notchPadding -3 }
         }
     ]
 
     transitions: [
         Transition {
-            // This animation ONLY runs when switching between popups and the base state.
+            // This animation ONLY runs when switching between popups (and toasts) and the base state.
             NumberAnimation { property: "rWidth"; duration: Theme.animDuration; easing.type: Easing.InOutCubic }
         }
     ]

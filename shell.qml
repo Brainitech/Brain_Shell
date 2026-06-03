@@ -5,6 +5,10 @@ import "./src/popups"
 import "./src/"
 
 ShellRoot {
+    // Force-instantiate lazy singletons that need startup behavior
+    property var _keybinds:   KeybindService
+    property var _updater:    UpdateService
+
     Variants {
         model: Quickshell.screens
 
@@ -26,6 +30,9 @@ ShellRoot {
                 // GPU mode change confirmation modal
                 ConfirmDialog { screen: modelData }
 
+                // Shell update notification
+                UpdatePopup { screen: modelData }
+
                 // ── All popups ───────────────────────────────────
                 // Add new popups in src/popups/PopupLayer.qml only
                 PopupLayer {
@@ -34,7 +41,6 @@ ShellRoot {
                     rightBorder:  rightBorder
                     bottomBorder: bottomBorder
                 }
-                property var _keybinds: KeybindService
             }
         }
     }

@@ -7,8 +7,8 @@ import "../../"
 Item {
     id: root
 
-    // Expand to fill the notch when notifications or network popup are open.
-    implicitWidth: Popups.notificationToastOpen ? Theme.notificationToastWidth : contentRow.implicitWidth
+    // The TopBar State handles expanding the notch for notifications/network/toasts
+    implicitWidth: contentRow.implicitWidth
 
     //Behavior on implicitWidth {
     //    NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }

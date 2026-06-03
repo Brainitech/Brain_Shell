@@ -252,7 +252,6 @@ if [[ -f "$HYPRLAND_CONF" ]]; then
         cat << 'EOF' >> "$HYPRLAND_CONF"
 
 # Brain Shell Autostarts
-exec-once = hyprlock
 exec-once = hypridle
 exec-once = awww-daemon
 exec-once = quickshell -c $HOME/.config/Brain_Shell/.
@@ -283,11 +282,9 @@ if [[ -f "$HYPRLAND_LUA" ]]; then
 
 -- Brain Shell Autostarts
 hl.on("hyprland.start", function()
-    hl.exec_cmd("hyprlock")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("awww-daemon")
-    --hl.exec_cmd("quickshell")
-    hl.exec_cmd("quickshell -c " .. os.getenv("HOME") .. "/.config/Brain_Shell/.")
+    hl.exec_cmd(\"quickshell -c \$HOME/.local/src/Brain_Shell\")
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")

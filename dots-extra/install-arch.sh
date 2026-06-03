@@ -241,27 +241,28 @@ log_info "Updating Hyprland configuration..."
 # Check for hyprland.conf
 HYPRLAND_LUA="$HOME/.config/hypr/hyprland.lua"
 
-# Create backup if not already done by main script
-if [[ ! -f "${HYPRLAND_CONF}.backup" ]]; then
-    cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.backup"
-    log_info "Backup created: ${HYPRLAND_CONF}.backup"
-fi
-
 # Update hyprland.conf if it exists
-if grep -q "exec-once.*quickshell.*-c.*Brain_Shell" "$HYPRLAND_CONF" 2>/dev/null; then
-    log_warn "Brain Shell exec-once already present in hyprland.conf"
-else
-    EXEC_CMD="exec-once = quickshell -c \$HOME/.local/src/Brain_Shell"
-    
-    if tail -1 "$HYPRLAND_CONF" | grep -q '}'; then
-        sed -i "$ s/^/# Brain Shell\n$EXEC_CMD\n\n/" "$HYPRLAND_CONF"
+HYPRLAND_CONF="$HOME/.config/hypr/hyprland.conf" # Adjust path if needed
+
+if [[ -f "$HYPRLAND_CONF" ]]; then
+    if grep -q "quickshell.*Brain_Shell" "$HYPRLAND_CONF" 2>/dev/null; then
+        log_warn "Brain Shell autostarts already present in hyprland.conf"
     else
-        echo "" >> "$HYPRLAND_CONF"
-        echo "# Brain Shell" >> "$HYPRLAND_CONF"
-        echo "$EXEC_CMD" >> "$HYPRLAND_CONF"
+        # Append the well-structured autostart block to hyprland.conf
+        cat << 'EOF' >> "$HYPRLAND_CONF"
+
+# Brain Shell Autostarts
+exec-once = hyprlock
+exec-once = hypridle
+exec-once = awww-daemon
+exec-once = quickshell -c $HOME/.config/Brain_Shell/.
+exec-once = systemctl --user start hyprpolkitagent
+exec-once = wl-paste --type text --watch cliphist store
+exec-once = wl-paste --type image --watch cliphist store
+EOF
+        
+        log_success "Added Brain Shell autostarts to hyprland.conf"
     fi
-    
-    log_success "Added Brain Shell to hyprland.conf"
 fi
 
 # Update hyprland.lua if it exists
@@ -277,10 +278,21 @@ if [[ -f "$HYPRLAND_LUA" ]]; then
             log_info "Backup created: ${HYPRLAND_LUA}.backup"
         fi
         
-        # Add to lua file
-        echo "" >> "$HYPRLAND_LUA"
-        echo "-- Brain Shell" >> "$HYPRLAND_LUA"
-        echo "hl.exec_cmd(\"quickshell -c \$HOME/.local/src/Brain_Shell\")" >> "$HYPRLAND_LUA"
+        # Add to lua file with proper formatting and no escaped quotes
+        cat << 'EOF' >> "$HYPRLAND_LUA"
+
+-- Brain Shell Autostarts
+hl.on("hyprland.start", function()
+    hl.exec_cmd("hyprlock")
+    hl.exec_cmd("hypridle")
+    hl.exec_cmd("awww-daemon")
+    --hl.exec_cmd("quickshell")
+    hl.exec_cmd("quickshell -c " .. os.getenv("HOME") .. "/.config/Brain_Shell/.")
+    hl.exec_cmd("systemctl --user start hyprpolkitagent")
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")
+end)
+EOF
         
         log_success "Added Brain Shell to hyprland.lua"
     fi
@@ -318,7 +330,6 @@ echo ""
 echo -e "${BOLD}Additional Configuration:${NC}"
 echo "• See installation doc for optional features (GPU switching, VPN, etc.)"
 echo "• Qt6 theme: Run 'qt6ct' to configure fonts and appearance"
-echo "• Clipboard: Add to Hyprland exec-once (see doc for exact commands)"
 echo ""
 
 exit 0

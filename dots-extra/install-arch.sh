@@ -254,7 +254,7 @@ if [[ -f "$HYPRLAND_CONF" ]]; then
 # Brain Shell Autostarts
 exec-once = hypridle
 exec-once = awww-daemon
-exec-once = quickshell -c $HOME/.config/Brain_Shell/.
+exec-once = quickshell -c $HOME/.local/src/Brain_Shell/.
 exec-once = systemctl --user start hyprpolkitagent
 exec-once = wl-paste --type text --watch cliphist store
 exec-once = wl-paste --type image --watch cliphist store

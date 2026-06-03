@@ -94,15 +94,21 @@ echo ""
 
 log_info "Validating Hyprland configuration..."
 
-HYPRLAND_CONF="$CONFIG_DIR/hypr/hyprland.conf"
+HYPRLAND_CONF_PATH="$CONFIG_DIR/hypr/hyprland.conf"
+HYPRLAND_LUA_PATH="$CONFIG_DIR/hypr/hyprland.lua"
 
-if [[ ! -f "$HYPRLAND_CONF" ]]; then
-    log_error "Hyprland config not found at: $HYPRLAND_CONF"
+if [[ -f "$HYPRLAND_CONF_PATH" ]]; then
+    HYPRLAND_CONF="$HYPRLAND_CONF_PATH"
+    log_success "Hyprland config found (.conf)."
+elif [[ -f "$HYPRLAND_LUA_PATH" ]]; then
+    HYPRLAND_CONF="$HYPRLAND_LUA_PATH"
+    log_success "Hyprland config found (.lua)."
+else
+    log_error "Hyprland config not found (checked for .conf and .lua) in $CONFIG_DIR/hypr/"
     log_error "Please set up Hyprland first before installing Brain Shell."
     exit 1
 fi
 
-log_success "Hyprland config found."
 echo ""
 
 log_info "Downloading Brain Shell repository..."

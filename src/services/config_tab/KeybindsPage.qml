@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import "../"
+import "../../"
 
 Item {
     id: root
@@ -181,7 +182,6 @@ Item {
             }
         }
     }
-
     // ── BindRow ───────────────────────────────────────────────────────────────
     component BindRow: Item {
         id: br

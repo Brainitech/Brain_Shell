@@ -113,13 +113,13 @@ mkdir -p "$REPO_DIR"
 if [[ -d "$REPO_DIR/Brain_Shell" ]]; then
     log_warn "Brain Shell repo already exists. Updating..."
     cd "$REPO_DIR/Brain_Shell"
-    git fetch origin feat/installer 2>/dev/null || true
-    git checkout feat/installer 2>/dev/null || true
-    git pull origin feat/installer 2>/dev/null || true
+    git fetch origin feat/Installer 2>/dev/null || true
+    git checkout feat/Installer 2>/dev/null || true
+    git pull origin feat/Installer 2>/dev/null || true
 else
-    log_info "Cloning from GitHub (feat/installer branch)..."
+    log_info "Cloning from GitHub (feat/Installer branch)..."
     cd "$REPO_DIR"
-    git clone -b feat/installer https://github.com/Brainitech/Brain_Shell.git
+    git clone -b feat/Installer https://github.com/Brainitech/Brain_Shell.git
 fi
 
 cd "$REPO_DIR/Brain_Shell"

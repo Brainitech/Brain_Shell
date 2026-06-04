@@ -126,7 +126,6 @@ PACMAN_DEPS=(
     "python"
     "wl-clipboard"
     "slurp"
-    "grim-blast"
     "xdg-user-dirs"
     
     # Screen recording
@@ -175,6 +174,7 @@ if [[ "$AUR_HELPER" != "none" ]]; then
         "nbfc-linux"
         "cliphist"
         "hyprshutdown"
+        "grimblast-git"
     )
     
     for pkg in "${AUR_DEPS[@]}"; do

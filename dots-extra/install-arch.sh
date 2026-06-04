@@ -126,6 +126,7 @@ PACMAN_DEPS=(
     "python"
     "wl-clipboard"
     "slurp"
+    "grim-blast"
     "xdg-user-dirs"
     
     # Screen recording
@@ -145,11 +146,14 @@ PACMAN_DEPS=(
     # Hyprland ecosystem
     "hyprsunset"
     "hyprlock"
+    "hyprpolkitagent"
+    "hyprshutdown"
     "hypridle"
     "xdg-desktop-portal-hyprland"
     
     # Fonts
     "ttf-jetbrains-mono-nerd"
+    "ttf-nerd-fonts-symbols-common"
 )
 
 sudo pacman -Syu --noconfirm

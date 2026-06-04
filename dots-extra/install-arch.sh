@@ -126,7 +126,6 @@ PACMAN_DEPS=(
     "python"
     "wl-clipboard"
     "slurp"
-    "grim-blast"
     "xdg-user-dirs"
     
     # Screen recording

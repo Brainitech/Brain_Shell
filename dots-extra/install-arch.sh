@@ -17,6 +17,7 @@ NC='\033[0m'
 # Parameters from main installer
 HYPRLAND_CONF="$1"
 BACKUP_DIR="$2"
+MODE="$3"
 
 # Logging functions
 log_info() {
@@ -35,6 +36,15 @@ log_error() {
     echo -e "${RED}[✗]${NC} $1"
 }
 
+confirm() {
+    if [[ "$MODE" != "quick" ]]; then
+        echo -ne "${YELLOW}?${NC} $1 [Y/n]: "
+        read -r ans
+        [[ "$ans" =~ ^[Nn] ]] && return 1
+    fi
+    return 0
+}
+
 
 # AUR HELPER DETECTION & SELECTION
 
@@ -51,6 +61,16 @@ if command -v yay &> /dev/null; then
 elif command -v paru &> /dev/null; then
     log_success "Found: paru"
     AUR_HELPER="paru"
+elif [[ "$MODE" == "quick" ]]; then
+    log_info "Quick mode. Installing yay automatically..."
+    sudo pacman -S --needed --noconfirm git base-devel
+    cd /tmp
+    git clone https://aur.archlinux.org/yay.git
+    cd yay
+    makepkg -si --noconfirm
+    cd /tmp && rm -rf yay
+    AUR_HELPER="yay"
+    log_success "yay installed."
 else
     log_warn "No AUR helper found (yay/paru). Please choose one to install:"
     echo ""
@@ -152,14 +172,21 @@ PACMAN_DEPS=(
     "ttf-jetbrains-mono-nerd"
 )
 
+confirm "Install pacman packages (system update + deps)?" || { log_warn "Skipped pacman packages."; skip_pacman=1; }
+
+if [[ "$skip_pacman" != "1" ]]; then
 sudo pacman -Syu --noconfirm
 sudo pacman -S --needed --noconfirm "${PACMAN_DEPS[@]}"
 
 log_success "Pacman packages installed."
+fi
 echo ""
 
 # AUR packages
 if [[ "$AUR_HELPER" != "none" ]]; then
+    confirm "Install AUR packages (quickshell, matugen, etc.)?" || { log_warn "Skipped AUR packages."; skip_aur=1; }
+
+    if [[ "$skip_aur" != "1" ]]; then
     log_info "Installing dependencies from AUR..."
     
     AUR_DEPS=(
@@ -183,6 +210,7 @@ if [[ "$AUR_HELPER" != "none" ]]; then
     done
     
     log_success "AUR packages installed."
+    fi
 else
     log_warn "Skipping AUR packages:"
     log_warn "  - quickshell (REQUIRED - cannot proceed without this)"
@@ -198,6 +226,9 @@ echo ""
 # ENABLE SYSTEMD SERVICES
 
 
+confirm "Enable system services (NetworkManager, bluetooth, pipewire...)?" || { log_warn "Skipped service enabling."; skip_services=1; }
+
+if [[ "$skip_services" != "1" ]]; then
 log_info "Enabling system services..."
 
 sudo systemctl enable --now NetworkManager 2>/dev/null || true
@@ -236,6 +267,9 @@ echo ""
 # UPDATE HYPRLAND CONFIG
 
 
+confirm "Update Hyprland config with Brain Shell autostarts?" || { log_warn "Skipped config update."; skip_config=1; }
+
+if [[ "$skip_config" != "1" ]]; then
 log_info "Updating Hyprland configuration..."
 
 # Check for hyprland.conf
@@ -262,6 +296,33 @@ EOF
         
         log_success "Added Brain Shell autostarts to hyprland.conf"
     fi
+fi
+
+# Update hyprland.lua if it exists
+HYPRLAND_LUA="$HOME/.config/hypr/hyprland.lua"
+
+if [[ -f "$HYPRLAND_LUA" ]]; then
+    if grep -q "quickshell.*Brain_Shell" "$HYPRLAND_LUA" 2>/dev/null; then
+        log_warn "Brain Shell exec-once already present in hyprland.lua"
+    else
+        # Add to lua file with proper formatting and no escaped quotes
+        cat << 'EOF' >> "$HYPRLAND_LUA"
+
+-- Brain Shell Autostarts
+hl.on("hyprland.start", function()
+    hl.exec_cmd("hypridle")
+    hl.exec_cmd("awww-daemon")
+    hl.exec_cmd("quickshell -c " .. os.getenv("HOME") .. "/.local/src/Brain_Shell")
+    hl.exec_cmd("systemctl --user start hyprpolkitagent")
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")
+end)
+EOF
+        
+        log_success "Added Brain Shell to hyprland.lua"
+    fi
+fi
+fi
 fi
 
 # Update hyprland.lua if it exists

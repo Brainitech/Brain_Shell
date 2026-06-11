@@ -1,71 +1,160 @@
-// src/windows/TopBar.qml
 import Quickshell
 import QtQuick
 import "../components"
 import "../modules/Center/"
 import "../modules/Right/"
 import "../modules/Left/"
-import "../theme/"
+import "../"
 import "../shapes/"
+import "../theme"
 
 PanelWindow {
     id: root
-    
-    // Screen name property (set from shell.qml)
+
     property string screenName: screen ? screen.name : ""
 
-    // 0. Setup - Transparent so only the shape shows
     color: "transparent"
-    
-    // 1. Anchors - Span the entire top
+
     anchors {
-        top: true
-        left: true
+        top:   true
+        left:  true
         right: true
     }
-    
-    // 2. Height - Enough to fit the notches
-    implicitHeight: Theme.notchHeight // Extra space for shadows if needed
-    exclusiveZone: Theme.notchHeight
 
-    // 3. Background Shape
-    SeamlessBarShape {
+    Binding { target: ShellState; property: "topBarLWidth"; value: root.lWidth }
+    Binding { target: ShellState; property: "topBarCWidth"; value: root.cWidth }
+    Binding { target: ShellState; property: "topBarRWidth"; value: root.rWidth }
+
+    // ── Height shrinks to a border strip in focus mode ───────────────────────
+    // Safe to animate on PanelWindow (anchored, no position jank).
+    // PopupWindow is the one that must never have animated implicitHeight.
+    implicitHeight: ShellState.focusMode ? Theme.borderWidth : Theme.notchHeight
+    Behavior on implicitHeight {
+        NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
+    }
+
+    exclusiveZone: ShellState.focusMode ? 0 : Theme.exclusionGap
+    Behavior on exclusiveZone {
+        NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
+    }
+
+    readonly property int lWidth: Math.max(
+        Theme.lNotchMinWidth,
+        Math.min(Theme.lNotchMaxWidth,
+                 leftContent.implicitWidth + Theme.notchPadding * 2)
+    )
+
+    // cWidth uses Popups.dashboardPageWidth when the dashboard is open,
+    // so the center notch tracks the active tab's declared width.
+    property int cWidth: Popups.dashboardOpen
+        ? Popups.dashboardPageWidth
+        : Math.max(
+            Theme.cNotchMinWidth,
+            Math.min(Theme.cNotchMaxWidth,
+                     centerContent.implicitWidth + Theme.notchPadding * 2)
+          )
+    Behavior on cWidth {
+        NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
+    }
+
+    // Width matches sizer open width: popupWidth + notchRadius (fw) in both popups
+    property int rWidth: Math.max(
+        Theme.rNotchMinWidth,
+        Math.min(Theme.rNotchMaxWidth, rightContent.implicitWidth + Theme.notchPadding * 2)
+    )
+
+    // ── Border strip (focus mode) ────────────────────────────────────────────
+    // Painted behind the notch content layer. Visible only when focus mode
+    // fades the notches out. Uses the same bar color so it reads as a thin
+    // edge strip matching the side border strips.
+    Rectangle {
         anchors.fill: parent
-    }
-
-    // 4. Content Layouts
-    // We manually place the content modules over the drawn shapes
-    
-    // Left Content
-    Item {
-        implicitHeight: Theme.notchHeight
-        implicitWidth: 	Theme.lNotchWidth
-        anchors.left: parent.left
-        
-        LeftContent {
-            anchors.centerIn: parent
+        color: Theme.background
+        opacity: ShellState.focusMode ? 1 : 0
+        Behavior on opacity {
+            NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
         }
     }
 
-    // Center Content
+    // ── Notch content (fades out in focus mode) ──────────────────────────────
     Item {
-    	implicitHeight: Theme.notchHeight
-        implicitWidth: Theme.cNotchWidth
-        anchors.centerIn: parent
-        
-        CenterContent {
-            anchors.centerIn: parent
+        anchors.fill: parent
+        opacity: ShellState.focusMode ? 0 : 1
+        Behavior on opacity {
+            NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
         }
-    }
-
-    // Right Content
-    Item {
-        implicitHeight: Theme.notchHeight
-        implicitWidth: Theme.rNotchWidth
-        anchors.right: parent.right
         
-        RightContent {
+        states: [
+        State {
+            name: "notifications"
+            when: Popups.notificationsOpen
+            PropertyChanges { target: root; rWidth: Theme.notificationsWidth + Theme.notchRadius }
+        },
+        State {
+            name: "network"
+            when: Popups.networkOpen && !Popups.notificationsOpen
+            PropertyChanges { target: root; rWidth: Theme.networkPopupWidth + Theme.notchRadius }
+        },
+        State {
+            name: "toast"
+            when: Popups.notificationToastOpen && !Popups.notificationsOpen && !Popups.networkOpen
+            PropertyChanges { target: root; rWidth: Theme.notificationToastWidth + Theme.notchRadius + Theme.notchPadding -3 }
+        }
+    ]
+
+    transitions: [
+        Transition {
+            // This animation ONLY runs when switching between popups (and toasts) and the base state.
+            NumberAnimation { property: "rWidth"; duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
+        }
+    ]
+
+        SeamlessBarShape {
+            id: barShape
+            anchors.fill: parent
+            leftWidth:   root.lWidth
+            centerWidth: root.cWidth
+            rightWidth:  root.rWidth
+        }
+
+        Item {
+            id:           leftNotch
+            width:        root.lWidth
+            height:       Theme.notchHeight
+            anchors.left: parent.left
+
+            LeftContent {
+                id: leftContent
+                anchors.centerIn: parent
+            }
+        }
+
+        Item {
+            id:               centerNotch
+            width:            root.cWidth
+            height:           Theme.notchHeight
             anchors.centerIn: parent
+
+            CenterContent {
+                id: centerContent
+                anchors.centerIn: parent
+            }
+        }
+
+        Item {
+            id:            rightNotch
+            width:         root.rWidth
+            height:        Theme.notchHeight
+            anchors.right: parent.right
+            
+            clip: true
+
+            RightContent {
+                id: rightContent
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.rightMargin: Theme.notchPadding
+            }
         }
     }
 }

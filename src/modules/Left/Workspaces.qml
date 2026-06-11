@@ -1,10 +1,31 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
-import "../../theme/"
+import "../../"
 
 Rectangle {
     id: root
+    
+    // ── Config Provider ────────────────────────────────────────────────
+    property string configProvider: ShellState.configProvider
+    
+    // ── Workspace Dispatch Function ────────────────────────────────────
+    function dispatchWorkspace(wsTarget, isSpecialToggle = false) {
+        if (root.configProvider === "lua") {
+            if (isSpecialToggle) {
+                Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${wsTarget}")`);
+            } else {
+                Hyprland.dispatch(`hl.dsp.focus({ workspace = "${wsTarget}" })`);
+            }
+        } else {
+            // Default to 'conf' (Hyprland IPC style)
+            if (isSpecialToggle) {
+                Hyprland.dispatch(`togglespecialworkspace ${wsTarget}`);
+            } else {
+                Hyprland.dispatch(`workspace ${wsTarget}`);
+            }
+        }
+    }
 
     // --- 1. Capsule Container ---
     color: Theme.wsBackground
@@ -16,7 +37,42 @@ Rectangle {
 
     // --- 2. LOGIC: Raw Event Listener ---
     property bool isScratchpad: false
+    
+    property bool scrollBusy: false
 
+    Timer {
+        id: scrollCooldown
+        interval: 300   // ms — tune up if still too fast, down if sluggish
+        repeat:   false
+        onTriggered: root.scrollBusy = false
+    }
+    
+    // ---Wheel: cycle through occupied workspaces ---
+    WheelHandler {
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        onWheel: function(event) {
+            if (root.scrollBusy) return; // Ignore if still in cooldown
+            root.scrollBusy = true;
+            scrollCooldown.restart();
+            // Fetch and sort occupied workspace IDs numerically
+            let occupied = Hyprland.workspaces.values.map(w => w.id).sort((a, b) => a - b);
+            if (occupied.length === 0) return; // Safety check
+
+            let currentId = Hyprland.focusedWorkspace?.id || occupied[0];
+            let idx = occupied.indexOf(currentId);
+            if (idx === -1) idx = 0; // Fallback if current isn't in the array
+
+            // Inverted scroll logic: Up (>0) goes to Next, Down (<0) goes to Prev
+            if (event.angleDelta.y < 0) {
+                idx = (idx + 1) % occupied.length;
+            } else {
+                idx = (idx - 1 + occupied.length) % occupied.length;
+            }
+            
+            //Hyprland.dispatch(`workspace ${occupied[idx]}`);
+            root.dispatchWorkspace(occupied[idx]);
+        }
+    }   
     Connections {
         target: Hyprland
         
@@ -25,7 +81,7 @@ Rectangle {
 		//	console.log("RawEvent_name: "+ event.name)
 		//	console.log("RawEvent_data: "+ event.data)
             // 1. Handle Scratchpad Toggle
-            if (event.name === "activespecial") {
+            if (event.name === "activespecial" || event.name === "activespecialv2") {
                 // Event data format: "workspaceName,monitorName"
                 // Example: "special:magic,eDP-1" or ",eDP-1" (closed)
                 const wsName = event.data.split(',')[0];
@@ -40,7 +96,8 @@ Rectangle {
             }
         }
     }
-
+    
+    
     // --- 3. Workspace Dots ---
     Row {
         id: workspaceRow
@@ -63,6 +120,8 @@ Rectangle {
                 property var ws: Hyprland.workspaces.values.find(w => w.id === index + 1)
                 property bool isActive: Hyprland.focusedWorkspace?.id === (index + 1)
                 property bool isOccupied: ws !== undefined
+                property bool isUrgent:   ws !== undefined && ws.urgent
+
 
                 height: Theme.wsDotSize
                 radius: height / 2
@@ -70,6 +129,7 @@ Rectangle {
                 
                 color: {
                     if (isActive)   return Theme.wsActive
+                    if (isUrgent)   return Theme.wsUrgent
                     if (isOccupied) return Theme.wsOccupied
                     return Theme.wsEmpty
                 }
@@ -77,10 +137,37 @@ Rectangle {
                 Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
                 Behavior on color { ColorAnimation { duration: 200 } }
 
+                // --- Urgent pulse ---
+                SequentialAnimation {
+                    running: dot.isUrgent && !dot.isActive
+                    loops:   Animation.Infinite
+
+                    NumberAnimation {
+                        target:   dot
+                        property: "scale"
+                        to:       1.35
+                        duration: 400
+                        easing.type: Easing.InOutSine
+                    }
+                    NumberAnimation {
+                        target:   dot
+                        property: "scale"
+                        to:       1.0
+                        duration: 400
+                        easing.type: Easing.InOutSine
+                    }
+                }
+
+                // Reset scale when no longer urgent
+                onIsUrgentChanged: {
+                    if (!isUrgent) scale = 1.0
+                }
+
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Hyprland.dispatch(`workspace ${index + 1}`)
+                    //onClicked: Hyprland.dispatch(`workspace ${index + 1}`)
+                    onClicked: root.dispatchWorkspace(index + 1)
                 }
             }
         }
@@ -109,7 +196,8 @@ Rectangle {
         
         MouseArea {
             anchors.fill: parent
-            onClicked: Hyprland.dispatch("togglespecialworkspace")
+            //onClicked: Hyprland.dispatch("togglespecialworkspace magic")
+            onClicked:  root.dispatchWorkspace("magic", true)
         }
     }
 }

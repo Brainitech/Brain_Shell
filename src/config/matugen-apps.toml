@@ -1,0 +1,49 @@
+# Brain_Shell — external application theme generators (matugen).
+# Run separately from the main pipeline so app configs are only touched when
+# the user explicitly enables them (ThemeGenerators service / ShellState flags).
+#
+# Each [templates.*] section is independent; the ThemeGenerators service writes
+# a filtered copy containing only the enabled apps before invoking matugen.
+
+[config]
+
+# Extra terminal-style accent colors blended from the wallpaper palette.
+[config.custom_colors.red]
+color = "#FF0000"
+blend = true
+[config.custom_colors.green]
+color = "#00FF00"
+blend = true
+[config.custom_colors.yellow]
+color = "#FFFF00"
+blend = true
+[config.custom_colors.blue]
+color = "#0000FF"
+blend = true
+[config.custom_colors.magenta]
+color = "#FF00FF"
+blend = true
+[config.custom_colors.cyan]
+color = "#00FFFF"
+blend = true
+
+[templates.kitty]
+input_path = './templates/kitty.conf'
+output_path = '~/.config/kitty/brain-shell-colors.conf'
+post_hook = 'pkill -SIGUSR1 kitty || true'
+
+[templates.gtk]
+input_path = './templates/gtk-colors.css'
+output_path = '~/.config/gtk-4.0/brain-shell-colors.css'
+
+[templates.gtk3]
+input_path = './templates/gtk-colors.css'
+output_path = '~/.config/gtk-3.0/brain-shell-colors.css'
+
+[templates.discord]
+input_path = './templates/discord.css'
+output_path = '~/.config/Vencord/themes/brain-shell.theme.css'
+
+[templates.nvchad]
+input_path = './templates/nvchad.lua'
+output_path = '~/.cache/brain-shell/nvchad-base46.lua'

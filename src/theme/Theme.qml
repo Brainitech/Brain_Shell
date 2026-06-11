@@ -1,37 +1,85 @@
 pragma Singleton
 import QtQuick
+import "."
 
 QtObject {
-    // -- Colors --
-    property color background: "#475c57" // Base color
-    property color active:     "#a6d0f7" // Accent
-    property color text:       "#cdd6f4"
-	property color icon:	   "#ffffff"
-	property color border:	   "#ffffff"
-
-	// --- Workspace Visuals ---
-    property color wsBackground: "#20000000" // Capsule background
-    property color wsActive:     "#FFFFFF"    // Bright White
-    property color wsOccupied:   "#80FFFFFF"  // Dim White
-    property color wsEmpty:      "#30FFFFFF"  // Greyed out
+    // ── Bindings to Modular Singletons ────────────────────────────────────────
+    // Note: property alias cannot point to other singletons, so we use direct bindings.
     
-	property color wsOverlay:    "#CC1e1e2e"  // Scratchpad Overlay Colors
+    // Colors
+    property color background: Colors.background
+    property color active:     Colors.active
+    property color text:       Colors.text
+    property color subtext:    Colors.subtext
+    property color icon:       Colors.icon
+    property color border:     Colors.border
+    property color iconFont:   Colors.iconFont
 
-    // -- Sizes --
-    property int borderWidth: 6        // Thickness of the screen edge borders
-    property int cornerRadius: 10
-	property int notchRadius: 12      // The roundness of the bottom corners
-    property int notchHeight: 40
-    property int lNotchWidth: 280
-    property int cNotchWidth: 200
-    property int rNotchWidth: 200
-	property int spacing: 10
-	property int wsDotSize:      10           // Diameter of the dots
-    property int wsActiveWidth:  24           // Width of the active "pill" (stretch effect)
-    property int wsSpacing:      6            // Space between dots
-    property int wsPadding:      8            // Padding inside the capsule
-    property int wsRadius:       16           // Radius of the main capsule          // Radius for the capsule container
-    property int notchHorizontalPadding: 20
-    property int notchVerticalPadding: 10
-    property int notchSideMargin: 10
+    property color wsBackground: Colors.wsBackground
+    property color wsActive:     Colors.wsActive
+    property color wsOccupied:   Colors.wsOccupied
+    property color wsEmpty:      Colors.wsEmpty
+    property color wsOverlay:    Colors.wsOverlay
+    property color wsUrgent:     Colors.wsUrgent
+
+    // Metrics
+    property bool barEnabled: Metrics.barEnabled
+    
+    property int borderWidth:   Metrics.borderWidth
+    property int cornerRadius:  Metrics.cornerRadius
+    property int notchRadius:   Metrics.notchRadius
+    property int notchHeight:   Metrics.notchHeight
+    property int exclusionGap:  Metrics.exclusionGap
+    property int spacing:       Metrics.spacing
+
+    property int notchPadding:           Metrics.notchPadding
+    property int notchHorizontalPadding: Metrics.notchHorizontalPadding
+    property int notchVerticalPadding:   Metrics.notchVerticalPadding
+    property int notchSideMargin:        Metrics.notchSideMargin
+
+    property int lNotchMinWidth: Metrics.lNotchMinWidth
+    property int lNotchMaxWidth: Metrics.lNotchMaxWidth
+    property int cNotchMinWidth: Metrics.cNotchMinWidth
+    property int cNotchMaxWidth: Metrics.cNotchMaxWidth
+    property int rNotchMinWidth: Metrics.rNotchMinWidth
+    property int rNotchMaxWidth: Metrics.rNotchMaxWidth
+
+    property int dashboardWidth:  Metrics.dashboardWidth
+    property int dashboardHeight: Metrics.dashboardHeight
+
+    property int notificationsWidth: Metrics.notificationsWidth
+    property int notificationToastWidth: Metrics.notificationToastWidth
+    property int networkPopupWidth:  Metrics.networkPopupWidth
+
+    property int popupMinWidth:   Metrics.popupMinWidth
+    property int popupMaxWidth:   Metrics.popupMaxWidth
+    property int popupMinHeight:   Metrics.popupMinHeight
+    property int popupMaxHeight:  Metrics.popupMaxHeight
+    property int popupPadding:     Metrics.popupPadding
+
+    property int wsDotSize:     Metrics.wsDotSize
+    property int wsActiveWidth: Metrics.wsActiveWidth
+    property int wsSpacing:     Metrics.wsSpacing
+    property int wsPadding:     Metrics.wsPadding
+    property int wsRadius:      Metrics.wsRadius
+
+    // ── Typography system ─────────────────────────────────────────────────
+    // Replaces hardcoded font.pixelSize values across the shell.
+    // Usage: font.pixelSize: Theme.fontSize("body")
+    //
+    // Scale: caption < body < headline < title < display
+    readonly property var _fontSizes: ({
+        "caption":  10,
+        "small":    11,
+        "body":     12,
+        "bodyLarge":13,
+        "headline": 14,
+        "title":    16,
+        "display":  20,
+        "largeDisplay": 28
+    })
+
+    function fontSize(name) {
+        return _fontSizes[name] || _fontSizes["body"]
+    }
 }

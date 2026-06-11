@@ -1,0 +1,245 @@
+name: Brain Shell CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─────────────────────────────────────────────
+  #  Arch Linux — pacman + AUR dry-run
+  # ─────────────────────────────────────────────
+  arch-validate:
+    name: Arch Linux — Dependency & Lint Check
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update pacman & install base tools
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm git base-devel python
+
+      - name: Validate pacman dependencies exist in repos
+        run: |
+          PACMAN_DEPS=(
+            hyprland qt6-base qt6-declarative qt6-multimedia
+            qt6-5compat qt6ct pipewire pipewire-pulse wireplumber
+            networkmanager bluez bluez-utils brightnessctl upower
+            libnotify polkit python wl-clipboard slurp xdg-user-dirs
+            wf-recorder cava imagemagick wtype lm_sensors util-linux
+            hyprsunset hyprlock hyprpolkitagent hypridle
+            xdg-desktop-portal-hyprland ttf-jetbrains-mono-nerd
+            ttf-nerd-fonts-symbols-common hyprshutdown cliphist
+          )
+          FAILED=()
+          for pkg in "${PACMAN_DEPS[@]}"; do
+            if pacman -Si "$pkg" &>/dev/null; then
+              echo "✓ $pkg"
+            else
+              echo "✗ $pkg (not found in repos)"
+              FAILED+=("$pkg")
+            fi
+          done
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo ""
+            echo "Missing packages: ${FAILED[*]}"
+            exit 1
+          fi
+
+      - name: Validate AUR packages exist on AUR RPC
+        run: |
+          AUR_DEPS=(
+            quickshell-git
+            awww-git
+            matugen-bin
+            envycontrol
+            auto-cpufreq
+            nbfc-linux
+            grimblast-git
+          )
+          FAILED=()
+          for pkg in "${AUR_DEPS[@]}"; do
+            STATUS=$(curl -s "https://aur.archlinux.org/rpc/v5/info?arg[]=${pkg}" \
+              | python3 -c "import json,sys; d=json.load(sys.stdin); print('ok' if d.get('resultcount',0)>0 else 'missing')")
+            if [[ "$STATUS" == "ok" ]]; then
+              echo "✓ $pkg (AUR)"
+            else
+              echo "✗ $pkg not found on AUR"
+              FAILED+=("$pkg")
+            fi
+          done
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo ""
+            echo "Missing AUR packages: ${FAILED[*]}"
+            exit 1
+          fi
+
+      - name: Lint install.sh
+        run: |
+          pacman -S --needed --noconfirm bash
+          bash -n install.sh
+          echo "✓ install.sh syntax OK"
+
+      - name: Lint dots-extra/install-arch.sh
+        run: |
+          bash -n dots-extra/install-arch.sh
+          echo "✓ install-arch.sh syntax OK"
+
+      - name: Lint dots-extra/validate-install.sh
+        run: |
+          bash -n dots-extra/validate-install.sh
+          echo "✓ validate-install.sh syntax OK"
+
+      - name: Lint shell scripts in src/scripts/
+        run: |
+          bash -n src/scripts/GfxSwitch.sh
+          bash -n src/scripts/PowerControl.sh
+          echo "✓ src/scripts/ syntax OK"
+
+      - name: Validate QML files exist and are non-empty
+        run: |
+          FAILED=()
+          while IFS= read -r -d '' f; do
+            if [ ! -s "$f" ]; then
+              echo "✗ Empty file: $f"
+              FAILED+=("$f")
+            else
+              echo "✓ $f"
+            fi
+          done < <(find src -name "*.qml" -print0)
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo "Empty QML files found!"
+            exit 1
+          fi
+
+      - name: Validate qmldir files
+        run: |
+          for f in $(find src -name "qmldir"); do
+            echo "✓ Found qmldir: $f"
+            cat "$f"
+          done
+
+  # ─────────────────────────────────────────────
+  #  NixOS — flake check
+  # ─────────────────────────────────────────────
+  nix-validate:
+    name: NixOS — Flake & Package Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - name: Validate flake.nix syntax
+        run: |
+          # Check file exists and is valid UTF-8 text
+          cat flake.nix > /dev/null
+          # Use nix-instantiate for pure syntax check (no network, no path access)
+          nix-instantiate --parse flake.nix > /dev/null
+          echo "✓ flake.nix syntax OK"
+
+      - name: Validate flake.lock structure
+        run: |
+          python3 -c "
+          import json, sys
+          with open('flake.lock') as f:
+              lock = json.load(f)
+          assert lock.get('version') == 7, 'Expected lock version 7'
+          nodes = lock.get('nodes', {})
+          print(f'Lock version: {lock[\"version\"]}')
+          print(f'Nodes: {list(nodes.keys())}')
+          for name, node in nodes.items():
+              if 'locked' in node:
+                  rev = node['locked'].get('rev', 'N/A')[:10]
+                  print(f'  ✓ {name}: {rev}')
+          "
+
+      - name: Validate flake.nix declares required outputs
+        run: |
+          python3 -c "
+          with open('flake.nix') as f:
+              content = f.read()
+          checks = {
+            'packages':     'packages' in content,
+            'devShells':    'devShells' in content,
+            'nixosModules': 'nixosModules' in content,
+            'description':  'description' in content,
+            'brain-shell':  'brain-shell' in content,
+          }
+          failed = []
+          for key, ok in checks.items():
+              if ok:
+                  print(f'  ✓ {key} declared')
+              else:
+                  print(f'  ✗ {key} MISSING')
+                  failed.append(key)
+          if failed:
+              raise SystemExit(f'Missing from flake.nix: {failed}')
+          "
+
+  # ─────────────────────────────────────────────
+  #  Structure Sanity Check (both runners agree)
+  # ─────────────────────────────────────────────
+  structure-check:
+    name: Repo Structure Sanity
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check required files exist
+        run: |
+          REQUIRED=(
+            "shell.qml"
+            "flake.nix"
+            "flake.lock"
+            "install.sh"
+            "dots-extra/install-arch.sh"
+            "dots-extra/validate-install.sh"
+            "src/config/brain-shell-colors.json.example"
+            "src/theme/Theme.qml"
+            "src/theme/ColorLoader.qml"
+            "src/state/ShellState.qml"
+            "src/state/Popups.qml"
+            "src/windows/TopBar.qml"
+            "src/popups/Dashboard.qml"
+          )
+          FAILED=()
+          for f in "${REQUIRED[@]}"; do
+            if [[ -f "$f" ]]; then
+              echo "✓ $f"
+            else
+              echo "✗ MISSING: $f"
+              FAILED+=("$f")
+            fi
+          done
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo ""
+            echo "Missing required files: ${FAILED[*]}"
+            exit 1
+          fi
+
+      - name: Count QML files per module
+        run: |
+          echo "QML file counts by directory:"
+          find src -name "*.qml" | sed 's|/[^/]*$||' | sort | uniq -c | sort -rn
+
+      - name: Check install.sh is executable or has correct shebang
+        run: |
+          head -1 install.sh | grep -q "^#!/" && echo "✓ shebang OK" || (echo "✗ Missing shebang in install.sh" && exit 1)
+          head -1 dots-extra/install-arch.sh | grep -q "^#!/" && echo "✓ shebang OK (arch)" || (echo "✗ Missing shebang in install-arch.sh" && exit 1)

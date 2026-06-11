@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import "../../components"
 import "../../windows"
-import "../../theme/" // Theme
+import "../../"
 
 Row {
 	spacing: 5
@@ -11,25 +11,10 @@ Row {
 	// 1. Arch Icon (Power Menu Trigger)
 	ControlPanel{}
 
-	// 3. Vertical Separator
-	Rectangle {
-		width: 1; 
-		height: 16
-		color: Theme.border
-		anchors.verticalCenter: parent.verticalCenter
-	}
-
-	// 4. Workspaces
+	// 2. Workspaces
 	Workspaces {} 
+	
+	//3. LayoutDisplay
+	LayoutDisplayer {}
 
-	// 5. Vertical Separator
-	Rectangle {
-		width: 1; 
-		height: 16
-		color: Theme.border
-		anchors.verticalCenter: parent.verticalCenter
-	}
-
-	// 6. Performance Control
-	Performance{}
 }

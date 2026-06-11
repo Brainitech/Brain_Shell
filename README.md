@@ -41,9 +41,7 @@
 - **Lua-Based Config** — Hyprland v0.55+ compatible
 - **System Dashboard** — Monitor CPU, RAM, battery, temps, and more
 - **Kanban/Tasks** — To Do, Ongoing and Competed lists with Prioiry and Deadlines
-- **App Launcher** — Native fuzzy search with usage-based ranking
-- **Screenshot Tool** — Built-in capture with region/window/screen modes
-- **Color Picker** — Screen color sampler
+- **App Launcher** — Dropdown App Launcher
 - **Keybinds** — Set your own keybinds for each popup
 - **Theming Engine** — Live wallpaper-synced color updates
 - **Network Manager** — WiFi, Bluetooth, VPN integration
@@ -64,54 +62,17 @@
 ### One line installer
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Brainitech/Brain_Shell/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh | bash
 ```
 
-### What the installer does
-
-- ✓ Clones the repo to `~/.local/src/Brain_Shell`
-- ✓ Creates global `brain-shell` command (symlink to `/usr/local/bin`)
-- ✓ Adds Brain_Shell to Hyprland autostart
-- ✓ Nothing else is touched — fully standalone
-
-**After install, just type:** `brain-shell`
-
----
-
-### Standalone CLI (No System Modifications)
-
-Brain_Shell ships with a standalone CLI that lets you run and manage the shell **without touching any system files**. Multiple shells can coexist on the same PC — each with its own isolated configuration.
+### Manual installation
 
 ```bash
-# Clone and run — no install needed
 git clone https://github.com/Brainitech/Brain_Shell.git
 cd Brain_Shell
-./cli.sh
-
-# IPC commands (requires running shell)
-./cli.sh run dashboard-home     # Open dashboard on Home tab
-./cli.sh run launcher           # Open app launcher
-./cli.sh run screenshot         # Take a region screenshot
-./cli.sh run color-picker       # Pick a color from screen
-
-# Manage the shell
-./cli.sh reload                 # Restart the shell
-./cli.sh quit                   # Stop the shell
-./cli.sh lock                   # Lock the screen
-./cli.sh update                 # Git pull + restart
-
-# Hyprland autostart (optional)
-./cli.sh install hyprland       # Add to Hyprland autostart
-./cli.sh install hyprland --lua # For Hyprland ≥0.48 with Lua config
-./cli.sh remove hyprland        # Remove from autostart
-
-# Help
-./cli.sh help                   # Show all commands
-./cli.sh version                # Show version
+chmod +x install.sh
+./install.sh
 ```
-
-> **Tip:** Symlink `cli.sh` to your PATH for global access:  
-> `sudo ln -s $(pwd)/cli.sh /usr/local/bin/brain-shell`
 
 The installer automatically:
 
@@ -120,7 +81,7 @@ The installer automatically:
 - ✓ Backs up your entire `~/.config`
 - ✓ Installs all required dependencies
 - ✓ Clones the repository to `~/.local/src/Brain_Shell`
-- ✓ Updates your Hyprland config to auto-start Brain_Shell and required dependencies
+- ✓ Updates your Hyprland config
 - ✓ Creates configuration directories
 
 **After installation, restart Hyprland for changes to take effect.**
@@ -231,24 +192,19 @@ The installer automatically:
 - [x] Lua config generation
 - [x] Professional installer (Arch/NixOS)
 - [x] Auto-update mechanism
-- [x] Native app launcher with fuzzy search
-- [x] Screenshot tool (region/window/screen)
-- [x] Color picker
-- [x] Unified animation system
-- [x] Reusable UI components (StyledRect, Surface, StateLayer)
 
 ### Upcoming (Post-v0.1.0)
 
 - [ ] Scaling on Different Screen-Sizes
-- [x] Config Pages for Shell Customization
-- [x] Multi-Monitor Support
+- [ ] Config Pages for Shell Customization
+- [ ] Multi-Monitor Support
 - [ ] Additional theme options
-- [x] App launcher enhancements (pinned/recent)
+- [ ] App launcher enhancements (pinned/recent)
 - [ ] Unified popup configuration layer
-- [x] Extended documentation
+- [ ] Extended documentation
 - [ ] Community themes
-- [x] CLI
-- [x] More Linux distribution support (Fedora, Debian)
+- [ ] CLI
+- [ ] More Linux distribution support
 
 ---
 
@@ -257,6 +213,10 @@ Known Issues
 </h2>
 
 - **Multi-Monitor Scaling:** Global scaling across mixed-resolution monitors (e.g., 4K paired with 1080p) is currently inconsistent. UI elements may appear misproportioned or poorly sized on non-1080p screens.
+
+- **Input Focus Delays:** The App Launcher and Wallpaper popups occasionally fail to capture keyboard focus immediately upon opening. A slight mouse movement is currently required to force focus activation.
+
+- **Top Bar Clipping:** Elements within the right notch may become visually clipped if the system tray is expanded and contains an excessive number of active items.
 
 - **Shutdown Menu (Hyprshutdown) State:** Canceling a shutdown or logout action can sometimes leave the Hyprland session in an empty state with most applications unintentionally closed. It may also occasionally struggle to terminate all running apps smoothly.
 
@@ -271,7 +231,6 @@ Brain Shell is actively developed and welcomes contributions!
 - Found a bug? → [Open an issue](https://github.com/Brainitech/Brain_Shell/issues)
 - Have an idea? → [Start a discussion](https://github.com/Brainitech/Brain_Shell/discussions)
 - Want to contribute? → Fork, branch, and submit a pull request
-- Want to join the community? → [Join Discord](https://discord.com/invite/BV8UduvABx)
 
 ---
 
@@ -286,21 +245,6 @@ Brain Shell is actively developed and welcomes contributions!
 - **[Celestial Shell](https://github.com/caelestia-dots/shell)** & **[AX-Shell](https://github.com/Axenide/ax-shell)** — For the inspiration
 - **[NotCandy001](https://github.com/notcandy001)** — For the installer
 - **All the Testers & Contributors** — For their time put into testing and suggesting fixes.
-
----
-<h2>
-  Brain Cells Collected
-</h2>
-
-<div align="center">
-  <a href="https://www.star-history.com/?repos=Brainitech%2FBrain_Shell&type=date&legend=top-left">
-   <picture>
-     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Brainitech/Brain_Shell&type=date&theme=dark&legend=top-left" />
-     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Brainitech/Brain_Shell&type=date&legend=top-left" />
-     <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Brainitech/Brain_Shell&type=date&legend=top-left" />
-   </picture>
-  </a>
-</div>
 
 ---
 

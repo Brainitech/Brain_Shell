@@ -197,17 +197,12 @@ PanelWindow {
             property string appliedScheme:   WallpaperService.scheme
 
             readonly property var filteredWallpapers: {
-                var base = WallpaperService.filteredWallpapers  // uses activeFilters from service
                 var q = searchQuery.toLowerCase()
-                if (q === "") return base
-                return base.filter(function(p) {
+                if (q === "") return WallpaperService.wallpapers
+                return WallpaperService.wallpapers.filter(function(p) {
                     return p.split("/").pop().toLowerCase().indexOf(q) !== -1
                 })
             }
-
-            // ── Active type filters (synced to WallpaperService) ────────────
-            readonly property var activeTypeFilters: WallpaperService.activeFilters
-            function toggleTypeFilter(type) { WallpaperService.toggleFilter(type) }
 
             readonly property bool applyActive:
                 WallpaperService.previewWall !== "" ||
@@ -498,57 +493,6 @@ PanelWindow {
                 Row {
                     anchors.centerIn: parent
                     spacing: 8
-
-                    // ── Type filter chips (Images / GIFs / Videos) ──────────
-                    Repeater {
-                        model: [
-                            { type: "image", icon: "🖼", label: "Images" },
-                            { type: "gif",   icon: "🎬", label: "GIFs"  },
-                            { type: "video", icon: "▶",  label: "Videos" }
-                        ]
-                        delegate: Rectangle {
-                            required property var modelData
-                            readonly property bool active: content.activeTypeFilters.includes(modelData.type)
-                            width:  active ? filterLabel.implicitWidth + 36 : 32
-                            height: 28
-                            radius: 14
-                            color: active
-                                ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
-                                : (filterHov.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04))
-                            border.color: active
-                                ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)
-                                : (filterHov.hovered ? Qt.rgba(1,1,1,0.12) : Qt.rgba(1,1,1,0.06))
-                            border.width: 1
-                            Behavior on width   { NumberAnimation { duration: Anim.standardSmall; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
-                            Behavior on color   { ColorAnimation  { duration: Anim.standardSmall } }
-                            Behavior on border.color { ColorAnimation { duration: Anim.standardSmall } }
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: active ? modelData.icon + " " + modelData.label : modelData.icon
-                                font.pixelSize: 11
-                                color: active ? Theme.active : Qt.rgba(1,1,1,0.45)
-                            }
-                            Text {
-                                id: filterLabel
-                                visible: false
-                                text: modelData.icon + " " + modelData.label
-                                font.pixelSize: 11
-                            }
-                            HoverHandler { id: filterHov; cursorShape: Qt.PointingHandCursor }
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: content.toggleTypeFilter(modelData.type)
-                            }
-                        }
-                    }
-
-                    // ── Divider ─────────────────────────────────────────────
-                    Rectangle {
-                        width: 1; height: 20
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: Qt.rgba(1,1,1,0.1)
-                    }
 
                     Rectangle {
                         id:                 folderBtn

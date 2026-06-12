@@ -33,38 +33,42 @@ QtObject {
 
     // ============================================
     // DURATION PRESETS (ms)
+    // Base aligned with Ambxst: animDuration = 300ms
     // ============================================
 
     // Standard motion (UI feedback, small transitions)
-    readonly property int standardSmall:     120
-    readonly property int standardNormal:    250
-    readonly property int standardLarge:     350
-    readonly property int standardExtraLarge: 450
+    readonly property int standardSmall:      150
+    readonly property int standardNormal:     300
+    readonly property int standardLarge:      400
+    readonly property int standardExtraLarge: 500
 
     // Emphasized motion (larger UI changes, entrances/exits)
-    readonly property int emphasizedSmall:   200
-    readonly property int emphasizedNormal:  350
-    readonly property int emphasizedLarge:   500
+    readonly property int emphasizedSmall:    250
+    readonly property int emphasizedNormal:   400
+    readonly property int emphasizedLarge:    550
 
     // Spatial motion (movement across space)
-    readonly property int spatialFast:       150
-    readonly property int spatialDefault:    300
-    readonly property int spatialSlow:       450
+    readonly property int spatialFast:        200
+    readonly property int spatialDefault:     350
+    readonly property int spatialSlow:        500
 
     // Spring motion (elastic/bouncy)
-    readonly property int springSmall:       300
-    readonly property int springNormal:      450
-    readonly property int springLarge:       600
+    readonly property int springSmall:        350
+    readonly property int springNormal:       500
+    readonly property int springLarge:        650
 
     // ============================================
-    // EASING PRESETS
+    // EASING PRESETS (Ambxst-inspired)
     // ============================================
 
     readonly property var _easings: ({
-        "standard":       { type: Easing.Bezier, bezierCurve: [0.2, 0.0, 0.0, 1.0] },
+        "standard":       { type: Easing.Bezier, bezierCurve: [0.25, 0.0, 0.0, 1.0] },  // OutQuart — main Ambxst curve
+        "outQuart":       { type: Easing.Bezier, bezierCurve: [0.25, 0.0, 0.0, 1.0] },  // OutQuart alias
+        "outCubic":       { type: Easing.Bezier, bezierCurve: [0.0,  0.0, 0.2, 1.0] },  // OutCubic — Ambxst secondary
+        "outSine":        { type: Easing.Bezier, bezierCurve: [0.4,  0.0, 0.6, 1.0] },  // OutSine — Ambxst gentle
         "emphasized":     { type: Easing.Bezier, bezierCurve: [0.05, 0.7, 0.1, 1.0] },
         "emphasizedExit": { type: Easing.Bezier, bezierCurve: [0.3, 0.0, 0.8, 0.15] },
-        "collapse":       { type: Easing.Bezier, bezierCurve: [0.25, 1.0, 0.5, 1.0] },  // OutQuart
+        "collapse":       { type: Easing.Bezier, bezierCurve: [0.25, 1.0, 0.5, 1.0] },
         "spatial":        { type: Easing.Bezier, bezierCurve: [0.4, 0.0, 0.2, 1.0] },
         "decelerate":     { type: Easing.Bezier, bezierCurve: [0.0, 0.0, 0.2, 1.0] },
         "accelerate":     { type: Easing.Bezier, bezierCurve: [0.4, 0.0, 1.0, 1.0] },

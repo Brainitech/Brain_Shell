@@ -26,33 +26,39 @@ Item {
         return AppSearch.fuzzyQuery(q)
     }
 
-    // ── Load apps ─────────────────────────────────────────────────────────────
+    // ── Preload apps at startup (not just when launcher becomes visible) ─────
+    Component.onCompleted: _loadApps()
+
+    // Track when DesktopEntries discovers new apps — refresh the list
+    Connections {
+        target: AppSearch
+        function onListChanged() {
+            if (root.visible) _loadApps()
+        }
+    }
+
+    // ── Reload when becoming visible (catches any missed updates) ────────────
     onVisibleChanged: {
         if (!visible) return
-        root.loading   = true
         root.query     = ""
         root.selIndex  = -1
         searchInput.text = ""
-        // Defer to allow DesktopEntries to be ready
-        loadTimer.restart()
+        _loadApps()
+        focusTimer.restart()
     }
 
-    Timer {
-        id: loadTimer
-        interval: 150
-        onTriggered: {
-            var apps = []
-            try {
-                apps = AppSearch.getAllApps()
-                console.log("[AppLauncher] loaded", apps.length, "apps")
-            } catch(e) {
-                console.warn("[AppLauncher] AppSearch failed:", e)
-            }
-            root.apps = apps || []
-            root.loading = false
-            root.selIndex = root.apps.length > 0 ? 0 : -1
-            focusTimer.restart()
+    function _loadApps() {
+        root.loading = (root.apps.length === 0)
+        var list = []
+        try {
+            list = AppSearch.getAllApps()
+            console.log("[AppLauncher] loaded", list.length, "apps")
+        } catch(e) {
+            console.warn("[AppLauncher] AppSearch failed:", e)
         }
+        root.apps = list || []
+        root.loading = false
+        root.selIndex = root.apps.length > 0 ? 0 : -1
     }
 
     Timer {

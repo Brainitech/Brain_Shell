@@ -2,6 +2,7 @@ StyledRect StyledRect.qml
 Surface Surface.qml
 StateLayer StateLayer.qml
 AnimatedBehavior AnimatedBehavior.qml
+ShellPopupBase ShellPopupBase.qml
 IconBtn IconBtn.qml
 TabSwitcher TabSwitcher.qml
 PopupPage PopupPage.qml

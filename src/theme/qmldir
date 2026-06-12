@@ -1,5 +1,6 @@
+singleton FMath FMath.qml
+singleton Anim Anim.qml
 singleton Theme Theme.qml
 singleton Colors Colors.qml
 singleton Metrics Metrics.qml
-singleton Anim Anim.qml
 ColorLoader ColorLoader.qml

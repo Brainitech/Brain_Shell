@@ -28,7 +28,7 @@ PanelWindow {
 
     margins {
         top: (edge !== "bottom") ? ShellState.focusMode ? Theme.borderWidth : Theme.notchHeight: 0
-        Behavior on top { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }}
+        Behavior on top { NumberAnimation { duration: Anim.standardNormal; easing: Anim.standard }}
         
         bottom: (edge !== "bottom") ? radius : 0
     }

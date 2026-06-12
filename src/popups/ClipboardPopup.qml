@@ -68,11 +68,11 @@ PanelWindow {
         anchors.bottomMargin: Theme.borderWidth
         clip: true
 
-        width:  Popups.clipboardOpen ? root.popupWidth  + root.fw : 0
-        height: Popups.clipboardOpen ? root.popupHeight + root.fh : 0
+        width:  Popups.clipboardOpen ? root.popupWidth  + root.fw : 1
+        height: Popups.clipboardOpen ? root.popupHeight + root.fh : 1
 
-        Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
-        Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
+        Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
+        Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
 
         PopupShape {
             anchors.fill: parent
@@ -83,7 +83,7 @@ PanelWindow {
             flareHeight:  root.fh
         }
 
-        Item {
+        ShellPopupBase {
             id: content
             anchors {
                 fill:         parent
@@ -91,15 +91,10 @@ PanelWindow {
                 leftMargin:   root.fw + 10
                 bottomMargin: 8
             }
-
-            opacity: Popups.clipboardOpen ? 1 : 0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Popups.clipboardOpen ? Math.round(Anim.standardNormal * 0.5) : Math.round(Anim.standardNormal * 0.15)
-                    easing.type: Anim.easing("standard").type
-                    easing.bezierCurve: Anim.easing("standard").bezierCurve
-                }
-            }
+            isOpen: Popups.clipboardOpen
+            transformEdge: "bottom"
+            disableAutoHide: true
+            clip: true
 
             HistoryTab { anchors.fill: parent }
         }

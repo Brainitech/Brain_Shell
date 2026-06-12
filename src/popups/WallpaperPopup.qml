@@ -157,10 +157,10 @@ PanelWindow {
         clip: true
 
         width:  Popups.wallpaperOpen ? root.panelWidth + 2 * root.fw : Theme.cNotchMinWidth + 2 * root.fw
-        height: Popups.wallpaperOpen ? root.panelHeight : 0
+        height: Popups.wallpaperOpen ? root.panelHeight : 1
 
-        Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
-        Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
+        Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
+        Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
 
         HoverHandler {
             onHoveredChanged: root.selfHovered = hovered
@@ -180,9 +180,8 @@ PanelWindow {
             flareHeight:  root.fh
         }
 
-        Item {
+        ShellPopupBase {
             id: content
-            focus: true
             anchors {
                 fill:         parent
                 topMargin:    16
@@ -190,6 +189,9 @@ PanelWindow {
                 leftMargin:   root.fw + 16
                 rightMargin:  root.fw + 16
             }
+            isOpen: Popups.wallpaperOpen
+            transformEdge: "top"
+            disableAutoHide: true
 
             property string searchQuery:     ""
             property bool   schemePopupOpen: false
@@ -209,19 +211,6 @@ PanelWindow {
                 (WallpaperService.currentWall !== "" &&
                  WallpaperService.scheme !== content.appliedScheme)
 
-            opacity: Popups.wallpaperOpen ? 1 : 0
-            transform: Translate {
-                y: Popups.wallpaperOpen ? 0 : 40
-                Behavior on y { NumberAnimation { duration: Anim.standardLarge; easing.type: Anim.easing("decelerate").type; easing.bezierCurve: Anim.easing("decelerate").bezierCurve } }
-            }
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Popups.wallpaperOpen ? Math.round(Anim.standardNormal * 0.5) : Math.round(Anim.standardNormal * 0.15)
-                    easing.type: Anim.easing("standard").type
-                    easing.bezierCurve: Anim.easing("standard").bezierCurve
-                }
-            }
-
             ListView {
                 id: wallGrid
                 property int targetCenterIndex: -1
@@ -235,6 +224,9 @@ PanelWindow {
                 anchors.right:        parent.right
                 anchors.bottom:       divider.top
                 anchors.bottomMargin: 8
+
+                // Prevent QFont::setPointSize(0) when sizer animates from 0
+                visible: parent.height > 10
 
                 orientation:    ListView.Horizontal
                 spacing:        14
@@ -357,16 +349,27 @@ PanelWindow {
                             }
                         }
 
-                        // Real videos → lightweight preview
+                        // Real videos — use cached H.264 for preview (no VP9 CPU decode)
                         Component {
                             id: videoPreviewComp
-                            Video {
+                            Item {
                                 anchors.fill: parent
-                                source:   "file://" + cardDelegate.modelData
-                                loops:    MediaPlayer.Infinite
-                                autoPlay: true
-                                muted:    true
-                                fillMode: VideoOutput.PreserveAspectCrop
+                                property string _resolvedPath: ""
+                                Component.onCompleted: {
+                                    if (VideoWallpaperService) {
+                                        VideoWallpaperService.getEffectivePath(cardDelegate.modelData, function(p) {
+                                            _resolvedPath = p || cardDelegate.modelData
+                                        })
+                                    }
+                                }
+                                Video {
+                                    anchors.fill: parent
+                                    source:   parent._resolvedPath ? "file://" + parent._resolvedPath : ""
+                                    loops:    MediaPlayer.Infinite
+                                    autoPlay: true
+                                    muted:    true
+                                    fillMode: VideoOutput.PreserveAspectCrop
+                                }
                             }
                         }
 

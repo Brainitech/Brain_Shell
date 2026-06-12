@@ -85,8 +85,8 @@ PopupWindow {
                 ? notifList.height + Theme.popupPadding * 2 + root.fh
                 : root.fh
 
-        Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
-        Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
+        Behavior on width  { NumberAnimation { duration: root.animDuration; easing: Anim.outBack } }
+        Behavior on height { NumberAnimation { duration: root.animDuration; easing: Anim.outBack } }
 
         // ── Background ─────────────────────────────────────────
         PopupShape {
@@ -101,7 +101,8 @@ PopupWindow {
         // ── Content ────────────────────────────────────────────
         // Inset clear of the flare region.
         // Fades in slowly after expansion, fades out fast on close.
-        Item {
+        ShellPopupBase {
+            id: content
             anchors {
                 fill:         parent
                 topMargin:    root.fh + 4
@@ -109,16 +110,9 @@ PopupWindow {
                 rightMargin:  4
                 bottomMargin: 4
             }
-
-            opacity: Popups.notificationsOpen ? 1 : 0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Popups.notificationsOpen
-                              ? root.animDuration * 0.5
-                              : root.animDuration * 0.15
-                }
-            }
-
+            isOpen: Popups.notificationsOpen
+            transformEdge: "right"
+            disableAutoHide: true
             NotificationList {
                 id:    notifList
                 width: parent.width

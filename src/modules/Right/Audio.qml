@@ -53,7 +53,7 @@ Item {
             implicitHeight: pctText.implicitHeight
             clip: true
             anchors.verticalCenter: parent.verticalCenter
-            Behavior on implicitWidth { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
+            Behavior on implicitWidth { NumberAnimation { duration: Anim.standardNormal; easing: Anim.standard } }
         
             Text {
                 id: pctText

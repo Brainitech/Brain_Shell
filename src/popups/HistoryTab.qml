@@ -10,24 +10,18 @@ Item {
     readonly property var pinned:  ClipboardService.pinned  ?? []
     readonly property var history: ClipboardService.entries ?? []
 
-    // ── Search & filter state ──────────────────────────────────────────────────
-    property string searchQuery: ""
-    property string activeCategory: "all"  // "all" | "text" | "images" | "links"
-
     // ── Flat unified model ─────────────────────────────────────────────────────
     readonly property var flatModel: {
         var result = []
         var pins   = root.pinned
         var hist   = root.history
 
-        // Build fast-lookup set of pinned previews/texts for O(1) dedup
         var lookup = {}
         for (var k = 0; k < pins.length; k++) {
             if (pins[k].preview) lookup[pins[k].preview] = true
             if (pins[k].text)    lookup[pins[k].text]    = true
         }
 
-        // Pinned section (top)
         for (var pi = 0; pi < pins.length; pi++) {
             result.push({
                 kind:     "pinned",
@@ -35,51 +29,21 @@ Item {
                 preview:  pins[pi].preview ?? pins[pi].text ?? "",
                 storedId: pins[pi].id      ?? "",
                 pinIndex: pi,
-                isImage:  false,
-                isLink:   (pins[pi].text ?? pins[pi].preview ?? "").match(/^https?:\/\//) !== null
+                isImage:  false
             })
         }
 
-        // History section
         for (var hi = 0; hi < hist.length; hi++) {
             var e = hist[hi]
             if (!e.isImage && (lookup[e.preview] || lookup[(e.preview ?? "").trim()])) continue
-            var preview = e.preview ?? ""
             result.push({
                 kind:    "entry",
                 id:      e.id,
-                preview: preview,
-                isImage: e.isImage ?? false,
-                isLink:  !e.isImage && preview.match(/^https?:\/\//) !== null
+                preview: e.preview,
+                isImage: e.isImage ?? false
             })
         }
 
-        return result
-    }
-
-    // ── Filtered model (search + category) ─────────────────────────────────────
-    readonly property var filteredModel: {
-        if (root.searchQuery === "" && root.activeCategory === "all") return root.flatModel
-
-        var q = root.searchQuery.toLowerCase().trim()
-        var result = []
-        for (var i = 0; i < root.flatModel.length; i++) {
-            var item = root.flatModel[i]
-
-            // Category filter
-            if (root.activeCategory === "images" && !item.isImage) continue
-            if (root.activeCategory === "links"  && !item.isLink)  continue
-            if (root.activeCategory === "text"   && (item.isImage || item.isLink)) continue
-
-            // Search filter
-            if (q !== "") {
-                var preview = (item.preview || "").toLowerCase()
-                var text    = (item.text || "").toLowerCase()
-                if (preview.indexOf(q) < 0 && text.indexOf(q) < 0) continue
-            }
-
-            result.push(item)
-        }
         return result
     }
 
@@ -93,7 +57,6 @@ Item {
             height: 44
 
             Text {
-                anchors.centerIn: parent
                 text:           "Clipboard"
                 font.pixelSize: 14
                 font.weight:    Font.DemiBold
@@ -132,114 +95,6 @@ Item {
                 MouseArea { anchors.fill: parent; onClicked: ClipboardService.wipeHistory() }
             }
         }
-
-        // ── Search bar ─────────────────────────────────────────────────────────
-        Rectangle {
-            width: parent.width
-            height: 36
-            color: Qt.rgba(1, 1, 1, 0.03)
-            visible: root.flatModel.length > 0
-
-            Row {
-                anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
-                spacing: 6
-
-                Text {
-                    text: "󰍉"
-                    font.pixelSize: 13
-                    color: Qt.rgba(1, 1, 1, 0.25)
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-
-                TextInput {
-                    id: searchField
-                    width: 140
-                    anchors.verticalCenter: parent.verticalCenter
-                    font.pixelSize: 11
-                    color: Theme.text
-                    activeFocusOnPress: true
-
-                    Text {
-                        visible: searchField.text === ""
-                        text: "Search clipboard…"
-                        font.pixelSize: 11
-                        color: Qt.rgba(1, 1, 1, 0.18)
-                        anchors { left: parent.left; verticalCenter: parent.verticalCenter }
-                    }
-
-                    onTextChanged: root.searchQuery = text
-
-                    // Clear button
-                    Rectangle {
-                        anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                        width: 18; height: 18; radius: 9
-                        color: Qt.rgba(1, 1, 1, 0.06)
-                        visible: searchField.text !== ""
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "✕"; font.pixelSize: 8
-                            color: Qt.rgba(1, 1, 1, 0.35)
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                searchField.text = ""
-                                root.searchQuery = ""
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Category tabs
-            Row {
-                anchors { right: parent.right; rightMargin: 8; verticalCenter: parent.verticalCenter }
-                spacing: 3
-                property var tabs: [
-                    { key: "all",    label: "All" },
-                    { key: "text",   label: "Text" },
-                    { key: "images", label: "Images" },
-                    { key: "links",  label: "Links" }
-                ]
-
-                Repeater {
-                    model: parent.tabs
-                    delegate: Rectangle {
-                        required property var modelData
-                        width: catLabel.implicitWidth + 14
-                        height: 22
-                        radius: 6
-                        color: root.activeCategory === modelData.key
-                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
-                            : catHover.containsMouse
-                                ? Qt.rgba(1, 1, 1, 0.06)
-                                : "transparent"
-                        Behavior on color { ColorAnimation { duration: 120 } }
-
-                        Text {
-                            id: catLabel
-                            anchors.centerIn: parent
-                            text: modelData.label
-                            font.pixelSize: 10
-                            color: root.activeCategory === modelData.key
-                                ? Theme.active
-                                : Qt.rgba(1, 1, 1, 0.45)
-                        }
-
-                        HoverHandler { id: catHover; cursorShape: Qt.PointingHandCursor }
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: root.activeCategory = modelData.key
-                        }
-                    }
-                }
-            }
-        }
-
-        // Divider
-        Rectangle { width: parent.width; height: 1; color: Qt.rgba(1,1,1,0.07) }
 
         // ── Content ────────────────────────────────────────────────────────────
         Item {
@@ -300,8 +155,8 @@ Item {
                 clip:           true
                 spacing:        4
                 boundsBehavior: Flickable.StopAtBounds
-                visible:        root.filteredModel.length > 0
-                model:          root.filteredModel
+                visible:        root.flatModel.length > 0
+                model:          root.flatModel
                 cacheBuffer:    2000
 
                 // Point to the detached scrollbar below

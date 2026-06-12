@@ -3,6 +3,11 @@ import QtQuick
 import "."
 
 QtObject {
+    // ── Animation ─────────────────────────────────────────────────────────
+    // Single configurable duration (Ambxst philosophy: uniformity feels pro).
+    // Set to 0 to disable animations globally.
+    property int animDuration: Anim.animationsEnabled ? Anim.standardNormal : 0
+
     // ── Bindings to Modular Singletons ────────────────────────────────────────
     // Note: property alias cannot point to other singletons, so we use direct bindings.
     

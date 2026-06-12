@@ -43,6 +43,7 @@ PanelWindow {
 
     // Effective video path (may be downscaled cache)
     property string _effectivePath: ""
+    property bool _waitingForCache: false
 
     function getFileType(p) {
         var ext = p.toLowerCase().split('.').pop()
@@ -125,16 +126,15 @@ PanelWindow {
         }
     }
 
-    // ── Wallpaper change handler with grow-from-below transition ───────────────
-    // Covers the screen with a curtain, then shrinks it upward to reveal
-    // the new wallpaper from bottom to top (grow-from-below effect).
+    // ── Wallpaper change: snapshot crossfade ──────────────────────────────────
+    // ── Wallpaper change handler with grow-from-below curtain transition ──────
     property string _lastPath: ""
 
     onCurrentPathChanged: {
         if (currentPath === _lastPath) return
         if (currentPath === "") return
 
-        // 1. Cover screen with curtain
+        // 1. Cover old wallpaper with curtain
         transitionCurtain.height = root.height
 
         // 2. Swap to new wallpaper path underneath
@@ -270,8 +270,9 @@ PanelWindow {
             id: videoPlayer
             anchors.fill: parent
             source: {
-                if (!isVideo) return ""
-                var p = root._effectivePath || root.currentPath
+                if (!isVideo || root._waitingForCache) return ""
+                // Only play from cache for VP9; H.264 can play original
+                var p = root._effectivePath || (VideoWallpaperService && VideoWallpaperService.needsTranscode(root.currentPath) ? "" : root.currentPath)
                 return p ? "file://" + p : ""
             }
             loops: MediaPlayer.Infinite
@@ -355,27 +356,33 @@ PanelWindow {
             }
         }
 
-        // Interpolation shader — blends previous + current frame
-        ShaderEffect {
-            id: interpolationEffect
+        // Interpolation shader — only loaded when feature is enabled
+        // Avoids shader loading warnings when .qsb files are not compiled
+        Loader {
+            id: interpolationLoader
             anchors.fill: parent
-            visible: videoRoot.interpolate && videoRoot.multiplier > 1
-            property var currentFrame: liveSource
-            property var previousFrame: previousFrameSource
-            property real blendFactor: videoRoot.blendFactor
-            property vector2d iResolution: Qt.vector2d(width, height)
-            property int blockSize: 12
-            property int searchRadius: 3
-            property real motionThreshold: 0.05
-            property int debugMode: 0
-            property int isOriginalFrame: videoRoot.isOriginalFrame ? 1 : 0
-            property int frameCounter: videoRoot.frameCounter
-            vertexShader:   "../config/shaders/video/interpol.vert.qsb"
-            fragmentShader: "../config/shaders/video/interpol.frag.qsb"
-            onStatusChanged: {
-                if (status === ShaderEffect.Error) {
-                    console.warn("Brain_Shell: interpolation shader error — falling back to direct video")
-                    videoRoot.interpolate = false
+            active: videoRoot.interpolate && videoRoot.multiplier > 1
+            sourceComponent: Component {
+                ShaderEffect {
+                    anchors.fill: parent
+                    property var currentFrame: liveSource
+                    property var previousFrame: previousFrameSource
+                    property real blendFactor: videoRoot.blendFactor
+                    property vector2d iResolution: Qt.vector2d(width, height)
+                    property int blockSize: 12
+                    property int searchRadius: 3
+                    property real motionThreshold: 0.05
+                    property int debugMode: 0
+                    property int isOriginalFrame: videoRoot.isOriginalFrame ? 1 : 0
+                    property int frameCounter: videoRoot.frameCounter
+                    vertexShader:   "../config/shaders/video/interpol.vert.qsb"
+                    fragmentShader: "../config/shaders/video/interpol.frag.qsb"
+                    onStatusChanged: {
+                        if (status === ShaderEffect.Error) {
+                            console.warn("Brain_Shell: interpolation shader error — falling back to direct video")
+                            videoRoot.interpolate = false
+                        }
+                    }
                 }
             }
         }
@@ -397,23 +404,23 @@ PanelWindow {
     }  // end contentContainer
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  GROW-FROM-BELOW TRANSITION
-    //  A curtain covers the old wallpaper, then shrinks upward (anchored top),
-    //  revealing the new wallpaper from the bottom → growing upward.
+    //  GROW-FROM-BELOW TRANSITION CURTAIN
+    //  Covers old wallpaper, then shrinks upward revealing the new one.
+    //  Simple, works with all media types (video, GIF, static image).
     // ═══════════════════════════════════════════════════════════════════════════
     Rectangle {
         id: transitionCurtain
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-        height: 0  // hidden by default
+        height: 0
         color: Theme.background
         z: 10
 
         Behavior on height {
             NumberAnimation {
-                duration: 500
-                easing.type: Easing.OutCubic
+                duration: Anim.standardLarge
+                easing: Anim.outQuart
             }
         }
     }

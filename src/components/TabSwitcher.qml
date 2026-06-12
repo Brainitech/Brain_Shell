@@ -2,20 +2,20 @@ import QtQuick
 import "../"
 import "../theme"
 
-// Unified tab switcher — horizontal or vertical.
+// Unified tab switcher - horizontal or vertical.
 //
-// orientation: "horizontal" (default) — Row, fills parent width, tabs spaced equally
-//              "vertical"             — Column, fills parent height, tabs spaced equally
+// orientation: "horizontal" (default) - Row, fills parent width, tabs spaced equally
+//              "vertical"             - Column, fills parent height, tabs spaced equally
 //
 // Horizontal: icon + label pill, bottom divider. Used by Dashboard.
 // Vertical:   icon-only solid pill. Used by ArchMenu.
 //
 // Model: [{ key: string, icon: string, label?: string }]
-// label is optional — only rendered in horizontal orientation.
+// label is optional - only rendered in horizontal orientation.
 //
 // Sizing contract:
-//   Horizontal — parent MUST set width.  implicitHeight is 40.
-//   Vertical   — parent MUST set height. implicitWidth  is 40.
+//   Horizontal - parent MUST set width.  implicitHeight is 40.
+//   Vertical   - parent MUST set height. implicitWidth  is 40.
 
 Item {
 	id: root
@@ -64,7 +64,7 @@ Item {
 		}
 	}
 
-	// ── HORIZONTAL layout — Row ───────────────────────────────────────────────
+	// ── HORIZONTAL layout - Row ───────────────────────────────────────────────
 	Row {
 		id: hRow
 		anchors.fill: parent
@@ -92,7 +92,9 @@ Item {
 					? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
 					: (hHov.hovered ? Qt.rgba(1, 1, 1, 0.07) : "transparent")
 
+					scale: hHov.hovered ? 1.04 : 1.0
 					Behavior on color { ColorAnimation { duration: Anim.standardSmall } }
+					Behavior on scale { NumberAnimation { duration: Anim.microHover; easing: Anim.outBack } }
 				}
 
 				// Icon + label
@@ -134,7 +136,7 @@ Item {
 		}
 	}
 
-	// Bottom divider — horizontal only
+	// Bottom divider - horizontal only
 	Rectangle {
 		visible:        root.orientation === "horizontal"
 		anchors.bottom: parent.bottom
@@ -144,40 +146,42 @@ Item {
 		color:          Qt.rgba(1, 1, 1, 0.07)
 	}
 
-	// ── VERTICAL layout — Column ──────────────────────────────────────────────
+	// ── VERTICAL layout - Column ──────────────────────────────────────────────
 	    Column {
 	        id: vCol
 	        anchors.centerIn: parent
 	        visible: root.orientation === "vertical"
 	        width:   root.width
-	
+
 	        readonly property int tabH: 60
 	        spacing: root.model.length > 1
 	            ? (root.height - root.model.length * tabH) / (root.model.length - 1)
 	            : 0
-	
+
 	        readonly property bool hasLabels:
 	            root.model.length > 0 &&
 	            root.model[0].label !== undefined &&
 	            root.model[0].label !== ""
-	
+
 	        Repeater {
 	            model: root.orientation === "vertical" ? root.model : []
-	
+
 	            delegate: Rectangle {
 	                id: vTab
 	                readonly property bool isActive: root.currentPage === modelData.key
-	
+
 	                width:  vCol.width
 	                height: vCol.tabH
 	                radius: Theme.cornerRadius * 2
-	
+
 	                color: vTab.isActive
 	                    ? Theme.active
 	                    : (vHov.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent")
-	
+
+	                scale: vHov.hovered ? 1.03 : 1.0
 	                Behavior on color { ColorAnimation { duration: Anim.standardSmall } }
-	
+	                Behavior on scale { NumberAnimation { duration: Anim.microHover; easing: Anim.outBack } }
+
 	                // Icon-only (no label)
 	                Text {
 	                    visible:          !vCol.hasLabels
@@ -187,7 +191,7 @@ Item {
 	                    color: vTab.isActive ? Theme.background : Theme.text
 	                    Behavior on color { ColorAnimation { duration: Anim.standardSmall } }
 	                }
-	
+
 	                // Icon + label row
 	                Row {
 	                    visible: vCol.hasLabels
@@ -197,7 +201,7 @@ Item {
 	                        verticalCenter: parent.verticalCenter
 	                    }
 	                    spacing: 12
-	
+
 	                    Text {
 	                        text:           modelData.icon
 	                        font.pixelSize: 15
@@ -207,7 +211,7 @@ Item {
 	                            : (vHov.hovered ? Qt.rgba(1, 1, 1, 0.80) : Qt.rgba(1, 1, 1, 0.42))
 	                        Behavior on color { ColorAnimation { duration: Anim.standardSmall } }
 	                    }
-	
+
 	                    Text {
 	                        text:           modelData.label ?? ""
 	                        font.pixelSize: 12
@@ -219,7 +223,7 @@ Item {
 	                        Behavior on color { ColorAnimation { duration: Anim.standardSmall } }
 	                    }
 	                }
-	
+
 	                HoverHandler { id: vHov; cursorShape: Qt.PointingHandCursor }
 	                MouseArea {
 	                    anchors.fill: parent

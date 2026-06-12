@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell.Services.UPower
 import "../"
-import "../theme"
 
 // Config:
 //showPercentage: bool — always show % beside icon (default: false = hover only)
@@ -13,6 +12,9 @@ Item {
 
     // ── UPower data ──────────────────────────────────────────────────────────
     readonly property var  bat:      UPower.displayDevice
+    // Auto-hide on desktops (no battery hardware). Only show when
+    // UPower confirms a laptop battery exists.
+    visible: bat.ready && bat.isLaptopBattery
     readonly property real pct:      bat.ready ? Math.round(bat.percentage * 100) : 0
     readonly property bool charging: bat.ready
                                      ? (bat.state === UPowerDeviceState.Charging ||
@@ -134,7 +136,7 @@ Item {
             implicitHeight: pctText.implicitHeight
             clip: true
             anchors.verticalCenter: parent.verticalCenter
-            Behavior on implicitWidth { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
+            Behavior on implicitWidth { NumberAnimation { duration: Anim.standardNormal; easing: Anim.standard } }
 
             Text {
                 id: pctText

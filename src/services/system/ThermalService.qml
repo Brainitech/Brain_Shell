@@ -38,13 +38,9 @@ QtObject {
         }
     }
 
-    // ── nvidia-smi GPU temp ───────────────────────────────────────────────────
+    // ── nvidia-smi GPU temp (only if available) ────────────────────────────────
     property var _nvProc: Process {
-        command: [
-            "nvidia-smi",
-            "--query-gpu=temperature.gpu",
-            "--format=csv,noheader,nounits"
-        ]
+        command: ["bash", "-c", "command -v nvidia-smi >/dev/null && nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits 2>/dev/null || true"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
@@ -59,7 +55,7 @@ QtObject {
 
     // ── Poll timer ────────────────────────────────────────────────────────────
     property var _timer: Timer {
-        interval: 2000
+        interval: Popups.dashboardOpen ? 2000 : 8000
         running:  root.active
         repeat:   true
         onTriggered: root._run()

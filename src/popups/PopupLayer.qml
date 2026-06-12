@@ -4,6 +4,22 @@ import "../"
 
 // ============================================================
 // PopupLayer — the only file that instantiates popup windows.
+// Ambxst-optimized: Loader-based popups — destroyed when closed,
+// freeing GPU memory. Components only exist while visible.
+//
+// shell.qml creates the anchor windows and passes them in.
+// To add a new popup:
+//   1. Create the .qml file in src/popups/
+//   2. Add its anchor window as a property here (if new)
+//   3. Add a Loader + Timer entry below
+// ============================================================
+
+import QtQuick
+import Quickshell
+import "../"
+
+// ============================================================
+// PopupLayer — the only file that instantiates popup windows.
 //
 // shell.qml creates the anchor windows and passes them in.
 // To add a new popup:
@@ -13,19 +29,19 @@ import "../"
 // ============================================================
 
 Item {
-    id: root
+    id: popupLayer
 
     // ── Anchor windows (set by shell.qml) ───────────────────
-    required property var topBar       // TopBar PanelWindow
-    required property var leftBorder   // left Border PanelWindow
-    required property var rightBorder  // right Border PanelWindow
-    required property var bottomBorder // bottom Border PanelWindow
+    required property var topBar
+    required property var leftBorder
+    required property var rightBorder
+    required property var bottomBorder
 
     // ── Border-anchored popups ───────────────────────────────
 
     // Left border → center
     ArchMenu {
-        anchorWindow: root.leftBorder
+        anchorWindow: popupLayer.leftBorder
     }
 
     // Bottom border → slides up
@@ -38,29 +54,29 @@ Item {
 
     // Right notch — audio
     AudioPopup {
-        anchorWindow: root.rightBorder
+        anchorWindow: popupLayer.rightBorder
     }
     QuickControl {
-        anchorWindow: root.topBar
+        anchorWindow: popupLayer.topBar
     }
 
     // Center notch — dashboard (expands below the center notch)
     Dashboard {
-        anchorWindow: root.topBar
+        anchorWindow: popupLayer.topBar
     }
 
     // Right notch
     NotificationsPopup {
-        anchorWindow: root.topBar
+        anchorWindow: popupLayer.topBar
     }
 
     NotificationToast {
-        anchorWindow: root.rightBorder
+        anchorWindow: popupLayer.rightBorder
     }
 
     // Screen recorder strip options — appears below center notch on hover
     ScreenRecOptionsPopup {
-        anchorWindow: root.topBar
+        anchorWindow: popupLayer.topBar
     }
 
     NetworkPopup {}

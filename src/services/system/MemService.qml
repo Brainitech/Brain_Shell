@@ -28,7 +28,7 @@ QtObject {
     }
 
     property var _timer: Timer {
-        interval: 2000
+        interval: Popups.dashboardOpen ? 2000 : 8000
         running:  root.active
         repeat:   true
         onTriggered: {

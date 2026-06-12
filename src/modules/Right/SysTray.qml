@@ -5,78 +5,54 @@ import Quickshell.Services.SystemTray
 import "../../components"
 import "../../windows"
 import "../../"
-import "../../theme"
 
 RowLayout {
     id: root
 
-    // Wrap tray icons in a Flickable to prevent clipping when many items are present
-    Item {
+    RowLayout {
+        id: trayRow
         Layout.alignment: Qt.AlignVCenter
-        Layout.preferredWidth: trayRow.isOpen ? Math.min(trayRow.implicitWidth, 260) : 0
-        Layout.preferredHeight: 26
+
+        property bool isOpen: false
+
+        // Smooth fade-and-slide instead of abrupt disappearance
+        visible: opacity > 0
+        opacity: isOpen ? 1 : 0
+        Layout.preferredWidth: isOpen ? implicitWidth : 0
         clip: true
 
-        Behavior on Layout.preferredWidth {
-            NumberAnimation { duration: Anim.standardSmall; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
-        }
+        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+        Behavior on Layout.preferredWidth { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
 
-        Flickable {
-            id: trayFlick
-            anchors.fill: parent
-            contentWidth: trayRow.implicitWidth
-            contentHeight: 26
-            boundsBehavior: Flickable.StopAtBounds
-            interactive: trayRow.isOpen && trayRow.implicitWidth > parent.width
+        Repeater {
+            model: SystemTray.items
+            delegate: Rectangle {
+                width: 26
+                height: 26
+                radius: 6
+                color: trayMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.1) : "transparent"
 
-            RowLayout {
-                id: trayRow
-                anchors.verticalCenter: parent.verticalCenter
-
-                // Custom state for toggling
-                property bool isOpen: false
-
-                opacity: isOpen ? 1 : 0
-                Behavior on opacity {
-                    NumberAnimation { duration: Anim.standardSmall; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
+                Image {
+                    width: 16
+                    height: 16
+                    anchors.centerIn: parent
+                    source: modelData.icon
+                    smooth: true
                 }
 
-                Repeater {
-                    model: SystemTray.items
-                    delegate: Rectangle {
-                        // UX: Larger 28x28 hit-box makes it easier to click than a 16x16 icon
-                        width: 26
-                        height: 26
-                        radius: 6
-                        color: trayMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.1) : "transparent" // Subtle hover effect
+                MouseArea {
+                    id: trayMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
 
-                        Image {
-                            width: 16
-                            height: 16
-                            anchors.centerIn: parent
-                            source: modelData.icon
-                            smooth: true
-                            sourceSize.width:  16
-                            sourceSize.height: 16
-                            asynchronous: true
-                        }
-
-                        MouseArea {
-                            id: trayMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor // Visual cue that it's clickable
-                            acceptedButtons: Qt.LeftButton | Qt.RightButton
-
-                            onClicked: (mouse) => {
-                                if (mouse.button === Qt.LeftButton) {
-                                    modelData.activate()
-                                } else if (mouse.button === Qt.RightButton) {
-                                    // Support for native context menus if Quickshell exposes it
-                                    if (typeof modelData.contextMenu === "function") {
-                                        modelData.contextMenu()
-                                    }
-                                }
+                    onClicked: (mouse) => {
+                        if (mouse.button === Qt.LeftButton) {
+                            modelData.activate()
+                        } else if (mouse.button === Qt.RightButton) {
+                            if (typeof modelData.contextMenu === "function") {
+                                modelData.contextMenu()
                             }
                         }
                     }

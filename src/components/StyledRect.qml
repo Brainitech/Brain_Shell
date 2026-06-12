@@ -61,6 +61,6 @@ ClippingRectangle {
     }
     Behavior on opacity {
         enabled: Anim.animationsEnabled
-        NumberAnimation { duration: Anim.standardSmall; easing.type: Anim.easing("standard").type }
+        NumberAnimation { duration: Anim.standardSmall; easing: Anim.standard }
     }
 }

@@ -284,26 +284,23 @@ declare -A IPC_MAP=(
 
 send_ipc() {
     local cmd="$1"
+
+    # Fast path: write directly to named pipe (no PID lookup needed)
     if [[ -p "$PIPE" ]]; then
-        echo "$cmd" > "$PIPE" &
+        echo "$cmd" > "$PIPE" 2>/dev/null &
         return 0
     fi
 
+    # Slow path: fall back to qs ipc if pipe doesn't exist
     local pid
     pid=$(find_brain_shell_pid_cached)
     if [[ -z "$pid" ]]; then
-        echo "Error: Brain_Shell is not running"
         return 1
     fi
 
-    # Translate friendly name to original IPC target
     local target="${IPC_MAP[$cmd]:-$cmd}"
     qs ipc --pid "$pid" call "$target" toggle 2>/dev/null || {
-        # Fallback: try as brain-shell run (for screenshot/color-picker/etc.)
-        qs ipc --pid "$pid" call brain-shell "$cmd" 2>/dev/null || {
-            echo "Error: Could not send command '$cmd'"
-            return 1
-        }
+        qs ipc --pid "$pid" call brain-shell "$cmd" 2>/dev/null
     }
 }
 

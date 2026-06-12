@@ -55,7 +55,8 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
 
     WlrLayershell.layer:         WlrLayer.Overlay
-    // Exclusive focus only when fully open and visible.
+    // Exclusive focus only when fully open and visible — no timer delay.
+    // (A delayed grab creates a 15ms hole where first clicks are lost.)
     WlrLayershell.keyboardFocus: (windowVisible && Popups.dashboardOpen) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     property bool windowVisible: false
@@ -92,39 +93,38 @@ PanelWindow {
         onClicked:    Popups.dashboardOpen = false
     }
 
-    // ── Sizer ─────────────────────────────────────────────────────────────────
-    // topMargin: Theme.notchHeight places the sizer top exactly at the notch
-    // bottom — identical to where PopupWindow put it. No fh subtraction, which
-    // was the source of the vertical offset in the text-working variant.
+    // ── Sizer — anchored at y=0, expands downward FROM inside the notch.
+    // PopupShape flare melts into the notch. clip: false lets the flare
+    // extend above y=0 into the notch area (was clipped → black gap).
     Item {
         id: sizer
         anchors.top:              parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        clip: true
+        clip: false
 
         width:  Popups.dashboardOpen ? Popups.dashboardPageWidth + 2 * root.fw : Theme.cNotchMinWidth + 2 * root.fw
         height: Popups.dashboardOpen ? Theme.dashboardHeight : Theme.notchHeight / 2
 
-        Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
-        Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
-        
+        Behavior on width  { NumberAnimation { duration: root.animDuration; easing: Anim.outBack } }
+        Behavior on height { NumberAnimation { duration: root.animDuration; easing: Anim.outBack } }
+
         MouseArea {
             anchors.fill: parent
             onClicked:    {}
         }
 
-        // ── Background ────────────────────────────────────────────────────────
+        // ── Background — flare extends into notch area (above sizer bounds) ──
         PopupShape {
             anchors.fill: parent
             attachedEdge: "top"
             color:        Theme.background
             radius:       Theme.cornerRadius
             flareWidth:   root.fw
-            flareHeight:  root.fh
+            flareHeight:  Theme.notchHeight  // must cover notch (40px), not just corner
         }
 
-        // ── Content ───────────────────────────────────────────────────────────
-        Item {
+        // ── Content (Ambxst scale+opacity combo) ──────────────────────────
+        ShellPopupBase {
             id: content
             anchors {
                 fill:         parent
@@ -133,17 +133,9 @@ PanelWindow {
                 rightMargin:  root.fw + 8
                 bottomMargin: 8
             }
-
-            opacity: Popups.dashboardOpen ? 1 : 0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Popups.dashboardOpen
-                        ? Math.round(root.animDuration * 0.5)
-                        : Math.round(root.animDuration * 0.15)
-                    easing.type: Anim.easing("standard").type
-                    easing.bezierCurve: Anim.easing("standard").bezierCurve
-                }
-            }
+            isOpen: Popups.dashboardOpen
+            transformEdge: "top"
+            disableAutoHide: true
 
             Column {
                 anchors.fill: parent

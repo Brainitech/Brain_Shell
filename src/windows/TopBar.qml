@@ -30,12 +30,12 @@ PanelWindow {
     // PopupWindow is the one that must never have animated implicitHeight.
     implicitHeight: ShellState.focusMode ? Theme.borderWidth : Theme.notchHeight
     Behavior on implicitHeight {
-        NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
+        NumberAnimation { duration: Anim.standardNormal; easing: Anim.standard }
     }
 
     exclusiveZone: ShellState.focusMode ? 0 : Theme.exclusionGap
     Behavior on exclusiveZone {
-        NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
+        NumberAnimation { duration: Anim.standardNormal; easing: Anim.standard }
     }
 
     readonly property int lWidth: Math.max(
@@ -54,7 +54,7 @@ PanelWindow {
                      centerContent.implicitWidth + Theme.notchPadding * 2)
           )
     Behavior on cWidth {
-        NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
+        NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack }
     }
 
     // Width matches sizer open width: popupWidth + notchRadius (fw) in both popups
@@ -72,7 +72,7 @@ PanelWindow {
         color: Theme.background
         opacity: ShellState.focusMode ? 1 : 0
         Behavior on opacity {
-            NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
+            NumberAnimation { duration: Anim.standardNormal; easing: Anim.standard }
         }
     }
 
@@ -81,7 +81,7 @@ PanelWindow {
         anchors.fill: parent
         opacity: ShellState.focusMode ? 0 : 1
         Behavior on opacity {
-            NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
+            NumberAnimation { duration: Anim.standardNormal; easing: Anim.standard }
         }
         
         states: [
@@ -105,7 +105,7 @@ PanelWindow {
     transitions: [
         Transition {
             // This animation ONLY runs when switching between popups (and toasts) and the base state.
-            NumberAnimation { property: "rWidth"; duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve }
+            NumberAnimation { property: "rWidth"; duration: Anim.standardNormal; easing: Anim.standard }
         }
     ]
 

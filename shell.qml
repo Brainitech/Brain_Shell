@@ -5,12 +5,36 @@ import "./src/popups"
 import "./src/"
 
 ShellRoot {
-    // Force-instantiate lazy singletons that need startup behavior
+    // ── Force-instantiate lazy singletons that need startup behavior ──────
     property var _keybinds:   KeybindService
     property var _updater:    UpdateService
     property var _ipc:        IpcManager
     property var _hyprSync:   HyprlandSyncService
 
+    // ── Deferred non-critical service init (Ambxst pattern) ──────────────
+    // Critical services init on next tick; heavy services deferred 2s
+    QtObject {
+        id: serviceInit
+        Component.onCompleted: {
+            Qt.callLater(() => {
+                // Critical — needed immediately for IPC & keybind interception
+                let _ = IpcManager
+                _ = HyprlandSyncService
+            })
+        }
+    }
+
+    Timer {
+        interval: 2000
+        running: true
+        onTriggered: {
+            // Non-critical — can wait until shell is fully painted
+            let _ = UpdateService
+            _ = ShellConfigService
+        }
+    }
+
+    // ── Per-screen shell layout ──────────────────────────────────────────
     Variants {
         model: Quickshell.screens
 

@@ -7,8 +7,10 @@ Item {
     // When false (default), percentage only shows on hover.
     property bool showPercentage: false
 
-    implicitWidth:  status.implicitWidth
-    implicitHeight: status.implicitHeight
+    implicitWidth:  visible ? status.implicitWidth : 0
+    implicitHeight: visible ? status.implicitHeight : 0
+
+    visible: status.visible
 
     BatteryStatus {
         id:               status

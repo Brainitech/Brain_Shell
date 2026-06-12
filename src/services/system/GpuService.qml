@@ -68,13 +68,9 @@ QtObject {
         }
     }
 
-    // ── NVIDIA dGPU ───────────────────────────────────────────────────────────
+    // ── NVIDIA dGPU (only if nvidia-smi is available) ──────────────────────────
     property var _nvProc: Process {
-        command: [
-            "nvidia-smi",
-            "--query-gpu=utilization.gpu,memory.used,memory.total",
-            "--format=csv,noheader,nounits"
-        ]
+        command: ["bash", "-c", "command -v nvidia-smi >/dev/null && nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits 2>/dev/null || true"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
@@ -90,9 +86,9 @@ QtObject {
         }
     }
 
-    // ── Poll timers ───────────────────────────────────────────────────────────
+    // ── Poll timers (slower when dashboard closed to save CPU) ───────────────
     property var _igpuTimer: Timer {
-        interval: 1000
+        interval: Popups.dashboardOpen ? 2000 : 5000
         running:  root.active
         repeat:   true
         onTriggered: {

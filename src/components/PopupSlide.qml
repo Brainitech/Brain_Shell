@@ -1,5 +1,6 @@
 import QtQuick
 import "../"
+import "../theme"
 
 // Slide-in/out animation container for all popups.
 //
@@ -43,6 +44,9 @@ Item {
     // ── Universal timing — sourced from Popups singleton ──────────────────────
     property int slideDuration: Popups.slideDuration
     property int closeDelay:    Popups.hoverCloseDelay
+    // Organic pop-in (slight overshoot), smooth pop-out
+    property QtObject openEasing:  Anim.outBack
+    property QtObject closeEasing: Anim.outQuart
 
     // ── Output ────────────────────────────────────────────────────────────────
     // Bind PopupWindow.visible to this
@@ -111,8 +115,25 @@ Item {
         y: root._effectiveOpen ? 0 : (root.edge === "top"    ? -height :
                                        root.edge === "bottom" ?  height : 0)
 
-        Behavior on x { NumberAnimation { duration: root.slideDuration; easing.type: Easing.OutCubic } }
-        Behavior on y { NumberAnimation { duration: root.slideDuration; easing.type: Easing.OutCubic } }
+        Behavior on x { NumberAnimation { duration: root.slideDuration; easing: root._effectiveOpen ? root.openEasing : root.closeEasing } }
+        Behavior on y { NumberAnimation { duration: root.slideDuration; easing: root._effectiveOpen ? root.openEasing : root.closeEasing } }
+
+        // Subtle scale during slide for organic feel
+        scale: root._effectiveOpen ? 1 : 0.94
+        Behavior on scale {
+            NumberAnimation {
+                duration: root.slideDuration
+                easing.type: root._effectiveOpen ? Easing.OutBack : Easing.InQuad
+                easing.overshoot: root._effectiveOpen ? 1.08 : 0
+            }
+        }
+        opacity: root._effectiveOpen ? 1 : 0.6
+        Behavior on opacity {
+            NumberAnimation {
+                duration: root.slideDuration
+                easing.type: Easing.OutQuart
+            }
+        }
 
         // Self-hover tracking — automatically available to all popups
         HoverHandler {

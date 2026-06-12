@@ -386,6 +386,18 @@ QtObject {
                 Popups.networkOpen = !netWasOpen
                 if (Popups.networkOpen) Popups.networkPage = "wifi"
                 break
+            case "wifi-toggle":
+                _toggleNetwork("wifi")
+                break
+            case "bt-toggle":
+                _toggleNetwork("bluetooth")
+                break
+            case "vpn-toggle":
+                _toggleNetwork("vpn")
+                break
+            case "hotspot-toggle":
+                _toggleNetwork("hotspot")
+                break
 
             // Notifications
             case "notifications":
@@ -497,6 +509,21 @@ QtObject {
         }
     }
 
+    function _toggleNetwork(page) {
+        if (Popups.anyOpen && !Popups.networkOpen) {
+            Popups.closeAll()
+            Popups.networkOpen = true
+            Popups.networkPage = page
+        } else if (Popups.networkOpen && Popups.networkPage !== page) {
+            Popups.networkPage = page
+        } else {
+            var next = !Popups.networkOpen
+            Popups.closeAll()
+            Popups.networkOpen = next
+            if (next) Popups.networkPage = page
+        }
+    }
+
     // ── Named pipe reader (zero-latency CLI → Shell IPC) ─────────────────────
 
     readonly property string _pipePath: "/tmp/brain_shell_ipc.pipe"
@@ -518,11 +545,12 @@ QtObject {
 
     property var _pipeReader: Process {
         id: pipeReader
+        // Persistent read loop — opens the FIFO ONCE, blocks on read(),
+        // and outputs each line as it arrives. Zero process-spawn per keypress.
+        // vs the old "while cat pipe; done" which forked cat on every event.
         command: ["bash", "-c",
-            "while true; do " +
-            "[ -p '" + root._pipePath + "' ] || { sleep 1; continue; }; " +
-            "cat '" + root._pipePath + "' 2>/dev/null; " +
-            "done"]
+            "until [ -p '" + root._pipePath + "' ]; do sleep 0.5; done; " +
+            "while IFS= read -r line; do printf '%s\\n' \"$line\"; done < '" + root._pipePath + "'"]
         running: false
         stdout: SplitParser {
             onRead: function(line) {
@@ -534,7 +562,6 @@ QtObject {
 
     Component.onCompleted: {
         _ensurePipe()
-        // Start pipe reader on next tick
         Qt.callLater(function() {
             pipeReader.running = true
         })

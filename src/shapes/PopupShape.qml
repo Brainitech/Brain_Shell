@@ -16,11 +16,13 @@ Canvas {
     property int flareWidth: Theme.cornerRadius
     property int flareHeight: Theme.cornerRadius
 
-    // ── Render quality ──────────────────────────────────────────────────────
+    // ── Render quality + GPU caching ─────────────────────────────────────────
     antialiasing: true
     smooth: true
     renderStrategy: Canvas.Cooperative
     renderTarget: Canvas.Image
+    layer.enabled: true
+    layer.smooth: true
 
     onWidthChanged:        requestPaint()
     onHeightChanged:       requestPaint()

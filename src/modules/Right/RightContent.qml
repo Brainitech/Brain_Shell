@@ -23,7 +23,7 @@ Item {
 
         opacity: (Popups.notificationsOpen || Popups.networkOpen) ? 0 : 1
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: Anim.standardSmall; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
+        Behavior on opacity { NumberAnimation { duration: Anim.standardSmall; easing: Anim.standard } }
 
         Network{}
         Audio{}
@@ -41,6 +41,6 @@ Item {
         font.pixelSize: 14
         opacity:        (Popups.notificationsOpen || Popups.networkOpen) ? 1 : 0
         visible:        opacity > 0
-        Behavior on opacity { NumberAnimation { duration: Anim.standardSmall; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
+        Behavior on opacity { NumberAnimation { duration: Anim.standardSmall; easing: Anim.standard } }
     }
 }

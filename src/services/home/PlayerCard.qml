@@ -5,14 +5,23 @@ import Quickshell.Services.Mpris
 import "../../"
 import "../../components"
 
+/*!
+    PlayerCard v2 — media player card with organic animations.
+    Ported improvements from upstream/dev:
+    - Blocklist instead of allowlist (catches more players)
+    - Marquee scroll for long track names
+    - Rearranged source picker (top-right)
+    - Nerd Font Unicode icons
+*/
 Item {
     id: root
 
-    // ── Source allowlist ──────────────────────────────────────────────────────
-    readonly property var _allowed: [
-        "spotify", "youtube",
-        "firefox", "chromium", "chrome",
-        "brave", "edge", "opera", "vivaldi", "safari", "arc"
+    // ── Source blocklist ──────────────────────────────────────────────────────
+    readonly property var _blocked: [
+        "kdeconnect",
+        "gsconnect",
+        "playerctld",
+        "plasma-browser-integration"
     ]
 
     // Explicit count tracker — forces filteredPlayers to re-evaluate whenever
@@ -25,12 +34,14 @@ Item {
         var vals = Mpris.players.values
         for (var i = 0; i < vals.length; i++) {
             var id = (vals[i].identity || "").toLowerCase()
-            for (var j = 0; j < root._allowed.length; j++) {
-                if (id.indexOf(root._allowed[j]) !== -1) {
-                    result.push(vals[i])
+            var isBlocked = false
+            for (var j = 0; j < root._blocked.length; j++) {
+                if (id.indexOf(root._blocked[j]) !== -1) {
+                    isBlocked = true
                     break
                 }
             }
+            if (!isBlocked) result.push(vals[i])
         }
         return result
     }
@@ -41,7 +52,6 @@ Item {
     onVisibleChanged: if (!visible) root._dropdownOpen = false
 
     onFilteredPlayersChanged: {
-        // Prefer keeping the same player object selected after list change.
         var oldPlayer = root.player
         if (oldPlayer) {
             for (var i = 0; i < root.filteredPlayers.length; i++) {
@@ -51,7 +61,6 @@ Item {
                 }
             }
         }
-        // Fallback: clamp to valid range
         if (root.selectedPlayerIndex >= root.filteredPlayers.length)
             root.selectedPlayerIndex = Math.max(0, root.filteredPlayers.length - 1)
     }
@@ -96,7 +105,7 @@ Item {
 
     readonly property real _progress: root.length > 0 ? root._pos / root.length : 0
 
-    // ── Shared cava bars (32 bars from CavaService) ───────────────────────────
+    // ── Shared cava bars from CavaService ─────────────────────────────────────
     readonly property int _cavaBars: 32
     readonly property var _bars: CavaService.bars
 
@@ -113,7 +122,6 @@ Item {
         return "♪"
     }
 
-    // ── Player label helper ───────────────────────────────────────────────────
     function _playerLabel(player) {
         if (!player) return "—"
         var id = (player.identity || "").toLowerCase()
@@ -129,7 +137,7 @@ Item {
         return player.identity || "Player"
     }
 
-    // ── Background visuals ────────────────────────────────────────────────────
+    // ── Background visuals (blurred + darkened album art) ─────────────────────
     Item {
         id: bgSource
         anchors.fill:  parent
@@ -145,9 +153,6 @@ Item {
                 source:   root.artUrl
                 fillMode: Image.PreserveAspectCrop
                 smooth:   true
-                sourceSize.width:  256
-                sourceSize.height: 256
-                asynchronous: true
             }
         }
 
@@ -190,32 +195,56 @@ Item {
         maskSpreadAtMin:  1.0
     }
 
-    // ── Track name + artist ───────────────────────────────────────────────────
+    // ── Track name + artist (with marquee scroll for long titles) ─────────────
     Column {
         anchors {
-            left:  parent.left;  leftMargin:  14
-            right: parent.right; rightMargin: 14
+            left:  parent.left;  leftMargin:  120
+            right: parent.right; rightMargin: 120
             top:   parent.top;   topMargin:   16
         }
         spacing: 4
-        Text {
+        clip: true
+
+        // Title with marquee scroll
+        Item {
             width: parent.width
-            text:  root.title
-            font.pixelSize: 18; font.weight: Font.Bold
-            color: "#ffffff"; elide: Text.ElideRight
-            horizontalAlignment: Text.AlignHCenter
+            height: 22
+            clip: true
+            TextMetrics {
+                id: titleMetrics
+                font: titleText.font
+                text: root.title
+            }
+            Text {
+                id: titleText
+                text: root.title
+                font.pixelSize: 18; font.weight: Font.Bold
+                color: "#ffffff"
+                anchors.horizontalCenter: titleMetrics.width <= parent.width ? parent.horizontalCenter : undefined
+                NumberAnimation on x {
+                    id: marqueeAnim
+                    running: titleMetrics.width > titleText.parent.width && root.isPlaying
+                    from: titleText.parent.width
+                    to: -titleMetrics.width
+                    duration: Math.max(0, (titleMetrics.width + titleText.parent.width) * 20)
+                    loops: Animation.Infinite
+                }
+                onTextChanged: marqueeAnim.restart()
+            }
         }
         Text {
             width:   parent.width
             text:    root.artist
             visible: root.artist !== ""
             font.pixelSize: 13
-            color: Qt.rgba(1,1,1,0.55); elide: Text.ElideRight
+            color: Qt.rgba(1,1,1,0.55)
+            maximumLineCount: 1
+            elide: Text.ElideRight
             horizontalAlignment: Text.AlignHCenter
         }
     }
 
-    // ── Bottom stack: controls + progress (raised to give room for picker) ──────
+    // ── Bottom stack: controls + progress ────────────────────────────────────
     Column {
         anchors {
             left:   parent.left;   leftMargin:   14
@@ -235,11 +264,11 @@ Item {
                     required property int  index
                     readonly property bool isPlay: modelData.key === "play"
                     readonly property string dispIcon: {
-                        if (modelData.key === "prev") return "\u23EE"
-                        if (modelData.key === "next") return "\u23ED"
-                        return root.isPlaying ? "\u23F8" : "\u23F5"
+                        if (modelData.key === "prev") return "󰒫"
+                        if (modelData.key === "next") return "󰒬"
+                        return !root.isPlaying ? "󰐊" : "󰏤"
                     }
-                    width:  isPlay ? 44 : 36; height: isPlay ? 44 : 36
+                    width: 36; height: 36
                     radius: height / 2
                     color: isPlay
                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
@@ -322,28 +351,26 @@ Item {
         }
     }
 
-    // ── Source picker — upward-expanding pill ─────────────────────────────────
-    // Sits in the gap between the controls and the card bottom; expands upward.
+    // ── Source picker — top-right pill, expands downward ──────────────────────
     Item {
         id: sourcePicker
         anchors {
-            horizontalCenter: parent.horizontalCenter
-            bottom:           parent.bottom
-            bottomMargin:     12
+            top:          parent.top
+            right:        parent.right
+            topMargin:    12
+            rightMargin:  12
         }
         visible: root.filteredPlayers.length > 1
         z:       30
-        // Footprint tracks the animated pill so hit-testing always matches
         width:  pill.width
         height: pill.height
 
         Rectangle {
             id: pill
-            anchors.bottom:           parent.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top:   parent.top
+            anchors.right: parent.right
 
-            // Width is driven only by the always-visible active row — no circular dep
-            width: activeRow.implicitWidth + 28
+            width: activeRow.implicitWidth + 24
 
             readonly property int _rowH: 26
             height: root._dropdownOpen
@@ -353,24 +380,53 @@ Item {
 
             radius:       _rowH / 2
             clip:         true
-            color:        Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
+            color:        Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
             border.color: root._dropdownOpen
                           ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30)
                           : "transparent"
             border.width: 1
             Behavior on border.color { ColorAnimation { duration: 150 } }
 
-            // Column anchored to pill bottom — children stack upward on expand
+            // Stacks downward from the top
             Column {
-                id: pillCol
-                anchors {
-                    bottom: parent.bottom
-                    left:   parent.left
-                    right:  parent.right
-                }
+                anchors.top:   parent.top
+                anchors.left:  parent.left
+                anchors.right: parent.right
                 spacing: 0
 
-                // ── Other player rows (appear above the active row) ─────────
+                // ── Active player row (always at the top) ─────────────
+                Item {
+                    height: pill._rowH
+                    width:  parent.width
+
+                    Row {
+                        id: activeRow
+                        anchors.centerIn: parent
+                        spacing: 5
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text:           root._playerIcon(root.player)
+                            font.pixelSize: 11
+                            color:          Theme.active
+                        }
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text:           root._playerLabel(root.player)
+                            font.pixelSize: 10
+                            font.weight:    Font.Medium
+                            color:          Qt.rgba(1,1,1,0.92)
+                        }
+                    }
+
+                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked:    root._dropdownOpen = !root._dropdownOpen
+                    }
+                }
+
+                // ── Other player rows (appear below the active row) ─
                 Repeater {
                     model: root.filteredPlayers
 
@@ -379,7 +435,6 @@ Item {
                         required property int index
                         readonly property bool isCurrent: index === root.selectedPlayerIndex
 
-                        // Fixed width = pill; breaks the old circular dep on otherRow.implicitWidth
                         width:   pill.width
                         height:  isCurrent ? 0 : (root._dropdownOpen ? pill._rowH : 0)
                         visible: !isCurrent
@@ -421,43 +476,11 @@ Item {
                         }
                     }
                 }
-
-                // ── Active player row (always visible, anchored at pill bottom) ─
-                Item {
-                    height: pill._rowH
-                    width:  pill.width
-
-                    Row {
-                        id: activeRow
-                        anchors.centerIn: parent
-                        spacing: 5
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text:           root._playerIcon(root.player)
-                            font.pixelSize: 11
-                            color:          Theme.active
-                        }
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text:           root._playerLabel(root.player)
-                            font.pixelSize: 10
-                            font.weight:    Font.Medium
-                            color:          Qt.rgba(1,1,1,0.92)
-                        }
-                    }
-
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked:    root._dropdownOpen = !root._dropdownOpen
-                    }
-                }
             }
         }
     }
 
-    // ── Cava bars — independent, always flush with the card bottom ────────────
+    // ── Cava bars — flush with card bottom ────────────────────────────────────
     Item {
         anchors { left: parent.left; right: parent.right; bottom: parent.bottom; leftMargin: 7; rightMargin: 7; bottomMargin: 4 }
         height: 32

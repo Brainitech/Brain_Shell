@@ -47,7 +47,7 @@ Rectangle {
     transitions: [
         Transition {
             from: ""; to: "*"
-            NumberAnimation { property: "opacity"; duration: Anim.standardSmall; easing.type: Anim.easing("standard").type }
+            NumberAnimation { property: "opacity"; duration: Anim.standardSmall; easing: Anim.standard }
         }
     ]
 }

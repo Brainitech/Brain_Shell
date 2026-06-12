@@ -73,8 +73,8 @@ PopupWindow {
 			width:  root.contentWidth  + root.fw
 			height: root.contentHeight + root.fh * 2
 
-			Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
-			Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
+Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
+                     Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
 
 			PopupShape {
 				id: bg
@@ -86,7 +86,8 @@ PopupWindow {
 				flareHeight:  root.fh
 			}
 
-			Item {
+			ShellPopupBase {
+				id: content
 				anchors {
 					fill:         parent
 					leftMargin:   root.fw - 4
@@ -94,18 +95,19 @@ PopupWindow {
 					topMargin:    root.fh + 6
 					bottomMargin: root.fh + 6
 				}
-					//── Page content ──────────────────────────────────────────
-					Item {
-						width:  parent.width
-						height: parent.height
-						clip:   true
+				isOpen: Popups.archMenuOpen
+				transformEdge: "left"
+				disableAutoHide: true
 
-						PopupPage {
-							anchors.fill: parent
-							visible: root.page === "power"
-
-							PowerMenu {
-								width: parent.width
+				Item {
+				width:  parent.width
+					height: parent.height
+					clip:   true
+											PopupPage {
+					anchors.fill: parent
+						visible: root.page === "power"
+													PowerMenu {
+						width: parent.width
 							}
 						}
 				}

@@ -85,7 +85,7 @@ PopupWindow {
 			width:  (root.pageWidths[audioControl.page] ?? root.maxWidth)
 			height: root.popupHeight
 
-			Behavior on width { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
+Behavior on width { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
 
 			PopupShape {
 				id: bg
@@ -97,14 +97,22 @@ PopupWindow {
 				flareHeight:  root.fh
 			}
 
-			AudioControl {
-				id: audioControl
+			ShellPopupBase {
+				id: content
 				anchors {
 					fill:         parent
 					topMargin:    root.fh + 6
 					bottomMargin: root.fh + 6
 					leftMargin:   10
 					rightMargin:  root.fw - 4
+				}
+				isOpen: Popups.audioOpen
+				transformEdge: "right"
+				disableAutoHide: true
+
+				AudioControl {
+					id: audioControl
+					anchors.fill: parent
 				}
 			}
 		}

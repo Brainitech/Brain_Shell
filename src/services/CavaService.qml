@@ -6,7 +6,7 @@ import Quickshell.Services.Mpris
 import "../"
 
 // Single cava process shared by CenterContent and PlayerCard.
-// 32 bars at 30fps. isPlaying mirrors the active MPRIS player state.
+// 32 bars at 30fps.
 
 QtObject {
     id: root
@@ -38,6 +38,8 @@ QtObject {
             "> /tmp/brain_shell/cava_shared.ini && " +
             "exec cava -p /tmp/brain_shell/cava_shared.ini 2>/dev/null"
         ]
+        // Run when any media is playing — cava bars appear in both
+        // the dashboard PlayerCard and the center notch.
         running: root.isPlaying
         stdout: SplitParser {
             onRead: function(line) {

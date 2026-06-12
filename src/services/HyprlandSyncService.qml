@@ -186,53 +186,57 @@ QtObject {
         var lua = _generateLua();
         var conf = _generateConf();
 
-        // Write both files atomically via bash, then reload Hyprland
+        // Escape backslashes and single quotes for safe printf '%s' usage
+        var le = lua.replace(/\\/g, "\\\\").replace(/'/g, "'\\''");
+        var ce = conf.replace(/\\/g, "\\\\").replace(/'/g, "'\\''");
+
         _writeProc.command = ["bash", "-c",
             "mkdir -p '" + _dataDir + "' && " +
-            "printf '%s' '" + lua.replace(/'/g, "'\\''") + "' > '" + _luaPath + "' && " +
-            "printf '%s' '" + conf.replace(/'/g, "'\\''") + "' > '" + _confPath + "' && " +
-            "hyprctl reload 2>/dev/null || true"
+            "printf '%s' '" + le + "' > '" + _luaPath + "' && " +
+            "printf '%s' '" + ce + "' > '" + _confPath + "'"
         ];
         _writeProc.running = false;
         _writeProc.running = true;
 
-        console.log("HyprlandSyncService: synced binds to", _luaPath);
+        console.log("HyprlandSyncService: synced", _bindMap.length, "binds to", _luaPath);
+    }
+
+    property Process _reloadProc: Process {
+        command: ["hyprctl", "reload"]
+        running: false
     }
 
     // ── Auto-sync on keybind changes ──────────────────────────────────────────
     property Timer _debounce: Timer {
-        interval: 1000
+        interval: 150
         repeat: false
-        onTriggered: root.sync()
-    }
-
-    // Delay keybind watching until KeybindService is available
-    property Timer _watchTimer: Timer {
-        interval: 5000
-        running: true
-        onTriggered: _setupWatcher()
-    }
-
-    function _setupWatcher() {
-        try {
-            if (typeof KeybindService !== "undefined" && KeybindService) {
-                _keybindWatcher.target = KeybindService;
-            }
-        } catch (e) {
-            console.warn("HyprlandSyncService: KeybindService not available yet");
+        onTriggered: {
+            root.sync()
+            // Reload Hyprland so the new bind file takes effect immediately
+            root._reloadAfterSync.restart()
         }
     }
 
+    property Timer _reloadAfterSync: Timer {
+        interval: 200
+        repeat: false
+        onTriggered: {
+            root._reloadProc.running = false
+            root._reloadProc.running = true
+        }
+    }
+
+    // KeybindService is a singleton — available when this object instantiates.
     property var _keybindWatcher: Connections {
-        target: null
+        target: KeybindService
         function onKeybindsChanged() {
-            root._debounce.restart();
+            root._debounce.restart()
         }
     }
 
     // ── Initial sync on startup ───────────────────────────────────────────────
     property Timer _initTimer: Timer {
-        interval: 3000
+        interval: 500
         running: true
         onTriggered: root.sync()
     }

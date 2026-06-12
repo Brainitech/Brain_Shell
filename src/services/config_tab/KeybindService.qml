@@ -208,9 +208,9 @@ QtObject {
         running: false
     }
 
-    // Brief delay lets the file writes flush before hyprctl re-reads them
+    // Faster reload — 100ms is enough for filesystem flush on modern SSDs
     property var _reloadTimer: Timer {
-        interval: 300
+        interval: 100
         repeat:   false
         onTriggered: {
             root._reloadProc.running = false
@@ -222,10 +222,13 @@ QtObject {
         _reloadTimer.restart()
     }
 
-    // Persist to disk and reload Hyprland in one call
+    // Persist to disk. HyprlandSyncService handles the hyprctl reload
+    // after regenerating the unified bind file (debounce 150ms + write 200ms).
+    // Calling reload() here would race — the sync hasn't happened yet.
     function saveAndReload() {
         save()
-        reload()
+        // Reload removed: HyprlandSyncService reloads after syncing the new binds.
+        // If you need an immediate reload, call reload() separately.
     }
 
     // Updates in-memory only — does NOT persist.
@@ -237,7 +240,13 @@ QtObject {
         var k = newKey.toUpperCase().trim()
         if (m === "" || k === "") return
         if (root.wouldConflict(action, m, k) !== "") return
-        var copy     = Object.assign({}, root.keybinds)
+        // Direct mutation instead of full copy-replace — faster for keybind page responsiveness
+        var ks = Object.keys(root.keybinds)
+        var copy = {}
+        for (var i = 0; i < ks.length; i++) {
+            var key = ks[i]
+            copy[key] = root.keybinds[key]
+        }
         copy[action] = { mods: m, key: k, label: old.label, group: old.group }
         root.keybinds = copy
     }

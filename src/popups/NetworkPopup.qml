@@ -82,10 +82,10 @@ PanelWindow {
                ? root.popupWidth + 9
                : Theme.rNotchMinWidth + root.fw
 
-        height: Popups.networkOpen ? root.popupHeight : 0
+        height: Popups.networkOpen ? root.popupHeight : 1
 
-        Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
-        Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
+        Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
+        Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
 
         PopupShape {
             anchors.fill: parent
@@ -98,7 +98,7 @@ PanelWindow {
         
         Keys.onEscapePressed: Popups.networkOpen = false
 
-        Item {
+        ShellPopupBase {
             id: contentArea
             anchors {
                 fill:         parent
@@ -107,16 +107,10 @@ PanelWindow {
                 rightMargin:  root.fw/2
                 bottomMargin: root.fh + Theme.cornerRadius
             }
-
-            opacity: Popups.networkOpen ? 1 : 0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Popups.networkOpen
-                        ? Math.round(Anim.standardNormal * 0.5)
-                        : Math.round(Anim.standardNormal * 0.15)
-                }
-            }
-
+            isOpen: Popups.networkOpen
+            transformEdge: "right"
+            disableAutoHide: true
+            clip: true
             // ── Tab page area ─────────────────────────────────────────────────
             Item {
                 id: tabContent

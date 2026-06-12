@@ -62,9 +62,10 @@ QtObject {
         if (!originalPath || targetHeight === 0) return originalPath;
         if (!isVideo(originalPath)) return originalPath;
 
-        var ext = originalPath.toLowerCase().split(".").pop();
         var hash = _hashPath(originalPath);
-        return cacheDir + "/" + hash + "-" + targetHeight + "p." + ext;
+        // Always output H.264 MP4 — ensures hardware decode on all GPUs.
+        // VP9/WebM would fall back to CPU decode on Intel (no VAAPI VP9).
+        return cacheDir + "/" + hash + "-" + targetHeight + "p.mp4";
     }
 
     // ── Get effective path (cached if exists, else original) ──────────────────
@@ -131,36 +132,49 @@ QtObject {
     property string _checkingPath: ""
     property string _checkingOriginal: ""
 
-    // ── Generate cached downscaled version ────────────────────────────────────
+    // ── Generate cached H.264 MP4 version (hardware-decodable on all GPUs) ───
     function _generateCache(originalPath, cachePath, callback) {
-        // If already generating this cache, queue callback
         if (genProc.running && root._generatingPath === cachePath) {
             root._genCallbacks.push(callback);
             return;
         }
 
-        // Ensure cache dir exists
         mkdirProc.running = false;
         mkdirProc.running = true;
 
-        var cmd = "ffmpeg -y -i '" + originalPath + "'";
+        // Detect source codec to decide if transcoding is needed
+        var srcCodec = GpuDetector.detectCodecFromPath(originalPath);
+        var needsTranscode = (srcCodec !== "h264");
 
-        // FPS filter
+        // Always transcode non-H.264 (VP9, AV1, etc.) to H.264 for hardware decode.
+        // If source is already H.264 and at target resolution, skip — no re-encode needed.
+        if (!needsTranscode && targetHeight === 0) {
+            // Already H.264, no downscale — use original directly
+            if (callback) callback(originalPath);
+            return;
+        }
+
+        // Software decode for transcode — VAAPI/Vulkan don't support VP9 on Intel.
+        // Using -hwaccel none avoids the 'Failed setup for format vaapi/vulkan' spam.
+        // The OUTPUT is H.264 which DOES have QSV hardware decode during playback.
+        var cmd = "ffmpeg -y -loglevel error -hwaccel none -i '" + originalPath + "'";
+
+        // FPS limit + optional downscale
         cmd += " -filter:v fps=" + targetFps;
-
-        // Downscale if targetHeight > 0
         if (targetHeight > 0) {
             cmd += ",scale=-2:" + targetHeight + ":flags=lanczos";
         }
+        // Force pixel format for hardware encoder compatibility
+        cmd += ",format=yuv420p";
 
-        // Hardware encoder if available
+        // Hardware encoder if available (Intel QSV, AMD VAAPI, NVIDIA NVENC)
         if (GpuDetector.hasHardwareDecoder && hwEncoder !== "") {
-            cmd += " -c:v " + hwEncoder + " -preset fast -b:v 2M";
+            cmd += " -c:v " + hwEncoder + " -preset fast -b:v 2M -maxrate 4M -bufsize 4M";
         } else {
-            cmd += " -c:v libx264 -preset ultrafast -crf 28";
+            cmd += " -c:v libx264 -preset veryfast -crf 26";
         }
 
-        cmd += " -an -movflags +faststart '" + cachePath + "' 2>/dev/null";
+        cmd += " -an -movflags +faststart '" + cachePath + "'";
 
         root._generatingPath = cachePath;
         root._genCallbacks = callback ? [callback] : [];
@@ -220,6 +234,12 @@ QtObject {
             useHardware: GpuDetector.hasHardwareDecoder,
             isVideo: isVideo(wallpaperPath)
         };
+    }
+
+    // Check if source needs transcoding for hardware decode
+    function needsTranscode(path) {
+        if (!isVideo(path)) return false;
+        return GpuDetector.detectCodecFromPath(path) !== "h264";
     }
 
     Component.onDestruction: {

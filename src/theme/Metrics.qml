@@ -29,7 +29,7 @@ QtObject {
     property int cNotchMinWidth: 300
     property int cNotchMaxWidth: 360
 
-    property int rNotchMinWidth: 200
+    property int rNotchMinWidth: 160
     property int rNotchMaxWidth: 360
 
     // -- Dashboard Dimensions --

@@ -118,7 +118,7 @@ PopupWindow {
             width:  root.popupWidth
             height: root.popupHeight
 
-            Behavior on width { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
+            Behavior on width { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
 
             PopupShape {
                 id: bg

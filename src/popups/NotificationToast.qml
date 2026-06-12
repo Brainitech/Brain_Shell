@@ -113,8 +113,8 @@ PopupWindow {
 		? (cardCol.y + cardCol.implicitHeight + 24 + root.fh) 
 		: root.fh
 
-		Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
-		Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing.type: Anim.easing("standard").type; easing.bezierCurve: Anim.easing("standard").bezierCurve } }
+Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
+           Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
 
 		PopupShape {
 			anchors.fill: parent
@@ -186,7 +186,7 @@ PopupWindow {
 
 				Timer {
 					id:          progressTick
-					interval:    50
+					interval:    16
 					onTriggered: progressBar.running = true
 				}
 			}

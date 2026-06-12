@@ -593,6 +593,11 @@ hl.window_rule({ match = { class = "^(quickshell)$" }, no_max_size = true })
 hl.layer_rule({ match = { namespace = "^(quickshell)$" }, blur = true })
 hl.layer_rule({ match = { namespace = "^(quickshell)$" }, ignore_alpha = 0 })
 hl.layer_rule({ match = { namespace = "^(quickshell)$" }, no_anim = true })
+
+-- ── Submap for keybind interception ────────────────────────────────────────
+hl.define_submap("BrainShell_clean", function()
+    hl.bind("Escape", hl.dsp.submap("reset"))
+end)
 HYPRLUA
 }
 

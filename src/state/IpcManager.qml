@@ -373,46 +373,53 @@ QtObject {
 
             // Audio
             case "audio":
+                var audioWasOpen = Popups.audioOpen
                 Popups.closeAll()
-                Popups.audioOpen = !Popups.audioOpen
+                Popups.audioOpen = !audioWasOpen
                 if (Popups.audioOpen) Popups.audioPage = "output"
                 break
 
             // Network
             case "network":
+                var netWasOpen = Popups.networkOpen
                 Popups.closeAll()
-                Popups.networkOpen = !Popups.networkOpen
+                Popups.networkOpen = !netWasOpen
                 if (Popups.networkOpen) Popups.networkPage = "wifi"
                 break
 
             // Notifications
             case "notifications":
+                var notifWasOpen = Popups.notificationsOpen
                 Popups.closeAll()
-                Popups.notificationsOpen = !Popups.notificationsOpen
+                Popups.notificationsOpen = !notifWasOpen
                 break
 
             // Clipboard
             case "clipboard":
+                var clipWasOpen = Popups.clipboardOpen
                 Popups.closeAll()
-                Popups.clipboardOpen = !Popups.clipboardOpen
+                Popups.clipboardOpen = !clipWasOpen
                 break
 
             // Wallpaper
             case "wallpaper":
+                var wallWasOpen = Popups.wallpaperOpen
                 Popups.closeAll()
-                Popups.wallpaperOpen = !Popups.wallpaperOpen
+                Popups.wallpaperOpen = !wallWasOpen
                 break
 
             // Arch / Power menu
             case "arch-menu":
+                var archWasOpen = Popups.archMenuOpen
                 Popups.closeAll()
-                Popups.archMenuOpen = !Popups.archMenuOpen
+                Popups.archMenuOpen = !archWasOpen
                 break
 
             // Quick settings
             case "quick-settings":
+                var quickWasOpen = Popups.quickOpen
                 Popups.closeAll()
-                Popups.quickOpen = !Popups.quickOpen
+                Popups.quickOpen = !quickWasOpen
                 break
 
             // Overview (dashboard home)

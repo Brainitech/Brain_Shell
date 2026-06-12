@@ -95,6 +95,11 @@ QtObject {
         lines.push('hl.layer_rule({ match = { namespace = "^(quickshell)$" }, ignore_alpha = 0 })');
         lines.push('hl.layer_rule({ match = { namespace = "^(quickshell)$" }, no_anim = true })');
         lines.push("");
+        lines.push("-- ── Submap for keybind interception (ShellState / KeybindService) ───────────");
+        lines.push('hl.define_submap("BrainShell_clean", function()');
+        lines.push('    hl.bind("Escape", hl.dsp.submap("reset"))');
+        lines.push("end)");
+        lines.push("");
         lines.push("-- ── Keybinds ────────────────────────────────────────────────────────────────");
 
         for (var i = 0; i < _bindMap.length; i++) {

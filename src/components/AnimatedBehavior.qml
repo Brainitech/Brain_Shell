@@ -3,18 +3,8 @@ import Quickshell
 import "../theme"
 
 /*!
-    AnimatedBehavior — reusable NumberAnimation tied to the unified Anim system.
-
-    Optimizations over the basic approach:
-    - Pre-resolves easing curves on first use (cached per type+variant)
-    - Spring config caching avoids repeated object creation
-    - Integer truncation (|0) for duration to avoid float overhead
-    - Respects Anim.animationsEnabled (zero-duration when disabled)
-
-    Usage:
-        Behavior on opacity {
-            AnimatedBehavior { type: "standard"; size: "normal" }
-        }
+    AnimatedBehavior — lightweight NumberAnimation wrapper.
+    Ambxst-optimized: reads pre-computed Anim properties directly, no function calls.
 */
 NumberAnimation {
     id: root
@@ -22,34 +12,47 @@ NumberAnimation {
     property string type: "standard"
     property string size: "normal"
     property string variant: ""
-    property real speedMultiplier: 1.0
-    property bool useSpring: false
-    property string springName: "snappy"
 
-    // ── Pre-resolved easing cache ─────────────────────────────────────────
-    // Avoids calling Anim.easing() on every animation tick
-    property var _easeCache: ({})
-
-    function _getEasing() {
-        var key = (variant || type) + "|" + (useSpring ? springName : "");
-        if (_easeCache[key]) return _easeCache[key];
-        var e = Anim.easing(variant || type);
-        _easeCache[key] = e;
-        return e;
-    }
-
-    // ── Duration ──────────────────────────────────────────────────────────
+    // ── Duration — reads pre-computed Anim property directly ──────────────
     duration: {
-        if (!Anim.animationsEnabled) return 0;
-        var d = Anim.duration(type, size);
-        return (d * speedMultiplier) | 0;  // integer truncation for perf
+        if (!Anim.enabled) return 0
+        switch (type + "-" + size) {
+            case "standard-small":       return Anim.standardSmall
+            case "standard-normal":      return Anim.standardNormal
+            case "standard-large":       return Anim.standardLarge
+            case "standard-extraLarge":  return Anim.standardExtraLarge
+            case "emphasized-small":     return Anim.emphasizedSmall
+            case "emphasized-normal":    return Anim.emphasizedNormal
+            case "emphasized-large":     return Anim.emphasizedLarge
+            case "spatial-fast":         return Anim.spatialFast
+            case "spatial-default":      return Anim.spatialDefault
+            case "spatial-slow":         return Anim.spatialSlow
+            case "spring-small":         return Anim.springSmall
+            case "spring-normal":        return Anim.springNormal
+            case "spring-large":         return Anim.springLarge
+            default:                     return Anim.standardNormal
+        }
     }
 
-    // ── Easing ────────────────────────────────────────────────────────────
-    easing.type: _getEasing().type
-    easing.bezierCurve: _getEasing().bezierCurve || []
+    // ── Easing — reads pre-computed QtEasingCurve directly ────────────────
+    readonly property QtEasingCurve _ease: {
+        var n = variant || type
+        switch (n) {
+            case "standard":       return Anim.standard
+            case "outQuart":       return Anim.outQuart
+            case "outCubic":       return Anim.outCubic
+            case "outSine":        return Anim.outSine
+            case "emphasized":     return Anim.emphasized
+            case "emphasizedExit": return Anim.emphasizedExit
+            case "decelerate":     return Anim.decelerate
+            case "accelerate":     return Anim.accelerate
+            case "collapse":       return Anim.collapse
+            case "spatial":        return Anim.spatialEase
+            case "linear":         return Anim.linear
+            default:               return Anim.standard
+        }
+    }
 
-    // ── Spring mode ───────────────────────────────────────────────────────
-    // Spring properties are set dynamically when useSpring is true
-    // (Quickshell/Qt handles spring animation natively when easing.type is Spring)
+    easing.type: _ease.type
+    easing.bezierCurve: _ease.bezierCurve
 }

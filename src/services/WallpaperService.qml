@@ -77,8 +77,10 @@ QtObject {
         var t = root.thumbMap[filePath]
         if (t && t !== "") return t
         var ext = filePath.toLowerCase().split('.').pop()
-        if (['mp4','webm','mkv','mov','avi','gif'].includes(ext)) return ""
-        return filePath  // fallback to original for static images while thumbs generate
+        // Videos need generated thumbnails — can't use original as Image source
+        if (['mp4','webm','mkv','mov','avi'].includes(ext)) return ""
+        // Static images and GIFs: use original as fallback while thumbs generate
+        return filePath
     }
 
     // ── Toggle filter ────────────────────────────────────────────────────────
@@ -144,7 +146,7 @@ QtObject {
             "python3", Quickshell.shellDir + "/src/scripts/thumbgen_batch.py",
             root.wallpaperDir,
             "--cache", root.thumbDir,
-            "--size", "200",
+            "--size", "400",
             "--workers", "3"
         ]
         stdout: SplitParser {

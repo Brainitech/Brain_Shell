@@ -125,16 +125,19 @@ PanelWindow {
         }
     }
 
-    // ── Wallpaper change handler ──────────────────────────────────────────────
-    // Direct source change. QML Image with asynchronous:true keeps showing
-    // the old image until the new one is decoded — a natural crossfade.
-    // No snapshots, curtains, or opacity tricks needed.
+    // ── Wallpaper change handler with grow-from-below transition ───────────────
+    // Covers the screen with a curtain, then shrinks it upward to reveal
+    // the new wallpaper from bottom to top (grow-from-below effect).
     property string _lastPath: ""
 
     onCurrentPathChanged: {
         if (currentPath === _lastPath) return
         if (currentPath === "") return
 
+        // 1. Cover screen with curtain
+        transitionCurtain.height = root.height
+
+        // 2. Swap to new wallpaper path underneath
         _displayPath = currentPath
         _lastPath = currentPath
 
@@ -145,6 +148,11 @@ PanelWindow {
         } else {
             root._effectivePath = currentPath
         }
+
+        // 3. Animate curtain away → reveals new wallpaper from bottom to top
+        Qt.callLater(function() {
+            transitionCurtain.height = 0
+        })
     }
 
     Component.onCompleted: {
@@ -387,4 +395,26 @@ PanelWindow {
         }
     }
     }  // end contentContainer
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  GROW-FROM-BELOW TRANSITION
+    //  A curtain covers the old wallpaper, then shrinks upward (anchored top),
+    //  revealing the new wallpaper from the bottom → growing upward.
+    // ═══════════════════════════════════════════════════════════════════════════
+    Rectangle {
+        id: transitionCurtain
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 0  // hidden by default
+        color: Theme.background
+        z: 10
+
+        Behavior on height {
+            NumberAnimation {
+                duration: 500
+                easing.type: Easing.OutCubic
+            }
+        }
+    }
 }

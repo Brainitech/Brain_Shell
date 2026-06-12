@@ -282,15 +282,15 @@ PanelWindow {
                     Item {
                         id:           cardContent
                         anchors.fill: parent
-                        visible:      false
+                        layer.enabled: true
+                        layer.smooth: true
+                        z: -1
 
                         // ── Thumbnail image (static, always a thumbnail) ──────
                         Image {
                             id: thumbImg
-                            anchors.left:  parent.left
-                            anchors.right: parent.right
-                            anchors.top:   parent.top
-                            height:        parent.height - cardDelegate.labelH
+                            anchors.fill: parent
+                            anchors.bottomMargin: cardDelegate.labelH
                             // Only load when in/near viewport — saves decode cost
                             source: {
                                 if (!cardDelegate.isInViewport) return ""
@@ -299,8 +299,8 @@ PanelWindow {
                                 // No fallback to original — thumbnails only
                                 return ""
                             }
-                            sourceSize.width: 200
-                            sourceSize.height: 200
+                            sourceSize.width: 512
+                            sourceSize.height: 512
                             fillMode:      Image.PreserveAspectCrop
                             asynchronous:  true
                             cache:         false  // don't waste Qt image cache on thumbnails
@@ -326,12 +326,11 @@ PanelWindow {
                         // ── Live preview for video / animated GIF ───────────
                         // Only instantiate when card is selected AND in viewport.
                         // Saves GPU memory by not creating 50+ video decoders.
+                        // cardContent.layer handles the MultiEffect mask capture.
                         Loader {
                             id: livePreviewLoader
-                            anchors.left:  parent.left
-                            anchors.right: parent.right
-                            anchors.top:   parent.top
-                            height:        parent.height - cardDelegate.labelH
+                            anchors.fill: parent
+                            anchors.bottomMargin: cardDelegate.labelH
                             clip: true
 
                             readonly property string ext: cardDelegate.modelData.toLowerCase().split('.').pop()
@@ -348,8 +347,9 @@ PanelWindow {
                         Component {
                             id: gifPreviewComp
                             AnimatedImage {
-                                source:   "file://" + cardDelegate.modelData
+                                anchors.fill: parent
                                 fillMode: Image.PreserveAspectCrop
+                                source:   "file://" + cardDelegate.modelData
                                 cache:    false
                                 playing:  true
                                 speed:    1.0
@@ -361,7 +361,6 @@ PanelWindow {
                         Component {
                             id: videoPreviewComp
                             Video {
-                                id: previewVideo
                                 anchors.fill: parent
                                 source:   "file://" + cardDelegate.modelData
                                 loops:    MediaPlayer.Infinite
@@ -420,6 +419,15 @@ PanelWindow {
                         layer.enabled: true
                     }
 
+                    // Solid background behind MultiEffect — blocks raw cardContent
+                    // from showing through the transparent mask corners.
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 10
+                        color: Theme.background
+                        z: 0
+                    }
+
                     MultiEffect {
                         source: cardContent
                         anchors.fill: parent
@@ -427,6 +435,7 @@ PanelWindow {
                         maskSource: cardMask
                         maskThresholdMin: 0.5
                         maskSpreadAtMin: 1.0
+                        z: 1
                     }
 
                     Rectangle {
@@ -437,6 +446,7 @@ PanelWindow {
                         border.color: isPreview ? Theme.active
                             : isCurrent ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.45)
                             : Qt.rgba(1,1,1,0.15)
+                        z: 2
                         Behavior on border.color { ColorAnimation { duration: 120 } }
                         Behavior on border.width { NumberAnimation  { duration: 120 } }
                     }
@@ -446,12 +456,16 @@ PanelWindow {
                         cursorShape:  Qt.PointingHandCursor
                         onClicked: {
                             content.schemePopupOpen = false
-                            // Preview highlight
-                            WallpaperService.previewWall = cardDelegate.modelData
-                            // Apply immediately with smooth transition
-                            content.appliedScheme = WallpaperService.scheme
-                            WallpaperService.apply(cardDelegate.modelData)
-                            Popups.wallpaperOpen = false
+                            // Two-click behavior: first click selects, second click applies
+                            if (WallpaperService.previewWall === cardDelegate.modelData) {
+                                // Second click → apply and close
+                                content.appliedScheme = WallpaperService.scheme
+                                WallpaperService.apply(cardDelegate.modelData)
+                                Popups.wallpaperOpen = false
+                            } else {
+                                // First click → select / preview only
+                                WallpaperService.previewWall = cardDelegate.modelData
+                            }
                         }
                     }
                 }

@@ -550,7 +550,7 @@ QtObject {
         // vs the old "while cat pipe; done" which forked cat on every event.
         command: ["bash", "-c",
             "until [ -p '" + root._pipePath + "' ]; do sleep 0.5; done; " +
-            "while IFS= read -r line; do printf '%s\\n' \"$line\"; done < '" + root._pipePath + "'"]
+            "while true; do while IFS= read -r line; do printf '%s\\n' \"$line\"; done < '" + root._pipePath + "'; done"]
         running: false
         stdout: SplitParser {
             onRead: function(line) {

@@ -267,15 +267,20 @@ declare -A IPC_MAP=(
     # Popups
     ["audio"]="audioOut-toggle"
     ["network"]="wifi-toggle"
-    ["notifications"]="notifications-toggle"
+    ["notifications"]="notification-toggle"
+    ["notification-toggle"]="notification-toggle"
     ["clipboard"]="clipboard-toggle"
     ["wallpaper"]="wallpaper-toggle"
     ["arch-menu"]="PowerMenu-toggle"
     # Network tabs
     ["wifi-toggle"]="wifi-toggle"
-    ["bt-toggle"]="bt-toggle"
+    ["bluetooth-toggle"]="bluetooth-toggle"
     ["vpn-toggle"]="vpn-toggle"
     ["hotspot-toggle"]="hotspot-toggle"
+    # Audio tabs
+    ["audioOut-toggle"]="audioOut-toggle"
+    ["audioIn-toggle"]="audioIn-toggle"
+    ["audioMix-toggle"]="audioMix-toggle"
     # Tools
     ["focus"]="focus-toggle"
     ["screen-record"]="screenrec-on"
@@ -285,23 +290,22 @@ declare -A IPC_MAP=(
 send_ipc() {
     local cmd="$1"
 
-    # Fast path: write directly to named pipe (no PID lookup needed)
+    # Primary: qs ipc (most reliable)
+    local pid
+    pid=$(find_brain_shell_pid_cached)
+    if [[ -n "$pid" ]]; then
+        local target="${IPC_MAP[$cmd]:-$cmd}"
+        qs ipc --pid "$pid" call "$target" toggle 2>/dev/null && return 0
+        qs ipc --pid "$pid" call brain-shell "$cmd" 2>/dev/null && return 0
+    fi
+
+    # Fallback: write to named pipe (zero-latency path)
     if [[ -p "$PIPE" ]]; then
         echo "$cmd" > "$PIPE" 2>/dev/null &
         return 0
     fi
 
-    # Slow path: fall back to qs ipc if pipe doesn't exist
-    local pid
-    pid=$(find_brain_shell_pid_cached)
-    if [[ -z "$pid" ]]; then
-        return 1
-    fi
-
-    local target="${IPC_MAP[$cmd]:-$cmd}"
-    qs ipc --pid "$pid" call "$target" toggle 2>/dev/null || {
-        qs ipc --pid "$pid" call brain-shell "$cmd" 2>/dev/null
-    }
+    return 1
 }
 
 # ── Brightness ────────────────────────────────────────────────────────────────

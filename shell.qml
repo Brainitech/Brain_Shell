@@ -1,3 +1,7 @@
+//@ pragma UseQApplication
+//@ pragma NativeTextRendering
+//@ pragma DropExpensiveFonts
+
 import Quickshell
 import QtQuick
 import "./src/windows"

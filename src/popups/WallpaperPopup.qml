@@ -258,82 +258,26 @@ PanelWindow {
                     height: isPreview ? wallGrid.height : wallGrid.height - 14
                     Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.InOutCubic } }
 
-                    // ── Viewport-aware lazy loading (ported from NothingLess) ──
-                    // Only decode images when the card is visible or near-visible.
-                    // Cards outside the viewport show a placeholder, saving RAM/CPU.
-                    readonly property bool isInViewport: {
-                        var vpLeft = wallGrid.contentX
-                        var vpRight = vpLeft + wallGrid.width
-                        var cardLeft = x
-                        var cardRight = x + width
-                        var buffer = width * 2  // preload 2 cards ahead/behind
-                        return cardRight + buffer >= vpLeft && cardLeft - buffer <= vpRight
-                    }
-
-                    // ── Card content: thumbnail + label — rendered OFFSCREEN ──
-                    // MultiEffect below captures this item and renders it
-                    // through a rounded-rectangle mask. opacity:0 keeps it
-                    // in the scene graph (needed for capture) but invisible.
                     Item {
                         id:           cardContent
                         anchors.fill: parent
-                        opacity:      0   // hidden from normal render, still capturable
-                        z:            -1
+                        visible:      false
 
-                        // ── Static thumbnail only (no live video/GIF decoders) ──
                         Image {
-                            id: thumbImg
-                            anchors.fill: parent
-                            anchors.bottomMargin: cardDelegate.labelH
+                            anchors.left:  parent.left
+                            anchors.right: parent.right
+                            anchors.top:   parent.top
+                            height:        parent.height - cardDelegate.labelH
                             source: {
-                                if (!cardDelegate.isInViewport) return ""
                                 var thumb = WallpaperService.thumbnailFor(modelData)
                                 if (thumb && thumb !== "") return "file://" + thumb
-                                var ext = modelData.toLowerCase().split('.').pop()
-                                if (['mp4','webm','mkv','mov','avi','gif'].includes(ext)) return ""
-                                return "file://" + modelData
+                                return modelData.indexOf("://") !== -1 ? modelData : "file://" + modelData
                             }
-                            sourceSize.width: 256
-                            sourceSize.height: 256
                             fillMode:      Image.PreserveAspectCrop
                             asynchronous:  true
                             cache:         false
-
-                            Rectangle {
-                                anchors.fill: parent
-                                color: Qt.rgba(1,1,1,0.03)
-                                visible: thumbImg.source == "" || thumbImg.status !== Image.Ready
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: {
-                                        if (!cardDelegate.isInViewport) return ""
-                                        var ext = modelData.toLowerCase().split('.').pop()
-                                        if (['mp4','webm','mkv','mov','avi','gif'].includes(ext)) return "🎬"
-                                        return "🖼"
-                                    }
-                                    font.pixelSize: 22
-                                }
-                            }
                         }
 
-                        // Video/GIF indicator badge
-                        Rectangle {
-                            anchors.right:  parent.right
-                            anchors.top:    parent.top
-                            anchors.margins: 4
-                            width:  20; height: 14; radius: 3
-                            color:  "#cc000000"
-                            visible: {
-                                var ext = modelData.toLowerCase().split('.').pop()
-                                return ['mp4','webm','mkv','mov','avi','gif'].includes(ext)
-                            }
-                            Text {
-                                anchors.centerIn: parent; text: "▶"
-                                color: "white"; font.pixelSize: 7
-                            }
-                        }
-
-                        // Filename label at bottom
                         Rectangle {
                             anchors.left:   parent.left
                             anchors.right:  parent.right

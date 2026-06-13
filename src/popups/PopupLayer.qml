@@ -3,69 +3,53 @@ import Quickshell
 import "../"
 
 // ============================================================
-// PopupLayer — the only file that instantiates popup windows.
-// Ambxst-optimized: Loader-based popups — destroyed when closed,
-// freeing GPU memory. Components only exist while visible.
+// PopupLayer — popup window instantiation.
 //
-// shell.qml creates the anchor windows and passes them in.
+// Popups are created as direct children so they can react to
+// Popups.*Open signals via Connections on startup.
+// Each popup's PanelWindow manages its own visibility/lifetime
+// internally (WlrLayer.Overlay + visible: windowVisible).
+//
 // To add a new popup:
 //   1. Create the .qml file in src/popups/
-//   2. Add its anchor window as a property here (if new)
-//   3. Add a Loader + Timer entry below
-// ============================================================
-
-import QtQuick
-import Quickshell
-import "../"
-
-// ============================================================
-// PopupLayer — the only file that instantiates popup windows.
-//
-// shell.qml creates the anchor windows and passes them in.
-// To add a new popup:
-//   1. Create the .qml file in src/popups/
-//   2. Add its anchor window as a property here (if new)
-//   3. Instantiate it below under the right section
+//   2. Add it below
 // ============================================================
 
 Item {
     id: popupLayer
 
-    // ── Anchor windows (set by shell.qml) ───────────────────
     required property var topBar
     required property var leftBorder
     required property var rightBorder
     required property var bottomBorder
 
-    // ── Border-anchored popups ───────────────────────────────
-
-    // Left border → center
+    // ── Left border → center ──────────────────────────────────
     ArchMenu {
         anchorWindow: popupLayer.leftBorder
     }
 
-    // Bottom border → slides up
+    // ── Bottom border → slides up ────────────────────────────
     WallpaperPopup {}
 
-    // Bottom-right corner → clipboard history + emoji
+    // ── Bottom-right corner → clipboard ──────────────────────
     ClipboardPopup {}
 
-    // ── TopBar-anchored popups ───────────────────────────────
-
-    // Right notch — audio
+    // ── Right notch → audio ──────────────────────────────────
     AudioPopup {
         anchorWindow: popupLayer.rightBorder
     }
+
+    // ── Quick control ─────────────────────────────────────────
     QuickControl {
         anchorWindow: popupLayer.topBar
     }
 
-    // Center notch — dashboard (expands below the center notch)
+    // ── Center notch → dashboard ─────────────────────────────
     Dashboard {
         anchorWindow: popupLayer.topBar
     }
 
-    // Right notch
+    // ── Right notch → notifications ───────────────────────────
     NotificationsPopup {
         anchorWindow: popupLayer.topBar
     }
@@ -74,10 +58,11 @@ Item {
         anchorWindow: popupLayer.rightBorder
     }
 
-    // Screen recorder strip options — appears below center notch on hover
+    // ── Screen record options ─────────────────────────────────
     ScreenRecOptionsPopup {
         anchorWindow: popupLayer.topBar
     }
 
+    // ── Network popup ─────────────────────────────────────────
     NetworkPopup {}
 }

@@ -31,16 +31,6 @@ QtObject {
         onLoaded: root._parse(colorsFile.text())
     }
 
-    // ── Fallback polling — ensures colors stay in sync on all filesystems ────
-    property Timer _pollTimer: Timer {
-        interval: 3000
-        repeat: true
-        running: true
-        onTriggered: {
-            colorsFile.reload()
-        }
-    }
-
     // ── Parser ────────────────────────────────────────────────────────────────
     function _parse(raw) {
         if (!raw || raw.trim() === "") return

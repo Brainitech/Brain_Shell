@@ -45,6 +45,9 @@ Item {
         width:  parent.width
         height: parent.width
 
+        renderStrategy: Canvas.Cooperative
+        renderTarget: Canvas.Image
+
         readonly property real cx:        width  / 2
         readonly property real cy:        height / 2
         readonly property real radius:    width  / 2 - Math.round(10 * root.size)

@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
-import QtMultimedia
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -271,33 +270,35 @@ PanelWindow {
                         return cardRight + buffer >= vpLeft && cardLeft - buffer <= vpRight
                     }
 
+                    // ── Card content: thumbnail + label — rendered OFFSCREEN ──
+                    // MultiEffect below captures this item and renders it
+                    // through a rounded-rectangle mask. opacity:0 keeps it
+                    // in the scene graph (needed for capture) but invisible.
                     Item {
                         id:           cardContent
                         anchors.fill: parent
-                        layer.enabled: true
-                        layer.smooth: true
-                        z: -1
+                        opacity:      0   // hidden from normal render, still capturable
+                        z:            -1
 
-                        // ── Thumbnail image (static, always a thumbnail) ──────
+                        // ── Static thumbnail only (no live video/GIF decoders) ──
                         Image {
                             id: thumbImg
                             anchors.fill: parent
                             anchors.bottomMargin: cardDelegate.labelH
-                            // Only load when in/near viewport — saves decode cost
                             source: {
                                 if (!cardDelegate.isInViewport) return ""
                                 var thumb = WallpaperService.thumbnailFor(modelData)
                                 if (thumb && thumb !== "") return "file://" + thumb
-                                // No fallback to original — thumbnails only
-                                return ""
+                                var ext = modelData.toLowerCase().split('.').pop()
+                                if (['mp4','webm','mkv','mov','avi','gif'].includes(ext)) return ""
+                                return "file://" + modelData
                             }
-                            sourceSize.width: 512
-                            sourceSize.height: 512
+                            sourceSize.width: 256
+                            sourceSize.height: 256
                             fillMode:      Image.PreserveAspectCrop
                             asynchronous:  true
-                            cache:         false  // don't waste Qt image cache on thumbnails
+                            cache:         false
 
-                            // Placeholder while loading / out of viewport
                             Rectangle {
                                 anchors.fill: parent
                                 color: Qt.rgba(1,1,1,0.03)
@@ -315,64 +316,6 @@ PanelWindow {
                             }
                         }
 
-                        // ── Live preview for video / animated GIF ───────────
-                        // Only instantiate when card is selected AND in viewport.
-                        // Saves GPU memory by not creating 50+ video decoders.
-                        // cardContent.layer handles the MultiEffect mask capture.
-                        Loader {
-                            id: livePreviewLoader
-                            anchors.fill: parent
-                            anchors.bottomMargin: cardDelegate.labelH
-                            clip: true
-
-                            readonly property string ext: cardDelegate.modelData.toLowerCase().split('.').pop()
-                            readonly property bool isGif: ext === 'gif'
-                            readonly property bool isVid: ['mp4','webm','mkv','mov','avi'].includes(ext)
-
-                            // Only instantiate when selected AND in viewport
-                            active: cardDelegate.isPreview && cardDelegate.isInViewport && (isGif || isVid)
-                            sourceComponent: isGif ? gifPreviewComp
-                                            : (isVid ? videoPreviewComp : null)
-                        }
-
-                        // GIFs → AnimatedImage (QtMultimedia Video does not render gifs)
-                        Component {
-                            id: gifPreviewComp
-                            AnimatedImage {
-                                anchors.fill: parent
-                                fillMode: Image.PreserveAspectCrop
-                                source:   "file://" + cardDelegate.modelData
-                                cache:    false
-                                playing:  true
-                                speed:    1.0
-                                asynchronous: true
-                            }
-                        }
-
-                        // Real videos — use cached H.264 for preview (no VP9 CPU decode)
-                        Component {
-                            id: videoPreviewComp
-                            Item {
-                                anchors.fill: parent
-                                property string _resolvedPath: ""
-                                Component.onCompleted: {
-                                    if (VideoWallpaperService) {
-                                        VideoWallpaperService.getEffectivePath(cardDelegate.modelData, function(p) {
-                                            _resolvedPath = p || cardDelegate.modelData
-                                        })
-                                    }
-                                }
-                                Video {
-                                    anchors.fill: parent
-                                    source:   parent._resolvedPath ? "file://" + parent._resolvedPath : ""
-                                    loops:    MediaPlayer.Infinite
-                                    autoPlay: true
-                                    muted:    true
-                                    fillMode: VideoOutput.PreserveAspectCrop
-                                }
-                            }
-                        }
-
                         // Video/GIF indicator badge
                         Rectangle {
                             anchors.right:  parent.right
@@ -385,13 +328,12 @@ PanelWindow {
                                 return ['mp4','webm','mkv','mov','avi','gif'].includes(ext)
                             }
                             Text {
-                                anchors.centerIn: parent
-                                text: "▶"
-                                color: "white"
-                                font.pixelSize: 7
+                                anchors.centerIn: parent; text: "▶"
+                                color: "white"; font.pixelSize: 7
                             }
                         }
 
+                        // Filename label at bottom
                         Rectangle {
                             anchors.left:   parent.left
                             anchors.right:  parent.right
@@ -400,7 +342,6 @@ PanelWindow {
                             color: isPreview
                                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
                                 : Qt.rgba(1,1,1,0.09)
-
                             Text {
                                 anchors.centerIn: parent
                                 width:               parent.width - 10
@@ -414,33 +355,29 @@ PanelWindow {
                         }
                     }
 
+                    // ── Rounded-corner mask source ─────────────────────────
                     Rectangle {
                         id: cardMask
                         anchors.fill: parent
                         radius: 10
                         visible: false
                         layer.enabled: true
+                        layer.smooth: true
                     }
 
-                    // Solid background behind MultiEffect — blocks raw cardContent
-                    // from showing through the transparent mask corners.
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: 10
-                        color: Theme.background
-                        z: 0
-                    }
-
+                    // ── Masked card output (the only visible rendering) ────
                     MultiEffect {
+                        id: cardEffect
                         source: cardContent
                         anchors.fill: parent
                         maskEnabled: true
                         maskSource: cardMask
-                        maskThresholdMin: 0.5
-                        maskSpreadAtMin: 1.0
+                        maskThresholdMin: 0.4
+                        maskSpreadAtMin: 0.0
                         z: 1
                     }
 
+                    // ── Selection / current border ─────────────────────────
                     Rectangle {
                         anchors.fill: parent
                         radius: 10

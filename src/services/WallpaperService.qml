@@ -146,7 +146,7 @@ QtObject {
             "python3", Quickshell.shellDir + "/src/scripts/thumbgen_batch.py",
             root.wallpaperDir,
             "--cache", root.thumbDir,
-            "--size", "400",
+            "--size", "256",
             "--workers", "3"
         ]
         stdout: SplitParser {

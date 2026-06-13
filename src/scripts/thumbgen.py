@@ -32,7 +32,7 @@ def generate_thumbnail(input_path, output_path=None, size=256):
     else:
         # Static image — resize with ImageMagick or ffmpeg
         if shutil_which("magick"):
-            cmd = ["magick", input_path, "-resize", f"{size}x{size}^", "-gravity", "center", "-extent", f"{size}x{size}", output_path]
+            cmd = ["magick", input_path, "-resize", f"{size}x{size}^", "-gravity", "center", "-extent", f"{size}x{size}", "-quality", "80", "-strip", output_path]
         else:
             cmd = [
                 "ffmpeg", "-y",

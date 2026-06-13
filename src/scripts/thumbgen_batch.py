@@ -80,11 +80,11 @@ def generate_one(inp, out, size):
             if is_imagemagick_v7():
                 cmd = ["magick", inp, "-resize", f"{size}x{size}^",
                        "-gravity", "center", "-extent", f"{size}x{size}",
-                       "-quality", "85", out]
+                       "-quality", "80", "-strip", out]
             elif which("convert"):
                 cmd = ["convert", inp, "-resize", f"{size}x{size}^",
                        "-gravity", "center", "-extent", f"{size}x{size}",
-                       "-quality", "85", out]
+                       "-quality", "80", "-strip", out]
             else:
                 cmd = [
                     "ffmpeg", "-y", "-i", inp,

@@ -71,8 +71,8 @@ PanelWindow {
         width:  Popups.clipboardOpen ? root.popupWidth  + root.fw : 1
         height: Popups.clipboardOpen ? root.popupHeight + root.fh : 1
 
-        Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
-        Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
+        Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outCubic } }
+        Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outCubic } }
 
         PopupShape {
             anchors.fill: parent

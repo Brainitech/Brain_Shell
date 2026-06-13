@@ -134,7 +134,7 @@ Rectangle {
                     return Theme.wsEmpty
                 }
 
-                Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
+                Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                 Behavior on color { ColorAnimation { duration: 200 } }
 
                 // --- Urgent pulse ---

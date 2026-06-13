@@ -117,6 +117,7 @@ PanelWindow {
 
     function _stabilizeAndFade(currLayer, nextLayer) {
         if (currLayer) {
+            // Smooth crossfade: old fades out, new fades in with subtle zoom
             crossfadeAnim.currLayer = currLayer
             crossfadeAnim.nextLayer = nextLayer
             nextLayer.scale = 0.97
@@ -145,7 +146,7 @@ PanelWindow {
             }
             NumberAnimation {
                 target: crossfadeAnim.nextLayer; property: "scale"
-                to: 1.0; duration: 320; easing.type: Easing.OutBack
+                to: 1.0; duration: 320; easing.type: Easing.OutCubic
             }
         }
         onStopped: _finishSwap()

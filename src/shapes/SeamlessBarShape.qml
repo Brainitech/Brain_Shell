@@ -16,11 +16,15 @@ Canvas {
     property int topBorderWidth:  Theme.borderWidth
     property color color:         Theme.background
 
-    // ── Render quality ──────────────────────────────────────────────────────
+    // ── Render quality + GPU caching ────────────────────────────────────
+    width: Math.round(parent.width)
+    height: Math.round(parent.height)
     antialiasing: true
     smooth: true
     renderStrategy: Canvas.Cooperative
     renderTarget: Canvas.Image
+    layer.enabled: true
+    layer.smooth: true
 
     onWidthChanged:       requestPaint()
     onHeightChanged:      requestPaint()
@@ -33,19 +37,18 @@ Canvas {
         var ctx = getContext("2d")
         ctx.clearRect(0, 0, width, height)
 
-        var leftW   = root.leftWidth
-        var centerW = root.centerWidth
-        var rightW  = root.rightWidth
+        // Round all coordinates to integers — prevents sub-pixel antialiasing gaps
+        var r = Math.round(root.radius)
+        var h = Math.round(root.notchHeight)
+        var b = Math.round(root.topBorderWidth)
+        var w = Math.round(width)
+        var leftW   = Math.round(root.leftWidth)
+        var centerW = Math.round(root.centerWidth)
+        var rightW  = Math.round(root.rightWidth)
 
-        var r = root.radius
-        var h = root.notchHeight
-        var b = root.topBorderWidth
-        var w = width
-
-        // Calculated positions
-        var centerStart = (w / 2) - (centerW / 2)
-        var centerEnd   = (w / 2) + (centerW / 2)
-        var rightStart  = w - rightW
+        var centerStart = Math.round(w / 2 - centerW / 2)
+        var centerEnd   = Math.round(w / 2 + centerW / 2)
+        var rightStart  = Math.round(w - rightW)
 
         ctx.beginPath();
         ctx.fillStyle = root.color;

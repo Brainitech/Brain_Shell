@@ -85,7 +85,7 @@ PopupWindow {
 			width:  (root.pageWidths[audioControl.page] ?? root.maxWidth)
 			height: root.popupHeight
 
-Behavior on width { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
+Behavior on width { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outCubic } }
 
 			PopupShape {
 				id: bg

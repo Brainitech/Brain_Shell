@@ -319,6 +319,10 @@ StatCard {
                     Canvas {
                         id: timerCanvas
                         anchors.fill: parent
+                        width: Math.round(parent.width)
+                        height: Math.round(parent.height)
+                        renderStrategy: Canvas.Cooperative
+                        renderTarget: Canvas.Image
                         onPaint: {
                             var ctx = getContext("2d")
                             ctx.clearRect(0, 0, width, height)

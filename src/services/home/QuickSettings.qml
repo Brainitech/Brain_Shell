@@ -42,7 +42,8 @@ StatCard {
     }
     Timer { id: brightDebounce; interval: 50; repeat: false
         onTriggered: { root._brightBusy = true; brightWrite.running = true } }
-    Timer { interval: 1000; running: true; repeat: true
+    // Brightness read — only when dashboard is open (was: every 1s always = 60/min)
+    Timer { interval: 1000; running: Popups.dashboardOpen; repeat: true
         onTriggered: if (!root._brightBusy) brightRead.running = true }
     function _setBright(v) {
         root._brightVal = Math.max(0.0, Math.min(1.0, v))
@@ -577,10 +578,10 @@ StatCard {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    //  Polling timer
+    //  Polling timer — only when dashboard is open (was: always ≈ 48 spawns/min)
     // ─────────────────────────────────────────────────────────────────────────
     Timer {
-        interval: 5000; running: true; repeat: true
+        interval: 5000; running: Popups.dashboardOpen; repeat: true
         onTriggered: {
             _wifiPoll(); _btPoll()
             hsActiveCheckProc.running = false; hsActiveCheckProc.running = true

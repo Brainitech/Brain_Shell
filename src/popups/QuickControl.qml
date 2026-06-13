@@ -87,8 +87,9 @@ PopupWindow {
         onTriggered: { root._bBusy = true; brightWrite.running = true }
     }
 
+    // Brightness poll — 5s when control is open (was: 1s always = 60/min)
     Timer {
-        interval: 1000; running: true; repeat: true
+        interval: Popups.quickOpen ? 2000 : 30000; running: true; repeat: true
         onTriggered: if (!root._bBusy) brightRead.running = true
     }
 
@@ -118,7 +119,7 @@ PopupWindow {
             width:  root.popupWidth
             height: root.popupHeight
 
-            Behavior on width { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
+            Behavior on width { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outCubic } }
 
             PopupShape {
                 id: bg

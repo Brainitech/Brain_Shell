@@ -105,8 +105,8 @@ PanelWindow {
         width:  Popups.dashboardOpen ? Popups.dashboardPageWidth + 2 * root.fw : Theme.cNotchMinWidth + 2 * root.fw
         height: Popups.dashboardOpen ? Theme.dashboardHeight : Theme.notchHeight / 2
 
-        Behavior on width  { NumberAnimation { duration: root.animDuration; easing: Anim.outBack } }
-        Behavior on height { NumberAnimation { duration: root.animDuration; easing: Anim.outBack } }
+        Behavior on width  { NumberAnimation { duration: root.animDuration; easing: Anim.outCubic } }
+        Behavior on height { NumberAnimation { duration: root.animDuration; easing: Anim.outCubic } }
 
         MouseArea {
             anchors.fill: parent

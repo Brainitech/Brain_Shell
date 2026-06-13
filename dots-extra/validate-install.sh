@@ -105,7 +105,6 @@ check_command "cava"
 echo ""
 echo "# WALLPAPER & THEMING"
 check_command "magick"
-check_optional "awww"
 check_optional "matugen"
 
 echo ""

@@ -71,8 +71,9 @@ Item {
             onRead: function(l) { var v = l.trim().toLowerCase(); if (v !== "") root._connectivity = v }
         }
     }
+    // Network status — 30s when idle, 5s when popup open (was: always 5s)
     Timer {
-        interval: 5000; running: true; repeat: true
+        interval: Popups.networkOpen ? 5000 : 30000; running: true; repeat: true
         onTriggered: {
             wifiPoll.running = false; wifiPoll.running = true
             ethPoll.running  = false; ethPoll.running  = true

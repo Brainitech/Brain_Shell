@@ -121,7 +121,7 @@ QtObject {
 
     // ── Poll timer ────────────────────────────────────────────────────────────
     property var _pollTimer: Timer {
-        interval: Popups.dashboardOpen ? 2000 : 8000
+        interval: Popups.dashboardOpen ? 2000 : 30000
         running:  true
         repeat:   true
         onTriggered: root._poll()

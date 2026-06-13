@@ -113,8 +113,8 @@ PopupWindow {
 		? (cardCol.y + cardCol.implicitHeight + 24 + root.fh) 
 		: root.fh
 
-Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
-           Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
+Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outCubic } }
+           Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outCubic } }
 
 		PopupShape {
 			anchors.fill: parent

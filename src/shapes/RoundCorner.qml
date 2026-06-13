@@ -30,10 +30,12 @@ Item {
         antialiasing: true
         renderStrategy: Canvas.Cooperative
         renderTarget: Canvas.Image
+        layer.enabled: true
 
         onPaint: {
             var ctx = getContext("2d")
-            var r = root.size
+            // Round + 1px overlap to eliminate seams with adjacent borders
+            var r = Math.round(root.size) + 1
             var c = root.maskColor
             ctx.clearRect(0, 0, width, height)
             ctx.beginPath()

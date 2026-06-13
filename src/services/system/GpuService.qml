@@ -88,7 +88,7 @@ QtObject {
 
     // ── Poll timers (slower when dashboard closed to save CPU) ───────────────
     property var _igpuTimer: Timer {
-        interval: Popups.dashboardOpen ? 2000 : 5000
+        interval: Popups.dashboardOpen ? 2000 : 30000
         running:  root.active
         repeat:   true
         onTriggered: {
@@ -100,7 +100,7 @@ QtObject {
     }
 
     property var _nvTimer: Timer {
-        interval: 1000
+        interval: Popups.dashboardOpen ? 1000 : 5000
         running:  root.active && root.envyMode !== "integrated"
         repeat:   true
         onTriggered: {

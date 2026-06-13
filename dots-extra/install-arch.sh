@@ -24,7 +24,7 @@ log_warn()  { echo -e "  ${YELLOW}⚠${NC} $1"; }
 log_error() { echo -e "  ${RED}✗${NC} $1" >&2; }
 die()       { echo ""; log_error "$1"; exit 1; }
 
-TOTAL_STEPS=6
+TOTAL_STEPS=5
 step() {
     echo ""
     echo -e "${BOLD}${CYAN}  [$1/$TOTAL_STEPS]  $2${NC}"
@@ -262,7 +262,6 @@ step 3 "AUR Packages"
 
 AUR_DEPS=(
     quickshell       # REQUIRED — the shell runtime
-    awww             # animation daemon
     matugen          # Material You color generation
     envycontrol      # GPU switching
     auto-cpufreq     # CPU power management
@@ -313,67 +312,9 @@ _svc_user   wireplumber
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STEP 5 — Hyprland Config
+# STEP 5 — Brain Shell Config & Keybind Check
 # ══════════════════════════════════════════════════════════════════════════════
-step 5 "Hyprland Config"
-
-# Marker used to detect whether the block was already appended
-_MARKER="quickshell.*Brain_Shell"
-
-_append_conf() {
-    cat << 'EOF' >> "$1"
-
-# Brain Shell Autostarts
-exec-once = awww-daemon
-exec-once = hypridle -c $HOME/.local/src/Brain_Shell/src/config/hypridle.conf
-exec-once = quickshell -c $HOME/.local/src/Brain_Shell/.
-exec-once = systemctl --user start hyprpolkitagent
-exec-once = wl-paste --type text --watch cliphist store
-exec-once = wl-paste --type image --watch cliphist store
-EOF
-}
-
-_append_lua() {
-    cat << 'EOF' >> "$1"
-
--- Brain Shell Autostarts
-hl.on("hyprland.start", function()
-    hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("hypridle -c " .. os.getenv("HOME") .. "/.local/src/Brain_Shell/src/config/hypridle.conf")
-    hl.exec_cmd("quickshell -c " .. os.getenv("HOME") .. "/.local/src/Brain_Shell")
-    hl.exec_cmd("systemctl --user start hyprpolkitagent")
-    hl.exec_cmd("wl-paste --type text --watch cliphist store")
-    hl.exec_cmd("wl-paste --type image --watch cliphist store")
-end)
-EOF
-}
-
-if grep -q "$_MARKER" "$HYPRLAND_CONF" 2>/dev/null; then
-    log_warn "Autostart block already present — skipping."
-else
-    case "$CONFIG_TYPE" in
-        conf)
-            _append_conf "$HYPRLAND_CONF"
-            log_ok "Autostart block appended to hyprland.conf"
-            ;;
-        lua)
-            # Extra safety backup before touching a Lua config
-            cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.pre-brain-shell"
-            log_info "Safety backup: ${HYPRLAND_CONF}.pre-brain-shell"
-            _append_lua "$HYPRLAND_CONF"
-            log_ok "Autostart block appended to hyprland.lua"
-            ;;
-        *)
-            log_warn "Unknown config type '$CONFIG_TYPE' — skipping Hyprland config update."
-            ;;
-    esac
-fi
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 6 — Brain Shell Config & Keybind Check
-# ══════════════════════════════════════════════════════════════════════════════
-step 6 "Brain Shell Config"
+step 5 "Brain Shell Config"
 
 USER_DATA="$HOME/.config/Brain_Shell/src/user_data"
 

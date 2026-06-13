@@ -30,13 +30,13 @@ Item {
     property alias popupOpacity: root._popupOpacity
     property alias popupScale: root._popupScale
 
-    // ── Internal animation properties ─────────────────────────────────────────
+    // ── Animations — smooth, no bounce (OutBack was too sharp/bouncy) ────────
+    // Open: smooth deceleration. Close: faster, no overshoot.
     property real _popupOpacity: isOpen ? 1 : 0
-    property real _popupScale: isOpen ? 1 : 0.88
+    property real _popupScale: isOpen ? 1 : 0.92
 
     readonly property int _dur: Theme.animDuration
 
-    // ── Transform origin — grows/shrinks from the logical edge ────────────────
     transformOrigin: {
         switch (transformEdge) {
             case "top":    return Item.Top
@@ -49,32 +49,27 @@ Item {
 
     opacity: _popupOpacity
     scale: _popupScale
-
-    // Don't render when fully invisible — saves GPU.
-    // parent.height>10 prevents QFont::setPointSize(0) when sizer=0
     visible: opacity > 0
 
     Behavior on _popupOpacity {
         enabled: _dur > 0
         NumberAnimation {
-            duration: root.isOpen ? _dur : Math.round(_dur * 0.6)
-            easing.type: root.isOpen ? Easing.OutQuart : Easing.InQuad
+            duration: root.isOpen ? _dur : Math.round(_dur * 0.5)
+            easing.type: root.isOpen ? Easing.OutCubic : Easing.InQuad
         }
     }
 
     Behavior on _popupScale {
         enabled: _dur > 0
         NumberAnimation {
-            duration: root.isOpen ? Math.round(_dur * 1.2) : Math.round(_dur * 0.5)
-            easing.type: root.isOpen ? Easing.OutBack : Easing.InQuad
-            easing.overshoot: root.isOpen ? 1.12 : 0
+            duration: root.isOpen ? Math.round(_dur * 1.1) : Math.round(_dur * 0.4)
+            easing.type: root.isOpen ? Easing.OutCubic : Easing.InQuad
         }
     }
 
-    // Auto-close timer: hide completely after close animation finishes
     Timer {
         id: _hideTimer
-        interval: Math.round(_dur * 0.6) + 30
+        interval: Math.round(_dur * 0.5) + 20
         onTriggered: root.visible = false
     }
 

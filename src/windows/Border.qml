@@ -44,6 +44,9 @@ PanelWindow {
             smooth: true
             renderStrategy: Canvas.Cooperative
             renderTarget: Canvas.Image
+            layer.enabled: true
+            width: Math.round(parent.width)
+            height: Math.round(parent.height)
             
             onWidthChanged:  requestPaint()
             onHeightChanged: requestPaint()
@@ -59,10 +62,10 @@ PanelWindow {
                 ctx.fillStyle = root.fillColor;
                 ctx.beginPath();
 
-                var w = width;
-                var h = height;
-                var t = root.thickness;
-                var r = root.radius;
+                var w = Math.round(width);
+                var h = Math.round(height);
+                var t = Math.round(root.thickness);
+                var r = Math.round(root.radius);
 
                 if (root.edge === "left") {
                     // == LEFT BORDER (Top Melt) ==

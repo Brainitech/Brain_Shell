@@ -44,8 +44,8 @@ Item {
     // ── Universal timing — sourced from Popups singleton ──────────────────────
     property int slideDuration: Popups.slideDuration
     property int closeDelay:    Popups.hoverCloseDelay
-    // Organic pop-in (slight overshoot), smooth pop-out
-    property QtObject openEasing:  Anim.outBack
+    // Smooth pop-in/pop-out — no bounce (OutBack was too sharp)
+    property QtObject openEasing:  Anim.outCubic
     property QtObject closeEasing: Anim.outQuart
 
     // ── Output ────────────────────────────────────────────────────────────────
@@ -118,13 +118,12 @@ Item {
         Behavior on x { NumberAnimation { duration: root.slideDuration; easing: root._effectiveOpen ? root.openEasing : root.closeEasing } }
         Behavior on y { NumberAnimation { duration: root.slideDuration; easing: root._effectiveOpen ? root.openEasing : root.closeEasing } }
 
-        // Subtle scale during slide for organic feel
-        scale: root._effectiveOpen ? 1 : 0.94
+        // Subtle scale during slide — smooth, no overshoot
+        scale: root._effectiveOpen ? 1 : 0.95
         Behavior on scale {
             NumberAnimation {
                 duration: root.slideDuration
-                easing.type: root._effectiveOpen ? Easing.OutBack : Easing.InQuad
-                easing.overshoot: root._effectiveOpen ? 1.08 : 0
+                easing.type: root._effectiveOpen ? Easing.OutCubic : Easing.InQuad
             }
         }
         opacity: root._effectiveOpen ? 1 : 0.6

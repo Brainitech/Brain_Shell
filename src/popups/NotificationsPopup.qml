@@ -85,8 +85,8 @@ PopupWindow {
                 ? notifList.height + Theme.popupPadding * 2 + root.fh
                 : root.fh
 
-        Behavior on width  { NumberAnimation { duration: root.animDuration; easing: Anim.outBack } }
-        Behavior on height { NumberAnimation { duration: root.animDuration; easing: Anim.outBack } }
+        Behavior on width  { NumberAnimation { duration: root.animDuration; easing: Anim.outCubic } }
+        Behavior on height { NumberAnimation { duration: root.animDuration; easing: Anim.outCubic } }
 
         // ── Background ─────────────────────────────────────────
         PopupShape {

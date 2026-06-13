@@ -528,11 +528,19 @@ QtObject {
 
     readonly property string _pipePath: "/tmp/brain_shell_ipc.pipe"
 
+    // Create pipe once on startup with sparse fallback (was: every 1s = 60 spawns/min)
     property var _pipeSetupTimer: Timer {
         interval: 1000
         running: true
         repeat: true
-        onTriggered: _ensurePipe()
+        property int _attempts: 0
+        onTriggered: {
+            _attempts++
+            // First 5 attempts: try every 1s. After that: every 30s fallback.
+            if (_attempts > 5) interval = 30000
+            _ensurePipe()
+            if (_attempts > 5 && _pipeReader.running) running = false  // stop once pipe is live
+        }
     }
 
     function _ensurePipe() {

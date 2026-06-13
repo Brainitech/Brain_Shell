@@ -158,8 +158,8 @@ PanelWindow {
         width:  Popups.wallpaperOpen ? root.panelWidth + 2 * root.fw : Theme.cNotchMinWidth + 2 * root.fw
         height: Popups.wallpaperOpen ? root.panelHeight : 1
 
-        Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
-        Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
+        Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outCubic } }
+        Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outCubic } }
 
         HoverHandler {
             onHoveredChanged: root.selfHovered = hovered

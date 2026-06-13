@@ -68,69 +68,13 @@ QtObject {
         return cacheDir + "/" + hash + "-" + targetHeight + "p.mp4";
     }
 
-    // ── Get effective path (cached if exists, else original) ──────────────────
-    function getEffectivePath(originalPath, callback) {
-        if (!isVideo(originalPath) || targetHeight === 0) {
-            if (callback) callback(originalPath);
-            return;
-        }
-
-        var cachePath = getCachePath(originalPath);
-
-        // Queue callback for multi-screen support
-        root._checkCallbacks.push({ path: cachePath, cb: callback, original: originalPath });
-
-        if (checkProc.running) return;
-        root._startCheckProcess();
+    // ── Get effective path (synchronous — returns cache path if exists, else compute and return) ─
+    function getEffectivePath(originalPath) {
+        if (!originalPath || targetHeight === 0) return originalPath;
+        if (!isVideo(originalPath)) return originalPath;
+        var hash = _hashPath(originalPath);
+        return cacheDir + "/" + hash + "-" + targetHeight + "p.mp4";
     }
-
-    function _startCheckProcess() {
-        if (root._checkCallbacks.length === 0) return;
-        var req = root._checkCallbacks[0];
-        root._checkingPath = req.path;
-        root._checkingOriginal = req.original;
-
-        checkProc.command = ["test", "-f", req.path];
-        checkProc.running = false;
-        checkProc.running = true;
-    }
-
-    property Process checkProc: Process {
-        running: false
-        onExited: function(code) {
-            var cachePath = root._checkingPath;
-            var originalPath = root._checkingOriginal;
-            var exists = code === 0;
-
-            // Notify all callbacks waiting for this path
-            var remaining = [];
-            for (var i = 0; i < root._checkCallbacks.length; i++) {
-                var item = root._checkCallbacks[i];
-                if (item.path === cachePath) {
-                    if (exists) {
-                        if (item.cb) item.cb(cachePath);
-                    } else {
-                        // Not cached — generate it
-                        root._generateCache(originalPath, cachePath, item.cb);
-                    }
-                } else {
-                    remaining.push(item);
-                }
-            }
-            root._checkCallbacks = remaining;
-            root._checkingPath = "";
-            root._checkingOriginal = "";
-
-            // Process next queued path
-            if (remaining.length > 0) {
-                root._startCheckProcess();
-            }
-        }
-    }
-
-    property var _checkCallbacks: []
-    property string _checkingPath: ""
-    property string _checkingOriginal: ""
 
     // ── Generate cached H.264 MP4 version (hardware-decodable on all GPUs) ───
     function _generateCache(originalPath, cachePath, callback) {
@@ -146,28 +90,18 @@ QtObject {
         var srcCodec = GpuDetector.detectCodecFromPath(originalPath);
         var needsTranscode = (srcCodec !== "h264");
 
-        // Always transcode non-H.264 (VP9, AV1, etc.) to H.264 for hardware decode.
-        // If source is already H.264 and at target resolution, skip — no re-encode needed.
         if (!needsTranscode && targetHeight === 0) {
-            // Already H.264, no downscale — use original directly
             if (callback) callback(originalPath);
             return;
         }
 
-        // Software decode for transcode — VAAPI/Vulkan don't support VP9 on Intel.
-        // Using -hwaccel none avoids the 'Failed setup for format vaapi/vulkan' spam.
-        // The OUTPUT is H.264 which DOES have QSV hardware decode during playback.
         var cmd = "ffmpeg -y -loglevel error -hwaccel none -i '" + originalPath + "'";
-
-        // FPS limit + optional downscale
         cmd += " -filter:v fps=" + targetFps;
         if (targetHeight > 0) {
             cmd += ",scale=-2:" + targetHeight + ":flags=lanczos";
         }
-        // Force pixel format for hardware encoder compatibility
         cmd += ",format=yuv420p";
 
-        // Hardware encoder if available (Intel QSV, AMD VAAPI, NVIDIA NVENC)
         if (GpuDetector.hasHardwareDecoder && hwEncoder !== "") {
             cmd += " -c:v " + hwEncoder + " -preset fast -b:v 2M -maxrate 4M -bufsize 4M";
         } else {
@@ -178,11 +112,14 @@ QtObject {
 
         root._generatingPath = cachePath;
         root._genCallbacks = callback ? [callback] : [];
+        root._genOriginal = originalPath;
 
         genProc.command = ["bash", "-c", cmd];
         genProc.running = false;
         genProc.running = true;
     }
+
+    property string _genOriginal: ""
 
     property Process genProc: Process {
         running: false
@@ -201,9 +138,11 @@ QtObject {
             var cbs = root._genCallbacks;
             root._genCallbacks = [];
             root._generatingPath = "";
+            var original = root._genOriginal;
+            root._genOriginal = "";
 
             for (var i = 0; i < cbs.length; i++) {
-                if (cbs[i]) cbs[i](success ? cachePath : root._checkingOriginal);
+                if (cbs[i]) cbs[i](success ? cachePath : original);
             }
         }
     }

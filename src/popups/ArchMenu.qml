@@ -73,8 +73,8 @@ PopupWindow {
 			width:  root.contentWidth  + root.fw
 			height: root.contentHeight + root.fh * 2
 
-Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
-                     Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack } }
+                     Behavior on width  { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outCubic } }
+                     Behavior on height { NumberAnimation { duration: Anim.standardNormal; easing: Anim.outCubic } }
 
 			PopupShape {
 				id: bg

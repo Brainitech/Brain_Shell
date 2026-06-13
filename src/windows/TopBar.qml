@@ -54,7 +54,7 @@ PanelWindow {
                      centerContent.implicitWidth + Theme.notchPadding * 2)
           )
     Behavior on cWidth {
-        NumberAnimation { duration: Anim.standardNormal; easing: Anim.outBack }
+        NumberAnimation { duration: Anim.standardNormal; easing: Anim.outCubic }
     }
 
     // Width matches sizer open width: popupWidth + notchRadius (fw) in both popups

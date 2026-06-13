@@ -153,27 +153,46 @@ PanelWindow {
         }
 
         onOpacityChanged: {
-            if (opacity === 0) {
+            if (opacity <= 0.01) {
                 visible = false
                 sourceItem = null
             }
         }
     }
 
-    // Detect when the new content is ready for crossfade
-    readonly property bool _contentReady: {
-        if (isImage) return staticImg.status === Image.Ready
-        if (isGif)   return gifPlayer.status === AnimatedImage.Ready
-        if (isVideo) return videoPlayer.playbackState === MediaPlayer.PlayingState
-                      || videoPlayer.status === MediaPlayer.Loaded
-        return false
-    }
+    // ── Content-ready tracking per media type ────────────────────────────────
+    property string _expectedPath: ""
 
-    on_ContentReadyChanged: {
-        if (_contentReady && _crossfading) {
+    function _checkContentReady() {
+        if (!_crossfading || _expectedPath === "") return
+        var ftype = getFileType(_expectedPath)
+        var ready = false
+        if (ftype === "image") {
+            ready = staticImg.status === Image.Ready
+        } else if (ftype === "gif") {
+            ready = gifPlayer.status === AnimatedImage.Ready
+        } else if (ftype === "video") {
+            ready = videoPlayer.playbackState === MediaPlayer.PlayingState
+                 || videoPlayer.status === MediaPlayer.Loaded
+        }
+        if (ready) {
             _newContentReady = true
             _tryStartCrossfade()
         }
+    }
+
+    Connections {
+        target: staticImg
+        function onStatusChanged() { if (_crossfading) _checkContentReady() }
+    }
+    Connections {
+        target: gifPlayer
+        function onStatusChanged() { if (_crossfading) _checkContentReady() }
+    }
+    Connections {
+        target: videoPlayer
+        function onStatusChanged() { if (_crossfading) _checkContentReady() }
+        function onPlaybackStateChanged() { if (_crossfading) _checkContentReady() }
     }
 
     // Safety timer — if content takes too long, crossfade anyway
@@ -189,6 +208,20 @@ PanelWindow {
         }
     }
 
+    // Frame-delay timer — ensures snapshot renders before swapping underneath
+    Timer {
+        id: frameDelay
+        interval: 50
+        repeat: false
+        property string pendingPath: ""
+        onTriggered: {
+            if (pendingPath !== "") {
+                _performSwap(pendingPath)
+                pendingPath = ""
+            }
+        }
+    }
+
     function _tryStartCrossfade() {
         if (!_crossfading || !_newContentReady) return
         crossfadeSnapshot.opacity = 0
@@ -198,22 +231,24 @@ PanelWindow {
     onCurrentPathChanged: {
         if (currentPath === _lastPath) return
         if (currentPath === "") return
-        if (_crossfading) return  // still finishing previous transition
+        if (_crossfading) {
+            _lastPath = currentPath
+            return
+        }
 
         var prevPath = _lastPath
         _lastPath = currentPath
 
-        // 1. Capture current frame as frozen snapshot
         if (prevPath !== "" && contentContainer.visible) {
+            // 1. Freeze old wallpaper as snapshot
             crossfadeSnapshot.sourceItem = contentContainer
             crossfadeSnapshot.scheduleUpdate()
             crossfadeSnapshot.visible = true
             crossfadeSnapshot.opacity = 1.0
 
-            // Give Qt one frame to render the snapshot before swapping
-            Qt.callLater(function() {
-                _performSwap(currentPath)
-            })
+            // Wait 50ms (2-3 frames) for snapshot to render, then swap
+            frameDelay.pendingPath = currentPath
+            frameDelay.restart()
         } else {
             // First wallpaper load — no crossfade needed
             _performSwap(currentPath)
@@ -223,55 +258,62 @@ PanelWindow {
     function _performSwap(newPath) {
         _crossfading = true
         _newContentReady = false
+        _expectedPath = newPath
         _displayPath = newPath
 
-        // 2. Resolve video cache path if needed
+        // Reset stale media state from previous wallpaper type
+        _resetMediaState()
+
+        // Resolve video cache path if needed
         var ftype = getFileType(newPath)
         if (ftype === "video" && VideoWallpaperService) {
             root._waitingForCache = true
             VideoWallpaperService.getEffectivePath(newPath, function(path) {
                 root._effectivePath = path || newPath
                 root._waitingForCache = false
+                _checkContentReady()
             })
         } else {
             root._effectivePath = newPath
             root._waitingForCache = false
         }
 
-        // 3. Wait for new content to be ready, then crossfade
-        if (ftype === "video") {
-            crossfadeTimeout.interval = 2000
-        } else {
-            crossfadeTimeout.interval = 800
-        }
+        // Wait for new content to be ready, then crossfade
+        crossfadeTimeout.interval = (ftype === "video") ? 2500 : 1000
         crossfadeTimeout.restart()
 
-        // Check immediately in case content is already ready (cached image)
+        // Delayed check — give Qt time to start loading the new source
         Qt.callLater(function() {
-            if (_contentReady) {
-                _newContentReady = true
-                _tryStartCrossfade()
-            }
+            if (_crossfading) _checkContentReady()
         })
 
-        // 4. Clean up crossfade state after animation completes
-        Qt.callLater(function() {
-            cleanupTimer.restart()
-        })
+        // Clean up crossfade state after animation
+        cleanupTimer.restart()
+    }
+
+    // Reset media elements to avoid stale Ready/Loaded states from previous
+    // wallpaper type bleeding into the content-ready checks.
+    function _resetMediaState() {
+        if (!isImage && staticImg.source !== "") staticImg.source = ""
+        if (!isGif && gifPlayer.source !== "") gifPlayer.source = ""
+        if (!isVideo && videoPlayer.source !== "") {
+            videoPlayer.stop()
+            videoPlayer.source = ""
+        }
     }
 
     Timer {
         id: cleanupTimer
-        interval: 600  // slightly longer than crossfade duration
+        interval: 600
         repeat: false
         onTriggered: _crossfading = false
     }
 
     Component.onCompleted: {
         if (currentPath !== "") {
-            // Initial wallpaper load — no crossfade, just show it
             _displayPath = currentPath
             _lastPath = currentPath
+            _expectedPath = currentPath
             var ftype = getFileType(currentPath)
             if (ftype === "video" && VideoWallpaperService) {
                 root._waitingForCache = true

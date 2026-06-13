@@ -127,38 +127,161 @@ PanelWindow {
     }
 
     // ── Wallpaper change: snapshot crossfade ──────────────────────────────────
-    // ── Wallpaper change handler with grow-from-below curtain transition ──────
+    // Takes a snapshot of the old wallpaper, swaps to the new one underneath,
+    // then crossfades the snapshot out for a smooth seamless transition.
+    // Works with all media types: static images, GIFs, and videos.
     property string _lastPath: ""
+    property bool _crossfading: false
+    property bool _newContentReady: false
+
+    // Snapshot of the old wallpaper content — frozen and crossfaded out
+    ShaderEffectSource {
+        id: crossfadeSnapshot
+        sourceItem: contentContainer
+        live: false
+        visible: false
+        smooth: true
+        anchors.fill: parent
+        z: 5
+        opacity: 1.0
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 500
+                easing.type: Easing.InOutCubic
+            }
+        }
+
+        onOpacityChanged: {
+            if (opacity === 0) {
+                visible = false
+                sourceItem = null
+            }
+        }
+    }
+
+    // Detect when the new content is ready for crossfade
+    readonly property bool _contentReady: {
+        if (isImage) return staticImg.status === Image.Ready
+        if (isGif)   return gifPlayer.status === AnimatedImage.Ready
+        if (isVideo) return videoPlayer.playbackState === MediaPlayer.PlayingState
+                      || videoPlayer.status === MediaPlayer.Loaded
+        return false
+    }
+
+    on_ContentReadyChanged: {
+        if (_contentReady && _crossfading) {
+            _newContentReady = true
+            _tryStartCrossfade()
+        }
+    }
+
+    // Safety timer — if content takes too long, crossfade anyway
+    Timer {
+        id: crossfadeTimeout
+        interval: 1200
+        repeat: false
+        onTriggered: {
+            if (_crossfading) {
+                _newContentReady = true
+                _tryStartCrossfade()
+            }
+        }
+    }
+
+    function _tryStartCrossfade() {
+        if (!_crossfading || !_newContentReady) return
+        crossfadeSnapshot.opacity = 0
+        crossfadeTimeout.stop()
+    }
 
     onCurrentPathChanged: {
         if (currentPath === _lastPath) return
         if (currentPath === "") return
+        if (_crossfading) return  // still finishing previous transition
 
-        // 1. Cover old wallpaper with curtain
-        transitionCurtain.height = root.height
-
-        // 2. Swap to new wallpaper path underneath
-        _displayPath = currentPath
+        var prevPath = _lastPath
         _lastPath = currentPath
 
-        if (isVideo && VideoWallpaperService) {
-            VideoWallpaperService.getEffectivePath(currentPath, function(path) {
-                root._effectivePath = path || currentPath
+        // 1. Capture current frame as frozen snapshot
+        if (prevPath !== "" && contentContainer.visible) {
+            crossfadeSnapshot.sourceItem = contentContainer
+            crossfadeSnapshot.scheduleUpdate()
+            crossfadeSnapshot.visible = true
+            crossfadeSnapshot.opacity = 1.0
+
+            // Give Qt one frame to render the snapshot before swapping
+            Qt.callLater(function() {
+                _performSwap(currentPath)
             })
         } else {
-            root._effectivePath = currentPath
+            // First wallpaper load — no crossfade needed
+            _performSwap(currentPath)
+        }
+    }
+
+    function _performSwap(newPath) {
+        _crossfading = true
+        _newContentReady = false
+        _displayPath = newPath
+
+        // 2. Resolve video cache path if needed
+        var ftype = getFileType(newPath)
+        if (ftype === "video" && VideoWallpaperService) {
+            root._waitingForCache = true
+            VideoWallpaperService.getEffectivePath(newPath, function(path) {
+                root._effectivePath = path || newPath
+                root._waitingForCache = false
+            })
+        } else {
+            root._effectivePath = newPath
+            root._waitingForCache = false
         }
 
-        // 3. Animate curtain away → reveals new wallpaper from bottom to top
+        // 3. Wait for new content to be ready, then crossfade
+        if (ftype === "video") {
+            crossfadeTimeout.interval = 2000
+        } else {
+            crossfadeTimeout.interval = 800
+        }
+        crossfadeTimeout.restart()
+
+        // Check immediately in case content is already ready (cached image)
         Qt.callLater(function() {
-            transitionCurtain.height = 0
+            if (_contentReady) {
+                _newContentReady = true
+                _tryStartCrossfade()
+            }
         })
+
+        // 4. Clean up crossfade state after animation completes
+        Qt.callLater(function() {
+            cleanupTimer.restart()
+        })
+    }
+
+    Timer {
+        id: cleanupTimer
+        interval: 600  // slightly longer than crossfade duration
+        repeat: false
+        onTriggered: _crossfading = false
     }
 
     Component.onCompleted: {
         if (currentPath !== "") {
+            // Initial wallpaper load — no crossfade, just show it
             _displayPath = currentPath
             _lastPath = currentPath
+            var ftype = getFileType(currentPath)
+            if (ftype === "video" && VideoWallpaperService) {
+                root._waitingForCache = true
+                VideoWallpaperService.getEffectivePath(currentPath, function(path) {
+                    root._effectivePath = path || currentPath
+                    root._waitingForCache = false
+                })
+            } else {
+                root._effectivePath = currentPath
+            }
         }
     }
 
@@ -270,9 +393,17 @@ PanelWindow {
             id: videoPlayer
             anchors.fill: parent
             source: {
-                if (!isVideo || root._waitingForCache) return ""
-                // Only play from cache for VP9; H.264 can play original
-                var p = root._effectivePath || (VideoWallpaperService && VideoWallpaperService.needsTranscode(root.currentPath) ? "" : root.currentPath)
+                if (!isVideo) return ""
+                // While waiting for cache, try the original path so the video
+                // starts loading immediately. It will switch to the cached
+                // (optimised) version once _effectivePath is set.
+                var p = root._effectivePath
+                if (!p && !root._waitingForCache) {
+                    // Not waiting for cache — use original directly if no
+                    // transcoding is needed, otherwise wait for cache
+                    p = (VideoWallpaperService && VideoWallpaperService.needsTranscode(root.currentPath)) ? "" : root.currentPath
+                }
+                if (!p) p = root.currentPath  // fallback to original
                 return p ? "file://" + p : ""
             }
             loops: MediaPlayer.Infinite
@@ -402,26 +533,4 @@ PanelWindow {
         }
     }
     }  // end contentContainer
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  GROW-FROM-BELOW TRANSITION CURTAIN
-    //  Covers old wallpaper, then shrinks upward revealing the new one.
-    //  Simple, works with all media types (video, GIF, static image).
-    // ═══════════════════════════════════════════════════════════════════════════
-    Rectangle {
-        id: transitionCurtain
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: 0
-        color: Theme.background
-        z: 10
-
-        Behavior on height {
-            NumberAnimation {
-                duration: Anim.standardLarge
-                easing: Anim.outQuart
-            }
-        }
-    }
 }

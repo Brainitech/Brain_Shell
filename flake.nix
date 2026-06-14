@@ -3,11 +3,21 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+
+    flake-utils = {
+      url = "github:numtide/flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
@@ -87,7 +97,7 @@
 
         # ── The Brain Shell package ────────────────────────────────────────
         brain-shell = pkgs.stdenv.mkDerivation {
-          pname   = "brain-shell";
+          pname = "brain-shell";
           version = "0.1.0";
 
           src = ./.;
@@ -111,11 +121,11 @@
           '';
 
           meta = with pkgs.lib; {
-            description  = "A modular Quickshell/QML desktop shell for Hyprland";
-            homepage     = "https://github.com/Brainitech/Brain_Shell";
-            license      = licenses.mit;
-            platforms    = platforms.linux;
-            mainProgram  = "brain-shell";
+            description = "A modular Quickshell/QML desktop shell for Hyprland";
+            homepage = "https://github.com/Brainitech/Brain_Shell";
+            license = licenses.mit;
+            platforms = platforms.linux;
+            mainProgram = "brain-shell";
           };
         };
 
@@ -123,7 +133,7 @@
       {
         # ── Packages ───────────────────────────────────────────────────────
         packages = {
-          default     = brain-shell;
+          default = brain-shell;
           brain-shell = brain-shell;
         };
 
@@ -146,14 +156,22 @@
         };
 
         # ── NixOS module ───────────────────────────────────────────────────
-        nixosModules.default = { config, lib, pkgs, ... }:
-          let cfg = config.programs.brain-shell;
-          in {
+        nixosModules.default =
+          {
+            config,
+            lib,
+            pkgs,
+            ...
+          }:
+          let
+            cfg = config.programs.brain-shell;
+          in
+          {
             options.programs.brain-shell = {
               enable = lib.mkEnableOption "Brain Shell desktop shell";
 
               autostart = lib.mkOption {
-                type    = lib.types.bool;
+                type = lib.types.bool;
                 default = true;
                 description = "Add brain-shell to Hyprland exec-once.";
               };
@@ -162,16 +180,18 @@
             config = lib.mkIf cfg.enable {
               environment.systemPackages = [ brain-shell ];
 
-              wayland.windowManager.hyprland.settings = lib.mkIf cfg.autostart {
-                exec-once = [
-                  "brain-shell"
-                  "hypridle"
-                  "awww-daemon"
-                  "systemctl --user start hyprpolkitagent"
-                  "wl-paste --type text  --watch cliphist store"
-                  "wl-paste --type image --watch cliphist store"
-                ];
-              };
+              # This can't even be configured this way, so just tell the user to manually add it to their config or something.
+
+              # wayland.windowManager.hyprland.settings = lib.mkIf cfg.autostart {
+              #   exec-once = [
+              #     "brain-shell"
+              #     "hypridle"
+              #     "awww-daemon"
+              #     "systemctl --user start hyprpolkitagent"
+              #     "wl-paste --type text  --watch cliphist store"
+              #     "wl-paste --type image --watch cliphist store"
+              #   ];
+              # };
             };
           };
 

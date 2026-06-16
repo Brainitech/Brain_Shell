@@ -5,6 +5,7 @@ import "../../components"
 Item {
     id: root
 
+    property real localScale: 1.0
     required property var  service
     property bool          dgpuActive: false
     property string        fanMode:    "quiet"
@@ -17,7 +18,7 @@ Item {
         return Theme.active
     }
 
-    readonly property real s: 0.60
+    readonly property real s: 0.60 * localScale
 
     // ── Speedometers — anchored left ──────────────────────────────────────────
     Row {

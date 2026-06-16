@@ -6,10 +6,12 @@ import "../services/"
 PanelWindow {
     id: root
 
+    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+
     property string edge: "bottom"
     property bool isBarEnabled: Theme.barEnabled
-    property int thickness: Theme.borderWidth      
-    property int radius: Theme.cornerRadius        
+    property int thickness: Math.round(Theme.borderWidth * root.localScale)      
+    property int radius: Math.round(Theme.cornerRadius * root.localScale)        
     property color fillColor: Theme.background 
     
     implicitWidth: (edge === "left" || edge === "right") ? radius : 0
@@ -26,9 +28,8 @@ PanelWindow {
     }
 
     margins {
-        top: (edge !== "bottom") ? ShellState.focusMode ? Theme.borderWidth : Theme.notchHeight: 0
+        top: (edge !== "bottom") ? ShellState.focusMode ? Math.round(Theme.borderWidth * root.localScale) : Math.round((Theme.notchHeight-1) * root.localScale) : 0
         Behavior on top { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }}
-        
         bottom: (edge !== "bottom") ? radius : 0
     }
 
@@ -109,14 +110,14 @@ PanelWindow {
                     ctx.lineTo(w, 0);       
                 
                 // 2. Inner Right Corner (ROUNDED)
-                    ctx.lineTo(w - t, 0);   
+                    ctx.lineTo(w - t + 1, 0);   
                     ctx.arcTo(w - t, h - t, w - t - r, h - t, r);
                 
                 // 3. Inner Bottom Line
                     ctx.lineTo(t + r, h - t);
                 
                 // 4. Inner Left Corner (ROUNDED)
-                    ctx.arcTo(t, h - t, t, 0, r);
+                    ctx.arcTo(t + 4, h - t, t, 0, r);
                 
                 // 5. Close Loop
                     ctx.lineTo(t, 0);

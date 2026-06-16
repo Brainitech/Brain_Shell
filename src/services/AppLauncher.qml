@@ -6,6 +6,8 @@ import "../"
 Item {
     id: root
 
+    property real localScale: 1.0
+
     // ── State ─────────────────────────────────────────────────────────────────
     property bool loading:  true
     property int  selIndex: -1
@@ -57,7 +59,7 @@ Item {
     // ── Layout ────────────────────────────────────────────────────────────────
     Column {
         anchors.fill: parent
-        spacing: 8
+        spacing: Math.round(8 * localScale)
 
         // App list container
         Item {
@@ -67,12 +69,12 @@ Item {
             // Loading state
             Column {
                 anchors.centerIn: parent
-                spacing: 12
+                spacing: Math.round(12 * localScale)
                 visible: root.loading
 
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "󰣪"; font.pixelSize: 32
+                    text: "󰣪"; font.pixelSize: Math.round(32 * localScale)
                     color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.3)
 
                     RotationAnimation on rotation {
@@ -86,27 +88,27 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text:           "Initializing..."
                     color:          Qt.rgba(1,1,1,0.25)
-                    font.pixelSize: 13
+                    font.pixelSize: Math.round(13 * localScale)
                 }
             }
 
             // Empty / no results state
             Column {
                 anchors.centerIn: parent
-                spacing: 10
+                spacing: Math.round(10 * localScale)
                 visible: !root.loading && root.filtered.length === 0
 
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text:           root.query !== "" ? "󰩄" : "󱗃"
-                    font.pixelSize: 28
+                    font.pixelSize: Math.round(28 * localScale)
                     color:          Qt.rgba(1,1,1,0.18)
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text:           root.query !== "" ? "No results" : "No apps found"
                     color:          Qt.rgba(1,1,1,0.25)
-                    font.pixelSize: 13
+                    font.pixelSize: Math.round(13 * localScale)
                 }
             }
 
@@ -120,15 +122,15 @@ Item {
                 model: root.filtered
 
                 clip:    true
-                spacing: 3
+                spacing: Math.round(3 * localScale)
                 boundsBehavior: Flickable.StopAtBounds
 
                 ScrollBar.vertical: ScrollBar {
                     policy: ScrollBar.AsNeeded
                     contentItem: Rectangle {
-                        implicitWidth:  3
-                        implicitHeight: 40
-                        radius:         1.5
+                        implicitWidth:  Math.round(3 * localScale)
+                        implicitHeight: Math.round(40 * localScale)
+                        radius:         width / 2
                         color:          Qt.rgba(1, 1, 1, 0.22)
                     }
                     background: Item {}
@@ -138,9 +140,9 @@ Item {
                     required property var modelData
                     required property int index
 
-                    width:  appList.width - 8
-                    height: 46
-                    radius: 9
+                    width:  appList.width - Math.round(8 * localScale)
+                    height: Math.round(46 * localScale)
+                    radius: Math.round(9 * localScale)
 
                     readonly property bool isSel: root.selIndex === index
 
@@ -157,15 +159,15 @@ Item {
 
                     Row {
                         anchors {
-                            left:   parent.left;  leftMargin:  12
-                            right:  parent.right; rightMargin: 12
+                            left:   parent.left;  leftMargin:  Math.round(12 * localScale)
+                            right:  parent.right; rightMargin: Math.round(12 * localScale)
                             verticalCenter: parent.verticalCenter
                         }
-                        spacing: 12
+                        spacing: Math.round(12 * localScale)
 
                         // App icon
                         Item {
-                            width: 28; height: 28
+                            width: Math.round(28 * localScale); height: Math.round(28 * localScale)
                             anchors.verticalCenter: parent.verticalCenter
 
                             Loader {
@@ -184,8 +186,8 @@ Item {
                                     }
                                     fillMode: Image.PreserveAspectFit
                                     smooth: true
-                                    sourceSize.width: 28
-                                    sourceSize.height: 28
+                                    sourceSize.width: Math.round(28 * localScale)
+                                    sourceSize.height: Math.round(28 * localScale)
 
                                     onStatusChanged: {
                                         if (status === Image.Error || status === Image.Null) {
@@ -198,14 +200,14 @@ Item {
                             // Tier 2 Fallback: Nerd Font Icon
                             Rectangle {
                                 anchors.fill: parent
-                                radius: 7
+                                radius: Math.round(7 * localScale)
                                 color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
                                 visible: !iconLoader.active || (iconLoader.item && iconLoader.item.status !== Image.Ready)
 
                                 Text {
                                     anchors.centerIn: parent
                                     text: "󰀻" // Generic Nerd Font App Grid Icon
-                                    font.pixelSize: 16
+                                    font.pixelSize: Math.round(16 * localScale)
                                     color: Theme.active
                                 }
                             }
@@ -213,10 +215,10 @@ Item {
 
                         // App name
                         Text {
-                            width: parent.width - 28 - parent.spacing
+                            width: parent.width - Math.round(28 * localScale) - parent.spacing
                             anchors.verticalCenter: parent.verticalCenter
                             text:           modelData.name
-                            font.pixelSize: 13
+                            font.pixelSize: Math.round(13 * localScale)
                             color:          isSel ? Theme.active : Theme.text
                             elide:          Text.ElideRight
                             Behavior on color { ColorAnimation { duration: 100 } }
@@ -238,7 +240,7 @@ Item {
         // Search bar
         Rectangle {
             id: searchBar
-            width: parent.width; height: 44; radius: 12
+            width: parent.width; height: Math.round(44 * localScale); radius: Math.round(12 * localScale)
             color: Qt.rgba(1,1,1,0.06)
             border.color: searchInput.activeFocus
                           ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.50)
@@ -247,12 +249,12 @@ Item {
             Behavior on border.color { ColorAnimation { duration: 120 } }
 
             Row {
-                anchors { fill: parent; leftMargin: 14; rightMargin: 14 }
-                spacing: 10
+                anchors { fill: parent; leftMargin: Math.round(14 * localScale); rightMargin: Math.round(14 * localScale) }
+                spacing: Math.round(10 * localScale)
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "󰍉"; font.pixelSize: 16
+                    text: "󰍉"; font.pixelSize: Math.round(16 * localScale)
                     color: searchInput.activeFocus
                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.7)
                            : Qt.rgba(1,1,1,0.35)
@@ -260,7 +262,7 @@ Item {
                 }
 
                 Item {
-                    width: parent.width - 26 - parent.spacing
+                    width: parent.width - Math.round(26 * localScale) - parent.spacing
                     height: parent.height
                     anchors.verticalCenter: parent.verticalCenter
 
@@ -268,16 +270,16 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         text:    "Search apps…"
                         color:   Qt.rgba(1,1,1,0.22)
-                        font.pixelSize: 13
+                        font.pixelSize: Math.round(13 * localScale)
                         visible: searchInput.text === ""
                     }
 
                     TextInput {
                         id: searchInput
-                        anchors { fill: parent; topMargin: 2; bottomMargin: 2 }
+                        anchors { fill: parent; topMargin: Math.round(2 * localScale); bottomMargin: Math.round(2 * localScale) }
                         verticalAlignment: TextInput.AlignVCenter
                         color:          Theme.text
-                        font.pixelSize: 13
+                        font.pixelSize: Math.round(13 * localScale)
                         selectionColor: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)
                         clip: true
 

@@ -9,7 +9,9 @@ import "../../"
 Item {
     id: root
 
-    width:  360
+    property real localScale: 1.0
+
+    width:  Math.round(360 * root.localScale)
 
     // Total height: header + list area (or empty state)
     height: header.height
@@ -71,14 +73,14 @@ Item {
         height:  Math.min(contentList.contentHeight, maxListHeight)
         visible: NotificationService.count > 0
 
-        readonly property int maxListHeight: 440
+        readonly property int maxListHeight: Math.round(440 * root.localScale)
 
         ListView {
             id:             contentList
             anchors.fill:   parent
             model:          NotificationService.list
             clip:           true
-            spacing:        1
+            spacing:        Math.round(1 * root.localScale)
             boundsBehavior: Flickable.StopAtBounds
 
             delegate: NotificationCard {
@@ -91,7 +93,7 @@ Item {
         // Fade overlay when clipped
         Rectangle {
             anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-            height:  28
+            height:  Math.round(28 * root.localScale)
             visible: contentList.contentHeight > listArea.maxListHeight
             gradient: Gradient {
                 orientation: Gradient.Vertical
@@ -105,25 +107,25 @@ Item {
     Item {
         id:      emptyState
         anchors { top: header.bottom; left: parent.left; right: parent.right }
-        height:  80
+        height:  Math.round(80 * root.localScale)
         visible: NotificationService.count === 0
 
         Column {
             anchors.centerIn: parent
-            spacing:          6
+            spacing:          Math.round(6 * root.localScale)
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           "󰂚"
                 color:          Qt.rgba(1, 1, 1, 0.15)
-                font.pixelSize: 28
+                font.pixelSize: Math.round(28 * root.localScale)
                 font.family:    Theme.iconFont
             }
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           "No notifications"
                 color:          Theme.subtext
-                font.pixelSize: 12
+                font.pixelSize: Math.round(12 * root.localScale)
             }
         }
     }
@@ -145,7 +147,7 @@ Item {
             }
         }
 
-        height: cardRow.height + 20
+        height: cardRow.height + Math.round(20 * root.localScale)
 
         // Hover background
         Rectangle {
@@ -157,7 +159,7 @@ Item {
         // Left urgency accent bar
         Rectangle {
             anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
-            width:   3
+            width:   Math.round(3 * root.localScale)
             color:   card.urgencyColor
             opacity: 0.85
         }
@@ -166,18 +168,18 @@ Item {
         Row {
             id: cardRow
             anchors {
-                left:        parent.left; leftMargin:  12
-                right:       parent.right; rightMargin:  8
-                top:         parent.top;   topMargin:   10
+                left:        parent.left; leftMargin:  Math.round(12 * root.localScale)
+                right:       parent.right; rightMargin:  Math.round(8 * root.localScale)
+                top:         parent.top;   topMargin:   Math.round(10 * root.localScale)
             }
-            spacing: 10
+            spacing: Math.round(10 * root.localScale)
             height:  Math.max(iconArea.height, textCol.implicitHeight)
 
             // App icon
             Item {
                 id:     iconArea
-                width:  32
-                height: 32
+                width:  Math.round(32 * root.localScale)
+                height: Math.round(32 * root.localScale)
 
                 Image {
                     id:        iconImg
@@ -191,8 +193,8 @@ Item {
                     fillMode:          Image.PreserveAspectFit
                     smooth:            true
                     visible:           status === Image.Ready
-                    sourceSize.width:  32
-                    sourceSize.height: 32
+                    sourceSize.width:  Math.round(32 * root.localScale)
+                    sourceSize.height: Math.round(32 * root.localScale)
                 }
 
                 // Letter fallback
@@ -206,7 +208,7 @@ Item {
                         anchors.centerIn: parent
                         text:           (card.notification?.appName ?? "?").charAt(0).toUpperCase()
                         color:          Theme.text
-                        font.pixelSize: 14
+                        font.pixelSize: Math.round(14 * root.localScale)
                         font.bold:      true
                     }
                 }
@@ -217,14 +219,14 @@ Item {
                 id:     textCol
                 // Leave room for dismiss button
                 width: cardRow.width - iconArea.width - dismissBtn.width - (cardRow.spacing * 2)
-                spacing: 3
+                spacing: Math.round(3 * root.localScale)
 
                 // App name
                 Text {
                     width:          parent.width
                     text:           card.notification?.appName ?? ""
                     color:          Theme.subtext
-                    font.pixelSize: 11
+                    font.pixelSize: Math.round(11 * root.localScale)
                     elide:          Text.ElideRight
                     visible:        text !== ""
                 }
@@ -234,7 +236,7 @@ Item {
                     width:            parent.width
                     text:             card.notification?.summary ?? ""
                     color:            Theme.text
-                    font.pixelSize:   13
+                    font.pixelSize:   Math.round(13 * root.localScale)
                     font.bold:        true
                     wrapMode:         Text.WordWrap
                     maximumLineCount: 2
@@ -247,7 +249,7 @@ Item {
                     width:            parent.width
                     text:             card.notification?.body ?? ""
                     color:            Theme.subtext
-                    font.pixelSize:   12
+                    font.pixelSize:   Math.round(12 * root.localScale)
                     wrapMode:         Text.WordWrap
                     maximumLineCount: 3
                     elide:            Text.ElideRight
@@ -257,19 +259,19 @@ Item {
 
                 // Action buttons
                 Row {
-                    spacing: 6
+                    spacing: Math.round(6 * root.localScale)
                     visible: (card.notification?.actions?.length ?? 0) > 0
 
                     Repeater {
                         model: card.notification?.actions ?? []
                         delegate: Item {
                             required property var modelData
-                            width:  actionLbl.width + 20
-                            height: 22
+                            width:  actionLbl.width + Math.round(20 * root.localScale)
+                            height: Math.round(22 * root.localScale)
 
                             Rectangle {
                                 anchors.fill: parent
-                                radius:       3
+                                radius:       Math.round(3 * root.localScale)
                                 color:        actHover.containsMouse
                                               ? Qt.rgba(1,1,1,0.15)
                                               : Qt.rgba(1,1,1,0.07)
@@ -280,7 +282,7 @@ Item {
                                 anchors.centerIn: parent
                                 text:             modelData?.text ?? ""
                                 color:            Theme.text
-                                font.pixelSize:   11
+                                font.pixelSize:   Math.round(11 * root.localScale)
                             }
                             HoverHandler { id: actHover }
                             TapHandler   { onTapped: modelData?.invoke() }
@@ -292,8 +294,8 @@ Item {
             // Dismiss ✕
             Item {
                 id:     dismissBtn
-                width:  24
-                height: 24
+                width:  Math.round(24 * root.localScale)
+                height: Math.round(24 * root.localScale)
 
                 Rectangle {
                     anchors.fill: parent
@@ -305,7 +307,7 @@ Item {
                     anchors.centerIn: parent
                     text:             "✕"
                     color:            Theme.subtext
-                    font.pixelSize:   10
+                    font.pixelSize:   Math.round(10 * root.localScale)
                 }
                 HoverHandler { id: xHover }
                 TapHandler   { onTapped: card.notification?.dismiss() }

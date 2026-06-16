@@ -10,6 +10,7 @@ import "../components"
 Item {
     id: root
 
+    property real localScale: 1.0
     property var    _networks:      []
     property var    _needsPassword: ({})
     property bool   _scanning:      false
@@ -221,7 +222,7 @@ Item {
     component ScanRings: Item {
         id: ringsRoot
         property string centerGlyph: "󰤨"
-        property int    glyphSize:   18
+        property int    glyphSize:   Math.round(18 * localScale)
         Repeater {
             model: 4
             delegate: Rectangle {
@@ -230,7 +231,7 @@ Item {
                 width: ringsRoot.width; height: ringsRoot.width; radius: ringsRoot.width / 2
                 color: "transparent"
                 border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.80)
-                border.width: 1.5; opacity: 0; scale: 0.08
+                border.width: Math.max(1, Math.round(1.5 * localScale)); opacity: 0; scale: 0.08
                 SequentialAnimation {
                     running: root._scanning; loops: Animation.Infinite
                     PauseAnimation { duration: index * 650 }
@@ -255,14 +256,14 @@ Item {
     component SignalBars: Item {
         id: barsRoot
         required property int signal
-        width: 18; height: 14
+        width: Math.round(18 * localScale); height: Math.round(14 * localScale)
         Row {
-            anchors.bottom: parent.bottom; anchors.horizontalCenter: parent.horizontalCenter; spacing: 2
+            anchors.bottom: parent.bottom; anchors.horizontalCenter: parent.horizontalCenter; spacing: Math.round(2 * localScale)
             Repeater {
                 model: 4
                 delegate: Rectangle {
                     required property int index
-                    width: 3; height: 4 + index * 3; radius: 1; anchors.bottom: parent?.bottom
+                    width: Math.round(3 * localScale); height: Math.round((4 + index * 3) * localScale); radius: Math.max(1, Math.round(1 * localScale)); anchors.bottom: parent?.bottom
                     readonly property bool lit: {
                         switch (index) {
                             case 0: return barsRoot.signal > 0
@@ -291,7 +292,7 @@ Item {
         height: baseRow.height + expandArea.height
 
         Rectangle {
-            anchors.fill: parent; radius: Theme.cornerRadius
+            anchors.fill: parent; radius: Math.round(Theme.cornerRadius * localScale)
             color: netRow.isCurrent
                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.07)
                 : rHov.hovered ? Qt.rgba(1,1,1,0.04) : "transparent"
@@ -300,7 +301,7 @@ Item {
                 : netRow.needsPassword
                     ? Qt.rgba(245/255,196/255,122/255,0.30)
                     : Qt.rgba(1,1,1,0.06)
-            border.width: 1
+            border.width: Math.max(1, Math.round(1 * localScale))
             Behavior on color        { ColorAnimation { duration: 130 } }
             Behavior on border.color { ColorAnimation { duration: 130 } }
         }
@@ -308,42 +309,42 @@ Item {
         Item {
             id: baseRow
             anchors { top: parent.top; left: parent.left; right: parent.right }
-            height: 48
+            height: Math.round(48 * localScale)
 
             Column {
-                anchors { left: parent.left; leftMargin: 12; verticalCenter: parent.verticalCenter }
-                spacing: 3
+                anchors { left: parent.left; leftMargin: Math.round(12 * localScale); verticalCenter: parent.verticalCenter }
+                spacing: Math.round(3 * localScale)
                 Text {
-                    text: netRow.net.ssid; font.pixelSize: 13
+                    text: netRow.net.ssid; font.pixelSize: Math.round(13 * localScale)
                     font.weight: netRow.isCurrent ? Font.Medium : Font.Normal
                     color: netRow.isCurrent ? Theme.text : Qt.rgba(1,1,1,0.7)
-                    width: 170; elide: Text.ElideRight
+                    width: Math.round(170 * localScale); elide: Text.ElideRight
                 }
                 Text {
                     visible: netRow.needsPassword && !netRow.isCurrent
-                    text: "Password required"; font.pixelSize: 10
+                    text: "Password required"; font.pixelSize: Math.round(10 * localScale)
                     color: Qt.rgba(245/255,196/255,122/255,0.80)
                 }
-                Text { visible: netRow.isCurrent; text: "Connected"; font.pixelSize: 10; color: Theme.active }
+                Text { visible: netRow.isCurrent; text: "Connected"; font.pixelSize: Math.round(10 * localScale); color: Theme.active }
             }
 
             Row {
-                anchors { right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
-                spacing: 6
+                anchors { right: parent.right; rightMargin: Math.round(10 * localScale); verticalCenter: parent.verticalCenter }
+                spacing: Math.round(6 * localScale)
 
                 Text {
                     visible: netRow.net.secured && !netRow.isCurrent
-                    text: "󰌾"; font.pixelSize: 11; color: Qt.rgba(1,1,1,0.28)
+                    text: "󰌾"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(1,1,1,0.28)
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Item {
-                    width: 22; height: 16; anchors.verticalCenter: parent.verticalCenter
+                    width: Math.round(22 * localScale); height: Math.round(16 * localScale); anchors.verticalCenter: parent.verticalCenter
                     SignalBars { anchors.centerIn: parent; signal: netRow.net.signal }
                 }
                 Item {
-                    visible: netRow.isConnecting; width: 20; height: 20; anchors.verticalCenter: parent.verticalCenter
+                    visible: netRow.isConnecting; width: Math.round(20 * localScale); height: Math.round(20 * localScale); anchors.verticalCenter: parent.verticalCenter
                     Text {
-                        anchors.centerIn: parent; text: "○"; font.pixelSize: 14; color: Theme.active
+                        anchors.centerIn: parent; text: "○"; font.pixelSize: Math.round(14 * localScale); color: Theme.active
                         SequentialAnimation on opacity {
                             running: netRow.isConnecting; loops: Animation.Infinite
                             NumberAnimation { to: 0.2; duration: 500 }
@@ -353,21 +354,21 @@ Item {
                 }
                 // Disconnect
                 Item {
-                    visible: netRow.isCurrent; width: 28; height: 28; anchors.verticalCenter: parent.verticalCenter
-                    Rectangle { anchors.fill: parent; radius: 6; color: dH.hovered ? Qt.rgba(1,1,1,0.10) : "transparent"; Behavior on color { ColorAnimation { duration: 100 } } }
-                    Text { anchors.centerIn: parent; text: "󰖪"; font.pixelSize: 14; color: dH.hovered ? Qt.rgba(1,1,1,0.65) : Qt.rgba(1,1,1,0.35); Behavior on color { ColorAnimation { duration: 100 } } }
+                    visible: netRow.isCurrent; width: Math.round(28 * localScale); height: Math.round(28 * localScale); anchors.verticalCenter: parent.verticalCenter
+                    Rectangle { anchors.fill: parent; radius: Math.round(6 * localScale); color: dH.hovered ? Qt.rgba(1,1,1,0.10) : "transparent"; Behavior on color { ColorAnimation { duration: 100 } } }
+                    Text { anchors.centerIn: parent; text: "󰖪"; font.pixelSize: Math.round(14 * localScale); color: dH.hovered ? Qt.rgba(1,1,1,0.65) : Qt.rgba(1,1,1,0.35); Behavior on color { ColorAnimation { duration: 100 } } }
                     HoverHandler { id: dH; cursorShape: Qt.PointingHandCursor }
                     MouseArea { anchors.fill: parent; onClicked: root._disconnect() }
                 }
                 // Forget
                 Item {
-                    visible: netRow.isCurrent; width: 28; height: 28; anchors.verticalCenter: parent.verticalCenter
+                    visible: netRow.isCurrent; width: Math.round(28 * localScale); height: Math.round(28 * localScale); anchors.verticalCenter: parent.verticalCenter
                     Rectangle {
-                        anchors.fill: parent; radius: 6
+                        anchors.fill: parent; radius: Math.round(6 * localScale)
                         color: fH.hovered ? Qt.rgba(248/255,113/255,113/255,0.15) : netRow.isForgetPending ? Qt.rgba(248/255,113/255,113/255,0.10) : "transparent"
                         Behavior on color { ColorAnimation { duration: 100 } }
                     }
-                    Text { anchors.centerIn: parent; text: "󰗼"; font.pixelSize: 13; color: (fH.hovered || netRow.isForgetPending) ? "#f87171" : Qt.rgba(1,1,1,0.3); Behavior on color { ColorAnimation { duration: 100 } } }
+                    Text { anchors.centerIn: parent; text: "󰗼"; font.pixelSize: Math.round(13 * localScale); color: (fH.hovered || netRow.isForgetPending) ? "#f87171" : Qt.rgba(1,1,1,0.3); Behavior on color { ColorAnimation { duration: 100 } } }
                     HoverHandler { id: fH; cursorShape: Qt.PointingHandCursor }
                     MouseArea { anchors.fill: parent; onClicked: root._forgetSsid = netRow.isForgetPending ? "" : netRow.net.ssid }
                 }
@@ -375,11 +376,11 @@ Item {
                 Rectangle {
                     visible: !netRow.isCurrent && !netRow.isConnecting
                     anchors.verticalCenter: parent.verticalCenter
-                    width: connectLbl.implicitWidth + 20; height: 28; radius: 8
+                    width: connectLbl.implicitWidth + Math.round(20 * localScale); height: Math.round(28 * localScale); radius: Math.round(8 * localScale)
                     color: conH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22) : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.09)
-                    border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35); border.width: 1
+                    border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35); border.width: Math.max(1, Math.round(1 * localScale))
                     Behavior on color { ColorAnimation { duration: 100 } }
-                    Text { id: connectLbl; anchors.centerIn: parent; text: netRow.isExpanded ? "Retry" : "Connect"; font.pixelSize: 11; font.weight: Font.Medium; color: Theme.active }
+                    Text { id: connectLbl; anchors.centerIn: parent; text: netRow.isExpanded ? "Retry" : "Connect"; font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium; color: Theme.active }
                     HoverHandler { id: conH; cursorShape: Qt.PointingHandCursor }
                     MouseArea {
                         anchors.fill: parent
@@ -399,35 +400,35 @@ Item {
             id: expandArea
             anchors { top: baseRow.bottom; left: parent.left; right: parent.right }
             clip: true
-            height: netRow.isForgetPending ? forgetRow.implicitHeight + 16 : netRow.isExpanded ? passRow.implicitHeight + 16 : 0
+            height: netRow.isForgetPending ? forgetRow.implicitHeight + Math.round(16 * localScale) : netRow.isExpanded ? passRow.implicitHeight + Math.round(16 * localScale) : 0
             Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
             Item {
                 id: forgetRow
-                anchors { left: parent.left; right: parent.right; top: parent.top; topMargin: 8 }
-                implicitHeight: 32
+                anchors { left: parent.left; right: parent.right; top: parent.top; topMargin: Math.round(8 * localScale) }
+                implicitHeight: Math.round(32 * localScale)
                 opacity: netRow.isForgetPending ? 1 : 0
                 visible: opacity > 0
                 Behavior on opacity { NumberAnimation { duration: 150 } }
                 Rectangle {
-                    anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
-                    radius: 8; color: Qt.rgba(248/255,113/255,113/255,0.07)
-                    border.color: Qt.rgba(248/255,113/255,113/255,0.22); border.width: 1
+                    anchors { fill: parent; leftMargin: Math.round(10 * localScale); rightMargin: Math.round(10 * localScale) }
+                    radius: Math.round(8 * localScale); color: Qt.rgba(248/255,113/255,113/255,0.07)
+                    border.color: Qt.rgba(248/255,113/255,113/255,0.22); border.width: Math.max(1, Math.round(1 * localScale))
                     Row {
-                        anchors.centerIn: parent; spacing: 12
-                        Text { anchors.verticalCenter: parent.verticalCenter; text: "Forget this network?"; font.pixelSize: 11; color: Qt.rgba(1,1,1,0.55) }
+                        anchors.centerIn: parent; spacing: Math.round(12 * localScale)
+                        Text { anchors.verticalCenter: parent.verticalCenter; text: "Forget this network?"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(1,1,1,0.55) }
                         Rectangle {
-                            width: 54; height: 24; radius: 6; color: cfH.hovered ? Qt.rgba(1,1,1,0.09) : Qt.rgba(1,1,1,0.04)
+                            width: Math.round(54 * localScale); height: Math.round(24 * localScale); radius: Math.round(6 * localScale); color: cfH.hovered ? Qt.rgba(1,1,1,0.09) : Qt.rgba(1,1,1,0.04)
                             Behavior on color { ColorAnimation { duration: 80 } }
-                            Text { anchors.centerIn: parent; text: "Cancel"; font.pixelSize: 10; color: Qt.rgba(1,1,1,0.45) }
+                            Text { anchors.centerIn: parent; text: "Cancel"; font.pixelSize: Math.round(10 * localScale); color: Qt.rgba(1,1,1,0.45) }
                             HoverHandler { id: cfH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root._forgetSsid = "" }
                         }
                         Rectangle {
-                            width: 54; height: 24; radius: 6
+                            width: Math.round(54 * localScale); height: Math.round(24 * localScale); radius: Math.round(6 * localScale)
                             color: ffH.hovered ? Qt.rgba(248/255,113/255,113/255,0.35) : Qt.rgba(248/255,113/255,113/255,0.18)
                             Behavior on color { ColorAnimation { duration: 80 } }
-                            Text { anchors.centerIn: parent; text: "Forget"; font.pixelSize: 10; font.weight: Font.Medium; color: "#f87171" }
+                            Text { anchors.centerIn: parent; text: "Forget"; font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium; color: "#f87171" }
                             HoverHandler { id: ffH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root._forget(netRow.net.ssid) }
                         }
@@ -437,26 +438,26 @@ Item {
 
             Item {
                 id: passRow
-                anchors { left: parent.left; right: parent.right; top: parent.top; topMargin: 8 }
-                implicitHeight: 40
+                anchors { left: parent.left; right: parent.right; top: parent.top; topMargin: Math.round(8 * localScale) }
+                implicitHeight: Math.round(40 * localScale)
                 opacity: netRow.isExpanded ? 1 : 0
                 visible: opacity > 0
                 Behavior on opacity { NumberAnimation { duration: 150 } }
                 Row {
-                    anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
-                    spacing: 8
+                    anchors { fill: parent; leftMargin: Math.round(10 * localScale); rightMargin: Math.round(10 * localScale) }
+                    spacing: Math.round(8 * localScale)
                     Rectangle {
-                        width: parent.width - parent.spacing; height: 32; radius: 8
+                        width: parent.width - parent.spacing; height: Math.round(32 * localScale); radius: Math.round(8 * localScale)
                         color: Qt.rgba(1,1,1,0.06)
                         border.color: passInput.activeFocus ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55) : Qt.rgba(1,1,1,0.12)
-                        border.width: 1; Behavior on border.color { ColorAnimation { duration: 120 } }
-                        Text { anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
-                        text: "Password…"; font.pixelSize: 12; color: Qt.rgba(1,1,1,0.22); visible: passInput.text === "" }
+                        border.width: Math.max(1, Math.round(1 * localScale)); Behavior on border.color { ColorAnimation { duration: 120 } }
+                        Text { anchors { left: parent.left; leftMargin: Math.round(10 * localScale); verticalCenter: parent.verticalCenter }
+                        text: "Password…"; font.pixelSize: Math.round(12 * localScale); color: Qt.rgba(1,1,1,0.22); visible: passInput.text === "" }
                         TextInput {
                             id: passInput
                             // Updated anchors to make room for the eye button
-                            anchors { left: parent.left; leftMargin: 10; right: eyeBtn.left; rightMargin: 6; top: parent.top; bottom: parent.bottom }
-                            verticalAlignment: TextInput.AlignVCenter; color: Theme.text; font.pixelSize: 12
+                            anchors { left: parent.left; leftMargin: Math.round(10 * localScale); right: eyeBtn.left; rightMargin: Math.round(6 * localScale); top: parent.top; bottom: parent.bottom }
+                            verticalAlignment: TextInput.AlignVCenter; color: Theme.text; font.pixelSize: Math.round(12 * localScale)
                             // Toggle echoMode based on state
                             echoMode: netRow._showPass ? TextInput.Normal : TextInput.Password
                             selectionColor: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35); clip: true
@@ -467,12 +468,12 @@ Item {
                         Item {
                             id: eyeBtn
                             anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                            width: 28; height: 28
-                            Rectangle { anchors.fill: parent; radius: 6; color: eyeH.hovered ? Qt.rgba(1,1,1,0.08) : "transparent" }
+                            width: Math.round(28 * localScale); height: Math.round(28 * localScale)
+                            Rectangle { anchors.fill: parent; radius: Math.round(6 * localScale); color: eyeH.hovered ? Qt.rgba(1,1,1,0.08) : "transparent" }
                             Text { 
                                 anchors.centerIn: parent
                                 text: netRow._showPass ? "" : ""
-                                font.pixelSize: 13
+                                font.pixelSize: Math.round(13 * localScale)
                                 color: netRow._showPass ? Theme.active : Qt.rgba(1,1,1,0.28) 
                             }
                             HoverHandler { id: eyeH; cursorShape: Qt.PointingHandCursor }
@@ -498,41 +499,41 @@ Item {
         anchors.fill: parent; spacing: 0
 
         Item {
-            width: parent.width; height: 40
-            Text { anchors { left: parent.left; leftMargin: 2; verticalCenter: parent.verticalCenter }
-            text: "Wi-Fi"; font.pixelSize: 15; font.weight: Font.Bold; color: Theme.text }
+            width: parent.width; height: Math.round(40 * localScale)
+            Text { anchors { left: parent.left; leftMargin: Math.round(2 * localScale); verticalCenter: parent.verticalCenter }
+            text: "Wi-Fi"; font.pixelSize: Math.round(15 * localScale); font.weight: Font.Bold; color: Theme.text }
             Row {
                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                spacing: 8
+                spacing: Math.round(8 * localScale)
 
                 Rectangle {
-                    width: 32; height: 32; radius: 8
+                    width: Math.round(32 * localScale); height: Math.round(32 * localScale); radius: Math.round(8 * localScale)
                     color: wfPwrH.hovered ? (root._wifiEnabled ? Qt.rgba(248/255,113/255,113/255,0.18) : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)) : Qt.rgba(1,1,1,0.04)
                     border.color: root._wifiEnabled ? Qt.rgba(1,1,1,0.10) : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30)
-                    border.width: 1
+                    border.width: Math.max(1, Math.round(1 * localScale))
                     Behavior on color        { ColorAnimation { duration: 120 } }
                     Behavior on border.color { ColorAnimation { duration: 120 } }
-                    Text { anchors.centerIn: parent; text: "⏻"; font.pixelSize: 14; color: root._wifiEnabled ? (wfPwrH.hovered ? "#f87171" : Qt.rgba(1,1,1,0.32)) : Theme.active; Behavior on color { ColorAnimation { duration: 120 } } }
+                    Text { anchors.centerIn: parent; text: "⏻"; font.pixelSize: Math.round(14 * localScale); color: root._wifiEnabled ? (wfPwrH.hovered ? "#f87171" : Qt.rgba(1,1,1,0.32)) : Theme.active; Behavior on color { ColorAnimation { duration: 120 } } }
                     HoverHandler { id: wfPwrH; cursorShape: Qt.PointingHandCursor }
                     MouseArea { anchors.fill: parent; onClicked: root._setWifiEnabled(!root._wifiEnabled) }
                 }
 
                 Rectangle {
-                    width: 32; height: 32; radius: 8
+                    width: Math.round(32 * localScale); height: Math.round(32 * localScale); radius: Math.round(8 * localScale)
                     color: settH.hovered ? Qt.rgba(1,1,1,0.09) : Qt.rgba(1,1,1,0.03)
-                    border.color: Qt.rgba(1,1,1,0.10); border.width: 1; Behavior on color { ColorAnimation { duration: 100 } }
-                    Text { anchors.centerIn: parent; text: "󰒓"; font.pixelSize: 14; color: settH.hovered ? Qt.rgba(1,1,1,0.75) : Qt.rgba(1,1,1,0.30); Behavior on color { ColorAnimation { duration: 100 } } }
+                    border.color: Qt.rgba(1,1,1,0.10); border.width: Math.max(1, Math.round(1 * localScale)); Behavior on color { ColorAnimation { duration: 100 } }
+                    Text { anchors.centerIn: parent; text: "󰒓"; font.pixelSize: Math.round(14 * localScale); color: settH.hovered ? Qt.rgba(1,1,1,0.75) : Qt.rgba(1,1,1,0.30); Behavior on color { ColorAnimation { duration: 100 } } }
                     HoverHandler { id: settH; cursorShape: Qt.PointingHandCursor }
                     MouseArea { anchors.fill: parent; onClicked: { nmtuiProc.running = false; nmtuiProc.running = true } }
                 }
 
                 Rectangle {
-                    width: 32; height: 32; radius: 8
+                    width: Math.round(32 * localScale); height: Math.round(32 * localScale); radius: Math.round(8 * localScale)
                     color: rfH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15) : Qt.rgba(1,1,1,0.05)
-                    border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.28); border.width: 1
+                    border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.28); border.width: Math.max(1, Math.round(1 * localScale))
                     Behavior on color { ColorAnimation { duration: 120 } }
                     Text {
-                        id: rfIcon; anchors.centerIn: parent; text: "󰑐"; font.pixelSize: 15
+                        id: rfIcon; anchors.centerIn: parent; text: "󰑐"; font.pixelSize: Math.round(15 * localScale)
                         color: root._scanning ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4) : (root._wifiEnabled ? Theme.active : Qt.rgba(1,1,1,0.18))
                         Behavior on color { ColorAnimation { duration: 150 } }
                         RotationAnimator { target: rfIcon; from: 0; to: 360; duration: 900; loops: Animation.Infinite; running: root._scanning; easing.type: Easing.Linear }
@@ -544,47 +545,48 @@ Item {
         }
 
         Rectangle { width: parent.width; height: 1; color: Qt.rgba(1,1,1,0.07) }
-        Item      { width: parent.width; height: 8 }
+        Item      { width: parent.width; height: Math.round(8 * localScale) }
 
         Flickable {
-            id: flick; width: parent.width; height: parent.height - 49
+            id: flick; width: parent.width; height: parent.height - Math.round(49 * localScale)
             contentWidth: width; contentHeight: contentCol.height; clip: true; boundsBehavior: Flickable.StopAtBounds
             Column {
-                id: contentCol; width: flick.width; height: implicitHeight; spacing: 4
+                id: contentCol; width: flick.width; height: implicitHeight; spacing: Math.round(4 * localScale)
 
-                Item { width: parent.width; height: visible ? sLbl1.implicitHeight + 4 : 0; visible: root._current !== null
-                    Text { id: sLbl1; text: "CONNECTED"; font.pixelSize: 9; font.weight: Font.Bold; font.letterSpacing: 1.2; color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5) } }
+                Item { width: parent.width; height: visible ? sLbl1.implicitHeight + Math.round(4 * localScale) : 0; visible: root._current !== null
+                    Text { id: sLbl1; text: "CONNECTED"; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold; font.letterSpacing: 1.2; color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5) } }
 
-                NetworkRow { visible: root._current !== null; width: parent.width - 2; x: 1; net: root._current ?? { ssid: "", signal: 0, secured: false, inUse: true }; isCurrent: true }
+                NetworkRow { visible: root._current !== null; width: parent.width - Math.round(2 * localScale); x: Math.round(1 * localScale); net: root._current ?? { ssid: "", signal: 0, secured: false, inUse: true }; isCurrent: true }
 
-                Item { width: parent.width; height: 10; visible: root._current !== null && root._available.length > 0 }
+                Item { width: parent.width; height: Math.round(10 * localScale); visible: root._current !== null && root._available.length > 0 }
 
-                Item { width: parent.width; height: visible ? sLbl2.implicitHeight + 4 : 0; visible: root._available.length > 0
-                    Text { id: sLbl2; text: "AVAILABLE"; font.pixelSize: 9; font.weight: Font.Bold; font.letterSpacing: 1.2; color: Qt.rgba(1,1,1,0.25) } }
+                Item { width: parent.width; height: visible ? sLbl2.implicitHeight + Math.round(4 * localScale) : 0; visible: root._available.length > 0
+                    Text { id: sLbl2; text: "AVAILABLE"; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold; font.letterSpacing: 1.2; color: Qt.rgba(1,1,1,0.25) } }
 
                 Repeater {
                     model: root._available
-                    delegate: NetworkRow { required property var modelData; width: contentCol.width - 2; x: 1; net: modelData; isCurrent: false }
+                    delegate: NetworkRow { required property var modelData; width: contentCol.width - Math.round(2 * localScale); x: Math.round(1 * localScale); net: modelData; isCurrent: false }
                 }
 
+                // Empty state
                 Item {
-                    width: parent.width; height: 160
+                    width: parent.width; height: Math.round(160 * localScale)
                     visible: !root._scanning && root._networks.length === 0 && root._wifiEnabled
-                    Column { anchors.centerIn: parent; spacing: 10
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "󰤭"; font.pixelSize: 34; color: Qt.rgba(1,1,1,0.08) }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "No networks found"; font.pixelSize: 12; color: Qt.rgba(1,1,1,0.2) } }
+                    Column { anchors.centerIn: parent; spacing: Math.round(10 * localScale)
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "󰤭"; font.pixelSize: Math.round(34 * localScale); color: Qt.rgba(1,1,1,0.08) }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "No networks found"; font.pixelSize: Math.round(12 * localScale); color: Qt.rgba(1,1,1,0.2) } }
                 }
 
                 Item {
-                    width: parent.width; height: 160
+                    width: parent.width; height: Math.round(160 * localScale)
                     visible: root._scanning && root._networks.length === 0
-                    ScanRings { anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: 12 }
-                    width: 96; height: 96; centerGlyph: "󰤨"; glyphSize: 18 }
-                    Text { anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 8 }
-                    text: "Scanning…"; font.pixelSize: 11; color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5) }
+                    ScanRings { anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: Math.round(12 * localScale) }
+                    width: Math.round(96 * localScale); height: Math.round(96 * localScale); centerGlyph: "󰤨"; glyphSize: Math.round(18 * localScale) }
+                    Text { anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: Math.round(8 * localScale) }
+                    text: "Scanning…"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5) }
                 }
 
-                Item { width: parent.width; height: 8 }
+                Item { width: parent.width; height: Math.round(8 * localScale) }
             }
         }
     }
@@ -593,7 +595,7 @@ Item {
     Item {
         anchors {
             fill:      parent
-            topMargin: 49   // below header 40 + divider 1 + gap 8
+            topMargin: Math.round(49 * localScale)   // below header 40 + divider 1 + gap 8
         }
         visible: !root._wifiEnabled
         z: 2
@@ -601,18 +603,18 @@ Item {
         Rectangle { anchors.fill: parent; color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.95) }
 
         Column {
-            anchors.centerIn: parent; spacing: 16
-            Text { anchors.horizontalCenter: parent.horizontalCenter; text: "󰤭"; font.pixelSize: 42; color: Qt.rgba(1,1,1,0.12) }
-            Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Wi-Fi is off"; font.pixelSize: 14; font.weight: Font.Medium; color: Qt.rgba(1,1,1,0.30) }
+            anchors.centerIn: parent; spacing: Math.round(16 * localScale)
+            Text { anchors.horizontalCenter: parent.horizontalCenter; text: "󰤭"; font.pixelSize: Math.round(42 * localScale); color: Qt.rgba(1,1,1,0.12) }
+            Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Wi-Fi is off"; font.pixelSize: Math.round(14 * localScale); font.weight: Font.Medium; color: Qt.rgba(1,1,1,0.30) }
             Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
-                width: wfEnRow.implicitWidth + 24; height: 34; radius: 17
+                width: wfEnRow.implicitWidth + Math.round(24 * localScale); height: Math.round(34 * localScale); radius: Math.round(17 * localScale)
                 color: wfEnH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22) : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.12)
-                border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.40); border.width: 1
+                border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.40); border.width: Math.max(1, Math.round(1 * localScale))
                 Behavior on color { ColorAnimation { duration: 120 } }
-                Row { id: wfEnRow; anchors.centerIn: parent; spacing: 8
-                    Text { anchors.verticalCenter: parent.verticalCenter; text: "󰤨"; font.pixelSize: 14; color: Theme.active }
-                    Text { anchors.verticalCenter: parent.verticalCenter; text: "Turn On"; font.pixelSize: 12; font.weight: Font.Medium; color: Theme.active }
+                Row { id: wfEnRow; anchors.centerIn: parent; spacing: Math.round(8 * localScale)
+                    Text { anchors.verticalCenter: parent.verticalCenter; text: "󰤨"; font.pixelSize: Math.round(14 * localScale); color: Theme.active }
+                    Text { anchors.verticalCenter: parent.verticalCenter; text: "Turn On"; font.pixelSize: Math.round(12 * localScale); font.weight: Font.Medium; color: Theme.active }
                 }
                 HoverHandler { id: wfEnH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root._setWifiEnabled(true) }

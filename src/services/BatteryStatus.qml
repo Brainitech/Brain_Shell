@@ -8,6 +8,7 @@ import "../"
 Item {
     id: root
 
+    property real localScale: 1.0
     property bool showPercentage: false
 
     // ── UPower data ──────────────────────────────────────────────────────────
@@ -23,7 +24,7 @@ Item {
                                      ? bat.state === UPowerDeviceState.FullyCharged
                                      : false
 
-    implicitWidth:  statusRow.implicitWidth + 6
+    implicitWidth:  statusRow.implicitWidth + Math.round(6 * localScale)
     implicitHeight: statusRow.implicitHeight
 
     // ── Warning tracker ──────────────────────────────────────────────────────
@@ -99,14 +100,14 @@ Item {
     // ── Display ───────────────────────────────────────────────────────────────
     Row {
         id: statusRow
-        spacing: 4
+        spacing: Math.round(4 * localScale)
         anchors.centerIn: parent
 
         Text {
             id: iconText
             text:                   root.icon
             color:                  root.iconColor
-            font.pixelSize:         16
+            font.pixelSize:         Math.round(16 * localScale)
             anchors.verticalCenter: parent.verticalCenter
 
             // Pulse when critically low and discharging
@@ -130,7 +131,7 @@ Item {
         Item {
             id: pctWrapper
             property bool show: root.showPercentage || hov.hovered
-            implicitWidth: show ? pctText.implicitWidth + 2 : 0
+            implicitWidth: show ? pctText.implicitWidth + Math.round(2 * localScale) : 0
             implicitHeight: pctText.implicitHeight
             clip: true
             anchors.verticalCenter: parent.verticalCenter
@@ -140,7 +141,7 @@ Item {
                 id: pctText
                 text:           root.pct + "%"
                 color:          hov.hovered ? Theme.active : Theme.text
-                font.pixelSize: 12
+                font.pixelSize: Math.round(12 * localScale)
                 anchors.verticalCenter: parent.verticalCenter
                 Behavior on color { ColorAnimation { duration: 120 } }
             }
@@ -152,6 +153,7 @@ Item {
     // ── Warning window ────────────────────────────────────────────────────────
     BatteryWarning {
         id:      warningWindow
+        // localScale: root.localScale
         visible: false
     }
 }

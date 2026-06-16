@@ -12,22 +12,24 @@ PopupWindow {
 
     required property var anchorWindow
 
-    readonly property int popupWidth:   Theme.notificationsWidth
-    readonly property int maxHeight:    700
-    readonly property int fw:           Theme.notchRadius
-    readonly property int fh:           Theme.notchRadius
+    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+
+    readonly property int popupWidth:   Math.round(Theme.notificationsWidth * root.localScale)
+    readonly property int maxHeight:    Math.round(700 * root.localScale)
+    readonly property int fw:           Math.round(Theme.notchRadius * root.localScale)
+    readonly property int fh:           Math.round(Theme.notchRadius * root.localScale)
     readonly property int animDuration: Theme.animDuration
 
     // Fixed — never zero, never dynamic
-    implicitWidth:  popupWidth +fw
+    implicitWidth:  popupWidth + fw
     implicitHeight: maxHeight
 
     anchor.window: root.anchorWindow
     anchor.rect: Qt.rect(
-        (anchorWindow.width - Theme.notificationsWidth / 2)-(fw/2),
+        Math.round(anchorWindow.width - (popupWidth / 2) - fw + 1),
         0,
-        Theme.notificationsWidth,
-        Theme.notchHeight
+        Math.round(Theme.notificationsWidth * root.localScale),
+        Math.round(Theme.notchHeight * root.localScale)
     )
     anchor.gravity:    Edges.Bottom
     anchor.adjustment: PopupAdjustment.None
@@ -76,12 +78,12 @@ PopupWindow {
 
         // Width: rNotchMinWidth → notificationsWidth  (+ fw for flare region)
         width: Popups.notificationsOpen
-               ? Theme.notificationsWidth + root.fw
-               : Theme.rNotchMinWidth + root.fw
+               ? Math.round(Theme.notificationsWidth * root.localScale) + root.fw
+               : Math.round(Theme.rNotchMinWidth * root.localScale) + root.fw
 
         // Height: fh (invisible sliver) → full content height
         height: Popups.notificationsOpen
-                ? notifList.height + Theme.popupPadding * 2 + root.fh
+                ? notifList.height + Math.round(Theme.popupPadding * 2 * root.localScale) + root.fh
                 : root.fh
 
         Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic } }
@@ -92,7 +94,7 @@ PopupWindow {
             anchors.fill: parent
             attachedEdge: "right"
             color:        Theme.background
-            radius:       Theme.cornerRadius
+            radius:       Math.round(Theme.cornerRadius * root.localScale)
             flareWidth:   root.fw
             flareHeight:  root.fh
         }
@@ -103,10 +105,10 @@ PopupWindow {
         Item {
             anchors {
                 fill:         parent
-                topMargin:    root.fh + 4
-                leftMargin:   root.fw + 4
-                rightMargin:  4
-                bottomMargin: 4
+                topMargin:    root.fh + Math.round(4 * root.localScale)
+                leftMargin:   root.fw + Math.round(4 * root.localScale)
+                rightMargin:  Math.round(4 * root.localScale)
+                bottomMargin: Math.round(4 * root.localScale)
             }
 
             opacity: Popups.notificationsOpen ? 1 : 0
@@ -120,6 +122,7 @@ PopupWindow {
 
             NotificationList {
                 id:    notifList
+                localScale: root.localScale
                 width: parent.width
             }
         }

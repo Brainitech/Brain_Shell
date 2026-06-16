@@ -21,8 +21,13 @@ PanelWindow {
     // Kept so existing instantiation sites that pass anchorWindow: … still compile.
     required property var anchorWindow
 
-    readonly property int fw: Theme.notchRadius
-    readonly property int fh: Theme.notchRadius
+    // ── Context-Aware Scaling ─────────────────────────────────────────────────
+    // Multiplier based on screen height relative to 1080p, clamped to prevent
+    // extreme scaling on ultra-high or ultra-low resolution displays.
+    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+
+    readonly property int fw: Math.round(Theme.notchRadius * localScale)
+    readonly property int fh: Math.round(Theme.notchRadius * localScale)
     readonly property int animDuration: Theme.animDuration
 
     property string page: Popups.dashboardPage
@@ -37,11 +42,12 @@ PanelWindow {
     })
 
     function _applyPageWidth(p) {
-        var w = _pageWidths[p]
-        Popups.dashboardPageWidth = (w !== undefined) ? w : 900
+        Popups.dashboardPageWidth = _pageWidths[p] ?? 900
     }
 
     onPageChanged: _applyPageWidth(page)
+
+    readonly property real scaledPageWidth: Math.min(Popups.dashboardPageWidth * localScale, (screen ? screen.width : 1920) * 0.95)
 
     color:   "transparent"
     visible: windowVisible
@@ -107,8 +113,10 @@ PanelWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         clip: true
 
-        width:  Popups.dashboardOpen ? Popups.dashboardPageWidth + 2 * root.fw : Theme.cNotchMinWidth + 2 * root.fw
-        height: Popups.dashboardOpen ? Theme.dashboardHeight : Theme.notchHeight / 2
+        width:  Popups.dashboardOpen ? root.scaledPageWidth + 2 * root.fw : Theme.cNotchMinWidth + 2 * root.fw
+        height: Popups.dashboardOpen 
+            ? Math.min(Theme.dashboardHeight * localScale, (screen ? screen.height : 1080) * 0.90) 
+            : Theme.notchHeight / 2
 
         Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic } }
         Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic } }
@@ -123,7 +131,7 @@ PanelWindow {
             anchors.fill: parent
             attachedEdge: "top"
             color:        Theme.background
-            radius:       Theme.cornerRadius
+            radius:       Math.round(Theme.cornerRadius * localScale)
             flareWidth:   root.fw
             flareHeight:  root.fh
         }
@@ -133,10 +141,10 @@ PanelWindow {
             id: content
             anchors {
                 fill:         parent
-                topMargin:    root.fh + 8
-                leftMargin:   root.fw + 8
-                rightMargin:  root.fw + 8
-                bottomMargin: 8
+                topMargin:    root.fh + Math.round(8 * localScale)
+                leftMargin:   root.fw + Math.round(8 * localScale)
+                rightMargin:  root.fw + Math.round(8 * localScale)
+                bottomMargin: Math.round(8 * localScale)
             }
 
             opacity: Popups.dashboardOpen ? 1 : 0
@@ -155,6 +163,7 @@ PanelWindow {
                 // ── Tab bar ───────────────────────────────────────────────────
                 TabSwitcher {
                     id: tabBar
+                    localScale:  root.localScale
                     orientation: "horizontal"
                     width:       parent.width
                     currentPage: root.page
@@ -179,34 +188,45 @@ PanelWindow {
                     Item {
                         anchors.fill: parent
                         visible:      root.page === "home"
-                        DashHome { anchors.fill: parent }
+                        DashHome { 
+                            anchors.fill: parent 
+                            localScale:   root.localScale
+                        }
                     }
 
                     Item {
                         anchors.fill: parent
                         visible:      root.page === "stats"
-                        DashStats { anchors.fill: parent }
+                        DashStats { 
+                            anchors.fill: parent 
+                            localScale:   root.localScale
+                        }
                     }
 
                     Item {
                         anchors.fill: parent
                         visible:      root.page === "kanban"
-                        KanbanBoard { anchors.fill: parent }
+                        KanbanBoard { 
+                            anchors.fill: parent 
+                            localScale:   root.localScale
+                        }
                     }
 
                     Item {
                         anchors.fill: parent
                         visible:      root.page === "launcher"
-                        AppLauncher { anchors.fill: parent }
+                        AppLauncher { 
+                            anchors.fill: parent 
+                            localScale:   root.localScale
+                        }
                     }
 
                     Item {
                         anchors.fill: parent
                         visible:      root.page === "config"
-                        Item {
-                            anchors.fill: parent
-                            visible:      root.page === "config"
-                            ShellConfig { anchors.fill: parent }
+                        ShellConfig { 
+                            anchors.fill: parent 
+                            localScale:   root.localScale
                         }
                     }
                     

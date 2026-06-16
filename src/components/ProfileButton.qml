@@ -7,12 +7,13 @@ Item {
     property string label:   ""
     property string icon:    ""
     property bool   active:  false
+    property real   localScale: 1.0
     // `enabled` is inherited from Item — no redeclaration needed
 
     signal clicked()
 
-    implicitWidth:  row.implicitWidth + 24
-    implicitHeight: 28
+    implicitWidth:  row.implicitWidth + Math.round(24 * localScale)
+    implicitHeight: Math.round(28 * localScale)
 
     opacity: root.enabled ? 1 : 0.35
     Behavior on opacity { NumberAnimation { duration: 120 } }
@@ -36,12 +37,12 @@ Item {
     Row {
         id: row
         anchors.centerIn: parent
-        spacing: 5
+        spacing: Math.round(5 * localScale)
 
         Text {
             visible:        root.icon !== ""
             text:           root.icon
-            font.pixelSize: 12
+            font.pixelSize: Math.round(12 * localScale)
             color:          root.active ? Theme.background : Qt.rgba(1, 1, 1, 0.7)
             anchors.verticalCenter: parent.verticalCenter
             Behavior on color { ColorAnimation { duration: 120 } }
@@ -49,7 +50,7 @@ Item {
 
         Text {
             text:           root.label
-            font.pixelSize: 11
+            font.pixelSize: Math.round(11 * localScale)
             font.weight:    root.active ? Font.Medium : Font.Normal
             color:          root.active ? Theme.background : Qt.rgba(1, 1, 1, 0.7)
             anchors.verticalCenter: parent.verticalCenter

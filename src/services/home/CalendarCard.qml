@@ -9,6 +9,8 @@ StatCard {
     id: root
     padding: 0
 
+    property real localScale: 1.0
+
     // ── State ─────────────────────────────────────────────────────────────────
     property int    _year:  0
     property int    _month: 0
@@ -76,17 +78,17 @@ StatCard {
 
     // ── UI ────────────────────────────────────────────────────────────────────
     Item {
-        anchors { fill: parent; margins: 12 }
+        anchors { fill: parent; margins: Math.round(12 * localScale) }
 
         // Header
         Item {
             id: hdr
             anchors { left: parent.left; right: parent.right; top: parent.top }
-            height: 22
+            height: Math.round(22 * localScale)
 
             Text {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter }
-                text: "‹"; font.pixelSize: 15
+                text: "‹"; font.pixelSize: Math.round(15 * localScale)
                 color: pH.hovered ? Qt.rgba(1,1,1,0.7) : Qt.rgba(1,1,1,0.25)
                 Behavior on color { ColorAnimation { duration: 100 } }
                 HoverHandler { id: pH; cursorShape: Qt.PointingHandCursor }
@@ -94,12 +96,12 @@ StatCard {
             }
             Text {
                 anchors.centerIn: parent
-                text: root._label; font.pixelSize: 10; font.weight: Font.Bold
+                text: root._label; font.pixelSize: Math.round(10 * localScale); font.weight: Font.Bold
                 color: Theme.text
             }
             Text {
                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                text: "›"; font.pixelSize: 15
+                text: "›"; font.pixelSize: Math.round(15 * localScale)
                 color: nH.hovered ? Qt.rgba(1,1,1,0.7) : Qt.rgba(1,1,1,0.25)
                 Behavior on color { ColorAnimation { duration: 100 } }
                 HoverHandler { id: nH; cursorShape: Qt.PointingHandCursor }
@@ -110,8 +112,8 @@ StatCard {
         // DOW row
         Item {
             id: dow
-            anchors { left: parent.left; right: parent.right; top: hdr.bottom; topMargin: 3 }
-            height: 16
+            anchors { left: parent.left; right: parent.right; top: hdr.bottom; topMargin: Math.round(3 * localScale) }
+            height: Math.round(16 * localScale)
             Row {
                 anchors.fill: parent
                 Repeater {
@@ -119,7 +121,7 @@ StatCard {
                     delegate: Text {
                         width: Math.floor(dow.width / 7)
                         horizontalAlignment: Text.AlignHCenter
-                        text: modelData; font.pixelSize: 8; font.weight: Font.Bold
+                        text: modelData; font.pixelSize: Math.round(8 * localScale); font.weight: Font.Bold
                         color: Qt.rgba(1,1,1,0.2)
                     }
                 }
@@ -129,7 +131,7 @@ StatCard {
         // Day grid
         Grid {
             id: grid
-            anchors { left: parent.left; right: parent.right; top: dow.bottom; topMargin: 2; bottom: parent.bottom }
+            anchors { left: parent.left; right: parent.right; top: dow.bottom; topMargin: Math.round(2 * localScale); bottom: parent.bottom }
             columns: 7; rows: 6
 
             readonly property real cW: width  / 7
@@ -149,7 +151,7 @@ StatCard {
 
                     Rectangle {
                         anchors.centerIn: parent
-                        width: Math.min(parent.width, parent.height) - 4
+                        width: Math.min(parent.width, parent.height) - Math.round(4 * localScale)
                         height: width; radius: width / 2
                         color: isToday ? Qt.rgba(166/255,208/255,247/255,0.15)
                                : dH.hovered && modelData.cur ? Qt.rgba(1,1,1,0.07) : "transparent"
@@ -158,7 +160,7 @@ StatCard {
                         Behavior on color { ColorAnimation { duration: 80 } }
                         Text {
                             anchors.centerIn: parent; text: modelData.n
-                            font.pixelSize: 9; font.family: "JetBrains Mono"
+                            font.pixelSize: Math.round(9 * localScale); font.family: "JetBrains Mono"
                             font.weight: isToday ? Font.Bold : Font.Normal
                             color: isToday ? Theme.active
                                    : modelData.cur ? Qt.rgba(205/255,214/255,244/255,0.55)

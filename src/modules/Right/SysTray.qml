@@ -8,6 +8,7 @@ import "../../"
 
 RowLayout {
     id: root
+    property real localScale: 1.0
 
     RowLayout {
         id: trayRow
@@ -29,14 +30,14 @@ RowLayout {
             model: SystemTray.items
             delegate: Rectangle {
                 // UX: Larger 28x28 hit-box makes it easier to click than a 16x16 icon
-                width: 26
-                height: 26
-                radius: 6
+                width: Math.round(26 * localScale)
+                height: Math.round(26 * localScale)
+                radius: Math.round(6 * localScale)
                 color: trayMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.1) : "transparent" // Subtle hover effect
                 
                 Image {
-                    width: 16
-                    height: 16
+                    width: Math.round(16 * localScale)
+                    height: Math.round(16 * localScale)
                     anchors.centerIn: parent
                     source: modelData.icon
                     smooth: true
@@ -66,6 +67,7 @@ RowLayout {
 
     // Tray Toggle Button
     IconBtn {
+        localScale: root.localScale
         Layout.alignment: Qt.AlignVCenter
         text: trayRow.isOpen ? "" : ""
         onClicked: trayRow.isOpen = !trayRow.isOpen

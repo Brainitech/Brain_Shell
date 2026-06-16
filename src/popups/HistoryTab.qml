@@ -5,6 +5,7 @@ import "../"
 
 Item {
     id: root
+    property real localScale: 1.0
 
     readonly property var pinned:  ClipboardService.pinned  ?? []
     readonly property var history: ClipboardService.entries ?? []
@@ -56,21 +57,21 @@ Item {
         // ── Header ─────────────────────────────────────────────────────────────
         Item {
             width:  parent.width
-            height: 44
+            height: Math.round(44 * localScale)
 
             Text {
                 anchors.centerIn: parent
                 text:           "Clipboard"
-                font.pixelSize: 14
+                font.pixelSize: Math.round(14 * localScale)
                 font.weight:    Font.DemiBold
                 color:          Theme.text
             }
 
             // Clear unpinned history button
             Rectangle {
-                anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: 4 }
-                width:  clearRow.implicitWidth + 14
-                height: 26; radius: 8
+                anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: Math.round(4 * localScale) }
+                width:  clearRow.implicitWidth + Math.round(14 * localScale)
+                height: Math.round(26 * localScale); radius: Math.round(8 * localScale)
                 color: clearH.hovered
                     ? Qt.rgba(248/255, 113/255, 113/255, 0.18)
                     : Qt.rgba(1, 1, 1, 0.04)
@@ -82,14 +83,14 @@ Item {
                 Row {
                     id: clearRow
                     anchors.centerIn: parent
-                    spacing: 5
+                    spacing: Math.round(5 * localScale)
                     Text {
-                        text: "󰩺"; font.pixelSize: 12
+                        text: "󰩺"; font.pixelSize: Math.round(12 * localScale)
                         color: Qt.rgba(248/255, 113/255, 113/255, 0.80)
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Text {
-                        text: "Clear"; font.pixelSize: 10
+                        text: "Clear"; font.pixelSize: Math.round(10 * localScale)
                         color: Qt.rgba(248/255, 113/255, 113/255, 0.80)
                         anchors.verticalCenter: parent.verticalCenter
                     }

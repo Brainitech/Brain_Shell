@@ -100,7 +100,7 @@ PanelWindow {
         State {
             name: "toast"
             when: Popups.notificationToastOpen && !Popups.notificationsOpen && !Popups.networkOpen
-            PropertyChanges { target: root; rWidth: Math.round((Theme.notificationToastWidth * root.localScale) + (Theme.notchRadius * root.localScale) + (Theme.notchPadding * root.localScale)) }
+            PropertyChanges { target: root; rWidth: Math.round(Theme.notificationToastWidth * root.localScale) + Math.round(Theme.notchRadius * 2 * root.localScale) }
         }
     ]
 

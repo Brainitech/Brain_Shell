@@ -12,22 +12,23 @@ PopupWindow {
 	required property var anchorWindow
     readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
-    readonly property int toastWidth: Math.round(Theme.notificationToastWidth * localScale) + fw/1.5
     readonly property int fw: Math.round(Theme.notchRadius * localScale)
     readonly property int fh: Math.round(Theme.notchRadius * localScale)
 
-    implicitWidth:  toastWidth + Math.round(fw/2) + Math.round(10 * localScale)
+    readonly property int toastWidth: Math.round(Theme.notificationToastWidth * localScale) + Math.round(10 * localScale)
+
+    implicitWidth:  toastWidth + fw + Math.round(10 * localScale)
     implicitHeight: Math.round(180 * localScale)
 
     anchor.window: root.anchorWindow
     anchor.rect: Qt.rect(
-        root.anchorWindow.width - Math.round(toastWidth/2) - Math.round(fw),
+        Math.round(root.anchorWindow.width - ((toastWidth + (fw*2)+ Theme.borderWidth)/2)),
         Math.round((-Theme.notchHeight / 2) * localScale),
-        toastWidth,
-        Math.round(Theme.notchHeight * localScale)
+        0,
+        0
     )
-	anchor.gravity:    Edges.Bottom
-	anchor.adjustment: PopupAdjustment.None
+    anchor.gravity:    Edges.Bottom
+    anchor.adjustment: PopupAdjustment.None
 
 	color:   "transparent"
 	visible: windowVisible
@@ -105,12 +106,12 @@ PopupWindow {
 		clip:           true
 
 
-		width: root.showing 
-		? root.toastWidth + root.fw 
+		width: root.showing
+		? root.toastWidth + root.fw
 		: root.fw
 
-		height: root.showing 
-		? (cardCol.y + cardCol.implicitHeight + Math.round(24 * root.localScale) + root.fh) 
+		height: root.showing
+		? (cardCol.y + cardCol.implicitHeight + Math.round(24 * root.localScale) + root.fh)
 		: root.fh
 
 		Behavior on width  { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }

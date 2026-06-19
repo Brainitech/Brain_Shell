@@ -80,8 +80,8 @@ PanelWindow {
         clip: true
 
         width: Popups.networkOpen
-               ? root.popupWidth + Math.round(9 * root.localScale)
-               : Math.round(Theme.rNotchMinWidth * root.localScale) + root.fw
+       ? root.popupWidth + root.fw
+       : Math.round(Theme.rNotchMinWidth * root.localScale) + root.fw
 
         height: Popups.networkOpen ? root.popupHeight : 0
 

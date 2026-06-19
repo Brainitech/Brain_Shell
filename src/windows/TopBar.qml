@@ -95,7 +95,7 @@ PanelWindow {
         State {
             name: "network"
             when: Popups.networkOpen && !Popups.notificationsOpen
-            PropertyChanges { target: root; rWidth: Math.round((Theme.networkPopupWidth * root.localScale) + (Theme.notchRadius * root.localScale)) }
+            PropertyChanges { target: root; rWidth: Math.round(Theme.networkPopupWidth * root.localScale) + Math.round(Theme.notchRadius * root.localScale) + Math.round(Theme.borderWidth * root.localScale) }
         },
         State {
             name: "toast"

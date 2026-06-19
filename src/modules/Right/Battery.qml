@@ -3,6 +3,7 @@ import "../../services"
 import "../../"
 
 Item {
+    property real localScale: 1.0
     // Set to true to always show percentage beside the icon.
     // When false (default), percentage only shows on hover.
     property bool showPercentage: false
@@ -14,6 +15,7 @@ Item {
 
     BatteryStatus {
         id:               status
+        localScale:       parent.localScale
         anchors.centerIn: parent
         showPercentage:   parent.showPercentage
     }

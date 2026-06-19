@@ -15,10 +15,12 @@ import "../../components"
 Item {
     id: root
 
-    readonly property int colW:    210
-    readonly property int gap:       8
-    readonly property int profileH: 160
-    readonly property int clockH:   220
+    property real localScale: 1.0
+
+    readonly property int colW:     Math.round(210 * localScale)
+    readonly property int gap:      Math.round(8 * localScale)
+    readonly property int profileH: Math.round(160 * localScale)
+    readonly property int clockH:   Math.round(220 * localScale)
 
     // ── Avatar path ───────────────────────────────────────────────────────────
     property string _avatarPath: ""
@@ -67,12 +69,14 @@ Item {
 
         ProfileCard {
             id: profileCard
+            localScale: root.localScale
             anchors { left: parent.left; right: parent.right; top: parent.top }
             height: root.profileH
             avatarPath: root._avatarPath
         }
 
         CalendarCard {
+            localScale: root.localScale
             anchors {
                 left: parent.left; right: parent.right
                 top: profileCard.bottom; topMargin: root.gap
@@ -84,6 +88,7 @@ Item {
     // ── Right column — QuickSettings fills full height ────────────────────────
     QuickSettings {
         id: rightCard
+        localScale: root.localScale
         anchors { right: parent.right; top: parent.top; bottom: parent.bottom; topMargin: root.gap }
         width: root.colW
     }
@@ -100,11 +105,13 @@ Item {
 
         ClockCard {
             id: clockCard
+            localScale: root.localScale
             anchors { left: parent.left; right: parent.right; top: parent.top }
             height: root.clockH
         }
 
         PlayerCard {
+            localScale: root.localScale
             anchors {
                 left:   parent.left;  right:  parent.right
                 top:    clockCard.bottom; topMargin: root.gap

@@ -9,10 +9,12 @@ import "../"
 PanelWindow {
     id: root
 
-    readonly property int popupWidth:  Theme.networkPopupWidth   // 480
-    readonly property int popupHeight: 648
-    readonly property int fw:          Theme.notchRadius
-    readonly property int fh:          Theme.notchRadius
+    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+
+    readonly property int popupWidth:  Math.round(Theme.networkPopupWidth * root.localScale)
+    readonly property int popupHeight: Math.round(648 * root.localScale)
+    readonly property int fw:          Math.round(Theme.notchRadius * root.localScale)
+    readonly property int fh:          Math.round(Theme.notchRadius * root.localScale)
 
     property string page: Popups.networkPage
 
@@ -20,8 +22,8 @@ PanelWindow {
     anchors.top:   true
 
     // Window height = popup content only — sizer starts at y:0
-    implicitWidth:  popupWidth + fw
-    implicitHeight: popupHeight
+    implicitWidth:  popupWidth + fw + 8
+    implicitHeight: popupHeight + 8
 
     exclusionMode: ExclusionMode.Ignore
     color:         "transparent"
@@ -73,13 +75,13 @@ PanelWindow {
     Item {
         id: sizer
         anchors.right: parent.right
-        anchors.rightMargin: Theme.borderWidth
+        anchors.rightMargin: Math.round(Theme.borderWidth * root.localScale)
         y: 0
         clip: true
 
         width: Popups.networkOpen
-               ? root.popupWidth + 9
-               : Theme.rNotchMinWidth + root.fw
+       ? root.popupWidth + root.fw
+       : Math.round(Theme.rNotchMinWidth * root.localScale) + root.fw
 
         height: Popups.networkOpen ? root.popupHeight : 0
 
@@ -90,21 +92,21 @@ PanelWindow {
             anchors.fill: parent
             attachedEdge: "right"
             color:        Theme.background
-            radius:       Theme.cornerRadius
+            radius:       Math.round(Theme.cornerRadius * root.localScale)
             flareWidth:   root.fw
             flareHeight:  root.fh
         }
-        
+
         Keys.onEscapePressed: Popups.networkOpen = false
 
         Item {
             id: contentArea
             anchors {
                 fill:         parent
-                topMargin:    Theme.notchHeight
+                topMargin:    Math.round(Theme.notchHeight * root.localScale)
                 leftMargin:   root.fw
                 rightMargin:  root.fw/2
-                bottomMargin: root.fh + Theme.cornerRadius
+                bottomMargin: root.fh + Math.round(Theme.cornerRadius * root.localScale)
             }
 
             opacity: Popups.networkOpen ? 1 : 0
@@ -130,12 +132,14 @@ PanelWindow {
                     anchors.fill: parent
                     active:       root.page === "wifi"
                     source:       "WifiTab.qml"
+                    onLoaded:     item.localScale = root.localScale
                 }
 
                 Loader {
                     anchors.fill: parent
                     active:       root.page === "bluetooth"
                     source:       "BluetoothTab.qml"
+                    onLoaded:     item.localScale = root.localScale
                 }
 
                 // VPN — WireGuard connections
@@ -143,6 +147,7 @@ PanelWindow {
                     anchors.fill: parent
                     active:       root.page === "vpn"
                     source:       "VPNTab.qml"
+                    onLoaded:     item.localScale = root.localScale
                 }
 
                 // Hotspot — virtual AP interface
@@ -150,18 +155,20 @@ PanelWindow {
                     anchors.fill: parent
                     active:       root.page === "hotspot"
                     source:       "HotspotTab.qml"
+                    onLoaded:     item.localScale = root.localScale
                 }
             }
 
             // ── Tab bar — lifted by cornerRadius from the popup bottom ────────
             TabSwitcher {
                 id: tabBar
+                localScale: root.localScale || 1.0
                 anchors {
-                    left:         parent.left
-                    right:        parent.right
-                    bottom:       parent.bottom
-                    bottomMargin: -16
-                }
+                left:         parent.left
+                right:        parent.right
+                bottom:       parent.bottom
+                bottomMargin: Math.round(-16 * root.localScale)
+            }
                 orientation: "horizontal"
                 width:        parent.width
                 currentPage:  root.page

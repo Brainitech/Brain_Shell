@@ -22,6 +22,7 @@ Item {
 	property var    model:       []
 	property string currentPage: ""
 	property string orientation: "horizontal"   // "horizontal" | "vertical"
+	property real   localScale:  1.0
 
 	signal pageChanged(string key)
 
@@ -34,8 +35,8 @@ Item {
 		pageChanged(defaultPage)
 	}
 
-	implicitWidth:  orientation === "vertical"   ? 40 : 0
-	implicitHeight: orientation === "horizontal" ? 40 : 0
+	implicitWidth:  orientation === "vertical"   ? Math.round(40 * localScale) : 0
+	implicitHeight: orientation === "horizontal" ? Math.round(40 * localScale) : 0
 
 	// ── Scroll cooldown ───────────────────────────────────────────────────────
 	property bool scrollBusy: false
@@ -83,8 +84,8 @@ Item {
 				Rectangle {
 					id: hBg
 					anchors.centerIn: parent
-					width:  hIcon.implicitWidth + hLabel.implicitWidth + 24
-					height: parent.height - 8
+					width:  hIcon.implicitWidth + hLabel.implicitWidth + Math.round(24 * localScale)
+					height: parent.height - Math.round(8 * localScale)
 					radius: height / 2
 
 					color: hTab.isActive
@@ -97,12 +98,12 @@ Item {
 				// Icon + label
 				Row {
 					anchors.centerIn: parent
-					spacing: 6
+					spacing: Math.round(6 * localScale)
 
 					Text {
 						id: hIcon
 						text:           modelData.icon
-						font.pixelSize: 14
+						font.pixelSize: Math.round(14 * localScale)
 						anchors.verticalCenter: parent.verticalCenter
 						color: hTab.isActive
 						? Theme.active
@@ -114,7 +115,7 @@ Item {
 						id: hLabel
 						visible:        modelData.label !== undefined
 						text:           modelData.label ?? ""
-						font.pixelSize: 12
+						font.pixelSize: Math.round(12 * localScale)
 						font.weight:    hTab.isActive ? Font.Medium : Font.Normal
 						anchors.verticalCenter: parent.verticalCenter
 						color: hTab.isActive
@@ -150,7 +151,7 @@ Item {
 	        visible: root.orientation === "vertical"
 	        width:   root.width
 	
-	        readonly property int tabH: 60
+	        readonly property int tabH: Math.round(60 * localScale)
 	        spacing: root.model.length > 1
 	            ? (root.height - root.model.length * tabH) / (root.model.length - 1)
 	            : 0
@@ -169,7 +170,7 @@ Item {
 	
 	                width:  vCol.width
 	                height: vCol.tabH
-	                radius: Theme.cornerRadius * 2
+	                radius: Math.round(Theme.cornerRadius * 2 * localScale)
 	
 	                color: vTab.isActive
 	                    ? Theme.active
@@ -182,7 +183,7 @@ Item {
 	                    visible:          !vCol.hasLabels
 	                    anchors.centerIn: parent
 	                    text:             modelData.icon
-	                    font.pixelSize:   16
+	                    font.pixelSize:   Math.round(16 * localScale)
 	                    color: vTab.isActive ? Theme.background : Theme.text
 	                    Behavior on color { ColorAnimation { duration: 120 } }
 	                }
@@ -192,14 +193,14 @@ Item {
 	                    visible: vCol.hasLabels
 	                    anchors {
 	                        left:           parent.left
-	                        leftMargin:     16
+	                        leftMargin:     Math.round(16 * localScale)
 	                        verticalCenter: parent.verticalCenter
 	                    }
-	                    spacing: 12
+	                    spacing: Math.round(12 * localScale)
 	
 	                    Text {
 	                        text:           modelData.icon
-	                        font.pixelSize: 15
+	                        font.pixelSize: Math.round(15 * localScale)
 	                        anchors.verticalCenter: parent.verticalCenter
 	                        color: vTab.isActive
 	                            ? Theme.background
@@ -209,7 +210,7 @@ Item {
 	
 	                    Text {
 	                        text:           modelData.label ?? ""
-	                        font.pixelSize: 12
+	                        font.pixelSize: Math.round(12 * localScale)
 	                        font.weight:    vTab.isActive ? Font.Medium : Font.Normal
 	                        anchors.verticalCenter: parent.verticalCenter
 	                        color: vTab.isActive

@@ -18,6 +18,8 @@ Item {
     id: root
     focus: true
 
+    property real localScale: 1.0
+
     // ── Persistent state ──────────────────────────────────────────────────────
     property var    _tasks:    []
     property int    _nextId:   0
@@ -300,8 +302,8 @@ Item {
     Row {
         id: mainRow
         anchors.fill: parent
-        anchors.topMargin: 8
-        spacing: 8
+        anchors.topMargin: Math.round(8 * localScale)
+        spacing: Math.round(8 * localScale)
 
         Repeater {
             model: root.colDefs
@@ -323,35 +325,35 @@ Item {
                 height: parent.height
 
                 Rectangle {
-                    anchors.fill: parent; radius: Theme.cornerRadius
+                    anchors.fill: parent; radius: Math.round(Theme.cornerRadius * localScale)
                     color:        Qt.rgba(1, 1, 1, 0.03)
                     border.color: Qt.rgba(1, 1, 1, 0.07); border.width: 1
                 }
 
                 Column {
-                    anchors { fill: parent; margins: 10 }
-                    spacing: 8
+                    anchors { fill: parent; margins: Math.round(10 * localScale) }
+                    spacing: Math.round(8 * localScale)
 
                     // Header
                     Item {
-                        width: parent.width; height: 26
+                        width: parent.width; height: Math.round(26 * localScale)
 
                         Row {
                             anchors { left: parent.left; verticalCenter: parent.verticalCenter }
-                            spacing: 7
+                            spacing: Math.round(7 * localScale)
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: colItem.cLabel; color: Theme.active
-                                font.pixelSize: 12; font.weight: Font.DemiBold
+                                font.pixelSize: Math.round(12 * localScale); font.weight: Font.DemiBold
                             }
                             Rectangle {
                                 anchors.verticalCenter: parent.verticalCenter
-                                width: cntT.implicitWidth + 10; height: 16; radius: 8
+                                width: cntT.implicitWidth + Math.round(10 * localScale); height: Math.round(16 * localScale); radius: Math.round(8 * localScale)
                                 color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.12)
                                 Text {
                                     id: cntT; anchors.centerIn: parent
                                     text: colItem.cTasks.length
-                                    color: Theme.active; font.pixelSize: 9; font.weight: Font.Bold
+                                    color: Theme.active; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold
                                 }
                             }
                         }
@@ -359,14 +361,14 @@ Item {
                         // Add (+) button
                         Rectangle {
                             anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                            width: 22; height: 22; radius: 6
+                            width: Math.round(22 * localScale); height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
                             color: addH.hovered
                                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
                                 : Qt.rgba(1, 1, 1, 0.05)
                             border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.20)
                             border.width: 1
                             Behavior on color { ColorAnimation { duration: 100 } }
-                            Text { anchors.centerIn: parent; text: "+"; color: Theme.active; font.pixelSize: 15 }
+                            Text { anchors.centerIn: parent; text: "+"; color: Theme.active; font.pixelSize: Math.round(15 * localScale) }
                             HoverHandler { id: addH; cursorShape: Qt.PointingHandCursor }
                             MouseArea {
                                 anchors.fill: parent
@@ -385,37 +387,37 @@ Item {
                     // Content area
                     Item {
                         width:  parent.width
-                        height: parent.height - 26 - 1 - parent.spacing * 2
+                        height: parent.height - Math.round(26 * localScale) - 1 - parent.spacing * 2
 
                         // Draft card — slides in from top
                         Item {
                             id: draftWrap; z: 2; width: parent.width
-                            height: colItem.draftOpen ? draftRect.implicitHeight + 6 : 0
+                            height: colItem.draftOpen ? draftRect.implicitHeight + Math.round(6 * localScale) : 0
                             clip:   true
                             Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
 
                             Rectangle {
                                 id: draftRect
-                                anchors { left: parent.left; right: parent.right; top: parent.top; topMargin: 3 }
-                                radius: 8
+                                anchors { left: parent.left; right: parent.right; top: parent.top; topMargin: Math.round(3 * localScale) }
+                                radius: Math.round(8 * localScale)
                                 color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.06)
                                 border.color: draftInput.activeFocus
                                     ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.50)
                                     : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
                                 border.width: 1
-                                implicitHeight: draftInput.contentHeight + 24
+                                implicitHeight: draftInput.contentHeight + Math.round(24 * localScale)
                                 Behavior on border.color { ColorAnimation { duration: 100 } }
 
                                 Text {
-                                    anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
+                                    anchors { left: parent.left; leftMargin: Math.round(10 * localScale); verticalCenter: parent.verticalCenter }
                                     visible: draftInput.text === ""
-                                    text: "Task title…"; color: Qt.rgba(1,1,1,0.25); font.pixelSize: 12
+                                    text: "Task title…"; color: Qt.rgba(1,1,1,0.25); font.pixelSize: Math.round(12 * localScale)
                                 }
 
                                 TextInput {
                                     id: draftInput
-                                    anchors { left: parent.left; right: parent.right; leftMargin: 10; rightMargin: 10; verticalCenter: parent.verticalCenter }
-                                    color: Theme.text; font.pixelSize: 12
+                                    anchors { left: parent.left; right: parent.right; leftMargin: Math.round(10 * localScale); rightMargin: Math.round(10 * localScale); verticalCenter: parent.verticalCenter }
+                                    color: Theme.text; font.pixelSize: Math.round(12 * localScale)
                                     wrapMode: TextInput.WordWrap
                                     selectionColor: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)
 
@@ -438,21 +440,22 @@ Item {
                             anchors.top:       draftWrap.bottom
                             anchors.left:      parent.left
                             anchors.right:     parent.right
-                            anchors.topMargin: colItem.draftOpen ? 4 : 0
-                            height:            parent.height - draftWrap.height - (colItem.draftOpen ? 4 : 0)
+                            anchors.topMargin: colItem.draftOpen ? Math.round(4 * localScale) : 0
+                            height:            parent.height - draftWrap.height - (colItem.draftOpen ? Math.round(4 * localScale) : 0)
                             contentWidth:      width
-                            contentHeight:     taskCol.implicitHeight + 4
+                            contentHeight:     taskCol.implicitHeight + Math.round(4 * localScale)
                             clip:              true
                             boundsBehavior:    Flickable.StopAtBounds
 
                             Column {
                                 id: taskCol
-                                width: parent.width; spacing: 6
+                                width: parent.width; spacing: Math.round(6 * localScale)
 
                                 Repeater {
                                     model: colItem.cTasks
                                     delegate: TaskCard {
                                         required property var modelData
+                                        localScale: root.localScale
                                         width:    parent.width
                                         taskData: modelData
                                         colIdx:   colItem.cIdx
@@ -481,9 +484,9 @@ Item {
         anchors.centerIn: parent
         visible:        root.pickerTaskId >= 0
 
-        width:  230
-        height: pickerCol.implicitHeight + 24
-        radius: Theme.cornerRadius
+        width:  Math.round(230 * localScale)
+        height: pickerCol.implicitHeight + Math.round(24 * localScale)
+        radius: Math.round(Theme.cornerRadius * localScale)
         color: Qt.rgba(
             Math.min(1, Theme.background.r + 0.06),
             Math.min(1, Theme.background.g + 0.06),
@@ -495,15 +498,15 @@ Item {
 
         Column {
             id: pickerCol
-            anchors { left: parent.left; right: parent.right; top: parent.top; margins: 12 }
-            spacing: 8
+            anchors { left: parent.left; right: parent.right; top: parent.top; margins: Math.round(12 * localScale) }
+            spacing: Math.round(8 * localScale)
 
             // ── Month nav ──────────────────────────────────────────────────────
             Item {
-                width: parent.width; height: 22
+                width: parent.width; height: Math.round(22 * localScale)
                 Text {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter }
-                    text: "‹"; font.pixelSize: 17
+                    text: "‹"; font.pixelSize: Math.round(17 * localScale)
                     color: pmH.hovered ? Qt.rgba(1,1,1,0.85) : Qt.rgba(1,1,1,0.30)
                     Behavior on color { ColorAnimation { duration: 80 } }
                     HoverHandler { id: pmH; cursorShape: Qt.PointingHandCursor }
@@ -518,11 +521,11 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     text:  root._monthNames[root.pickerMonth].substring(0,3) + "  " + root.pickerYear
-                    color: Theme.text; font.pixelSize: 11; font.weight: Font.DemiBold
+                    color: Theme.text; font.pixelSize: Math.round(11 * localScale); font.weight: Font.DemiBold
                 }
                 Text {
                     anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                    text: "›"; font.pixelSize: 17
+                    text: "›"; font.pixelSize: Math.round(17 * localScale)
                     color: nmH.hovered ? Qt.rgba(1,1,1,0.85) : Qt.rgba(1,1,1,0.30)
                     Behavior on color { ColorAnimation { duration: 80 } }
                     HoverHandler { id: nmH; cursorShape: Qt.PointingHandCursor }
@@ -538,7 +541,7 @@ Item {
 
             // ── Day-of-week headers ────────────────────────────────────────────
             Item {
-                width: parent.width; height: 14
+                width: parent.width; height: Math.round(14 * localScale)
                 Row {
                     anchors.fill: parent
                     Repeater {
@@ -546,7 +549,7 @@ Item {
                         delegate: Text {
                             width: Math.floor(parent.parent.width / 7)
                             horizontalAlignment: Text.AlignHCenter
-                            text: modelData; font.pixelSize: 8; font.weight: Font.Bold
+                            text: modelData; font.pixelSize: Math.round(8 * localScale); font.weight: Font.Bold
                             color: Qt.rgba(1,1,1,0.18)
                         }
                     }
@@ -558,7 +561,7 @@ Item {
                 id: dayGrid
                 width: parent.width; columns: 7; rows: 6
                 readonly property real cW: width / 7
-                readonly property real cH: 24
+                readonly property real cH: Math.round(24 * localScale)
 
                 Repeater {
                     model: root.pickerDays
@@ -590,7 +593,7 @@ Item {
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData.n
-                                font.pixelSize: 9; font.weight: isSel ? Font.Bold : Font.Normal
+                                font.pixelSize: Math.round(9 * localScale); font.weight: isSel ? Font.Bold : Font.Normal
                                 color: isSel ? Theme.background
                                     : modelData.cur ? Qt.rgba(1,1,1,0.78) : Qt.rgba(1,1,1,0.14)
                             }
@@ -610,81 +613,81 @@ Item {
                 Row {
                     id: timeInner
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 10
+                    spacing: Math.round(10 * localScale)
 
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "⏰"; font.pixelSize: 13
+                        text: "⏰"; font.pixelSize: Math.round(13 * localScale)
                     }
 
                     // Controls when time is set
                     Row {
-                        spacing: 4; visible: root.pickerHasTime
+                        spacing: Math.round(4 * localScale); visible: root.pickerHasTime
                         anchors.verticalCenter: parent.verticalCenter
 
                         // ── Hour col ──────────────────────────────────────────
                         Column {
-                            spacing: 2; anchors.verticalCenter: parent.verticalCenter
+                            spacing: Math.round(2 * localScale); anchors.verticalCenter: parent.verticalCenter
                             Rectangle {
-                                width: 26; height: 18; radius: 4
+                                width: Math.round(26 * localScale); height: Math.round(18 * localScale); radius: Math.round(4 * localScale)
                                 color: hUpH.hovered ? Qt.rgba(1,1,1,0.12) : Qt.rgba(1,1,1,0.05)
                                 border.color: Qt.rgba(1,1,1,0.10); border.width: 1
                                 Behavior on color { ColorAnimation { duration: 80 } }
-                                Text { anchors.centerIn: parent; text: "▲"; font.pixelSize: 7; color: Qt.rgba(1,1,1,0.50) }
+                                Text { anchors.centerIn: parent; text: "▲"; font.pixelSize: Math.round(7 * localScale); color: Qt.rgba(1,1,1,0.50) }
                                 HoverHandler { id: hUpH; cursorShape: Qt.PointingHandCursor }
                                 MouseArea { anchors.fill: parent; onClicked: root.pickerTimeH = (root.pickerTimeH + 1) % 24 }
                             }
                             Rectangle {
-                                width: 26; height: 24; radius: 4
+                                width: Math.round(26 * localScale); height: Math.round(24 * localScale); radius: Math.round(4 * localScale)
                                 color: Qt.rgba(1,1,1,0.07); border.color: Qt.rgba(1,1,1,0.10); border.width: 1
                                 Text {
                                     anchors.centerIn: parent
                                     text: root._zp2(root.pickerTimeH)
-                                    font.pixelSize: 13; font.family: "JetBrains Mono"; font.weight: Font.Bold
+                                    font.pixelSize: Math.round(13 * localScale); font.family: "JetBrains Mono"; font.weight: Font.Bold
                                     color: Theme.active
                                 }
                             }
                             Rectangle {
-                                width: 26; height: 18; radius: 4
+                                width: Math.round(26 * localScale); height: Math.round(18 * localScale); radius: Math.round(4 * localScale)
                                 color: hDnH.hovered ? Qt.rgba(1,1,1,0.12) : Qt.rgba(1,1,1,0.05)
                                 border.color: Qt.rgba(1,1,1,0.10); border.width: 1
                                 Behavior on color { ColorAnimation { duration: 80 } }
-                                Text { anchors.centerIn: parent; text: "▼"; font.pixelSize: 7; color: Qt.rgba(1,1,1,0.50) }
+                                Text { anchors.centerIn: parent; text: "▼"; font.pixelSize: Math.round(7 * localScale); color: Qt.rgba(1,1,1,0.50) }
                                 HoverHandler { id: hDnH; cursorShape: Qt.PointingHandCursor }
                                 MouseArea { anchors.fill: parent; onClicked: root.pickerTimeH = (root.pickerTimeH + 23) % 24 }
                             }
                         }
 
-                        Text { anchors.verticalCenter: parent.verticalCenter; text: ":"; font.pixelSize: 15; font.weight: Font.Bold; color: Theme.text }
+                        Text { anchors.verticalCenter: parent.verticalCenter; text: ":"; font.pixelSize: Math.round(15 * localScale); font.weight: Font.Bold; color: Theme.text }
 
                         // ── Minute col ────────────────────────────────────────
                         Column {
-                            spacing: 2; anchors.verticalCenter: parent.verticalCenter
+                            spacing: Math.round(2 * localScale); anchors.verticalCenter: parent.verticalCenter
                             Rectangle {
-                                width: 26; height: 18; radius: 4
+                                width: Math.round(26 * localScale); height: Math.round(18 * localScale); radius: Math.round(4 * localScale)
                                 color: mUpH.hovered ? Qt.rgba(1,1,1,0.12) : Qt.rgba(1,1,1,0.05)
                                 border.color: Qt.rgba(1,1,1,0.10); border.width: 1
                                 Behavior on color { ColorAnimation { duration: 80 } }
-                                Text { anchors.centerIn: parent; text: "▲"; font.pixelSize: 7; color: Qt.rgba(1,1,1,0.50) }
+                                Text { anchors.centerIn: parent; text: "▲"; font.pixelSize: Math.round(7 * localScale); color: Qt.rgba(1,1,1,0.50) }
                                 HoverHandler { id: mUpH; cursorShape: Qt.PointingHandCursor }
                                 MouseArea { anchors.fill: parent; onClicked: root.pickerTimeM = (root.pickerTimeM + 5) % 60 }
                             }
                             Rectangle {
-                                width: 26; height: 24; radius: 4
+                                width: Math.round(26 * localScale); height: Math.round(24 * localScale); radius: Math.round(4 * localScale)
                                 color: Qt.rgba(1,1,1,0.07); border.color: Qt.rgba(1,1,1,0.10); border.width: 1
                                 Text {
                                     anchors.centerIn: parent
                                     text: root._zp2(root.pickerTimeM)
-                                    font.pixelSize: 13; font.family: "JetBrains Mono"; font.weight: Font.Bold
+                                    font.pixelSize: Math.round(13 * localScale); font.family: "JetBrains Mono"; font.weight: Font.Bold
                                     color: Theme.active
                                 }
                             }
                             Rectangle {
-                                width: 26; height: 18; radius: 4
+                                width: Math.round(26 * localScale); height: Math.round(18 * localScale); radius: Math.round(4 * localScale)
                                 color: mDnH.hovered ? Qt.rgba(1,1,1,0.12) : Qt.rgba(1,1,1,0.05)
                                 border.color: Qt.rgba(1,1,1,0.10); border.width: 1
                                 Behavior on color { ColorAnimation { duration: 80 } }
-                                Text { anchors.centerIn: parent; text: "▼"; font.pixelSize: 7; color: Qt.rgba(1,1,1,0.50) }
+                                Text { anchors.centerIn: parent; text: "▼"; font.pixelSize: Math.round(7 * localScale); color: Qt.rgba(1,1,1,0.50) }
                                 HoverHandler { id: mDnH; cursorShape: Qt.PointingHandCursor }
                                 MouseArea { anchors.fill: parent; onClicked: root.pickerTimeM = (root.pickerTimeM + 55) % 60 }
                             }
@@ -693,10 +696,10 @@ Item {
                         // Clear time ✕
                         Rectangle {
                             anchors.verticalCenter: parent.verticalCenter
-                            width: 18; height: 18; radius: 9
+                            width: Math.round(18 * localScale); height: Math.round(18 * localScale); radius: width / 2
                             color: clrTH.hovered ? Qt.rgba(1,1,1,0.14) : Qt.rgba(1,1,1,0.05)
                             Behavior on color { ColorAnimation { duration: 80 } }
-                            Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: 8; color: Qt.rgba(1,1,1,0.40) }
+                            Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: Math.round(8 * localScale); color: Qt.rgba(1,1,1,0.40) }
                             HoverHandler { id: clrTH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root.pickerHasTime = false }
                         }
@@ -706,7 +709,7 @@ Item {
                     Rectangle {
                         visible: !root.pickerHasTime
                         anchors.verticalCenter: parent.verticalCenter
-                        width: addTL.implicitWidth + 18; height: 24; radius: 12
+                        width: addTL.implicitWidth + Math.round(18 * localScale); height: Math.round(24 * localScale); radius: height / 2
                         color: addTH.hovered
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
                             : Qt.rgba(1,1,1,0.06)
@@ -714,7 +717,7 @@ Item {
                         Behavior on color { ColorAnimation { duration: 80 } }
                         Text {
                             id: addTL; anchors.centerIn: parent
-                            text: "Add time"; font.pixelSize: 10
+                            text: "Add time"; font.pixelSize: Math.round(10 * localScale)
                             color: addTH.hovered ? Theme.active : Qt.rgba(1,1,1,0.45)
                             Behavior on color { ColorAnimation { duration: 80 } }
                         }
@@ -732,14 +735,14 @@ Item {
             // ── Clear / Done ───────────────────────────────────────────────────
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 10; bottomPadding: 0
+                spacing: Math.round(10 * localScale); bottomPadding: 0
 
                 Rectangle {
-                    width: 86; height: 28; radius: 8
+                    width: Math.round(86 * localScale); height: Math.round(28 * localScale); radius: Math.round(8 * localScale)
                     color: clrH.hovered ? Qt.rgba(1,1,1,0.10) : Qt.rgba(1,1,1,0.05)
                     border.color: Qt.rgba(1,1,1,0.10); border.width: 1
                     Behavior on color { ColorAnimation { duration: 80 } }
-                    Text { anchors.centerIn: parent; text: "Clear"; font.pixelSize: 11; color: Qt.rgba(1,1,1,0.50) }
+                    Text { anchors.centerIn: parent; text: "Clear"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(1,1,1,0.50) }
                     HoverHandler { id: clrH; cursorShape: Qt.PointingHandCursor }
                     MouseArea {
                         anchors.fill: parent
@@ -748,13 +751,13 @@ Item {
                 }
 
                 Rectangle {
-                    width: 86; height: 28; radius: 8
+                    width: Math.round(86 * localScale); height: Math.round(28 * localScale); radius: Math.round(8 * localScale)
                     color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, doneH.hovered ? 0.28 : 0.16)
                     border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.38); border.width: 1
                     Behavior on color { ColorAnimation { duration: 80 } }
                     Text {
                         anchors.centerIn: parent; text: "Done"
-                        font.pixelSize: 11; font.weight: Font.Medium; color: Theme.active
+                        font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium; color: Theme.active
                     }
                     HoverHandler { id: doneH; cursorShape: Qt.PointingHandCursor }
                     MouseArea { anchors.fill: parent; onClicked: root._commitPicker() }
@@ -769,6 +772,7 @@ Item {
 
         property var taskData
         property int colIdx
+        property real localScale: 1.0
 
         property bool showExtra: false
         property real xEntry:    0
@@ -776,7 +780,7 @@ Item {
 
         readonly property bool isDelConfirm: root.delConfirmId === taskData.id
 
-        height: cardBg.implicitHeight + 2
+        height: cardBg.implicitHeight + Math.round(2 * localScale)
 
         transform: [
             Translate { x: card.dragX + card.xEntry },
@@ -784,7 +788,7 @@ Item {
             Rotation {
                 origin.x: card.width / 2; origin.y: card.height / 2
                 axis { x: 0; y: 1; z: 0 }
-                angle: (card.dragX / 65.0) * -12
+                angle: (card.dragX / (65.0 * localScale)) * -12
                 Behavior on angle { SpringAnimation { spring: 2.5; damping: 0.3 } }
             }
         ]
@@ -810,7 +814,7 @@ Item {
                 delete root._entryDirections[id]
                 // dir=1 (moved right) → xEntry=+36 (card overshoots right, bounces left to 0)
                 // dir=-1 (moved left) → xEntry=-36 (card overshoots left, bounces right to 0)
-                card.xEntry = dir * 36
+                card.xEntry = dir * Math.round(36 * localScale)
                 xSpringAnim.restart()
             }
         }
@@ -828,18 +832,18 @@ Item {
         DragHandler {
             id: dragHandler
             target: null
-            xAxis.enabled: true; yAxis.enabled: false; dragThreshold: 12
+            xAxis.enabled: true; yAxis.enabled: false; dragThreshold: Math.round(12 * localScale)
             
             onActiveChanged: {
                 if (!active) {
                     var d = card.dragX; snapAnim.start()
                     var dir = d > 0 ? 1 : -1
-                    if (Math.abs(d) > 50 && card.colIdx + dir >= 0 && card.colIdx + dir <= 2)
+                    if (Math.abs(d) > Math.round(50 * localScale) && card.colIdx + dir >= 0 && card.colIdx + dir <= 2)
                         root._moveTask(card.taskData.id, dir)
                 }
             }
             onTranslationChanged: {
-                if (active) card.dragX = Math.max(-65, Math.min(65, translation.x))
+                if (active) card.dragX = Math.max(Math.round(-65 * localScale), Math.min(Math.round(65 * localScale), translation.x))
             }
         }
 
@@ -853,17 +857,17 @@ Item {
         }
 
         // Dynamic Glow: stronger, smoother color tinting
-        readonly property real dragAmt:  Math.abs(dragX) / 65.0
+        readonly property real dragAmt:  Math.abs(dragX) / (65.0 * localScale)
         readonly property color dragTint: {
-            if (dragX >  2) return Qt.rgba(166/255, 227/255, 161/255, dragAmt * 0.35)
-            if (dragX < -2) return Qt.rgba(243/255, 139/255, 168/255, dragAmt * 0.35)
+            if (dragX >  Math.round(2 * localScale)) return Qt.rgba(166/255, 227/255, 161/255, dragAmt * 0.35)
+            if (dragX < Math.round(-2 * localScale)) return Qt.rgba(243/255, 139/255, 168/255, dragAmt * 0.35)
             return "transparent"
         }
 
         // ── Card body ─────────────────────────────────────────────────────────
         Rectangle {
             id: cardBg
-            width: parent.width; radius: 8
+            width: parent.width; radius: Math.round(8 * localScale)
             color: Qt.rgba(1, 1, 1, 0.05)
             border.color: {
                 var u = card.taskData.urgency
@@ -874,7 +878,7 @@ Item {
             }
             border.width: 1
             Behavior on border.color { ColorAnimation { duration: 150 } }
-            implicitHeight: body.implicitHeight + 18
+            implicitHeight: body.implicitHeight + Math.round(18 * localScale)
 
             // Drag direction tint
             Rectangle {
@@ -884,14 +888,14 @@ Item {
 
             Column {
                 id: body
-                anchors { left: parent.left; right: parent.right; leftMargin: 10; rightMargin: 10; top: parent.top; topMargin: 9 }
-                spacing: 6
+                anchors { left: parent.left; right: parent.right; leftMargin: Math.round(10 * localScale); rightMargin: Math.round(10 * localScale); top: parent.top; topMargin: Math.round(9 * localScale) }
+                spacing: Math.round(6 * localScale)
 
                 // Title (inline edit)
                 TextInput {
                     width: parent.width
                     text:           card.taskData.title
-                    color:          Theme.text; font.pixelSize: 12; font.weight: Font.Medium
+                    color:          Theme.text; font.pixelSize: Math.round(12 * localScale); font.weight: Font.Medium
                     wrapMode:       TextInput.WordWrap
                     selectionColor: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)
                     onEditingFinished: { var t = text.trim(); if (t !== "") root._patchTask(card.taskData.id, "title", t) }
@@ -900,42 +904,42 @@ Item {
                 // Badges row
                 Row {
                     visible: card.taskData.urgency !== "" || (card.taskData.dueDate || "") !== ""
-                    spacing: 6
+                    spacing: Math.round(6 * localScale)
                     Rectangle {
                         visible: card.taskData.urgency !== ""
                         anchors.verticalCenter: parent.verticalCenter
-                        width: urgL.implicitWidth + 12; height: 16; radius: 8
+                        width: urgL.implicitWidth + Math.round(12 * localScale); height: Math.round(16 * localScale); radius: Math.round(8 * localScale)
                         color: root._urgColor(card.taskData.urgency); opacity: 0.85
-                        Text { id: urgL; anchors.centerIn: parent; text: root._urgLabel(card.taskData.urgency); font.pixelSize: 9; font.weight: Font.Bold; color: "#1e1e2e" }
+                        Text { id: urgL; anchors.centerIn: parent; text: root._urgLabel(card.taskData.urgency); font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold; color: "#1e1e2e" }
                     }
                     Row {
                         visible: (card.taskData.dueDate || "") !== ""
-                        anchors.verticalCenter: parent.verticalCenter; spacing: 3
-                        Text { text: "📅"; font.pixelSize: 9 }
-                        Text { text: root._formatDue(card.taskData.dueDate || ""); font.pixelSize: 9; color: Qt.rgba(1,1,1,0.50) }
+                        anchors.verticalCenter: parent.verticalCenter; spacing: Math.round(3 * localScale)
+                        Text { text: "📅"; font.pixelSize: Math.round(9 * localScale) }
+                        Text { text: root._formatDue(card.taskData.dueDate || ""); font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(1,1,1,0.50) }
                     }
                 }
 
                 // Expandable extra fields
                 Column {
-                    visible: card.showExtra; width: parent.width; spacing: 6
+                    visible: card.showExtra; width: parent.width; spacing: Math.round(6 * localScale)
 
                     // Urgency picker
                     Row {
-                        spacing: 5
-                        Text { anchors.verticalCenter: parent.verticalCenter; text: "Urgency"; font.pixelSize: 9; color: Qt.rgba(1,1,1,0.35) }
+                        spacing: Math.round(5 * localScale)
+                        Text { anchors.verticalCenter: parent.verticalCenter; text: "Urgency"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(1,1,1,0.35) }
                         Repeater {
                             model: ["", "low", "medium", "high"]
                             delegate: Rectangle {
                                 required property string modelData
                                 property bool sel: card.taskData.urgency === modelData
-                                width: uT.implicitWidth + 12; height: 17; radius: 9
+                                width: uT.implicitWidth + Math.round(12 * localScale); height: Math.round(17 * localScale); radius: Math.round(9 * localScale)
                                 color: sel ? (modelData === "" ? Qt.rgba(1,1,1,0.15) : root._urgColor(modelData))
                                            : (uH.hovered ? Qt.rgba(1,1,1,0.10) : Qt.rgba(1,1,1,0.05))
                                 border.color: Qt.rgba(1,1,1, sel ? 0.20 : 0.08); border.width: 1
                                 Behavior on color { ColorAnimation { duration: 100 } }
                                 Text {
-                                    id: uT; anchors.centerIn: parent; font.pixelSize: 9
+                                    id: uT; anchors.centerIn: parent; font.pixelSize: Math.round(9 * localScale)
                                     text: modelData === "" ? "None" : modelData.charAt(0).toUpperCase() + modelData.slice(1)
                                     color: (sel && modelData !== "") ? "#1e1e2e" : Qt.rgba(1,1,1,0.65)
                                 }
@@ -947,19 +951,19 @@ Item {
 
                     // Due date button row
                     Row {
-                        spacing: 6
-                        Text { anchors.verticalCenter: parent.verticalCenter; text: "Due"; font.pixelSize: 9; color: Qt.rgba(1,1,1,0.35) }
+                        spacing: Math.round(6 * localScale)
+                        Text { anchors.verticalCenter: parent.verticalCenter; text: "Due"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(1,1,1,0.35) }
 
                         Rectangle {
                             anchors.verticalCenter: parent.verticalCenter
-                            width:  dueLbl.implicitWidth + 20; height: 20; radius: 10
+                            width:  dueLbl.implicitWidth + Math.round(20 * localScale); height: Math.round(20 * localScale); radius: Math.round(10 * localScale)
                             color: dueBH.hovered
                                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
                                 : Qt.rgba(1,1,1,0.07)
                             border.color: Qt.rgba(1,1,1,0.12); border.width: 1
                             Behavior on color { ColorAnimation { duration: 80 } }
                             Text {
-                                id: dueLbl; anchors.centerIn: parent; font.pixelSize: 9
+                                id: dueLbl; anchors.centerIn: parent; font.pixelSize: Math.round(9 * localScale)
                                 text:  (card.taskData.dueDate || "") !== "" ? root._formatDue(card.taskData.dueDate) : "Set due date"
                                 color: (card.taskData.dueDate || "") !== "" ? Theme.active : Qt.rgba(1,1,1,0.40)
                                 Behavior on color { ColorAnimation { duration: 80 } }
@@ -972,10 +976,10 @@ Item {
                         Rectangle {
                             visible: (card.taskData.dueDate || "") !== ""
                             anchors.verticalCenter: parent.verticalCenter
-                            width: 16; height: 16; radius: 8
+                            width: Math.round(16 * localScale); height: Math.round(16 * localScale); radius: width / 2
                             color: clrDH.hovered ? Qt.rgba(1,1,1,0.12) : Qt.rgba(1,1,1,0.05)
                             Behavior on color { ColorAnimation { duration: 80 } }
-                            Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: 8; color: Qt.rgba(1,1,1,0.35) }
+                            Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: Math.round(8 * localScale); color: Qt.rgba(1,1,1,0.35) }
                             HoverHandler { id: clrDH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root._patchTask(card.taskData.id, "dueDate", "") }
                         }
@@ -984,30 +988,30 @@ Item {
 
                 // Action bar
                 Item {
-                    width: parent.width; height: 22
+                    width: parent.width; height: Math.round(22 * localScale)
 
                     // ▾/▴ extra fields
                     Rectangle {
                         anchors { left: parent.left; verticalCenter: parent.verticalCenter }
-                        width: 20; height: 20; radius: 5
+                        width: Math.round(20 * localScale); height: Math.round(20 * localScale); radius: Math.round(5 * localScale)
                         color: optH.hovered ? Qt.rgba(1,1,1,0.10) : Qt.rgba(1,1,1,0.04)
                         Behavior on color { ColorAnimation { duration: 80 } }
-                        Text { anchors.centerIn: parent; text: card.showExtra ? "▴" : "▾"; font.pixelSize: 9; color: Qt.rgba(1,1,1, optH.hovered ? 0.70 : 0.30) }
+                        Text { anchors.centerIn: parent; text: card.showExtra ? "▴" : "▾"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(1,1,1, optH.hovered ? 0.70 : 0.30) }
                         HoverHandler { id: optH; cursorShape: Qt.PointingHandCursor }
                         MouseArea { anchors.fill: parent; onClicked: card.showExtra = !card.showExtra }
                     }
 
                     Row {
                         anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                        spacing: 4
+                        spacing: Math.round(4 * localScale)
 
                         // ← left
                         Rectangle {
                             visible: card.colIdx > 0
-                            width: 20; height: 20; radius: 5
+                            width: Math.round(20 * localScale); height: Math.round(20 * localScale); radius: Math.round(5 * localScale)
                             color: lH.hovered ? Qt.rgba(1,1,1,0.10) : Qt.rgba(1,1,1,0.04)
                             Behavior on color { ColorAnimation { duration: 80 } }
-                            Text { anchors.centerIn: parent; text: "←"; font.pixelSize: 10; color: Qt.rgba(1,1,1, lH.hovered ? 0.80 : 0.40) }
+                            Text { anchors.centerIn: parent; text: "←"; font.pixelSize: Math.round(10 * localScale); color: Qt.rgba(1,1,1, lH.hovered ? 0.80 : 0.40) }
                             HoverHandler { id: lH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root._moveTask(card.taskData.id, -1) }
                         }
@@ -1015,21 +1019,21 @@ Item {
                         // → right
                         Rectangle {
                             visible: card.colIdx < 2
-                            width: 20; height: 20; radius: 5
+                            width: Math.round(20 * localScale); height: Math.round(20 * localScale); radius: Math.round(5 * localScale)
                             color: rH.hovered ? Qt.rgba(1,1,1,0.10) : Qt.rgba(1,1,1,0.04)
                             Behavior on color { ColorAnimation { duration: 80 } }
-                            Text { anchors.centerIn: parent; text: "→"; font.pixelSize: 10; color: Qt.rgba(1,1,1, rH.hovered ? 0.80 : 0.40) }
+                            Text { anchors.centerIn: parent; text: "→"; font.pixelSize: Math.round(10 * localScale); color: Qt.rgba(1,1,1, rH.hovered ? 0.80 : 0.40) }
                             HoverHandler { id: rH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root._moveTask(card.taskData.id, 1) }
                         }
 
                         // ✕ delete
                         Rectangle {
-                            width: 20; height: 20; radius: 5
+                            width: Math.round(20 * localScale); height: Math.round(20 * localScale); radius: Math.round(5 * localScale)
                             color: dH.hovered ? Qt.rgba(248/255,113/255,113/255,0.20) : Qt.rgba(1,1,1,0.04)
                             Behavior on color { ColorAnimation { duration: 80 } }
                             Text {
-                                anchors.centerIn: parent; text: "✕"; font.pixelSize: 10
+                                anchors.centerIn: parent; text: "✕"; font.pixelSize: Math.round(10 * localScale)
                                 color: Qt.rgba(248/255,113/255,113/255, dH.hovered ? 1.0 : 0.60)
                                 Behavior on color { ColorAnimation { duration: 80 } }
                             }
@@ -1050,34 +1054,34 @@ Item {
                     Math.min(1, Theme.background.b + 0.05), 0.96)
 
                 Column {
-                    anchors.centerIn: parent; spacing: 10
+                    anchors.centerIn: parent; spacing: Math.round(10 * localScale)
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: "Delete task?"; color: Theme.text; font.pixelSize: 12; font.weight: Font.Medium
+                        text: "Delete task?"; color: Theme.text; font.pixelSize: Math.round(12 * localScale); font.weight: Font.Medium
                     }
                     Row {
-                        anchors.horizontalCenter: parent.horizontalCenter; spacing: 8
+                        anchors.horizontalCenter: parent.horizontalCenter; spacing: Math.round(8 * localScale)
                         Rectangle {
-                            width: 64; height: 24; radius: 6
+                            width: Math.round(64 * localScale); height: Math.round(24 * localScale); radius: Math.round(6 * localScale)
                             color: cnH.hovered ? Qt.rgba(1,1,1,0.10) : Qt.rgba(1,1,1,0.05)
                             border.color: Qt.rgba(1,1,1,0.10); border.width: 1
                             Behavior on color { ColorAnimation { duration: 80 } }
-                            Text { anchors.centerIn: parent; text: "Cancel"; font.pixelSize: 11; color: Qt.rgba(1,1,1,0.60) }
+                            Text { anchors.centerIn: parent; text: "Cancel"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(1,1,1,0.60) }
                             HoverHandler { id: cnH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root.delConfirmId = -1 }
                         }
                         Rectangle {
-                            width: 64; height: 24; radius: 6
+                            width: Math.round(64 * localScale); height: Math.round(24 * localScale); radius: Math.round(6 * localScale)
                             color: cfH.hovered ? "#cc3a3a" : "#993030"
                             Behavior on color { ColorAnimation { duration: 80 } }
-                            Text { anchors.centerIn: parent; text: "Delete"; font.pixelSize: 11; font.weight: Font.Bold; color: "white" }
+                            Text { anchors.centerIn: parent; text: "Delete"; font.pixelSize: Math.round(11 * localScale); font.weight: Font.Bold; color: "white" }
                             HoverHandler { id: cfH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root._removeTask(card.taskData.id) }
                         }
                     }
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: "↵ confirm · ⎋ cancel"; font.pixelSize: 9
+                        text: "↵ confirm · ⎋ cancel"; font.pixelSize: Math.round(9 * localScale)
                         color: Qt.rgba(1,1,1,0.20)
                     }
                 }

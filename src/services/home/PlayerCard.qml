@@ -8,6 +8,8 @@ import "../../components"
 Item {
     id: root
 
+    property real localScale: 1.0
+
     // ── Source blocklist ──────────────────────────────────────────────────────
     readonly property var _blocked: [
         "kdeconnect", 
@@ -197,16 +199,16 @@ Item {
     // ── Track name + artist ───────────────────────────────────────────────────
     Column {
         anchors {
-            left:  parent.left;  leftMargin:  120 
-            right: parent.right; rightMargin: 120 
-            top:   parent.top;   topMargin:   16
+            left:  parent.left;  leftMargin:  Math.round(120 * localScale) 
+            right: parent.right; rightMargin: Math.round(120 * localScale) 
+            top:   parent.top;   topMargin:   Math.round(16 * localScale)
         }
-        spacing: 4
+        spacing: Math.round(4 * localScale)
         clip: true // Ensure nothing bleeds outside the column boundaries
         // ── Title with Marquee Scroll ──
         Item {
             width: parent.width
-            height: 22 
+            height: Math.round(22 * localScale) 
             clip: true 
             TextMetrics {
                 id: titleMetrics
@@ -216,7 +218,7 @@ Item {
             Text {
                 id: titleText
                 text: root.title
-                font.pixelSize: 18; font.weight: Font.Bold
+                font.pixelSize: Math.round(18 * localScale); font.weight: Font.Bold
                 color: "#ffffff"
                 anchors.horizontalCenter: titleMetrics.width <= parent.width ? parent.horizontalCenter : undefined
                 NumberAnimation on x {
@@ -234,7 +236,7 @@ Item {
             width:   parent.width
             text:    root.artist
             visible: root.artist !== ""
-            font.pixelSize: 13
+            font.pixelSize: Math.round(13 * localScale)
             color: Qt.rgba(1,1,1,0.55) 
             
             maximumLineCount: 1
@@ -247,16 +249,16 @@ Item {
     // ── Bottom stack: controls + progress (raised to give room for picker) ──────
     Column {
         anchors {
-            left:   parent.left;   leftMargin:   14
-            right:  parent.right;  rightMargin:  14
-            bottom: parent.bottom; bottomMargin: 54
+            left:   parent.left;   leftMargin:   Math.round(14 * localScale)
+            right:  parent.right;  rightMargin:  Math.round(14 * localScale)
+            bottom: parent.bottom; bottomMargin: Math.round(54 * localScale)
         }
-        spacing: 6
+        spacing: Math.round(6 * localScale)
 
         // Controls
         Row {
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 28
+            spacing: Math.round(28 * localScale)
             Repeater {
                 model: [ { key: "prev" }, { key: "play" }, { key: "next" } ]
                 delegate: Rectangle {
@@ -268,7 +270,7 @@ Item {
                         if (modelData.key === "next") return "󰒬"
                         return !root.isPlaying ? "󰐊" : "󰏤"
                     }
-                    width: 36; height: 36 
+                    width: Math.round(36 * localScale); height: Math.round(36 * localScale) 
                     radius: height / 2
                     color: isPlay
                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
@@ -279,7 +281,7 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: parent.dispIcon
-                        font.pixelSize: isPlay ? 18 : 14
+                        font.pixelSize: isPlay ? Math.round(18 * localScale) : Math.round(14 * localScale)
                         color: isPlay ? Theme.active : Qt.rgba(1,1,1,0.7)
                     }
                     HoverHandler { id: cH; cursorShape: Qt.PointingHandCursor }
@@ -307,9 +309,9 @@ Item {
 
         // Progress bar + timestamps
         Column {
-            width: parent.width; spacing: 3
+            width: parent.width; spacing: Math.round(3 * localScale)
             Item {
-                width: parent.width; height: 6
+                width: parent.width; height: Math.round(6 * localScale)
                 Rectangle {
                     anchors.fill: parent; radius: height / 2
                     color: Qt.rgba(1,1,1,0.2)
@@ -332,19 +334,19 @@ Item {
                 }
             }
             Item {
-                width: parent.width; height: 14
+                width: parent.width; height: Math.round(14 * localScale)
 
                 Text {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                     text: root._fmt(root._pos)
-                    font.pixelSize: 9; font.family: "JetBrains Mono"
+                    font.pixelSize: Math.round(9 * localScale); font.family: "JetBrains Mono"
                     color: Qt.rgba(1,1,1,0.4)
                 }
 
                 Text {
                     anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                     text: root._fmt(root.length)
-                    font.pixelSize: 9; font.family: "JetBrains Mono"
+                    font.pixelSize: Math.round(9 * localScale); font.family: "JetBrains Mono"
                     color: Qt.rgba(1,1,1,0.4)
                 }
             }
@@ -358,8 +360,8 @@ Item {
         anchors {
             top:          parent.top
             right:        parent.right
-            topMargin:    12
-            rightMargin:  12
+            topMargin:    Math.round(12 * localScale)
+            rightMargin:  Math.round(12 * localScale)
         }
         visible: root.filteredPlayers.length > 1
         z:       30
@@ -373,9 +375,9 @@ Item {
             anchors.right: parent.right
 
             // Width tracks the active row + padding
-            width: activeRow.implicitWidth + 24
+            width: activeRow.implicitWidth + Math.round(24 * localScale)
 
-            readonly property int _rowH: 26
+            readonly property int _rowH: Math.round(26 * localScale)
             height: root._dropdownOpen 
                     ? (_rowH * root.filteredPlayers.length) 
                     : _rowH
@@ -405,22 +407,22 @@ Item {
                     Row {
                         id: activeRow
                         anchors.centerIn: parent
-                        spacing: 6
+                        spacing: Math.round(6 * localScale)
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text:           root.player ? root._playerIcon(root.player) : "♪"
-                            font.pixelSize: 11
+                            font.pixelSize: Math.round(11 * localScale)
                             color:          Theme.active
                         }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text:           root.player ? root._playerLabel(root.player) : "Player"
-                            font.pixelSize: 11
+                            font.pixelSize: Math.round(11 * localScale)
                             font.weight:    Font.Medium
                             color:          Qt.rgba(1,1,1,0.92)
                             // Cap width so crazy browser identities don't stretch the pill
-                            width:          Math.min(implicitWidth, 120) 
+                            width:          Math.min(implicitWidth, Math.round(120 * localScale)) 
                             elide:          Text.ElideRight
                         }
                     }
@@ -450,21 +452,21 @@ Item {
 
                         Row {
                             anchors.centerIn: parent
-                            spacing: 6
+                            spacing: Math.round(6 * localScale)
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text:           root._playerIcon(modelData)
-                                font.pixelSize: 11
+                                font.pixelSize: Math.round(11 * localScale)
                                 color:          rowH.hovered ? Qt.rgba(1,1,1,0.90) : Qt.rgba(1,1,1,0.55)
                                 Behavior on color { ColorAnimation { duration: 100 } }
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text:           root._playerLabel(modelData)
-                                font.pixelSize: 11
+                                font.pixelSize: Math.round(11 * localScale)
                                 color:          rowH.hovered ? Qt.rgba(1,1,1,0.90) : Qt.rgba(1,1,1,0.55)
-                                width:          Math.min(implicitWidth, 120)
+                                width:          Math.min(implicitWidth, Math.round(120 * localScale))
                                 elide:          Text.ElideRight
                                 Behavior on color { ColorAnimation { duration: 100 } }
                             }
@@ -486,23 +488,23 @@ Item {
 
     // ── Cava bars — independent, always flush with the card bottom ────────────
     Item {
-        anchors { left: parent.left; right: parent.right; bottom: parent.bottom; leftMargin: 7; rightMargin: 7; bottomMargin: 4 }
-        height: 32
+        anchors { left: parent.left; right: parent.right; bottom: parent.bottom; leftMargin: Math.round(7 * localScale); rightMargin: Math.round(7 * localScale); bottomMargin: Math.round(4 * localScale) }
+        height: Math.round(32 * localScale)
         Row {
             anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-            spacing: 2
+            spacing: Math.round(2 * localScale)
             readonly property real barW: Math.max(1, (parent.width - spacing * (root._cavaBars - 1)) / root._cavaBars)
             Repeater {
                 model: root._bars
                 delegate: Item {
                     required property int modelData
                     required property int index
-                    width: parent.barW; height: 32
+                    width: parent.barW; height: Math.round(32 * localScale)
                     Rectangle {
                         anchors.bottom: parent.bottom
                         width:  parent.width
                         readonly property real _amp: root.isPlaying ? (modelData / 100) : 0
-                        height: Math.max(2, _amp * 32)
+                        height: Math.max(2, _amp * Math.round(32 * localScale))
                         radius: width / 2
                         color:  Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.25 + _amp * 0.65)
                         Behavior on height { NumberAnimation { duration: 50; easing.type: Easing.OutCubic } }

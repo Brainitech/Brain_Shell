@@ -3,12 +3,14 @@ import "../../"
 
 Text {
     id: clock
+    property real localScale: 1.0
+
     text: Qt.formatDateTime(new Date(), "hh:mm")
     color: clockHov.hovered ? Theme.active : Theme.text
     Behavior on color { ColorAnimation { duration: 120 } }
     font.bold: true
     anchors.verticalCenter: parent.verticalCenter
-    font.pixelSize: 16
+    font.pixelSize: Math.round(16 * localScale)
 
     property int formatMode: 0
 

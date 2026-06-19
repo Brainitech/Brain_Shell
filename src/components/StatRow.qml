@@ -11,14 +11,15 @@ Item {
     property string label:      ""
     property string value:      ""
     property color  valueColor: Theme.text
+    property real   localScale: 1.0
 
-    implicitHeight: 20
+    implicitHeight: Math.round(20 * localScale)
 
     Text {
         anchors.left:           parent.left
         anchors.verticalCenter: parent.verticalCenter
         text:           root.label
-        font.pixelSize: 11
+        font.pixelSize: Math.round(11 * localScale)
         color:          Qt.rgba(1, 1, 1, 0.4)
     }
 
@@ -26,7 +27,7 @@ Item {
         anchors.right:          parent.right
         anchors.verticalCenter: parent.verticalCenter
         text:           root.value
-        font.pixelSize: 11
+        font.pixelSize: Math.round(11 * localScale)
         color:          root.valueColor
     }
 }

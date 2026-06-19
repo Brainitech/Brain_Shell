@@ -6,6 +6,8 @@ import "../"
 Item {
     id: root
 
+    property real localScale: 1.0
+
     readonly property var sink:   Pipewire.defaultAudioSink
     readonly property var source: Pipewire.defaultAudioSource
     
@@ -67,6 +69,7 @@ Item {
                 visible:      root.page === "output"
 
                 ChannelColumn {
+                    localScale: root.localScale
                     width:  parent.width
                     label:  (root.sink && root.sink.ready) ? root.deviceName(root.sink) : "Output"
                     icon: {
@@ -95,6 +98,7 @@ Item {
                 visible:      root.page === "input"
 
                 ChannelColumn {
+                    localScale: root.localScale
                     width:  parent.width
                     label:  (root.source && root.source.ready) ? root.deviceName(root.source) : "Input"
                     icon:   (root.source && root.source.audio && root.source.audio.muted) ? "󰍭" : "󰍬"
@@ -121,6 +125,7 @@ Item {
                 Repeater {
                     model: root.sinkNodes
                     delegate: DeviceRow {
+                        localScale: root.localScale
                         width:     parent.width
                         label:     root.deviceName(modelData)
                         isDefault: (root.sink && root.sink.ready && modelData.name === root.sink.name) || false
@@ -132,8 +137,8 @@ Item {
                     visible:        root.sinkNodes.length === 0
                     text:           "No output devices"
                     color:          Qt.rgba(1,1,1,0.2)
-                    font.pixelSize: 11
-                    leftPadding:    10
+                    font.pixelSize: Math.round(11 * localScale)
+                    leftPadding:    Math.round(10 * localScale)
                 }
 
                 Rectangle {
@@ -141,11 +146,12 @@ Item {
                     color: Qt.rgba(1, 1, 1, 0.06)
                 }
 
-                SectionLabel { text: "Input Devices" }
+                SectionLabel { localScale: root.localScale; text: "Input Devices" }
 
                 Repeater {
                     model: root.sourceNodes
                     delegate: DeviceRow {
+                        localScale: root.localScale
                         width:     parent.width
                         label:     root.deviceName(modelData)
                         isDefault: (root.source && root.source.ready && modelData.name === root.source.name) || false
@@ -157,8 +163,8 @@ Item {
                     visible:        root.sourceNodes.length === 0
                     text:           "No input devices"
                     color:          Qt.rgba(1,1,1,0.2)
-                    font.pixelSize: 11
-                    leftPadding:    10
+                    font.pixelSize: Math.round(11 * localScale)
+                    leftPadding:    Math.round(10 * localScale)
                 }
             }
         }
@@ -172,8 +178,9 @@ Item {
         // Tab switcher — right side
         TabSwitcher {
             id: switcher
+            localScale: root.localScale
             orientation: "vertical"
-            height: (parent.height - 17)
+            height: (parent.height - Math.round(17 * localScale))
             anchors.verticalCenter: parent.verticalCenter
             model: [
                 { key: "output", icon: "󰕾" },
@@ -189,15 +196,16 @@ Item {
     component ChannelColumn: Item {
         id: col
 
+        property real localScale: 1.0
         property string label:  ""
         property string icon:   ""
         property real   value:  0.0
         property bool   muted:  false
         property bool   active: false
 
-        readonly property int trackHeight: 160
-        readonly property int barW:        22
-        readonly property int thumbD:      barW - 6
+        readonly property int trackHeight: Math.round(160 * localScale)
+        readonly property int barW:        Math.round(22 * localScale)
+        readonly property int thumbD:      barW - Math.round(6 * localScale)
 
         signal volumeChanged(real value)
         signal muteToggled()
@@ -212,13 +220,13 @@ Item {
         Column {
             id: inner
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 8
+            spacing: Math.round(8 * localScale)
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           col.pctText
                 color:          col.muted ? Qt.rgba(1,1,1,0.25) : Theme.text
-                font.pixelSize: 13
+                font.pixelSize: Math.round(13 * localScale)
                 font.bold:      true
                 Behavior on color { ColorAnimation { duration: 150 } }
             }
@@ -287,9 +295,9 @@ Item {
             // Mute button
             Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
-                width:  col.barW + 32
-                height: 28
-                radius: Theme.cornerRadius
+                width:  col.barW + Math.round(32 * localScale)
+                height: Math.round(28 * localScale)
+                radius: Math.round(Theme.cornerRadius * localScale)
                 color:  col.muted
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2)
                             : Qt.rgba(1,1,1,0.06)
@@ -297,17 +305,17 @@ Item {
 
                 Row {
                     anchors.centerIn: parent
-                    spacing: 5
+                    spacing: Math.round(5 * localScale)
                     Text {
                         text:           col.icon
-                        font.pixelSize: 13
+                        font.pixelSize: Math.round(13 * localScale)
                         color:          col.muted ? Theme.active : Qt.rgba(1,1,1,0.55)
                         anchors.verticalCenter: parent.verticalCenter
                         Behavior on color { ColorAnimation { duration: 150 } }
                     }
                     Text {
                         text:           col.muted ? "Muted" : "Mute"
-                        font.pixelSize: 11
+                        font.pixelSize: Math.round(11 * localScale)
                         color:          col.muted ? Theme.active : Qt.rgba(1,1,1,0.4)
                         anchors.verticalCenter: parent.verticalCenter
                         Behavior on color { ColorAnimation { duration: 150 } }
@@ -327,11 +335,11 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:            col.label
                 color:           Qt.rgba(1,1,1,0.3)
-                font.pixelSize:  10
+                font.pixelSize:  Math.round(10 * localScale)
                 font.capitalization: Font.AllUppercase
                 font.letterSpacing: 1
                 elide:           Text.ElideRight
-                width:           col.barW + 60
+                width:           col.barW + Math.round(60 * localScale)
                 horizontalAlignment: Text.AlignHCenter
             }
         }
@@ -339,18 +347,20 @@ Item {
 
     // ── SectionLabel ──────────────────────────────────────────────────────────
     component SectionLabel: Text {
+        property real localScale: 1.0
         color:           Qt.rgba(1, 1, 1, 0.35)
-        font.pixelSize:  10
+        font.pixelSize:  Math.round(10 * localScale)
         font.capitalization: Font.AllUppercase
         font.letterSpacing: 0.8
-        leftPadding: 4
-        topPadding:  2
+        leftPadding: Math.round(4 * localScale)
+        topPadding:  Math.round(2 * localScale)
     }
 
     // ── DeviceRow ─────────────────────────────────────────────────────────────
     component DeviceRow: Item {
         id: row
-        implicitHeight: 28
+        property real localScale: 1.0
+        implicitHeight: Math.round(28 * localScale)
 
         property string label:     ""
         property bool   isDefault: false
@@ -358,7 +368,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.cornerRadius - 4
+            radius: Math.round((Theme.cornerRadius - 4) * localScale)
             color:  row.isDefault
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.12)
                         : (rowHov.hovered ? Qt.rgba(1,1,1,0.05) : "transparent")
@@ -366,11 +376,11 @@ Item {
         }
 
         Row {
-            anchors { left: parent.left; leftMargin: 8; right: parent.right; rightMargin: 8; verticalCenter: parent.verticalCenter }
-            spacing: 6
+            anchors { left: parent.left; leftMargin: Math.round(8 * localScale); right: parent.right; rightMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
+            spacing: Math.round(6 * localScale)
 
             Rectangle {
-                width: 6; height: 6; radius: 3
+                width: Math.round(6 * localScale); height: Math.round(6 * localScale); radius: width / 2
                 anchors.verticalCenter: parent.verticalCenter
                 color: row.isDefault ? Theme.active : Qt.rgba(1,1,1,0.2)
                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -379,9 +389,9 @@ Item {
             Text {
                 text:           row.label
                 color:          row.isDefault ? Theme.text : Qt.rgba(1,1,1,0.5)
-                font.pixelSize: 11
+                font.pixelSize: Math.round(11 * localScale)
                 elide:          Text.ElideRight
-                width:          parent.width - 14 - parent.spacing
+                width:          parent.width - Math.round(14 * localScale) - parent.spacing
                 anchors.verticalCenter: parent.verticalCenter
                 Behavior on color { ColorAnimation { duration: 150 } }
             }

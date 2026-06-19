@@ -6,6 +6,7 @@ import "../../"
 Rectangle {
     id: root
     
+    property real localScale: 1.0
     // ── Config Provider ────────────────────────────────────────────────
     property string configProvider: ShellState.configProvider
     
@@ -29,11 +30,11 @@ Rectangle {
 
     // --- 1. Capsule Container ---
     color: Theme.wsBackground
-    radius: Theme.wsRadius
+    radius: Math.round(Theme.wsRadius * localScale)
 
     // Auto-size
-    width: workspaceRow.width + (Theme.wsPadding * 2)
-    height: Theme.wsDotSize + (Theme.wsPadding * 2)
+    width: workspaceRow.width + Math.round(Theme.wsPadding * 2 * localScale)
+    height: Math.round(Theme.wsDotSize * localScale) + Math.round(Theme.wsPadding * 2 * localScale)
 
     // --- 2. LOGIC: Raw Event Listener ---
     property bool isScratchpad: false
@@ -102,7 +103,7 @@ Rectangle {
     Row {
         id: workspaceRow
         anchors.centerIn: parent
-        spacing: Theme.wsSpacing
+        spacing: Math.round(Theme.wsSpacing * localScale)
 
         // Logic: Fade out dots when Scratchpad is active
         opacity: root.isScratchpad ? 0 : 1
@@ -123,9 +124,9 @@ Rectangle {
                 property bool isUrgent:   ws !== undefined && ws.urgent
 
 
-                height: Theme.wsDotSize
+                height: Math.round(Theme.wsDotSize * localScale)
                 radius: height / 2
-                width: isActive ? Theme.wsActiveWidth : Theme.wsDotSize
+                width: isActive ? Math.round(Theme.wsActiveWidth * localScale) : Math.round(Theme.wsDotSize * localScale)
                 
                 color: {
                     if (isActive)   return Theme.wsActive
@@ -191,7 +192,7 @@ Rectangle {
             anchors.centerIn: parent
             text: "" 
             color: "#FFFFFF"
-            font.pixelSize: 14
+            font.pixelSize: Math.round(14 * localScale)
         }
         
         MouseArea {

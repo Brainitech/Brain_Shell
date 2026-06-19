@@ -6,8 +6,9 @@ import "../"
 
 Column {
     id: root
-    spacing: 4
+    spacing: Math.round(4 * localScale)
     width: parent.width
+    property real localScale: 1.0
 
     readonly property var actions: [
         {
@@ -78,8 +79,8 @@ Column {
 
         delegate: Rectangle {
             width:  root.width
-            height: 44
-            radius: Theme.cornerRadius
+            height: Math.round(44 * localScale)
+            radius: Math.round(Theme.cornerRadius * localScale)
             color:  hov.hovered
                         ? (modelData.danger ? "#4d2020" : Theme.active)
                         : "transparent"
@@ -88,18 +89,18 @@ Column {
 
             Row {
                 anchors.centerIn: parent
-                spacing: 10
+                spacing: Math.round(10 * localScale)
 
                 Text {
                     text:           modelData.icon
-                    font.pixelSize: 16
+                    font.pixelSize: Math.round(16 * localScale)
                     color:          modelData.danger && hov.hovered ? "#ff6b6b" : hov.hovered?"#000000":Theme.text
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
                 Text {
                     text:           modelData.label
-                    font.pixelSize: 13
+                    font.pixelSize: Math.round(13 * localScale)
                     color:          modelData.danger && hov.hovered ? "#ff6b6b" : hov.hovered?"#000000":Theme.text
                     anchors.verticalCenter: parent.verticalCenter
                 }

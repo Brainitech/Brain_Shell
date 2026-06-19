@@ -7,8 +7,9 @@ Item {
     id: root
 
     property bool showPercentage: false
+    property real localScale: 1.0
 
-    implicitWidth:  row.implicitWidth + 6
+    implicitWidth:  row.implicitWidth + Math.round(6 * localScale)
     implicitHeight: row.implicitHeight
 
     readonly property var sink: Pipewire.defaultAudioSink
@@ -34,13 +35,13 @@ Item {
     Row {
         id: row
         anchors.centerIn: parent
-        spacing: 3
+        spacing: Math.round(3 * localScale)
 
         Text {
             id: iconText
             text:           root.icon
             color:          hov.hovered ? Theme.active : Theme.text
-            font.pixelSize: 18
+            font.pixelSize: Math.round(18 * localScale)
             anchors.verticalCenter: parent.verticalCenter
             Behavior on color { ColorAnimation { duration: 120 } }
         }
@@ -48,7 +49,7 @@ Item {
         Item {
             id: pctWrapper
             property bool show: root.showPercentage || hov.hovered
-            implicitWidth: show ? pctText.implicitWidth + 2 : 0
+            implicitWidth: show ? pctText.implicitWidth + Math.round(2 * localScale) : 0
             implicitHeight: pctText.implicitHeight
             clip: true
             anchors.verticalCenter: parent.verticalCenter
@@ -58,7 +59,7 @@ Item {
                 id: pctText
                 text:           root.pct + "%"
                 color:          hov.hovered ? Theme.active : Theme.text
-                font.pixelSize: 12
+                font.pixelSize: Math.round(12 * localScale)
                 anchors.verticalCenter: parent.verticalCenter
                 Behavior on color { ColorAnimation { duration: 120 } }
             }

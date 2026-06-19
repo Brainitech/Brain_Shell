@@ -10,23 +10,25 @@ PopupWindow {
 	id: root
 
 	required property var anchorWindow
+    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
-	readonly property int toastWidth: Theme.notificationToastWidth+(fw/2)
-	readonly property int fw: Theme.notchRadius
-	readonly property int fh: Theme.notchRadius
+    readonly property int fw: Math.round(Theme.notchRadius * localScale)
+    readonly property int fh: Math.round(Theme.notchRadius * localScale)
 
-	implicitWidth:  toastWidth + fw
-	implicitHeight: 180
+    readonly property int toastWidth: Math.round(Theme.notificationToastWidth * localScale) + Math.round(10 * localScale)
 
-	anchor.window: root.anchorWindow
-	anchor.rect: Qt.rect(
-		root.anchorWindow.width - toastWidth/2-fw+1,
-		-Theme.notchHeight-20,
-		toastWidth,
-		Theme.notchHeight
-	)
-	anchor.gravity:    Edges.Bottom
-	anchor.adjustment: PopupAdjustment.None
+    implicitWidth:  toastWidth + fw + Math.round(10 * localScale)
+    implicitHeight: Math.round(180 * localScale)
+
+    anchor.window: root.anchorWindow
+    anchor.rect: Qt.rect(
+        Math.round(root.anchorWindow.width - ((toastWidth + (fw*2)+ Theme.borderWidth)/2)),
+        Math.round((-Theme.notchHeight / 2) * localScale),
+        0,
+        0
+    )
+    anchor.gravity:    Edges.Bottom
+    anchor.adjustment: PopupAdjustment.None
 
 	color:   "transparent"
 	visible: windowVisible
@@ -104,12 +106,12 @@ PopupWindow {
 		clip:           true
 
 
-		width: root.showing 
-		? root.toastWidth + root.fw 
+		width: root.showing
+		? root.toastWidth + root.fw
 		: root.fw
 
-		height: root.showing 
-		? (cardCol.y + cardCol.implicitHeight + 24 + root.fh) 
+		height: root.showing
+		? (cardCol.y + cardCol.implicitHeight + Math.round(24 * root.localScale) + root.fh)
 		: root.fh
 
 		Behavior on width  { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
@@ -119,7 +121,7 @@ PopupWindow {
 			anchors.fill: parent
 			attachedEdge: "right"
 			color:        Theme.background
-			radius:       Theme.cornerRadius
+			radius:       Math.round(Theme.cornerRadius * root.localScale)
 			flareWidth:   root.fw
 			flareHeight:  root.fh
 		}
@@ -133,8 +135,8 @@ PopupWindow {
 				bottomMargin: fh*1.2
 				rightMargin:  root.fw
 			}
-			width:  3
-			radius: 2
+			width:  Math.round(3 * root.localScale)
+			radius: Math.round(2 * root.localScale)
 			color: {
 				if (!root.current) return "#ABB2BF"
 				switch (root.current.urgency) {
@@ -155,17 +157,17 @@ PopupWindow {
 					right:       parent.right
 					rightMargin: root.fw
 					bottom:      cardCol.bottom
-					bottomMargin: -10
+					bottomMargin: Math.round(-10 * root.localScale)
 				}
-				height:  2
-				radius:  1
+				height:  Math.round(2 * root.localScale)
+				radius:  Math.round(1 * root.localScale)
 				color:   Theme.active
 				opacity: 0.5
 
 				property bool running: false
 
 				// Use toastWidth so the bar stays within the visible body, not the flare
-				width: running ? 0 : root.toastWidth - 10
+				width: running ? 0 : root.toastWidth - Math.round(10 * root.localScale)
 				Behavior on width {
 					enabled: progressBar.running
 					NumberAnimation { duration: 5000; easing.type: Easing.Linear }
@@ -193,24 +195,24 @@ PopupWindow {
 			Column {
 				id: cardCol
 				anchors {
-					left:       parent.left;  leftMargin:  14
-					right:      parent.right; rightMargin: root.fw + 6
+					left:       parent.left;  leftMargin:  Math.round(14 * root.localScale)
+					right:      parent.right; rightMargin: root.fw + Math.round(6 * root.localScale)
 
 				}
-				spacing: 2
-				bottomPadding: 10
-				y: root.fh + 6
+				spacing: Math.round(2 * root.localScale)
+				bottomPadding: Math.round(10 * root.localScale)
+				y: root.fh + Math.round(6 * root.localScale)
 				// No fixed height — sizes to content
 
 				Row {
 					id:      headerRow
 					width:   parent.width
-					height: 40
-					spacing: 8
+					height: Math.round(40 * root.localScale)
+					spacing: Math.round(8 * root.localScale)
 
 					Item {
-						width:  16
-						height: 16
+						width:  Math.round(16 * root.localScale)
+						height: Math.round(16 * root.localScale)
 						anchors.verticalCenter: parent.verticalCenter
 
 						Image {
@@ -225,8 +227,8 @@ PopupWindow {
 							fillMode:          Image.PreserveAspectFit
 							smooth:            true
 							visible:           status === Image.Ready
-							sourceSize.width:  16
-							sourceSize.height: 16
+							sourceSize.width:  Math.round(16 * root.localScale) | 0
+							sourceSize.height: Math.round(16 * root.localScale) | 0
 						}
 						Rectangle {
 							anchors.fill: parent
@@ -237,24 +239,24 @@ PopupWindow {
 								anchors.centerIn: parent
 								text:           (root.current?.appName ?? "?").charAt(0).toUpperCase()
 								color:          Theme.text
-								font.pixelSize: 9
+								font.pixelSize: Math.round(9 * root.localScale) | 0
 								font.bold:      true
 							}
 						}
 					}
 
 					Text {
-						width:                  parent.width - 16 - 24 - parent.spacing * 2
+						width:                  parent.width - Math.round(16 * root.localScale) - Math.round(24 * root.localScale) - parent.spacing * 2
 						anchors.verticalCenter: parent.verticalCenter
 						text:                   root.current?.appName ?? ""
 						color:                  Theme.subtext
-						font.pixelSize:         11
+						font.pixelSize:         Math.round(11 * root.localScale) | 0
 						elide:                  Text.ElideRight
 					}
 
 					Item {
-						width:  20
-						height: 20
+						width:  Math.round(20 * root.localScale)
+						height: Math.round(20 * root.localScale)
 						anchors.verticalCenter: parent.verticalCenter
 						Rectangle {
 							anchors.fill: parent
@@ -266,7 +268,7 @@ PopupWindow {
 							anchors.centerIn: parent
 							text:             "✕"
 							color:            Theme.subtext
-							font.pixelSize:   9
+							font.pixelSize:   Math.round(9 * root.localScale) | 0
 						}
 						HoverHandler { id: xHover }
 						TapHandler   { onTapped: root.startDismiss() }
@@ -277,7 +279,7 @@ PopupWindow {
 					width:            parent.width
 					text:             root.current?.summary ?? ""
 					color:            Theme.text
-					font.pixelSize:   13
+					font.pixelSize:   Math.round(13 * root.localScale) | 0
 					font.bold:        true
 					wrapMode:         Text.WordWrap
 					maximumLineCount: 2
@@ -289,7 +291,7 @@ PopupWindow {
 					width:            parent.width
 					text:             root.current?.body ?? ""
 					color:            Theme.subtext
-					font.pixelSize:   12
+					font.pixelSize:   Math.round(12 * root.localScale) | 0
 					wrapMode:         Text.WordWrap
 					maximumLineCount: 2
 					elide:            Text.ElideRight
@@ -298,19 +300,19 @@ PopupWindow {
 				}
 
 				Row {
-					spacing:    6
-					topPadding: 2
+					spacing:    Math.round(6 * root.localScale)
+					topPadding: Math.round(2 * root.localScale)
 					visible:    (root.current?.actions?.length ?? 0) > 0
 
 					Repeater {
 						model: root.current?.actions ?? []
 						delegate: Item {
 							required property var modelData
-							width:  actionLbl.width + 20
-							height: 24
+							width:  actionLbl.width + Math.round(20 * root.localScale)
+							height: Math.round(24 * root.localScale)
 							Rectangle {
 								anchors.fill: parent
-								radius:       4
+								radius:       Math.round(4 * root.localScale)
 								color:        actHover.containsMouse
 								? Qt.rgba(1,1,1,0.18)
 								: Qt.rgba(1,1,1,0.08)
@@ -321,7 +323,7 @@ PopupWindow {
 								anchors.centerIn: parent
 								text:             modelData?.text ?? ""
 								color:            Theme.text
-								font.pixelSize:   11
+								font.pixelSize:   Math.round(11 * root.localScale) | 0
 							}
 							HoverHandler { id: actHover }
 							TapHandler {

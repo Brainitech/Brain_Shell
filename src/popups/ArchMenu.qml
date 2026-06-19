@@ -11,22 +11,24 @@ PopupWindow {
 
 	required property var anchorWindow
 
-	readonly property int fw: Theme.cornerRadius
-	readonly property int fh: Theme.cornerRadius
+	readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+
+	readonly property int fw: Math.round(Theme.cornerRadius * root.localScale)
+	readonly property int fh: Math.round(Theme.cornerRadius * root.localScale)
 
 	readonly property var pageHeights: ({
-		"power":       270,
-		"performance": 190,
-		"stats":       250
+		"power":       Math.round(270 * root.localScale),
+		"performance": Math.round(190 * root.localScale),
+		"stats":       Math.round(250 * root.localScale)
 	})
 	readonly property var pageWidths: ({
-		"power":       220,
-		"performance": 260,
-		"stats":       390
+		"power":       Math.round(220 * root.localScale),
+		"performance": Math.round(260 * root.localScale),
+		"stats":       Math.round(390 * root.localScale)
 	})
 
-	readonly property int contentWidth:  pageWidths[page]  ?? 220
-	readonly property int contentHeight: pageHeights[page] ?? 220
+	readonly property int contentWidth:  pageWidths[page]  ?? Math.round(220 * root.localScale)
+	readonly property int contentHeight: pageHeights[page] ?? Math.round(220 * root.localScale)
 
 	property string page: "power"
 
@@ -34,8 +36,8 @@ PopupWindow {
 	visible: slide.windowVisible
 	mask: Region { item: maskProxy }
 
-	implicitWidth:  (pageWidths["stats"]  ?? 220) + fw
-	implicitHeight: (pageHeights["stats"] ?? 220) + fh * 2
+	implicitWidth:  (pageWidths["stats"]  ?? Math.round(220 * root.localScale)) + fw
+	implicitHeight: (pageHeights["stats"] ?? Math.round(220 * root.localScale)) + fh * 2
 
 	anchor.window:  anchorWindow
 	anchor.gravity: Edges.Right
@@ -43,9 +45,9 @@ PopupWindow {
 		0,
 		anchorWindow.height / 2,
 		anchorWindow.width,
-		implicitHeight
+		anchorWindow.height
 	)
-	
+
 	Item {
 		id:      maskProxy
 		x:       0
@@ -53,7 +55,7 @@ PopupWindow {
 		width:   sizer.width
 		height:  sizer.height
 	}
-	
+
 	PopupSlide {
 		id: slide
 		anchors.fill: parent
@@ -80,7 +82,7 @@ PopupWindow {
 				anchors.fill: parent
 				attachedEdge: "left"
 				color:        Theme.background
-				radius:       Theme.cornerRadius
+				radius:       Math.round(Theme.cornerRadius * root.localScale)
 				flareWidth:   root.fw
 				flareHeight:  root.fh
 			}
@@ -88,10 +90,10 @@ PopupWindow {
 			Item {
 				anchors {
 					fill:         parent
-					leftMargin:   root.fw - 4
-					rightMargin:  8
-					topMargin:    root.fh + 6
-					bottomMargin: root.fh + 6
+					leftMargin:   root.fw - Math.round(4 * root.localScale)
+					rightMargin:  Math.round(8 * root.localScale)
+					topMargin:    root.fh + Math.round(6 * root.localScale)
+					bottomMargin: root.fh + Math.round(6 * root.localScale)
 				}
 					//── Page content ──────────────────────────────────────────
 					Item {
@@ -104,6 +106,7 @@ PopupWindow {
 							visible: root.page === "power"
 
 							PowerMenu {
+								localScale: root.localScale
 								width: parent.width
 							}
 						}

@@ -41,7 +41,7 @@ Item {
         anchorWindow: root.rightBorder
     }
     QuickControl {
-        anchorWindow: root.topBar
+        anchorWindow: root.rightBorder
     }
 
     // Center notch — dashboard (expands below the center notch)
@@ -55,7 +55,7 @@ Item {
     }
 
     NotificationToast {
-        anchorWindow: root.rightBorder
+        anchorWindow: root.topBar
     }
 
     // Screen recorder strip options — appears below center notch on hover

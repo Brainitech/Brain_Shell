@@ -25,14 +25,15 @@ import "../../services/home/."
 Item {
 	id: root
 
-	width:  Theme.cNotchMinWidth
-	height: 30
+	property real localScale: 1.0
+	width:  Math.round(Theme.cNotchMinWidth * localScale)
+	height: Math.round(30 * localScale)
 
 	// ── Required notch width for the current carousel item ────────────────────
 	// TopBar.cWidth reads this so the notch always matches what is visible,
 	// even if the user scrolls away from record_active while recording.
-	readonly property int fw: Theme.notchRadius
-	readonly property int requiredWidth: Theme.cNotchMinWidth
+	readonly property int fw: Math.round(Theme.notchRadius * localScale)
+	readonly property int requiredWidth: Math.round(Theme.cNotchMinWidth * localScale)
 	// ── MPRIS ─────────────────────────────────────────────────────────────────
 	readonly property var    player:    Mpris.players.values.length > 0
 	? Mpris.players.values[0] : null
@@ -101,7 +102,7 @@ Item {
 	// ── Dynamic item list ─────────────────────────────────────────────────────
 	property var  _items:         ["title"]
 	property int  _carouselIndex: 0
-	readonly property real _itemStride: 45  // 30px height + 15px spacing
+	readonly property real _itemStride: Math.round(45 * localScale)  // 30px height + 15px spacing
 
 	function _rebuildItems(autoScrollType) {
 		var currentType = (_items.length > _carouselIndex)
@@ -235,7 +236,7 @@ Item {
 			id: statusList
 			anchors.fill: parent
 			orientation:  ListView.Vertical
-			spacing:      15
+			spacing:      Math.round(15 * localScale)
 			clip:         true
 			snapMode:     ListView.SnapOneItem
 			interactive:  false
@@ -250,8 +251,8 @@ Item {
 				required property string modelData
 				required property int    index
 
-				width:  Theme.cNotchMinWidth
-				height: 30
+				width:  Math.round(Theme.cNotchMinWidth * localScale)
+				height: statusList.height
 
 				// ── Title ──────────────────────────────────────────────────────
 				Text {
@@ -259,7 +260,7 @@ Item {
 					visible:      modelData === "title"
 					text:         root.activeTitle
 					color:        Theme.text
-					font.pixelSize: 13
+					font.pixelSize: Math.round(13 * localScale)
 					verticalAlignment:   Text.AlignVCenter
 					horizontalAlignment: Text.AlignHCenter
 					// leftPadding:  8u					rightPadding: 8
@@ -273,8 +274,8 @@ Item {
 					anchors.rightMargin: root.fw/2
 					visible:      modelData === "music"
 
-					readonly property int artSize: 20
-					readonly property int artPad:   7
+					readonly property int artSize: Math.round(20 * localScale)
+					readonly property int artPad:  Math.round(7 * localScale)
 
 					Item {
 						x:    parent.artPad
@@ -292,7 +293,7 @@ Item {
 							Text {
 								anchors.centerIn: parent
 								text:           "♪"
-								font.pixelSize: 9
+								font.pixelSize: Math.round(9 * localScale)
 								color:          Theme.active
 							}
 						}
@@ -326,14 +327,14 @@ Item {
 						id: barsArea
 						anchors {
 							left:        parent.left
-							leftMargin:  parent.artPad + parent.artSize + 5
+							leftMargin:  parent.artPad + parent.artSize + Math.round(5 * localScale)
 							right:       parent.right
-							rightMargin: 5
+							rightMargin: Math.round(5 * localScale)
 							top:         parent.top
 							bottom:      parent.bottom
 						}
 
-						readonly property real _barW:       5
+						readonly property real _barW:       Math.round(5 * localScale)
 						readonly property real _barSpacing: Math.max(
 							1,
 							(width - _barW * root._cavaBars) / Math.max(1, root._cavaBars - 1))
@@ -381,7 +382,7 @@ Item {
 									verticalCenter: parent.verticalCenter
 								}
 								text:           "󰔟"
-								font.pixelSize: 16
+								font.pixelSize: Math.round(16 * localScale)
 								color:          root.timerUrgent ? "#ff5555" : Theme.active
 								Behavior on color { ColorAnimation { duration: 200 } }
 							}
@@ -391,13 +392,13 @@ Item {
 								id: timerText
 								anchors {
 									left:           parent.left
-									leftMargin:     8
+									leftMargin:     Math.round(8 * localScale)
 									right:          parent.right
-									rightMargin:    8
+									rightMargin:    Math.round(8 * localScale)
 									verticalCenter: parent.verticalCenter
 								}
 								text:           ClockState.timerDisplay
-								font.pixelSize: 15
+								font.pixelSize: Math.round(15 * localScale)
 								font.weight:    Font.Bold
 								font.family:    "JetBrains Mono"
 								horizontalAlignment: Text.AlignHCenter
@@ -435,7 +436,7 @@ Item {
 										verticalCenter: parent.verticalCenter
 									}
 									text:           ClockState.timerRunning ? "󱫟" : "󱫡"
-									font.pixelSize: 16
+									font.pixelSize: Math.round(16 * localScale)
 									color:          _timerPauseHov.hovered ? Theme.active : Theme.text
 									HoverHandler { id: _timerPauseHov;  }
 									MouseArea {
@@ -449,7 +450,7 @@ Item {
 										verticalCenter: parent.verticalCenter
 									}
 									text:			"󱫥"
-									font.pixelSize: 16
+									font.pixelSize: Math.round(16 * localScale)
 									color:			_timerResetHov.hovered ? Theme.active : Theme.text
 									HoverHandler { id: _timerResetHov; cursorShape: Qt.PointingHandCursor }
 									MouseArea {
@@ -475,7 +476,7 @@ Item {
 									verticalCenter: parent.verticalCenter
 								}
 								text:           ""
-								font.pixelSize: 16
+								font.pixelSize: Math.round(16 * localScale)
 								color:          Theme.active
 							}
 
@@ -483,13 +484,13 @@ Item {
 							Text {
 								anchors {
 									left:           parent.left
-									leftMargin:     8
+									leftMargin:     Math.round(8 * localScale)
 									right:          parent.right
-									rightMargin:    8
+									rightMargin:    Math.round(8 * localScale)
 									verticalCenter: parent.verticalCenter
 								}
 								text:           ClockState.swDisplay
-								font.pixelSize: 15
+								font.pixelSize: Math.round(15 * localScale)
 								font.weight:    Font.Bold
 								font.family:    "JetBrains Mono"
 								horizontalAlignment: Text.AlignHCenter
@@ -509,7 +510,7 @@ Item {
 										verticalCenter: parent.verticalCenter
 									}
 									text:           ClockState.swRunning ? "󱫟" : "󱫡"
-									font.pixelSize: 16
+									font.pixelSize: Math.round(16 * localScale)
 									color:          _pauseHov.hovered ? Theme.active : Theme.text
 									HoverHandler { id: _pauseHov;  }
 									MouseArea {
@@ -525,7 +526,7 @@ Item {
 										verticalCenter: parent.verticalCenter
 									}
 									text:			"󱫥"
-									font.pixelSize: 16
+									font.pixelSize: Math.round(16 * localScale)
 									color:			_notchResetHov.hovered ? Theme.active : Theme.text
 										
 									HoverHandler { id: _notchResetHov; cursorShape: Qt.PointingHandCursor }
@@ -551,14 +552,14 @@ Item {
 							visible:      modelData === "record_setup"
 
 							Row {
-								anchors { fill: parent; leftMargin: 8; rightMargin: 8 }
-								spacing: 6
+								anchors { fill: parent; leftMargin: Math.round(8 * localScale); rightMargin: Math.round(8 * localScale) }
+								spacing: Math.round(6 * localScale)
 
 								// ── Capture strip button ───────────────────────────────
 								Item {
 									anchors.verticalCenter: parent.verticalCenter
-									width:  csRow.implicitWidth + 14
-									height: 22
+									width:  csRow.implicitWidth + Math.round(14 * localScale)
+									height: Math.round(22 * localScale)
 
 									Rectangle {
 										anchors.fill: parent
@@ -576,10 +577,10 @@ Item {
 									Row {
 										id: csRow
 										anchors.centerIn: parent
-										spacing: 5
+										spacing: Math.round(5 * localScale)
 										Text {
 											text: ScreenRecService.captureIcon
-											font.pixelSize: 13
+											font.pixelSize: Math.round(13 * localScale)
 											color: ScreenRecService.openStrip === "capture"
 											? Theme.active : Qt.rgba(1,1,1,0.7)
 											anchors.verticalCenter: parent.verticalCenter
@@ -587,14 +588,14 @@ Item {
 										}
 										Text {
 											text: ScreenRecService.captureLabel
-											font.pixelSize: 11
+											font.pixelSize: Math.round(11 * localScale)
 											color: ScreenRecService.openStrip === "capture"
 											? Theme.active : Qt.rgba(1,1,1,0.7)
 											anchors.verticalCenter: parent.verticalCenter
 											Behavior on color { ColorAnimation { duration: 100 } }
 										}
 										Text {
-											text: "▾"; font.pixelSize: 8
+											text: "▾"; font.pixelSize: Math.round(8 * localScale)
 											color: Qt.rgba(1,1,1,0.35)
 											anchors.verticalCenter: parent.verticalCenter
 										}
@@ -619,8 +620,8 @@ Item {
 								// ── Audio strip button ─────────────────────────────────
 								Item {
 									anchors.verticalCenter: parent.verticalCenter
-									width:  asRow.implicitWidth + 14
-									height: 22
+									width:  asRow.implicitWidth + Math.round(14 * localScale)
+									height: Math.round(22 * localScale)
 
 									Rectangle {
 										anchors.fill: parent
@@ -638,21 +639,21 @@ Item {
 									Row {
 										id: asRow
 										anchors.centerIn: parent
-										spacing: 5
+										spacing: Math.round(5 * localScale)
 										Text {
-											text: "🎙"; font.pixelSize: 12
+											text: "🎙"; font.pixelSize: Math.round(12 * localScale)
 											anchors.verticalCenter: parent.verticalCenter
 										}
 										Text {
 											text: ScreenRecService.audioLabel
-											font.pixelSize: 11
+											font.pixelSize: Math.round(11 * localScale)
 											color: ScreenRecService.openStrip === "audio"
 											? Theme.active : Qt.rgba(1,1,1,0.7)
 											anchors.verticalCenter: parent.verticalCenter
 											Behavior on color { ColorAnimation { duration: 100 } }
 										}
 										Text {
-											text: "▾"; font.pixelSize: 8
+											text: "▾"; font.pixelSize: Math.round(8 * localScale)
 											color: Qt.rgba(1,1,1,0.35)
 											anchors.verticalCenter: parent.verticalCenter
 										}
@@ -679,17 +680,17 @@ Item {
 									anchors.verticalCenter: parent.verticalCenter
 									height: 1
 									width: parent.width
-									- csRow.implicitWidth - 14
-									- asRow.implicitWidth - 14
-									- recBtnLabel.implicitWidth - 24
+									- csRow.implicitWidth - Math.round(14 * localScale)
+									- asRow.implicitWidth - Math.round(14 * localScale)
+									- recBtnLabel.implicitWidth - Math.round(24 * localScale)
 									- parent.spacing * 3
 								}
 
 								// ── Record button ──────────────────────────────────────
 								Rectangle {
 									anchors.verticalCenter: parent.verticalCenter
-									width:  recBtnLabel.implicitWidth + 24
-									height: 22
+									width:  recBtnLabel.implicitWidth + Math.round(24 * localScale)
+									height: Math.round(22 * localScale)
 									radius: height / 2
 									color:  recBtnH.hovered
 									? Qt.rgba(0.9, 0.2, 0.2, 0.85)
@@ -697,16 +698,16 @@ Item {
 									Behavior on color { ColorAnimation { duration: 100 } }
 									Row {
 										anchors.centerIn: parent
-										spacing: 5
+										spacing: Math.round(5 * localScale)
 										Rectangle {
-											width: 7; height: 7; radius: 4
+											width: Math.round(7 * localScale); height: Math.round(7 * localScale); radius: Math.round(4 * localScale)
 											color: "#ffffff"
 											anchors.verticalCenter: parent.verticalCenter
 										}
 										Text {
 											id: recBtnLabel
 											text: "Record"
-											font.pixelSize: 11; font.weight: Font.Medium
+											font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium
 											color: "#ffffff"
 											anchors.verticalCenter: parent.verticalCenter
 										}
@@ -730,14 +731,14 @@ Item {
 							Row {
 								anchors {
 									left:           parent.left
-									leftMargin:    10
+									leftMargin:     Math.round(10 * localScale)
 									verticalCenter: parent.verticalCenter
 								}
-								spacing: 7
+								spacing: Math.round(7 * localScale)
 
 								// Pulsing red dot
 								Rectangle {
-									width:  8; height: 8; radius: 4
+									width:  Math.round(8 * localScale); height: Math.round(8 * localScale); radius: Math.round(4 * localScale)
 									color:  "#ff4444"
 									anchors.verticalCenter: parent.verticalCenter
 									SequentialAnimation on opacity {
@@ -752,7 +753,7 @@ Item {
 								Text {
 									anchors.verticalCenter: parent.verticalCenter
 									text:           ScreenRecService.elapsedDisplay
-									font.pixelSize: 13; font.weight: Font.Bold
+									font.pixelSize: Math.round(13 * localScale); font.weight: Font.Bold
 									font.family:    "JetBrains Mono"
 									color:          Theme.text
 								}
@@ -762,10 +763,10 @@ Item {
 							Item {
 								id: recCava
 								anchors.centerIn: parent
-								width:  44
-								height: 20
+								width:  Math.round(44 * localScale)
+								height: Math.round(20 * localScale)
 
-								readonly property real _bw:   4
+								readonly property real _bw:   Math.round(4 * localScale)
 								readonly property real _sp:   Math.max(1, (width - _bw * 12) / 5)
 								readonly property real _maxH: height / 2
 
@@ -801,7 +802,7 @@ Item {
 							Row {
 								anchors {
 									right:          parent.right
-									rightMargin:    10
+									rightMargin:    Math.round(10 * localScale)
 									verticalCenter: parent.verticalCenter
 								}
 								spacing: root.fw/2
@@ -809,7 +810,7 @@ Item {
 								// Discard button
 								Rectangle {
 									anchors.verticalCenter: parent.verticalCenter
-									width: 22; height: 22; radius: 5
+									width: Math.round(22 * localScale); height: Math.round(22 * localScale); radius: Math.round(5 * localScale)
 									color: recDiscardH.hovered
 									? Qt.rgba(1, 1, 1, 0.12)
 									: Qt.rgba(1, 1, 1, 0.05)
@@ -817,7 +818,7 @@ Item {
 									Text {
 										anchors.centerIn: parent
 										text:           "󰩺"
-										font.pixelSize: 11
+										font.pixelSize: Math.round(11 * localScale)
 										color:          recDiscardH.hovered
 										? Qt.rgba(1, 0.4, 0.4, 1.0)
 										: Qt.rgba(1, 1, 1, 0.4)
@@ -830,7 +831,7 @@ Item {
 								// Stop button
 								Rectangle {
 									anchors.verticalCenter: parent.verticalCenter
-									width: 22; height: 22; radius: 5
+									width: Math.round(22 * localScale); height: Math.round(22 * localScale); radius: Math.round(5 * localScale)
 									color: recStopH.hovered
 									? Qt.rgba(0.9, 0.2, 0.2, 0.55)
 									: Qt.rgba(0.8, 0.1, 0.1, 0.32)
@@ -838,7 +839,7 @@ Item {
 									Text {
 										anchors.centerIn: parent
 										text:           "⏹"
-										font.pixelSize: 10
+										font.pixelSize: Math.round(10 * localScale)
 										color:          "#ff9999"
 									}
 									HoverHandler { id: recStopH }

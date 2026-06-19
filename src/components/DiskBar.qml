@@ -9,9 +9,10 @@ Item {
     property int    usedPct:  0
     property string usedStr:  "—"
     property string totalStr: "—"
+    property real   localScale: 1.0
 
-    implicitWidth:  200
-    implicitHeight: 40
+    implicitWidth:  Math.round(200 * localScale)
+    implicitHeight: Math.round(40 * localScale)
 
     readonly property color barColor: {
         if (usedPct >= 90) return "#f38ba8"
@@ -25,9 +26,9 @@ Item {
         anchors.left:           parent.left
         anchors.verticalCenter: barTrack.verticalCenter
         text:           root.mount
-        font.pixelSize: 10
+        font.pixelSize: Math.round(10 * localScale)
         color:          Qt.rgba(1, 1, 1, 0.5)
-        width:          32
+        width:          Math.round(32 * localScale)
         elide:          Text.ElideRight
     }
 
@@ -37,10 +38,10 @@ Item {
         anchors.left:    mountLabel.right
         anchors.right:   pctLabel.left
         anchors.top:     parent.top
-        anchors.topMargin:   12
-        anchors.leftMargin:  6
-        anchors.rightMargin: 6
-        height: 6
+        anchors.topMargin:   Math.round(12 * localScale)
+        anchors.leftMargin:  Math.round(6 * localScale)
+        anchors.rightMargin: Math.round(6 * localScale)
+        height: Math.round(6 * localScale)
 
         Rectangle {
             anchors.fill: parent
@@ -69,10 +70,10 @@ Item {
         anchors.right:          parent.right
         anchors.verticalCenter: barTrack.verticalCenter
         text:           root.usedPct + "%"
-        font.pixelSize: 10
+        font.pixelSize: Math.round(10 * localScale)
         font.weight:    Font.Medium
         color:          root.barColor
-        width:          28
+        width:          Math.round(28 * localScale)
         horizontalAlignment: Text.AlignRight
         Behavior on color { ColorAnimation { duration: 300 } }
     }
@@ -81,9 +82,9 @@ Item {
     Text {
         anchors.horizontalCenter: barTrack.horizontalCenter
         anchors.top:     barTrack.bottom
-        anchors.topMargin: 4
+        anchors.topMargin: Math.round(4 * localScale)
         text:           root.usedStr + " / " + root.totalStr + "  ·  " + root.source
-        font.pixelSize: 9
+        font.pixelSize: Math.round(9 * localScale)
         color:          Qt.rgba(1, 1, 1, 0.45)
     }
 }

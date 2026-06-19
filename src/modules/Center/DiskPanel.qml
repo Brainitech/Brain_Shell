@@ -6,6 +6,7 @@ import "../../components"
 Item {
     id: root
 
+    property real localScale: 1.0
     required property var service
 
     readonly property bool _scrollable: flickable.contentHeight > flickable.height
@@ -25,7 +26,7 @@ Item {
             id: headerLabel
             anchors.horizontalCenter: parent.horizontalCenter
             text:           "Disks"
-            font.pixelSize: 11
+            font.pixelSize: Math.round(11 * localScale)
             font.weight:    Font.Medium
             color:          Qt.rgba(1, 1, 1, 0.4)
         }
@@ -34,11 +35,11 @@ Item {
             visible:        root.service.disks.length > 0
             anchors {
                 right:          parent.right
-                rightMargin:    8
+                rightMargin:    Math.round(8 * localScale)
                 verticalCenter: parent.verticalCenter
             }
             text:           root.service.disks.length
-            font.pixelSize: 9
+            font.pixelSize: Math.round(9 * localScale)
             font.weight:    Font.Medium
             color:          Qt.rgba(1, 1, 1, 0.25)
         }
@@ -53,7 +54,7 @@ Item {
             top:         flickable.top
             bottom:      flickable.bottom
             right:       parent.right
-            rightMargin: 3
+            rightMargin: Math.round(3 * localScale)
         }
         // Manually bind to Flickable
         size:     flickable.visibleArea.heightRatio
@@ -61,8 +62,8 @@ Item {
         onPositionChanged: if (active) flickable.contentY = position * flickable.contentHeight
 
         contentItem: Rectangle {
-            implicitWidth:  2
-            implicitHeight: 20
+            implicitWidth:  Math.round(2 * localScale)
+            implicitHeight: Math.round(20 * localScale)
             radius:         width / 2
             color:          Qt.rgba(1, 1, 1, 0.5)
             opacity:        vScroll.active ? 1.0 : 0.0
@@ -72,7 +73,7 @@ Item {
         }
 
         background: Rectangle {
-            implicitWidth: 2
+            implicitWidth: Math.round(2 * localScale)
             radius:        width / 2
             color:         Qt.rgba(1, 1, 1, 0.08)
         }
@@ -83,13 +84,13 @@ Item {
         id: flickable
         anchors {
             top:          headerRow.bottom
-            topMargin:    6
+            topMargin:    Math.round(6 * localScale)
             left:         parent.left
             right:        parent.right
-            rightMargin:  root._scrollable ? 12 : 8
+            rightMargin:  root._scrollable ? Math.round(12 * localScale) : Math.round(8 * localScale)
             bottom:       parent.bottom
-            bottomMargin: 4
-            leftMargin:   8
+            bottomMargin: Math.round(4 * localScale)
+            leftMargin:   Math.round(8 * localScale)
         }
         clip:           true
         contentHeight:  diskColumn.implicitHeight
@@ -102,12 +103,13 @@ Item {
         Column {
             id: diskColumn
             width:   flickable.width
-            spacing: 10
+            spacing: Math.round(10 * localScale)
 
             Repeater {
                 model: root.service.disks
 
                 delegate: DiskBar {
+                    localScale: root.localScale
                     width:    parent.width
                     source:   modelData.source
                     mount:    modelData.mount

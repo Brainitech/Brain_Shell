@@ -155,7 +155,7 @@ PanelWindow {
             HoverHandler {
                 enabled: root.edge === "right"
                 onHoveredChanged: {
-                    Popups.quickTriggerHovered = hovered  
+                    Popups.quickTriggerHovered = Popups.audioOpen? false: hovered  
                     Popups.audioTriggerHovered = hovered
                 }
             }

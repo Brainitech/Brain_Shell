@@ -59,14 +59,26 @@ Item {
 
         // ── Page content ──────────────────────────────────────────────────────
         Item {
+            id: contentArea
             width:  parent.width - switcher.implicitWidth - parent.spacing - 1 - parent.spacing
             height: parent.height
             clip:   true
 
+            property int pageIdx: Math.max(0, ["output", "input", "mixer"].indexOf(root.page))
+            property real animIdx: pageIdx
+            
+            Behavior on animIdx {
+                enabled: contentArea.width > 0
+                NumberAnimation { duration: 350; easing.type: Easing.OutExpo }
+            }
+
             // Output
             PopupPage {
-                anchors.fill: parent
-                visible:      root.page === "output"
+                readonly property int myIdx: 0
+                width: parent.width; height: parent.height
+                
+                y: (myIdx - contentArea.animIdx) * height
+                visible: Math.abs(y) < height || root.page === "output"
 
                 ChannelColumn {
                     localScale: root.localScale
@@ -94,8 +106,11 @@ Item {
 
             // Input
             PopupPage {
-                anchors.fill: parent
-                visible:      root.page === "input"
+                readonly property int myIdx: 1
+                width: parent.width; height: parent.height
+                
+                y: (myIdx - contentArea.animIdx) * height
+                visible: Math.abs(y) < height || root.page === "input"
 
                 ChannelColumn {
                     localScale: root.localScale
@@ -117,8 +132,11 @@ Item {
 
             // Mixer
             PopupPage {
-                anchors.fill: parent
-                visible:      root.page === "mixer"
+                readonly property int myIdx: 2
+                width: parent.width; height: parent.height
+                
+                y: (myIdx - contentArea.animIdx) * height
+                visible: Math.abs(y) < height || root.page === "mixer"
 
                 SectionLabel { text: "Output Devices" }
 

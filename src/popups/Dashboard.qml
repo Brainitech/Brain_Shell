@@ -181,17 +181,27 @@ PanelWindow {
                 Item {
                     id: pageArea
                     focus: true
+                    clip:  true
                     
                     width:  parent.width
                     height: parent.height - tabBar.height
+                    
+                    property int pageIdx: Math.max(0, ["home", "stats", "kanban", "launcher", "config"].indexOf(root.page))
+                    property real animIdx: pageIdx
+                    
+                    Behavior on animIdx {
+                        enabled: pageArea.width > 0
+                        NumberAnimation { duration: 350; easing.type: Easing.OutExpo }
+                    }
 
                     Item {
-                        anchors.fill: parent
-                        opacity: root.page === "home" ? 1 : 0
-                        visible: opacity > 0
-                        scale: root.page === "home" ? 1 : 0.98
-                        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                        readonly property int myIdx: 0
+                        property bool isCurrent: root.page === "home"
+                        width: parent.width; height: parent.height
+                        
+                        x: (myIdx - pageArea.animIdx) * width
+                        visible: Math.abs(x) < width || isCurrent
+
                         DashHome { 
                             anchors.fill: parent 
                             localScale:   root.localScale
@@ -199,12 +209,13 @@ PanelWindow {
                     }
 
                     Item {
-                        anchors.fill: parent
-                        opacity: root.page === "stats" ? 1 : 0
-                        visible: opacity > 0
-                        scale: root.page === "stats" ? 1 : 0.98
-                        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                        readonly property int myIdx: 1
+                        property bool isCurrent: root.page === "stats"
+                        width: parent.width; height: parent.height
+                        
+                        x: (myIdx - pageArea.animIdx) * width
+                        visible: Math.abs(x) < width || isCurrent
+
                         DashStats { 
                             anchors.fill: parent 
                             localScale:   root.localScale
@@ -212,12 +223,13 @@ PanelWindow {
                     }
 
                     Item {
-                        anchors.fill: parent
-                        opacity: root.page === "kanban" ? 1 : 0
-                        visible: opacity > 0
-                        scale: root.page === "kanban" ? 1 : 0.98
-                        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                        readonly property int myIdx: 2
+                        property bool isCurrent: root.page === "kanban"
+                        width: parent.width; height: parent.height
+                        
+                        x: (myIdx - pageArea.animIdx) * width
+                        visible: Math.abs(x) < width || isCurrent
+
                         KanbanBoard { 
                             anchors.fill: parent 
                             localScale:   root.localScale
@@ -225,12 +237,13 @@ PanelWindow {
                     }
 
                     Item {
-                        anchors.fill: parent
-                        opacity: root.page === "launcher" ? 1 : 0
-                        visible: opacity > 0
-                        scale: root.page === "launcher" ? 1 : 0.98
-                        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                        readonly property int myIdx: 3
+                        property bool isCurrent: root.page === "launcher"
+                        width: parent.width; height: parent.height
+                        
+                        x: (myIdx - pageArea.animIdx) * width
+                        visible: Math.abs(x) < width || isCurrent
+
                         AppLauncher { 
                             anchors.fill: parent 
                             localScale:   root.localScale
@@ -238,12 +251,13 @@ PanelWindow {
                     }
 
                     Item {
-                        anchors.fill: parent
-                        opacity: root.page === "config" ? 1 : 0
-                        visible: opacity > 0
-                        scale: root.page === "config" ? 1 : 0.98
-                        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                        readonly property int myIdx: 4
+                        property bool isCurrent: root.page === "config"
+                        width: parent.width; height: parent.height
+                        
+                        x: (myIdx - pageArea.animIdx) * width
+                        visible: Math.abs(x) < width || isCurrent
+
                         ShellConfig { 
                             anchors.fill: parent 
                             localScale:   root.localScale

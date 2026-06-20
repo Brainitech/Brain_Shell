@@ -228,10 +228,26 @@ StatCard {
     Item {
         anchors.fill: parent
 
-        // ── CLOCK ─────────────────────────────────────────────────────────────
         Item {
+            id: pagesContainer
             anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
-            visible: root._mode === "clock"
+            clip: true
+            
+            property int pageIdx: Math.max(0, ["clock", "timer", "alarm", "stopwatch"].indexOf(root._mode))
+            property real animIdx: pageIdx
+            
+            Behavior on animIdx {
+                enabled: pagesContainer.width > 0
+                NumberAnimation { duration: 350; easing.type: Easing.OutExpo }
+            }
+
+            // ── CLOCK ─────────────────────────────────────────────────────────────
+            Item {
+                readonly property int myIdx: 0
+                width: parent.width; height: parent.height
+                
+                x: (myIdx - pagesContainer.animIdx) * width
+                visible: Math.abs(x) < width || root._mode === "clock"
 
             Row {
                 anchors.centerIn: parent
@@ -280,8 +296,11 @@ StatCard {
 
         // ── TIMER ─────────────────────────────────────────────────────────────
         Item {
-            anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
-            visible: root._mode === "timer"
+            readonly property int myIdx: 1
+            width: parent.width; height: parent.height
+            
+            x: (myIdx - pagesContainer.animIdx) * width
+            visible: Math.abs(x) < width || root._mode === "timer"
 
             // "+" / "x" toggle — top-right corner
             Item {
@@ -512,8 +531,11 @@ StatCard {
 
         // ── ALARM ─────────────────────────────────────────────────────────────
         Item {
-            anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
-            visible: root._mode === "alarm"
+            readonly property int myIdx: 2
+            width: parent.width; height: parent.height
+            
+            x: (myIdx - pagesContainer.animIdx) * width
+            visible: Math.abs(x) < width || root._mode === "alarm"
             clip: true
 
             Item {
@@ -703,8 +725,11 @@ StatCard {
 
         // ── STOPWATCH ─────────────────────────────────────────────────────────
         Item {
-            anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
-            visible: root._mode === "stopwatch"
+            readonly property int myIdx: 3
+            width: parent.width; height: parent.height
+            
+            x: (myIdx - pagesContainer.animIdx) * width
+            visible: Math.abs(x) < width || root._mode === "stopwatch"
 
             Column {
                 anchors.centerIn: parent; spacing: Math.round(12 * localScale)
@@ -764,6 +789,7 @@ StatCard {
                 }
             }
         }
+        } // End of pagesContainer
 
         // ── Tab bar ───────────────────────────────────────────────────────────
         TabSwitcher {

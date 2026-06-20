@@ -121,6 +121,16 @@ PanelWindow {
             // ── Tab page area ─────────────────────────────────────────────────
             Item {
                 id: tabContent
+                clip: true
+                
+                property int pageIdx: Math.max(0, ["wifi", "bluetooth", "vpn", "hotspot"].indexOf(root.page))
+                property real animIdx: pageIdx
+                
+                Behavior on animIdx {
+                    enabled: tabContent.width > 0
+                    NumberAnimation { duration: 350; easing.type: Easing.OutExpo }
+                }
+
                 anchors {
                     top:    parent.top
                     left:   parent.left
@@ -129,51 +139,55 @@ PanelWindow {
                 }
 
                 Loader {
-                    anchors.fill: parent
+                    readonly property int myIdx: 0
                     property bool isCurrent: root.page === "wifi"
-                    active:       isCurrent || opacity > 0
-                    opacity:      isCurrent ? 1 : 0
-                    scale:        isCurrent ? 1 : 0.98
-                    Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                    width: parent.width; height: parent.height
+                    
+                    x: (myIdx - tabContent.animIdx) * width
+                    active: isCurrent || Math.abs(x) < width
+                    visible: active
+                    
                     source:       "WifiTab.qml"
                     onLoaded:     item.localScale = root.localScale
                 }
 
                 Loader {
-                    anchors.fill: parent
+                    readonly property int myIdx: 1
                     property bool isCurrent: root.page === "bluetooth"
-                    active:       isCurrent || opacity > 0
-                    opacity:      isCurrent ? 1 : 0
-                    scale:        isCurrent ? 1 : 0.98
-                    Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                    width: parent.width; height: parent.height
+                    
+                    x: (myIdx - tabContent.animIdx) * width
+                    active: isCurrent || Math.abs(x) < width
+                    visible: active
+                    
                     source:       "BluetoothTab.qml"
                     onLoaded:     item.localScale = root.localScale
                 }
 
                 // VPN — WireGuard connections
                 Loader {
-                    anchors.fill: parent
+                    readonly property int myIdx: 2
                     property bool isCurrent: root.page === "vpn"
-                    active:       isCurrent || opacity > 0
-                    opacity:      isCurrent ? 1 : 0
-                    scale:        isCurrent ? 1 : 0.98
-                    Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                    width: parent.width; height: parent.height
+                    
+                    x: (myIdx - tabContent.animIdx) * width
+                    active: isCurrent || Math.abs(x) < width
+                    visible: active
+                    
                     source:       "VPNTab.qml"
                     onLoaded:     item.localScale = root.localScale
                 }
 
                 // Hotspot — virtual AP interface
                 Loader {
-                    anchors.fill: parent
+                    readonly property int myIdx: 3
                     property bool isCurrent: root.page === "hotspot"
-                    active:       isCurrent || opacity > 0
-                    opacity:      isCurrent ? 1 : 0
-                    scale:        isCurrent ? 1 : 0.98
-                    Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                    width: parent.width; height: parent.height
+                    
+                    x: (myIdx - tabContent.animIdx) * width
+                    active: isCurrent || Math.abs(x) < width
+                    visible: active
+                    
                     source:       "HotspotTab.qml"
                     onLoaded:     item.localScale = root.localScale
                 }

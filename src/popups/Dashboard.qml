@@ -187,7 +187,11 @@ PanelWindow {
 
                     Item {
                         anchors.fill: parent
-                        visible:      root.page === "home"
+                        opacity: root.page === "home" ? 1 : 0
+                        visible: opacity > 0
+                        scale: root.page === "home" ? 1 : 0.98
+                        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
                         DashHome { 
                             anchors.fill: parent 
                             localScale:   root.localScale
@@ -196,7 +200,11 @@ PanelWindow {
 
                     Item {
                         anchors.fill: parent
-                        visible:      root.page === "stats"
+                        opacity: root.page === "stats" ? 1 : 0
+                        visible: opacity > 0
+                        scale: root.page === "stats" ? 1 : 0.98
+                        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
                         DashStats { 
                             anchors.fill: parent 
                             localScale:   root.localScale
@@ -205,7 +213,11 @@ PanelWindow {
 
                     Item {
                         anchors.fill: parent
-                        visible:      root.page === "kanban"
+                        opacity: root.page === "kanban" ? 1 : 0
+                        visible: opacity > 0
+                        scale: root.page === "kanban" ? 1 : 0.98
+                        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
                         KanbanBoard { 
                             anchors.fill: parent 
                             localScale:   root.localScale
@@ -214,7 +226,11 @@ PanelWindow {
 
                     Item {
                         anchors.fill: parent
-                        visible:      root.page === "launcher"
+                        opacity: root.page === "launcher" ? 1 : 0
+                        visible: opacity > 0
+                        scale: root.page === "launcher" ? 1 : 0.98
+                        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
                         AppLauncher { 
                             anchors.fill: parent 
                             localScale:   root.localScale
@@ -223,7 +239,11 @@ PanelWindow {
 
                     Item {
                         anchors.fill: parent
-                        visible:      root.page === "config"
+                        opacity: root.page === "config" ? 1 : 0
+                        visible: opacity > 0
+                        scale: root.page === "config" ? 1 : 0.98
+                        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
                         ShellConfig { 
                             anchors.fill: parent 
                             localScale:   root.localScale

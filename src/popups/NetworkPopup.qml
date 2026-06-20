@@ -130,14 +130,24 @@ PanelWindow {
 
                 Loader {
                     anchors.fill: parent
-                    active:       root.page === "wifi"
+                    property bool isCurrent: root.page === "wifi"
+                    active:       isCurrent || opacity > 0
+                    opacity:      isCurrent ? 1 : 0
+                    scale:        isCurrent ? 1 : 0.98
+                    Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
                     source:       "WifiTab.qml"
                     onLoaded:     item.localScale = root.localScale
                 }
 
                 Loader {
                     anchors.fill: parent
-                    active:       root.page === "bluetooth"
+                    property bool isCurrent: root.page === "bluetooth"
+                    active:       isCurrent || opacity > 0
+                    opacity:      isCurrent ? 1 : 0
+                    scale:        isCurrent ? 1 : 0.98
+                    Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
                     source:       "BluetoothTab.qml"
                     onLoaded:     item.localScale = root.localScale
                 }
@@ -145,7 +155,12 @@ PanelWindow {
                 // VPN — WireGuard connections
                 Loader {
                     anchors.fill: parent
-                    active:       root.page === "vpn"
+                    property bool isCurrent: root.page === "vpn"
+                    active:       isCurrent || opacity > 0
+                    opacity:      isCurrent ? 1 : 0
+                    scale:        isCurrent ? 1 : 0.98
+                    Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
                     source:       "VPNTab.qml"
                     onLoaded:     item.localScale = root.localScale
                 }
@@ -153,7 +168,12 @@ PanelWindow {
                 // Hotspot — virtual AP interface
                 Loader {
                     anchors.fill: parent
-                    active:       root.page === "hotspot"
+                    property bool isCurrent: root.page === "hotspot"
+                    active:       isCurrent || opacity > 0
+                    opacity:      isCurrent ? 1 : 0
+                    scale:        isCurrent ? 1 : 0.98
+                    Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
                     source:       "HotspotTab.qml"
                     onLoaded:     item.localScale = root.localScale
                 }

@@ -9,6 +9,9 @@ QtObject {
     // "slide" | "parallax" | "none"
     property string style: "slide"
 
+    property real speedMultiplier: 1.0
+    property string curveStyle: "smooth"
+
     // Config persistence
     readonly property string configPath: Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/animation_prefs.json"
     property var _prefsFile: FileView {
@@ -21,18 +24,8 @@ QtObject {
                 try {
                     var obj = JSON.parse(txt)
                     if (obj.style && obj.style !== "") root.style = obj.style
-                    if (obj.superFast) root.superFast = obj.superFast
-                    if (obj.fast) root.fast = obj.fast
-                    if (obj.color) root.color = obj.color
-                    if (obj.mediumFast) root.mediumFast = obj.mediumFast
-                    if (obj.normal) root.normal = obj.normal
-                    if (obj.mediumSlow) root.mediumSlow = obj.mediumSlow
-                    if (obj.slow) root.slow = obj.slow
-                    if (obj.slower) root.slower = obj.slower
-                    if (obj.verySlow) root.verySlow = obj.verySlow
-                    if (obj.extraSlow) root.extraSlow = obj.extraSlow
-                    if (obj.megaSlow) root.megaSlow = obj.megaSlow
-                    if (obj.transition) root.transition = obj.transition
+                    if (obj.speed_multiplier) root.speedMultiplier = obj.speed_multiplier
+                    if (obj.curve && obj.curve !== "") root.curveStyle = obj.curve
                 } catch(e) {}
             }
         }
@@ -45,8 +38,13 @@ QtObject {
         _save()
     }
     
-    function setSpeed(prop, val) {
-        root[prop] = val
+    function setSpeedMultiplier(val) {
+        root.speedMultiplier = val
+        _save()
+    }
+    
+    function setCurve(val) {
+        root.curveStyle = val
         _save()
     }
 
@@ -54,19 +52,10 @@ QtObject {
         var json = JSON.stringify({
             "_comment_style": "Available styles: 'slide', 'parallax', 'none'",
             "style": root.style,
-            "_comment_speeds": "You can override default animation speeds below (in milliseconds).",
-            "superFast": root.superFast,
-            "fast": root.fast,
-            "color": root.color,
-            "mediumFast": root.mediumFast,
-            "normal": root.normal,
-            "mediumSlow": root.mediumSlow,
-            "slow": root.slow,
-            "slower": root.slower,
-            "verySlow": root.verySlow,
-            "extraSlow": root.extraSlow,
-            "megaSlow": root.megaSlow,
-            "transition": root.transition
+            "_comment_speed": "Multiplier for all animations. 1.0 is default. 0.5 is 2x faster, 2.0 is 2x slower.",
+            "speed_multiplier": root.speedMultiplier,
+            "_comment_curve": "Available curves: 'smooth', 'spring', 'linear', 'cinematic'",
+            "curve": root.curveStyle
         }, null, 4)
         
         saveConfigProc.command = [
@@ -76,30 +65,60 @@ QtObject {
         ]
         saveConfigProc.running = true
     }
-    // Standard durations
-    property int superFast: 80
-    property int fast: 100
-    property int color: 120
-    property int mediumFast: 150
-    property int normal: 200
-    property int mediumSlow: 250
-    property int slow: 350
-    property int slower: 400
-    property int verySlow: 500
-    property int extraSlow: 600
-    property int megaSlow: 900
-    property int transition: 320
 
-    // Easings
-    property int outCubic: Easing.OutCubic
-    property int inOutCubic: Easing.InOutCubic
-    property int inOutSine: Easing.InOutSine
-    property int outExpo: Easing.OutExpo
-    property int outBack: Easing.OutBack
-    property int outQuad: Easing.OutQuad
-    property int inQuad: Easing.InQuad
-    property int inOutQuad: Easing.InOutQuad
-    property int outElastic: Easing.OutElastic
-    property int inCubic: Easing.InCubic
-    property int linear: Easing.Linear
+    // Standard durations automatically scaled by speedMultiplier
+    readonly property int superFast:  Math.max(0, Math.round(80 * speedMultiplier))
+    readonly property int fast:       Math.max(0, Math.round(100 * speedMultiplier))
+    readonly property int color:      Math.max(0, Math.round(120 * speedMultiplier))
+    readonly property int mediumFast: Math.max(0, Math.round(150 * speedMultiplier))
+    readonly property int normal:     Math.max(0, Math.round(200 * speedMultiplier))
+    readonly property int mediumSlow: Math.max(0, Math.round(250 * speedMultiplier))
+    readonly property int slow:       Math.max(0, Math.round(350 * speedMultiplier))
+    readonly property int slower:     Math.max(0, Math.round(400 * speedMultiplier))
+    readonly property int verySlow:   Math.max(0, Math.round(500 * speedMultiplier))
+    readonly property int extraSlow:  Math.max(0, Math.round(600 * speedMultiplier))
+    readonly property int megaSlow:   Math.max(0, Math.round(900 * speedMultiplier))
+    readonly property int transition: Math.max(0, Math.round(320 * speedMultiplier))
+
+    // Global Curve Modifier
+    readonly property int globalCurve: {
+        if (curveStyle === "spring") return Easing.OutBack;
+        if (curveStyle === "cinematic") return Easing.InOutCubic;
+        if (curveStyle === "linear") return Easing.Linear;
+        return Easing.OutExpo; // Default to smooth
+    }
+
+    // Easings (Mapping legacy bindings to the new global curve where appropriate)
+    // To ensure a truly unified feel, we route the common transition easings through globalCurve.
+    readonly property int outCubic: globalCurve
+    readonly property int inOutCubic: globalCurve
+    readonly property int outExpo: globalCurve
+    readonly property int outBack: globalCurve
+    
+    // Explicit curves for specific UI micro-interactions (not globally mapped unless requested)
+    readonly property int inOutSine: Easing.InOutSine
+    readonly property int outQuad: Easing.OutQuad
+    readonly property int inQuad: Easing.InQuad
+    readonly property int inOutQuad: Easing.InOutQuad
+    readonly property int outElastic: Easing.OutElastic
+    readonly property int inCubic: Easing.InCubic
+    readonly property int linear: Easing.Linear
+
+    Component.onCompleted: {
+        // Auto-create the JSON file if it doesn't exist yet on startup
+        var initProc = Qt.createQmlObject('import QtQuick; import Quickshell.Io; Process { }', root, "InitConfigProc")
+        initProc.command = [
+            "bash", "-c",
+            "if [ ! -f '" + root.configPath + "' ]; then mkdir -p \"$(dirname '" + root.configPath + "')\" && cat << 'EOF' > '" + root.configPath + "'\n" +
+            "{\n" +
+            "    \"_comment_style\": \"Available styles: 'slide', 'parallax', 'none'\",\n" +
+            "    \"style\": \"slide\",\n" +
+            "    \"_comment_speed\": \"Multiplier for all animations. 1.0 is default. 0.5 is 2x faster, 2.0 is 2x slower.\",\n" +
+            "    \"speed_multiplier\": 1.0,\n" +
+            "    \"_comment_curve\": \"Available curves: 'smooth', 'spring', 'linear', 'cinematic'\",\n" +
+            "    \"curve\": \"smooth\"\n" +
+            "}\nEOF\nfi"
+        ]
+        initProc.running = true
+    }
 }

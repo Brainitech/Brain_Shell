@@ -18,7 +18,7 @@ QtObject {
     // ── Dashboard — per-page state ───────────────────────────────────────────
     property int    dashboardPageWidth: 900
     property string dashboardPage:      "home"
-    
+
     // ── Audio popup — per-page state ─────────────────────────────────────────
     property string audioPage: "output"
 
@@ -32,11 +32,24 @@ QtObject {
     property bool batteryTriggerHovered:       false
     property bool notificationsTriggerHovered: false
     property bool wallpaperTriggerHovered:     false
-    property bool quickTriggerHovered: false
+    property bool quickTriggerHovered:         false
+    property bool dashboardTriggerHovered:     false
+    property bool clipboardTriggerHovered:     false
+
+    // ── Hover allowance settings ──────────────────────────────────────────────
+    property bool audioAllowHover:         true
+    property bool networkAllowHover:       true
+    property bool archMenuAllowHover:      true
+    property bool wallpaperAllowHover:     true
+    property bool clipboardAllowHover:     true
+    property bool notificationsAllowHover: true
+    property bool quickAllowHover:         true
+    property bool dashboardAllowHover:     true
 
     // ── Universal popup behavior settings ─────────────────────────────────────
     property int  slideDuration:   Anim.transition
-    property int  hoverCloseDelay: Anim.transition + 200   // delay after hover leaves before closing
+    property int  hoverCloseDelay: Anim.transition          // delay after hover leaves before closing
+    property int  hoverOpenDelay:  150                     // delay before hover opens
 
     // ── Confirm dialog ────────────────────────────────────────────────────────
     property bool   confirmOpen:    false

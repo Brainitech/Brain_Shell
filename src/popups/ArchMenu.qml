@@ -60,7 +60,7 @@ PopupWindow {
 		id: slide
 		anchors.fill: parent
 		edge:             "left"
-		hoverEnabled:     false
+		hoverEnabled:     Popups.archMenuAllowHover
 		triggerHovered:   Popups.archMenuTriggerHovered
 		open:             Popups.archMenuOpen
 		onCloseRequested: Popups.archMenuOpen = false

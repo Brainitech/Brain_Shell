@@ -86,8 +86,50 @@ PanelWindow {
                 closeTimer.restart()
             }
         }
+        function onDashboardTriggerHoveredChanged() {
+            if (Popups.dashboardTriggerHovered) {
+                if (root.allowHover) {
+                    hoverCloseTimer.stop()
+                    hoverOpenTimer.restart()
+                }
+            } else {
+                hoverOpenTimer.stop()
+                if (root.allowHover && !root.selfHovered) hoverCloseTimer.restart()
+            }
+        }
     }
-    
+
+    property bool allowHover: Popups.dashboardAllowHover
+    property bool selfHovered: false
+
+    onSelfHoveredChanged: {
+        if (root.allowHover) {
+            if (!selfHovered && !Popups.dashboardTriggerHovered) hoverCloseTimer.restart()
+            else                                                 hoverCloseTimer.stop()
+        }
+    }
+
+    Timer {
+        id: hoverOpenTimer
+        interval: Popups.hoverOpenDelay
+        onTriggered: {
+            if (root.allowHover && Popups.dashboardTriggerHovered) {
+                if (!Popups.dashboardOpen) {
+                    Popups.closeAll()
+                    Popups.dashboardOpen = true
+                }
+            }
+        }
+    }
+
+    Timer {
+        id: hoverCloseTimer
+        interval: Popups.hoverCloseDelay
+        onTriggered: {
+            if (root.allowHover && !Popups.dashboardTriggerHovered && !root.selfHovered)
+                Popups.dashboardOpen = false
+        }
+    }
     Timer {
         id: closeTimer
         interval: root.animDuration + 20
@@ -124,6 +166,10 @@ PanelWindow {
         MouseArea {
             anchors.fill: parent
             onClicked:    {}
+        }
+
+        HoverHandler {
+            onHoveredChanged: root.selfHovered = hovered
         }
 
         // ── Background ────────────────────────────────────────────────────────

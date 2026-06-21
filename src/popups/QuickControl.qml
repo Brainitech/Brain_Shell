@@ -107,7 +107,7 @@ PopupWindow {
         anchors.fill:     parent
         edge:             "right"
         open:             Popups.quickOpen
-        hoverEnabled:     true
+        hoverEnabled:     !Popups.audioAllowHover && Popups.quickAllowHover
         triggerHovered:   Popups.quickTriggerHovered
         onCloseRequested: Popups.quickOpen = false
 

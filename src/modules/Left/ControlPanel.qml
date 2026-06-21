@@ -3,7 +3,7 @@ import "../../components"
 import "../../"
 
 IconBtn {
-		text: "" 
+		text: ""
 		textColor: "#1793d1"
 		onClicked: {
         var next = !Popups.archMenuOpen

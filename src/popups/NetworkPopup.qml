@@ -8,7 +8,6 @@ import "../"
 
 PanelWindow {
     id: root
-
     readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
     readonly property int popupWidth:  Math.round(Theme.networkPopupWidth * root.localScale)
@@ -63,6 +62,50 @@ PanelWindow {
         function onNetworkPageChanged() {
             root.page = Popups.networkPage
         }
+
+        function onNetworkTriggerHoveredChanged() {
+            if (Popups.networkTriggerHovered) {
+                if (root.allowHover) {
+                    hoverCloseTimer.stop()
+                    hoverOpenTimer.restart()
+                }
+            } else {
+                hoverOpenTimer.stop()
+                if (root.allowHover && !root.selfHovered) hoverCloseTimer.restart()
+            }
+        }
+    }
+
+    property bool allowHover: Popups.networkAllowHover
+    property bool selfHovered: false
+
+    onSelfHoveredChanged: {
+        if (root.allowHover) {
+            if (!selfHovered && !Popups.networkTriggerHovered) hoverCloseTimer.restart()
+            else                                               hoverCloseTimer.stop()
+        }
+    }
+
+    Timer {
+        id: hoverOpenTimer
+        interval: Popups.hoverOpenDelay
+        onTriggered: {
+            if (root.allowHover && Popups.networkTriggerHovered) {
+                if (!Popups.networkOpen) {
+                    Popups.closeAll()
+                    Popups.networkOpen = true
+                }
+            }
+        }
+    }
+
+    Timer {
+        id: hoverCloseTimer
+        interval: Popups.hoverCloseDelay
+        onTriggered: {
+            if (root.allowHover && !Popups.networkTriggerHovered && !root.selfHovered)
+                Popups.networkOpen = false
+        }
     }
 
     Timer {
@@ -82,6 +125,10 @@ PanelWindow {
         width: Popups.networkOpen
        ? root.popupWidth + root.fw
        : Math.round(Theme.rNotchMinWidth * root.localScale) + root.fw
+
+        HoverHandler {
+            onHoveredChanged: root.selfHovered = hovered
+        }
 
         height: Popups.networkOpen ? root.popupHeight : 0
 

@@ -55,7 +55,7 @@ PopupWindow {
 		anchors.fill: parent
 		edge:             "right"
 		open:             Popups.audioOpen
-		hoverEnabled:     false
+		hoverEnabled:     Popups.audioAllowHover
 		triggerHovered:   Popups.audioTriggerHovered
 		onCloseRequested: Popups.audioOpen = false
 

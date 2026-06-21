@@ -43,6 +43,7 @@ Item {
     // ── Universal timing — sourced from Popups singleton ──────────────────────
     property int slideDuration: Popups.slideDuration
     property int closeDelay:    Popups.hoverCloseDelay
+    property int openDelay:     Popups.hoverOpenDelay
 
     // ── Output ────────────────────────────────────────────────────────────────
     // Bind PopupWindow.visible to this
@@ -55,10 +56,36 @@ Item {
     property bool _selfHovered: false
 
     // The popup should be visually open when:
-    //   • its Popups bool is true, OR
-    //   • hover is enabled and either the trigger or the popup itself is hovered
-    readonly property bool _effectiveOpen:
-        open || (hoverEnabled && (triggerHovered || _selfHovered))
+    readonly property bool _isHoverOpen: hoverEnabled && (triggerHovered || _selfHovered)
+    readonly property bool _effectiveOpen: open || _hoverOpenActive
+
+    property bool _hoverOpenActive: false
+
+    on_IsHoverOpenChanged: {
+        if (_isHoverOpen) {
+            if (hoverCloseTimer.running) {
+                // Recovering from a deadzone cross -> immediate open
+                hoverCloseTimer.stop()
+                _hoverOpenActive = true
+            } else if (!open && !_hoverOpenActive) {
+                // Initial hover -> delayed open
+                hoverOpenTimer.restart()
+            }
+        } else {
+            hoverOpenTimer.stop()
+            _hoverOpenActive = false
+        }
+    }
+
+    Timer {
+        id: hoverOpenTimer
+        interval: root.openDelay
+        onTriggered: {
+            if (root._isHoverOpen) {
+                root._hoverOpenActive = true
+            }
+        }
+    }
 
     default property alias content: inner.data
 

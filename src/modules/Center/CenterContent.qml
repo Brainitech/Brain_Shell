@@ -865,4 +865,8 @@ Item {
 					Popups.dashboardOpen = next
 				}
 			}
+
+			HoverHandler {
+				onHoveredChanged: Popups.dashboardTriggerHovered = hovered
+			}
 		}

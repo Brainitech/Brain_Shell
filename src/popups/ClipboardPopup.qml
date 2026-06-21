@@ -50,6 +50,50 @@ PanelWindow {
                 closeTimer.restart()
             }
         }
+
+        function onClipboardTriggerHoveredChanged() {
+            if (Popups.clipboardTriggerHovered) {
+                if (root.allowHover) {
+                    hoverCloseTimer.stop()
+                    hoverOpenTimer.restart()
+                }
+            } else {
+                hoverOpenTimer.stop()
+                if (root.allowHover && !root.selfHovered) hoverCloseTimer.restart()
+            }
+        }
+    }
+
+    property bool allowHover: Popups.clipboardAllowHover
+    property bool selfHovered: false
+
+    onSelfHoveredChanged: {
+        if (root.allowHover) {
+            if (!selfHovered && !Popups.clipboardTriggerHovered) hoverCloseTimer.restart()
+            else                                                 hoverCloseTimer.stop()
+        }
+    }
+
+    Timer {
+        id: hoverOpenTimer
+        interval: Popups.hoverOpenDelay
+        onTriggered: {
+            if (root.allowHover && Popups.clipboardTriggerHovered) {
+                if (!Popups.clipboardOpen) {
+                    Popups.closeAll()
+                    Popups.clipboardOpen = true
+                }
+            }
+        }
+    }
+
+    Timer {
+        id: hoverCloseTimer
+        interval: Popups.hoverCloseDelay
+        onTriggered: {
+            if (root.allowHover && !Popups.clipboardTriggerHovered && !root.selfHovered)
+                Popups.clipboardOpen = false
+        }
     }
 
     Timer {
@@ -85,6 +129,7 @@ PanelWindow {
             onClicked:    {}
         }
 
+
         PopupShape {
             anchors.fill: parent
             attachedEdge: "bottom-right"
@@ -114,6 +159,17 @@ PanelWindow {
                 anchors.fill: parent
                 localScale: root.localScale
             }
+        }
+    }
+
+    Item {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        width: sizer.width + Theme.borderWidth
+        height: sizer.height + Theme.borderWidth
+
+        HoverHandler {
+            onHoveredChanged: root.selfHovered = hovered
         }
     }
 }

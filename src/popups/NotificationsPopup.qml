@@ -9,7 +9,6 @@ import "../"
 
 PopupWindow {
     id: root
-
     required property var anchorWindow
 
     readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
@@ -59,6 +58,50 @@ PopupWindow {
                 closeTimer.restart()
             }
         }
+
+        function onNotificationsTriggerHoveredChanged() {
+            if (Popups.notificationsTriggerHovered) {
+                if (root.allowHover) {
+                    hoverCloseTimer.stop()
+                    hoverOpenTimer.restart()
+                }
+            } else {
+                hoverOpenTimer.stop()
+                if (root.allowHover && !root.selfHovered) hoverCloseTimer.restart()
+            }
+        }
+    }
+
+    property bool allowHover: Popups.notificationsAllowHover
+    property bool selfHovered: false
+
+    onSelfHoveredChanged: {
+        if (root.allowHover) {
+            if (!selfHovered && !Popups.notificationsTriggerHovered) hoverCloseTimer.restart()
+            else                                                     hoverCloseTimer.stop()
+        }
+    }
+
+    Timer {
+        id: hoverOpenTimer
+        interval: Popups.hoverOpenDelay
+        onTriggered: {
+            if (root.allowHover && Popups.notificationsTriggerHovered) {
+                if (!Popups.notificationsOpen) {
+                    Popups.closeAll()
+                    Popups.notificationsOpen = true
+                }
+            }
+        }
+    }
+
+    Timer {
+        id: hoverCloseTimer
+        interval: Popups.hoverCloseDelay
+        onTriggered: {
+            if (root.allowHover && !Popups.notificationsTriggerHovered && !root.selfHovered)
+                Popups.notificationsOpen = false
+        }
     }
 
     Timer {
@@ -75,6 +118,10 @@ PopupWindow {
         anchors.top:   parent.top
         anchors.right: parent.right
         clip:          true
+
+        HoverHandler {
+            onHoveredChanged: root.selfHovered = hovered
+        }
 
         // Width: rNotchMinWidth → notificationsWidth  (+ fw for flare region)
         width: Popups.notificationsOpen

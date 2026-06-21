@@ -16,4 +16,8 @@ IconBtn {
         Popups.closeAll()
         Popups.notificationsOpen = next
     }
+
+    HoverHandler {
+        onHoveredChanged: Popups.notificationsTriggerHovered = hovered
+    }
 }

@@ -47,7 +47,7 @@ PanelWindow {
     // ── Self-hover tracking ───────────────────────────────────────────────────
     property bool selfHovered: true
     
-    property bool allowHover: false
+    property bool allowHover: Popups.wallpaperAllowHover
 
     // ── Hover close timer ─────────────────────────────────────────────────────
     // Fires when both the trigger region and the popup itself are no longer hovered.
@@ -79,22 +79,10 @@ PanelWindow {
             if (Popups.wallpaperTriggerHovered) {
                 if (root.allowHover) {
                     hoverCloseTimer.stop()
-                    if (!Popups.wallpaperOpen) {
-                        closeTimer.stop()
-                        root.windowVisible           = true
-                        Popups.wallpaperOpen         = true
-                        WallpaperService.refresh()
-                        WallpaperService.previewWall = ""
-                        content.schemePopupOpen      = false
-                        content.folderMode           = false
-                        content.appliedScheme        = WallpaperService.scheme
-                        searchInput.text             = ""
-                        focusGrabTimer.restart()
-                        searchInput.forceActiveFocus()
-                        focusTimer.restart()
-                    }
+                    hoverOpenTimer.restart()
                 }
             } else {
+                hoverOpenTimer.stop()
                 if (root.allowHover && !root.selfHovered) hoverCloseTimer.restart()
             }
         }
@@ -117,6 +105,29 @@ PanelWindow {
                 root.wantsFocus = false
                 focusGrabTimer.stop()
                 closeTimer.restart()
+            }
+        }
+    }
+
+    Timer {
+        id: hoverOpenTimer
+        interval: Popups.hoverOpenDelay
+        onTriggered: {
+            if (root.allowHover && Popups.wallpaperTriggerHovered) {
+                if (!Popups.wallpaperOpen) {
+                    closeTimer.stop()
+                    root.windowVisible           = true
+                    Popups.wallpaperOpen         = true
+                    WallpaperService.refresh()
+                    WallpaperService.previewWall = ""
+                    content.schemePopupOpen      = false
+                    content.folderMode           = false
+                    content.appliedScheme        = WallpaperService.scheme
+                    searchInput.text             = ""
+                    focusGrabTimer.restart()
+                    searchInput.forceActiveFocus()
+                    focusTimer.restart()
+                }
             }
         }
     }
@@ -171,9 +182,7 @@ PanelWindow {
         Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
         Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
 
-        HoverHandler {
-            onHoveredChanged: root.selfHovered = hovered
-        }
+
 
         MouseArea {
             anchors.fill: parent
@@ -758,6 +767,17 @@ PanelWindow {
                     }
                 }
             }
+        }
+    }
+
+    Item {
+        anchors.horizontalCenter: sizer.horizontalCenter
+        anchors.bottom: parent.bottom
+        width: sizer.width
+        height: sizer.height + Math.round(Theme.borderWidth * root.localScale)
+
+        HoverHandler {
+            onHoveredChanged: root.selfHovered = hovered
         }
     }
 }

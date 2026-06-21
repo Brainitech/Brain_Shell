@@ -190,6 +190,10 @@ PanelWindow {
             anchors.bottom: parent.bottom
             width:          80
 
+            HoverHandler {
+                onHoveredChanged: Popups.clipboardTriggerHovered = hovered
+            }
+
             TapHandler {
                 onTapped: {
                     var next = !Popups.clipboardOpen

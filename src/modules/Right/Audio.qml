@@ -43,7 +43,7 @@ Item {
             color:          hov.hovered ? Theme.active : Theme.text
             font.pixelSize: Math.round(18 * localScale)
             anchors.verticalCenter: parent.verticalCenter
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { ColorAnimation { duration: Anim.color} }
         }
 
         Item {
@@ -53,7 +53,7 @@ Item {
             implicitHeight: pctText.implicitHeight
             clip: true
             anchors.verticalCenter: parent.verticalCenter
-            Behavior on implicitWidth { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+            Behavior on implicitWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
         
             Text {
                 id: pctText
@@ -61,7 +61,7 @@ Item {
                 color:          hov.hovered ? Theme.active : Theme.text
                 font.pixelSize: Math.round(12 * localScale)
                 anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { ColorAnimation { duration: Anim.color} }
             }
         }
     }

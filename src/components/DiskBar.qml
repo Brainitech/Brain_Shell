@@ -59,8 +59,8 @@ Item {
             radius:         height / 2
             color:          root.barColor
 
-            Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-            Behavior on color { ColorAnimation  { duration: 300 } }
+            Behavior on width { NumberAnimation { duration: Anim.slower; easing.type: Anim.outCubic} }
+            Behavior on color { ColorAnimation  { duration: Anim.mediumSlow} }
         }
     }
 
@@ -75,7 +75,7 @@ Item {
         color:          root.barColor
         width:          Math.round(28 * localScale)
         horizontalAlignment: Text.AlignRight
-        Behavior on color { ColorAnimation { duration: 300 } }
+        Behavior on color { ColorAnimation { duration: Anim.mediumSlow} }
     }
 
     // Size info — below the bar, aligned with bar

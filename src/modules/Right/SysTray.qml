@@ -23,8 +23,8 @@ RowLayout {
         Layout.preferredWidth: isOpen ? implicitWidth : 0
         clip: true
 
-        Behavior on opacity { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.OutCubic } }
-        Behavior on Layout.preferredWidth { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic} }
+        Behavior on Layout.preferredWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic} }
 
         Repeater {
             model: SystemTray.items

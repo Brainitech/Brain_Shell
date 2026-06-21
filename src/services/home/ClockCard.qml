@@ -228,10 +228,56 @@ StatCard {
     Item {
         anchors.fill: parent
 
-        // ── CLOCK ─────────────────────────────────────────────────────────────
         Item {
+            id: pagesContainer
             anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
-            visible: root._mode === "clock"
+            clip: true
+            
+            property int pageIdx: Math.max(0, ["clock", "timer", "alarm", "stopwatch"].indexOf(root._mode))
+
+            // ── CLOCK ─────────────────────────────────────────────────────────────
+            Item {
+                id: pageClock
+                readonly property int myIdx: 0
+                property bool isCurrent: root._mode === "clock"
+                property bool wasCurrent: false
+                property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                onIsCurrentChanged: { 
+                    if (isCurrent) wasCurrent = false;
+                    else if (Anim.style === "none") wasCurrent = false;
+                    else wasCurrent = true;
+                }
+                
+                width: parent.width; height: parent.height
+                
+                property real targetX: {
+                    if (Anim.style === "none") return 0;
+                    if (isCurrent) return 0;
+                    if (myIdx < pagesContainer.pageIdx) return -width * parallaxFactor;
+                    return width;
+                }
+                
+                x: targetX
+                Behavior on x {
+                    enabled: Anim.style !== "none"
+                    NumberAnimation { 
+                        duration: Anim.slow; easing.type: Anim.outExpo
+                        onRunningChanged: { if (!running && !pageClock.isCurrent) pageClock.wasCurrent = false; }
+                    }
+                }
+                
+                property real targetOpacity: {
+                    if (Anim.style !== "parallax") return 1.0;
+                    if (isCurrent) return 1.0;
+                    return 0.0;
+                }
+                opacity: targetOpacity
+                Behavior on opacity {
+                    enabled: Anim.style === "parallax"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                }
+                
+                visible: isCurrent || wasCurrent
 
             Row {
                 anchors.centerIn: parent
@@ -280,8 +326,32 @@ StatCard {
 
         // ── TIMER ─────────────────────────────────────────────────────────────
         Item {
-            anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
-            visible: root._mode === "timer"
+            id: pageTimer
+            readonly property int myIdx: 1
+            property bool isCurrent: root._mode === "timer"
+            property bool wasCurrent: false
+            property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+            onIsCurrentChanged: { if (!isCurrent) wasCurrent = true; else wasCurrent = false; }
+            
+            width: parent.width; height: parent.height
+            
+            property real targetX: {
+                if (Anim.style === "none") return 0;
+                if (isCurrent) return 0;
+                if (myIdx < pagesContainer.pageIdx) return -width * parallaxFactor;
+                return width;
+            }
+            
+            x: targetX
+            Behavior on x {
+                enabled: Anim.style !== "none"
+                NumberAnimation { 
+                    duration: Anim.slow; easing.type: Anim.outExpo
+                    onRunningChanged: { if (!running && !pageTimer.isCurrent) pageTimer.wasCurrent = false; }
+                }
+            }
+            
+            visible: isCurrent || wasCurrent
 
             // "+" / "x" toggle — top-right corner
             Item {
@@ -295,7 +365,7 @@ StatCard {
                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
                            : Qt.rgba(1,1,1,0.06)
                     border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2); border.width: 1
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
                     Text {
                         anchors.centerIn: parent
                         text: root._addTimerOpen ? "x" : "+"
@@ -372,7 +442,7 @@ StatCard {
                             width: Math.round(36 * localScale); height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
                             color: _pH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1) : Qt.rgba(1,1,1,0.05)
                             border.color: Qt.rgba(1,1,1,0.1); border.width: 1
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData < 60 ? modelData+"m" : "1h"
@@ -421,7 +491,7 @@ StatCard {
                                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.18)
                                    : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1)
                             border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.25); border.width: 1
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text {
                                 anchors.centerIn: parent; text: "Set Timer"
                                 font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium
@@ -461,7 +531,7 @@ StatCard {
                                ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.2)
                                : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.12)
                         border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.22); border.width: 1
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
                         Text {
                             anchors.centerIn: parent
                             text: root._timerRunning ? "Pause" : "Start"
@@ -487,7 +557,7 @@ StatCard {
                                ? Qt.rgba(1,1,1,0.1)
                                : Qt.rgba(1,1,1,0.05)
                         border.color: Qt.rgba(1,1,1,0.1); border.width: 1
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
                         Text {
                             anchors.centerIn: parent; text: "Reset"
                             font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium
@@ -512,8 +582,32 @@ StatCard {
 
         // ── ALARM ─────────────────────────────────────────────────────────────
         Item {
-            anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
-            visible: root._mode === "alarm"
+            id: pageAlarm
+            readonly property int myIdx: 2
+            property bool isCurrent: root._mode === "alarm"
+            property bool wasCurrent: false
+            property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+            onIsCurrentChanged: { if (!isCurrent) wasCurrent = true; else wasCurrent = false; }
+            
+            width: parent.width; height: parent.height
+            
+            property real targetX: {
+                if (Anim.style === "none") return 0;
+                if (isCurrent) return 0;
+                if (myIdx < pagesContainer.pageIdx) return -width * parallaxFactor;
+                return width;
+            }
+            
+            x: targetX
+            Behavior on x {
+                enabled: Anim.style !== "none"
+                NumberAnimation { 
+                    duration: Anim.slow; easing.type: Anim.outExpo
+                    onRunningChanged: { if (!running && !pageAlarm.isCurrent) pageAlarm.wasCurrent = false; }
+                }
+            }
+            
+            visible: isCurrent || wasCurrent
             clip: true
 
             Item {
@@ -542,7 +636,7 @@ StatCard {
                                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.15)
                                    : Qt.rgba(1,1,1,0.06)
                             border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.2); border.width: 1
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text {
                                 anchors.centerIn: parent
                                 text: root._addOpen ? "✕" : "+"
@@ -581,8 +675,8 @@ StatCard {
                     radius:  Math.round(8 * localScale)
                     border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1); border.width: 1
                     opacity: root._addOpen ? 1 : 0
-                    Behavior on height  { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
+                    Behavior on height  { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
+                    Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
 
                     Column {
                         anchors.centerIn: parent
@@ -602,7 +696,7 @@ StatCard {
                                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.18)
                                    : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1)
                             border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.25); border.width: 1
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text {
                                 anchors.centerIn: parent; text: "Set Alarm"
                                 font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium
@@ -661,14 +755,14 @@ StatCard {
                             color: modelData.enabled
                                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.25)
                                    : Qt.rgba(1,1,1,0.1)
-                            Behavior on color { ColorAnimation { duration: 130 } }
+                            Behavior on color { ColorAnimation { duration: Anim.color} }
                             Rectangle {
                                 width: Math.round(12 * localScale); height: Math.round(12 * localScale); radius: Math.round(6 * localScale)
                                 anchors.verticalCenter: parent.verticalCenter
                                 x: modelData.enabled ? parent.width - width - Math.round(3 * localScale) : Math.round(3 * localScale)
                                 color: modelData.enabled ? Theme.active : Qt.rgba(1,1,1,0.3)
-                                Behavior on x     { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
-                                Behavior on color { ColorAnimation  { duration: 130 } }
+                                Behavior on x     { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+                                Behavior on color { ColorAnimation  { duration: Anim.color} }
                             }
                             MouseArea {
                                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
@@ -682,7 +776,7 @@ StatCard {
                             anchors { right: parent.right; rightMargin: Math.round(10 * localScale); verticalCenter: parent.verticalCenter }
                             width: Math.round(22 * localScale); height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
                             color: _delH.hovered ? Qt.rgba(248/255,113/255,113/255,0.18) : "transparent"
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: Math.round(10 * localScale); color: Qt.rgba(248/255,113/255,113/255,0.6) }
                             HoverHandler { id: _delH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root._deleteAlarm(modelData.id) }
@@ -703,8 +797,32 @@ StatCard {
 
         // ── STOPWATCH ─────────────────────────────────────────────────────────
         Item {
-            anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
-            visible: root._mode === "stopwatch"
+            id: pageStopwatch
+            readonly property int myIdx: 3
+            property bool isCurrent: root._mode === "stopwatch"
+            property bool wasCurrent: false
+            property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+            onIsCurrentChanged: { if (!isCurrent) wasCurrent = true; else wasCurrent = false; }
+            
+            width: parent.width; height: parent.height
+            
+            property real targetX: {
+                if (Anim.style === "none") return 0;
+                if (isCurrent) return 0;
+                if (myIdx < pagesContainer.pageIdx) return -width * parallaxFactor;
+                return width;
+            }
+            
+            x: targetX
+            Behavior on x {
+                enabled: Anim.style !== "none"
+                NumberAnimation { 
+                    duration: Anim.slow; easing.type: Anim.outExpo
+                    onRunningChanged: { if (!running && !pageStopwatch.isCurrent) pageStopwatch.wasCurrent = false; }
+                }
+            }
+            
+            visible: isCurrent || wasCurrent
 
             Column {
                 anchors.centerIn: parent; spacing: Math.round(12 * localScale)
@@ -728,7 +846,7 @@ StatCard {
                                ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.2)
                                : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.12)
                         border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.22); border.width: 1
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
                         Text {
                             anchors.centerIn: parent
                             text: root._swRunning ? "Stop" : "Start"
@@ -749,7 +867,7 @@ StatCard {
                                ? Qt.rgba(1,1,1,0.1)
                                : Qt.rgba(1,1,1,0.05)
                         border.color: Qt.rgba(1,1,1,0.1); border.width: 1
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
                         Text {
                             anchors.centerIn: parent; text: "Reset"
                             font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium
@@ -764,6 +882,7 @@ StatCard {
                 }
             }
         }
+        } // End of pagesContainer
 
         // ── Tab bar ───────────────────────────────────────────────────────────
         TabSwitcher {

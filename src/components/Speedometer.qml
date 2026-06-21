@@ -31,7 +31,7 @@ Item {
         font.pixelSize: Math.max(7, Math.round(11 * root.size))
         font.weight:    Font.Medium
         color:          root.active ? Qt.rgba(1,1,1,0.55) : Qt.rgba(1,1,1,0.2)
-        Behavior on color { ColorAnimation { duration: 200 } }
+        Behavior on color { ColorAnimation { duration: Anim.normal} }
     }
 
     // ── Arc canvas ────────────────────────────────────────────────────────────
@@ -103,7 +103,7 @@ Item {
             anchors.verticalCenterOffset: Math.round(6 * root.size)
             spacing:  Math.round(2 * root.size)
             opacity:  root.active ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { NumberAnimation { duration: Anim.normal} }
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -131,7 +131,7 @@ Item {
             font.weight:    Font.Medium
             color:          Qt.rgba(1, 1, 1, 0.25)
             opacity:        root.active ? 0 : 1
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { NumberAnimation { duration: Anim.normal} }
         }
     }
 }

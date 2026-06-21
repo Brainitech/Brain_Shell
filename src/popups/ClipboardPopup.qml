@@ -54,7 +54,7 @@ PanelWindow {
 
     Timer {
         id: closeTimer
-        interval: Theme.animDuration + 20
+        interval: Anim.transition + 20
         onTriggered: {
             if (!Popups.clipboardOpen)
                 root.windowVisible = false
@@ -77,8 +77,8 @@ PanelWindow {
         width:  Popups.clipboardOpen ? root.popupWidth  + root.fw : 0
         height: Popups.clipboardOpen ? root.popupHeight + root.fh : 0
 
-        Behavior on width  { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
-        Behavior on height { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+        Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+        Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
 
         MouseArea {
             anchors.fill: parent
@@ -106,7 +106,7 @@ PanelWindow {
             opacity: Popups.clipboardOpen ? 1 : 0
             Behavior on opacity {
                 NumberAnimation {
-                    duration: Popups.clipboardOpen ? Theme.animDuration * 0.5 : Theme.animDuration * 0.15
+                    duration: Popups.clipboardOpen ? Anim.transition * 0.5 : Anim.transition * 0.15
                 }
             }
 

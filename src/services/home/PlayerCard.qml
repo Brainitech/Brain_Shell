@@ -166,7 +166,7 @@ Item {
             blur:         0.5
             blurMax:      32
             saturation:   0.2
-            Behavior on opacity { NumberAnimation { duration: 400 } }
+            Behavior on opacity { NumberAnimation { duration: Anim.slower} }
         }
 
         Rectangle {
@@ -277,7 +277,7 @@ Item {
                            : cH.hovered ? Qt.rgba(1,1,1,0.14) : Qt.rgba(1,1,1,0.06)
                     border.color: isPlay ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.3) : "transparent"
                     border.width: 1
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
                     Text {
                         anchors.centerIn: parent
                         text: parent.dispIcon
@@ -329,7 +329,7 @@ Item {
                         anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
                         width:  Math.max(radius * 2, parent.width * root._progress)
                         radius: parent.radius; color: Theme.active
-                        Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                        Behavior on width { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic} }
                     }
                 }
             }
@@ -381,7 +381,7 @@ Item {
             height: root._dropdownOpen 
                     ? (_rowH * root.filteredPlayers.length) 
                     : _rowH
-            Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+            Behavior on height { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic} }
 
             radius:       _rowH / 2
             clip:         true
@@ -390,7 +390,7 @@ Item {
                           ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30)
                           : "transparent"
             border.width: 1
-            Behavior on border.color { ColorAnimation { duration: 150 } }
+            Behavior on border.color { ColorAnimation { duration: Anim.mediumFast} }
 
             // Stacks downward from the top
             Column {
@@ -447,8 +447,8 @@ Item {
                         visible: !isCurrent
                         opacity: root._dropdownOpen ? 1 : 0
                         
-                        Behavior on height  { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-                        Behavior on opacity { NumberAnimation { duration: 140 } }
+                        Behavior on height  { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
+                        Behavior on opacity { NumberAnimation { duration: Anim.color} }
 
                         Row {
                             anchors.centerIn: parent
@@ -459,7 +459,7 @@ Item {
                                 text:           root._playerIcon(modelData)
                                 font.pixelSize: Math.round(11 * localScale)
                                 color:          rowH.hovered ? Qt.rgba(1,1,1,0.90) : Qt.rgba(1,1,1,0.55)
-                                Behavior on color { ColorAnimation { duration: 100 } }
+                                Behavior on color { ColorAnimation { duration: Anim.fast} }
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -468,7 +468,7 @@ Item {
                                 color:          rowH.hovered ? Qt.rgba(1,1,1,0.90) : Qt.rgba(1,1,1,0.55)
                                 width:          Math.min(implicitWidth, Math.round(120 * localScale))
                                 elide:          Text.ElideRight
-                                Behavior on color { ColorAnimation { duration: 100 } }
+                                Behavior on color { ColorAnimation { duration: Anim.fast} }
                             }
                         }
 
@@ -507,7 +507,7 @@ Item {
                         height: Math.max(2, _amp * Math.round(32 * localScale))
                         radius: width / 2
                         color:  Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.25 + _amp * 0.65)
-                        Behavior on height { NumberAnimation { duration: 50; easing.type: Easing.OutCubic } }
+                        Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
                     }
                 }
             }

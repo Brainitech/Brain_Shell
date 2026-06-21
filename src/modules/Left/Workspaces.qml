@@ -110,8 +110,8 @@ Rectangle {
         scale:   root.isScratchpad ? 0.8 : 1
         visible: opacity > 0 
 
-        Behavior on opacity { NumberAnimation { duration: 200 } }
-        Behavior on scale   { NumberAnimation { duration: 200 } }
+        Behavior on opacity { NumberAnimation { duration: Anim.normal} }
+        Behavior on scale   { NumberAnimation { duration: Anim.normal} }
 
         Repeater {
             model: 10 
@@ -135,8 +135,8 @@ Rectangle {
                     return Theme.wsEmpty
                 }
 
-                Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
-                Behavior on color { ColorAnimation { duration: 200 } }
+                Behavior on width { NumberAnimation { duration: Anim.normal; easing.type: Anim.outBack} }
+                Behavior on color { ColorAnimation { duration: Anim.normal} }
 
                 // --- Urgent pulse ---
                 SequentialAnimation {
@@ -147,15 +147,15 @@ Rectangle {
                         target:   dot
                         property: "scale"
                         to:       1.35
-                        duration: 400
-                        easing.type: Easing.InOutSine
+                        duration: Anim.slower
+                        easing.type: Anim.inOutSine
                     }
                     NumberAnimation {
                         target:   dot
                         property: "scale"
                         to:       1.0
-                        duration: 400
-                        easing.type: Easing.InOutSine
+                        duration: Anim.slower
+                        easing.type: Anim.inOutSine
                     }
                 }
 
@@ -186,7 +186,7 @@ Rectangle {
         visible: opacity > 0
         opacity: root.isScratchpad ? 1 : 0
         
-        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on opacity { NumberAnimation { duration: Anim.normal} }
         
         Text {
             anchors.centerIn: parent

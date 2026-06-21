@@ -47,7 +47,7 @@ Item {
                 width: parent.width; height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
                 color: hUpH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
                 border.color: Qt.rgba(1,1,1,0.08); border.width: 1
-                Behavior on color { ColorAnimation { duration: 80 } }
+                Behavior on color { ColorAnimation { duration: Anim.superFast} }
                 Text { anchors.centerIn: parent; text: "▲"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(1,1,1,0.4) }
                 HoverHandler { id: hUpH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root.incH() }
@@ -78,7 +78,7 @@ Item {
                 width: parent.width; height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
                 color: hDnH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
                 border.color: Qt.rgba(1,1,1,0.08); border.width: 1
-                Behavior on color { ColorAnimation { duration: 80 } }
+                Behavior on color { ColorAnimation { duration: Anim.superFast} }
                 Text { anchors.centerIn: parent; text: "▼"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(1,1,1,0.4) }
                 HoverHandler { id: hDnH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root.decH() }
@@ -111,7 +111,7 @@ Item {
                 width: parent.width; height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
                 color: mUpH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
                 border.color: Qt.rgba(1,1,1,0.08); border.width: 1
-                Behavior on color { ColorAnimation { duration: 80 } }
+                Behavior on color { ColorAnimation { duration: Anim.superFast} }
                 Text { anchors.centerIn: parent; text: "▲"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(1,1,1,0.4) }
                 HoverHandler { id: mUpH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root.incM() }
@@ -142,7 +142,7 @@ Item {
                 width: parent.width; height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
                 color: mDnH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
                 border.color: Qt.rgba(1,1,1,0.08); border.width: 1
-                Behavior on color { ColorAnimation { duration: 80 } }
+                Behavior on color { ColorAnimation { duration: Anim.superFast} }
                 Text { anchors.centerIn: parent; text: "▼"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(1,1,1,0.4) }
                 HoverHandler { id: mDnH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root.decM() }

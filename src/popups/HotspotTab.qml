@@ -88,7 +88,7 @@ Item {
                 anchors { left: parent.left; leftMargin: Math.round(76 * localScale);
                 verticalCenter: parent.verticalCenter }
                 spacing: Math.round(6 * localScale)
-                Rectangle { width: Math.round(7 * localScale); height: Math.round(7 * localScale); radius: Math.round(4 * localScale); anchors.verticalCenter: parent.verticalCenter; color: ShellState.hotspot ? Theme.active : Qt.rgba(1,1,1,0.22); Behavior on color { ColorAnimation { duration: 200 } } }
+                Rectangle { width: Math.round(7 * localScale); height: Math.round(7 * localScale); radius: Math.round(4 * localScale); anchors.verticalCenter: parent.verticalCenter; color: ShellState.hotspot ? Theme.active : Qt.rgba(1,1,1,0.22); Behavior on color { ColorAnimation { duration: Anim.normal} } }
                 Text { anchors.verticalCenter: parent.verticalCenter; text: ShellState.hotspot ? "Active" : "Inactive"; font.pixelSize: Math.round(11 * localScale); color: ShellState.hotspot ? Theme.active : Qt.rgba(1,1,1,0.32) }
             }
         }
@@ -140,7 +140,7 @@ Item {
                                 height: Math.round(28 * localScale); radius: Math.round(7 * localScale)
                                 color: ssidInput.activeFocus ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08) : Qt.rgba(1,1,1,0.05)
                                 border.color: ssidInput.activeFocus ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.45) : Qt.rgba(1,1,1,0.11); border.width: Math.max(1, Math.round(1 * localScale))
-                                Behavior on border.color { ColorAnimation { duration: 120 } }
+                                Behavior on border.color { ColorAnimation { duration: Anim.color} }
                                 TextInput {
                                     id: ssidInput; anchors { fill: parent; leftMargin: Math.round(10 * localScale); rightMargin: Math.round(10 * localScale) }
                                     verticalAlignment: TextInput.AlignVCenter; color: Theme.text; font.pixelSize: Math.round(12 * localScale)
@@ -162,7 +162,7 @@ Item {
                                 height: Math.round(28 * localScale); radius: Math.round(7 * localScale)
                                 color: passInput.activeFocus ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08) : Qt.rgba(1,1,1,0.05)
                                 border.color: passInput.activeFocus ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.45) : Qt.rgba(1,1,1,0.11); border.width: Math.max(1, Math.round(1 * localScale))
-                                Behavior on border.color { ColorAnimation { duration: 120 } }
+                                Behavior on border.color { ColorAnimation { duration: Anim.color} }
                                 TextInput {
                                     id: passInput; anchors { fill: parent; leftMargin: Math.round(10 * localScale); rightMargin: Math.round(10 * localScale) }
                                     verticalAlignment: TextInput.AlignVCenter; color: Theme.text; font.pixelSize: Math.round(12 * localScale)
@@ -193,7 +193,7 @@ Item {
                                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.28)
                                 : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
                             border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.40); border.width: Math.max(1, Math.round(1 * localScale))
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text { anchors.centerIn: parent; text: "Save"; font.pixelSize: Math.round(12 * localScale); font.weight: Font.Medium; color: Theme.active }
                             HoverHandler { id: saveH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root._save() }

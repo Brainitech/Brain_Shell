@@ -115,8 +115,8 @@ Item {
                 id: pulseAnim
                 running:  root.pct <= 10 && !root.charging
                 loops:    Animation.Infinite
-                NumberAnimation { to: 0.2; duration: 600; easing.type: Easing.InOutSine }
-                NumberAnimation { to: 1.0; duration: 600; easing.type: Easing.InOutSine }
+                NumberAnimation { to: 0.2; duration: Anim.extraSlow; easing.type: Anim.inOutSine}
+                NumberAnimation { to: 1.0; duration: Anim.extraSlow; easing.type: Anim.inOutSine}
             }
 
             // Snap back when animation stops
@@ -135,7 +135,7 @@ Item {
             implicitHeight: pctText.implicitHeight
             clip: true
             anchors.verticalCenter: parent.verticalCenter
-            Behavior on implicitWidth { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+            Behavior on implicitWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
 
             Text {
                 id: pctText
@@ -143,7 +143,7 @@ Item {
                 color:          hov.hovered ? Theme.active : Theme.text
                 font.pixelSize: Math.round(12 * localScale)
                 anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { ColorAnimation { duration: Anim.color} }
             }
         }
     }

@@ -7,7 +7,7 @@ Text {
 
     text: Qt.formatDateTime(new Date(), "hh:mm")
     color: clockHov.hovered ? Theme.active : Theme.text
-    Behavior on color { ColorAnimation { duration: 120 } }
+    Behavior on color { ColorAnimation { duration: Anim.color} }
     font.bold: true
     anchors.verticalCenter: parent.verticalCenter
     font.pixelSize: Math.round(16 * localScale)

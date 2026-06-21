@@ -85,7 +85,7 @@ PopupWindow {
 
 	Timer {
 		id:       slideOutTimer
-		interval: Theme.animDuration + 20
+		interval: Anim.transition + 20
 		onTriggered: {
 			if (root.queue.length > 0) {
 				const next = root.queue[0]
@@ -114,8 +114,8 @@ PopupWindow {
 		? (cardCol.y + cardCol.implicitHeight + Math.round(24 * root.localScale) + root.fh)
 		: root.fh
 
-		Behavior on width  { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
-		Behavior on height { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+		Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+		Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
 
 		PopupShape {
 			anchors.fill: parent
@@ -150,7 +150,7 @@ PopupWindow {
 		Item {
 			anchors.fill: parent
 			opacity: root.showing ? 1 : 0
-			Behavior on opacity { NumberAnimation { duration: 150 } }
+			Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
 			Rectangle {
 				id: progressBar
 				anchors {
@@ -170,7 +170,7 @@ PopupWindow {
 				width: running ? 0 : root.toastWidth - Math.round(10 * root.localScale)
 				Behavior on width {
 					enabled: progressBar.running
-					NumberAnimation { duration: 5000; easing.type: Easing.Linear }
+					NumberAnimation { duration: Anim.megaSlow; easing.type: Anim.linear}
 				}
 
 				Connections {
@@ -262,7 +262,7 @@ PopupWindow {
 							anchors.fill: parent
 							radius:       width / 2
 							color:        xHover.containsMouse ? Qt.rgba(1,1,1,0.12) : "transparent"
-							Behavior on color { ColorAnimation { duration: 100 } }
+							Behavior on color { ColorAnimation { duration: Anim.fast} }
 						}
 						Text {
 							anchors.centerIn: parent
@@ -316,7 +316,7 @@ PopupWindow {
 								color:        actHover.containsMouse
 								? Qt.rgba(1,1,1,0.18)
 								: Qt.rgba(1,1,1,0.08)
-								Behavior on color { ColorAnimation { duration: 100 } }
+								Behavior on color { ColorAnimation { duration: Anim.fast} }
 							}
 							Text {
 								id:               actionLbl

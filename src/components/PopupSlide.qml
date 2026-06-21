@@ -111,8 +111,8 @@ Item {
         y: root._effectiveOpen ? 0 : (root.edge === "top"    ? -height :
                                        root.edge === "bottom" ?  height : 0)
 
-        Behavior on x { NumberAnimation { duration: root.slideDuration; easing.type: Easing.OutCubic } }
-        Behavior on y { NumberAnimation { duration: root.slideDuration; easing.type: Easing.OutCubic } }
+        Behavior on x { NumberAnimation { duration: root.slideDuration; easing.type: Anim.outCubic} }
+        Behavior on y { NumberAnimation { duration: root.slideDuration; easing.type: Anim.outCubic} }
 
         // Self-hover tracking — automatically available to all popups
         HoverHandler {

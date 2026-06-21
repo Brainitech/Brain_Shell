@@ -186,7 +186,7 @@ PanelWindow {
                     height: Math.round(38 * localScale)
                     radius: Math.round(Theme.cornerRadius * localScale)
                     color:  cancelHov.hovered ? Qt.rgba(1, 1, 1, 0.1) : Qt.rgba(1, 1, 1, 0.05)
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { ColorAnimation { duration: Anim.color} }
 
                     Text {
                         anchors.centerIn: parent
@@ -204,7 +204,7 @@ PanelWindow {
                     height: Math.round(38 * localScale)
                     radius: Math.round(Theme.cornerRadius * localScale)
                     color:  confirmHov.hovered ? "#cc3a3a" : "#993030"
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { ColorAnimation { duration: Anim.color} }
 
                     Text {
                         anchors.centerIn: parent
@@ -255,10 +255,10 @@ PanelWindow {
                     target:      spinnerCanvas
                     from:        0
                     to:          360
-                    duration:    900
+                    duration: Anim.megaSlow
                     loops:       Animation.Infinite
                     running:     Popups.confirmRunning
-                    easing.type: Easing.Linear
+                    easing.type: Anim.linear
                 }
 
                 onPaint: {

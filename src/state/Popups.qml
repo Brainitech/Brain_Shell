@@ -35,8 +35,8 @@ QtObject {
     property bool quickTriggerHovered: false
 
     // ── Universal popup behavior settings ─────────────────────────────────────
-    property int  slideDuration:   Theme.animDuration
-    property int  hoverCloseDelay: Theme.animDuration + 200   // delay after hover leaves before closing
+    property int  slideDuration:   Anim.transition
+    property int  hoverCloseDelay: Anim.transition + 200   // delay after hover leaves before closing
 
     // ── Confirm dialog ────────────────────────────────────────────────────────
     property bool   confirmOpen:    false

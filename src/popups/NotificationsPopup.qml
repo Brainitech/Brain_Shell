@@ -18,7 +18,7 @@ PopupWindow {
     readonly property int maxHeight:    Math.round(700 * root.localScale)
     readonly property int fw:           Math.round(Theme.notchRadius * root.localScale)
     readonly property int fh:           Math.round(Theme.notchRadius * root.localScale)
-    readonly property int animDuration: Theme.animDuration
+    readonly property int animDuration: Anim.transition
 
     // Fixed — never zero, never dynamic
     implicitWidth:  popupWidth + fw
@@ -86,8 +86,8 @@ PopupWindow {
                 ? notifList.height + Math.round(Theme.popupPadding * 2 * root.localScale) + root.fh
                 : root.fh
 
-        Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic } }
-        Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic } }
+        Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
+        Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
 
         // ── Background ─────────────────────────────────────────
         PopupShape {

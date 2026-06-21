@@ -120,7 +120,7 @@ PopupWindow {
             width:  root.popupWidth
             height: root.popupHeight
 
-            Behavior on width { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+            Behavior on width { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
 
             PopupShape {
                 id: bg
@@ -214,7 +214,7 @@ PopupWindow {
                 color:          col.muted ? Qt.rgba(1,1,1,0.25) : Theme.text
                 font.pixelSize: Math.round(13 * root.localScale)
                 font.bold:      true
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
             }
 
             Item {
@@ -234,8 +234,8 @@ PopupWindow {
                         height: Math.max(radius * 2, parent.height * col.value)
                         radius: parent.radius
                         color:  col.muted ? Qt.rgba(1,1,1,0.15) : Theme.active
-                        Behavior on color  { ColorAnimation  { duration: 150 } }
-                        Behavior on height { NumberAnimation { duration: 80; easing.type: Easing.OutCubic } }
+                        Behavior on color  { ColorAnimation  { duration: Anim.mediumFast} }
+                        Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
                     }
 
                     // Thumb
@@ -250,7 +250,7 @@ PopupWindow {
                             var travel = track.height - height
                             return Math.max(0, Math.min(travel, (1.0 - col.value) * travel))
                         }
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
 
                     // Drag to change value
@@ -286,20 +286,20 @@ PopupWindow {
                 color:  col.muted
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2)
                             : Qt.rgba(1,1,1,0.06)
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
 
                 Text {
                     anchors.centerIn: parent
                     text:           col.icon
                     font.pixelSize: Math.round(14 * root.localScale)
                     color:          col.muted ? Theme.active : Qt.rgba(1,1,1,0.55)
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                 }
 
                 Rectangle {
                     anchors.fill: parent; radius: parent.radius
                     color: muteHov.hovered ? Qt.rgba(1,1,1,0.05) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
                 }
                 HoverHandler { id: muteHov; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: col.muteToggled()}

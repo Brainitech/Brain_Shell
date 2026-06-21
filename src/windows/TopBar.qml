@@ -32,12 +32,12 @@ PanelWindow {
     // PopupWindow is the one that must never have animated implicitHeight.
     implicitHeight: (ShellState.focusMode ? Math.round(Theme.borderWidth * root.localScale) : Math.round(Theme.notchHeight * root.localScale)) + 1
     Behavior on implicitHeight {
-        NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+        NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
     }
 
     exclusiveZone: ShellState.focusMode ? 0 : Math.round(Theme.exclusionGap * root.localScale)
     Behavior on exclusiveZone {
-        NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+        NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
     }
 
     readonly property int lWidth: Math.max(
@@ -56,7 +56,7 @@ PanelWindow {
                      centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * root.localScale))
           )
     Behavior on cWidth {
-        NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+        NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
     }
 
     // Width matches sizer open width: popupWidth + notchRadius (fw) in both popups
@@ -74,7 +74,7 @@ PanelWindow {
         color: Theme.background
         opacity: ShellState.focusMode ? 1 : 0
         Behavior on opacity {
-            NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+            NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
         }
     }
 
@@ -83,7 +83,7 @@ PanelWindow {
         anchors.fill: parent
         opacity: ShellState.focusMode ? 0 : 1
         Behavior on opacity {
-            NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+            NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
         }
 
         states: [
@@ -107,7 +107,7 @@ PanelWindow {
     transitions: [
         Transition {
             // This animation ONLY runs when switching between popups (and toasts) and the base state.
-            NumberAnimation { property: "rWidth"; duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+            NumberAnimation { property: "rWidth"; duration: Anim.transition; easing.type: Anim.inOutCubic}
         }
     ]
 

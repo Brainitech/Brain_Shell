@@ -80,7 +80,7 @@ Item {
                     RotationAnimation on rotation {
                         loops: Animation.Infinite
                         from: 0; to: 360
-                        duration: 1500
+                        duration: Anim.megaSlow
                         running: root.loading
                     }
                 }
@@ -154,8 +154,8 @@ Item {
                                   : rowH.hovered ? Qt.rgba(1,1,1,0.08) : "transparent"
                     border.width: 1
 
-                    Behavior on color        { ColorAnimation { duration: 100 } }
-                    Behavior on border.color { ColorAnimation { duration: 100 } }
+                    Behavior on color        { ColorAnimation { duration: Anim.fast} }
+                    Behavior on border.color { ColorAnimation { duration: Anim.fast} }
 
                     Row {
                         anchors {
@@ -221,7 +221,7 @@ Item {
                             font.pixelSize: Math.round(13 * localScale)
                             color:          isSel ? Theme.active : Theme.text
                             elide:          Text.ElideRight
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                         }
                     }
 
@@ -246,7 +246,7 @@ Item {
                           ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.50)
                           : Qt.rgba(1,1,1,0.12)
             border.width: 1
-            Behavior on border.color { ColorAnimation { duration: 120 } }
+            Behavior on border.color { ColorAnimation { duration: Anim.color} }
 
             Row {
                 anchors { fill: parent; leftMargin: Math.round(14 * localScale); rightMargin: Math.round(14 * localScale) }
@@ -258,7 +258,7 @@ Item {
                     color: searchInput.activeFocus
                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.7)
                            : Qt.rgba(1,1,1,0.35)
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { ColorAnimation { duration: Anim.color} }
                 }
 
                 Item {

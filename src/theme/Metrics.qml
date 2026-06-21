@@ -55,6 +55,4 @@ QtObject {
     property int wsPadding:     8
     property int wsRadius:      16
 
-    // -- Animations --
-    property int animDuration: 320
 }

@@ -123,7 +123,7 @@ PanelWindow {
 
     Timer {
         id: closeTimer
-        interval: Theme.animDuration + 20
+        interval: Anim.transition + 20
         onTriggered: { if (!Popups.wallpaperOpen) root.windowVisible = false }
     }
 
@@ -149,7 +149,7 @@ PanelWindow {
 
     Timer {
         id: centerLockTimer
-        interval: Theme.animDuration
+        interval: Anim.transition
         onTriggered: wallGrid.targetCenterIndex = -1
     }
 
@@ -168,8 +168,8 @@ PanelWindow {
         width:  Popups.wallpaperOpen ? root.panelWidth + 2 * root.fw : Math.round(Theme.cNotchMinWidth * root.localScale) + 2 * root.fw
         height: Popups.wallpaperOpen ? root.panelHeight : 0
 
-        Behavior on width  { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
-        Behavior on height { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+        Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+        Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
 
         HoverHandler {
             onHoveredChanged: root.selfHovered = hovered
@@ -221,11 +221,11 @@ PanelWindow {
             opacity: Popups.wallpaperOpen ? 1 : 0
             transform: Translate {
                 y: Popups.wallpaperOpen ? 0 : Math.round(40 * root.localScale)
-                Behavior on y { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.OutExpo } }
+                Behavior on y { NumberAnimation { duration: Anim.transition; easing.type: Anim.outExpo} }
             }
             Behavior on opacity {
                 NumberAnimation {
-                    duration: Popups.wallpaperOpen ? Theme.animDuration * 0.5 : Theme.animDuration * 0.15
+                    duration: Popups.wallpaperOpen ? Anim.transition * 0.5 : Anim.transition * 0.15
                 }
             }
 
@@ -272,7 +272,7 @@ PanelWindow {
 
                     width:  isPreview ? Math.round(130 * 1.2 * localScale) : Math.round(130 * localScale)
                     height: isPreview ? wallGrid.height : wallGrid.height - Math.round(14 * localScale)
-                    Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.InOutCubic } }
+                    Behavior on width { NumberAnimation { duration: Anim.color; easing.type: Anim.inOutCubic} }
 
                     Item {
                         id:           cardContent
@@ -337,8 +337,8 @@ PanelWindow {
                         border.color: isPreview ? Theme.active
                             : isCurrent ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.45)
                             : Qt.rgba(1,1,1,0.15)
-                        Behavior on border.color { ColorAnimation { duration: 120 } }
-                        Behavior on border.width { NumberAnimation  { duration: 120 } }
+                        Behavior on border.color { ColorAnimation { duration: Anim.color} }
+                        Behavior on border.width { NumberAnimation  { duration: Anim.color} }
                     }
 
                     MouseArea {
@@ -408,12 +408,12 @@ PanelWindow {
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
                             : Qt.rgba(1,1,1,0.09)
                         border.width: 1
-                        Behavior on color        { ColorAnimation { duration: 100 } }
-                        Behavior on border.color { ColorAnimation { duration: 100 } }
+                        Behavior on color        { ColorAnimation { duration: Anim.fast} }
+                        Behavior on border.color { ColorAnimation { duration: Anim.fast} }
                         Text {
                             anchors.centerIn: parent; text: "󰉋"; font.pixelSize: Math.round(15 * root.localScale)
                             color: (content.folderMode || folderBtnMA.containsMouse) ? Theme.active : Qt.rgba(1,1,1,0.5)
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                         }
                         MouseArea {
                             id:                 folderBtnMA
@@ -444,8 +444,8 @@ PanelWindow {
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5)
                             : (filterBoxMA.containsMouse ? Qt.rgba(1,1,1,0.15) : Qt.rgba(1,1,1,0.1))
                         border.width: 1
-                        Behavior on color { ColorAnimation { duration: 100 } }
-                        Behavior on border.color { ColorAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
+                        Behavior on border.color { ColorAnimation { duration: Anim.fast} }
                         
                         MouseArea {
                             id:                 filterBoxMA
@@ -574,8 +574,8 @@ PanelWindow {
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
                             : Qt.rgba(1,1,1,0.09)
                         border.width: 1
-                        Behavior on color        { ColorAnimation { duration: 100 } }
-                        Behavior on border.color { ColorAnimation { duration: 100 } }
+                        Behavior on color        { ColorAnimation { duration: Anim.fast} }
+                        Behavior on border.color { ColorAnimation { duration: Anim.fast} }
 
                         Row {
                             id:                 schemeBtnRow; anchors.centerIn: parent; spacing: Math.round(7 * localScale)
@@ -584,14 +584,14 @@ PanelWindow {
                                 font.pixelSize:         Math.round(14 * localScale)
                                 color:                  (content.schemePopupOpen || schemeBtnMA.containsMouse) ? Theme.active : Qt.rgba(1,1,1,0.55)
                                 anchors.verticalCenter: parent.verticalCenter
-                                Behavior on color       { ColorAnimation { duration: 100 } }
+                                Behavior on color       { ColorAnimation { duration: Anim.fast} }
                             }
                             Text {
                                 text:                   WallpaperService.scheme
                                 font.pixelSize:         Math.round(12 * localScale)
                                 color:                  (content.schemePopupOpen || schemeBtnMA.containsMouse) ? Theme.active : Qt.rgba(1,1,1,0.7)
                                 anchors.verticalCenter: parent.verticalCenter
-                                Behavior on color       { ColorAnimation { duration: 100 } }
+                                Behavior on color       { ColorAnimation { duration: Anim.fast} }
                             }
                             Text {
                                 text:                   content.schemePopupOpen ? "▴" : "▾"
@@ -628,10 +628,10 @@ PanelWindow {
                         ? Theme.active
                         : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
                     border.width: 1
-                    Behavior on width        { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                    Behavior on opacity      { NumberAnimation { duration: 160 } }
-                    Behavior on color        { ColorAnimation { duration: 100 } }
-                    Behavior on border.color { ColorAnimation { duration: 100 } }
+                    Behavior on width        { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic} }
+                    Behavior on opacity      { NumberAnimation { duration: Anim.mediumFast} }
+                    Behavior on color        { ColorAnimation { duration: Anim.fast} }
+                    Behavior on border.color { ColorAnimation { duration: Anim.fast} }
                     Text {
                         anchors.centerIn: parent
                         text:             WallpaperService.applying ? "…" : "Apply"
@@ -639,7 +639,7 @@ PanelWindow {
                         font.weight:      Font.Medium 
                         color:            Theme.active
                         opacity:          applyBtn.active ? 1 : 0
-                        Behavior on opacity { NumberAnimation { duration: 100 } }
+                        Behavior on opacity { NumberAnimation { duration: Anim.fast} }
                     }
                     MouseArea {
                         id:           applyBtnMA
@@ -679,7 +679,7 @@ PanelWindow {
             border.width: 1
 
             opacity:            content.schemePopupOpen ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 140 } }
+            Behavior on opacity { NumberAnimation { duration: Anim.color} }
 
             onVisibleChanged: {
                 if (visible) {
@@ -721,8 +721,8 @@ PanelWindow {
                             : "transparent"
                         border.width: 1
 
-                        Behavior on color        { ColorAnimation { duration: 100 } }
-                        Behavior on border.color { ColorAnimation { duration: 100 } }
+                        Behavior on color        { ColorAnimation { duration: Anim.fast} }
+                        Behavior on border.color { ColorAnimation { duration: Anim.fast} }
 
                         Row {
                             anchors.left: parent.left

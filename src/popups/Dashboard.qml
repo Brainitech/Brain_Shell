@@ -28,7 +28,7 @@ PanelWindow {
 
     readonly property int fw: Math.round(Theme.notchRadius * localScale)
     readonly property int fh: Math.round(Theme.notchRadius * localScale)
-    readonly property int animDuration: Theme.animDuration
+    readonly property int animDuration: Anim.transition
 
     property string page: Popups.dashboardPage
 
@@ -118,8 +118,8 @@ PanelWindow {
             ? Math.min(Theme.dashboardHeight * localScale, (screen ? screen.height : 1080) * 0.90) 
             : Theme.notchHeight / 2
 
-        Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic } }
-        Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic } }
+        Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
+        Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
         
         MouseArea {
             anchors.fill: parent
@@ -181,49 +181,99 @@ PanelWindow {
                 Item {
                     id: pageArea
                     focus: true
+                    clip:  true
                     
                     width:  parent.width
                     height: parent.height - tabBar.height
+                    
+                    property int pageIdx: Math.max(0, ["home", "stats", "kanban", "launcher", "config"].indexOf(root.page))
+                    
+                    property int oldIdx: 0
+                    property int newIdx: pageIdx
+                    property real progress: 1.0
+                    
+                    NumberAnimation {
+                        id: progressAnim
+                        target: pageArea
+                        property: "progress"
+                        from: 0.0
+                        to: 1.0
+                        duration: Anim.style === "none" ? 0 : Anim.slow
+                        easing.type: Anim.outExpo
+                    }
+                    
+                    onPageIdxChanged: {
+                        oldIdx = newIdx;
+                        newIdx = pageIdx;
+                        progressAnim.restart();
+                    }
 
-                    Item {
-                        anchors.fill: parent
-                        visible:      root.page === "home"
+                    component SlidePage: Item {
+                        property int myIdx
+                        property bool isCurrent: myIdx === pageArea.pageIdx
+                        property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                        
+                        property bool isIncoming: myIdx === pageArea.newIdx
+                        property bool isOutgoing: myIdx === pageArea.oldIdx
+                        property int slideDir: pageArea.newIdx > pageArea.oldIdx ? 1 : -1
+                        
+                        width: parent.width; height: parent.height
+                        
+                        x: {
+                            if (Anim.style === "none") return 0;
+                            if (isIncoming) {
+                                return slideDir * root.scaledPageWidth * (1.0 - pageArea.progress);
+                            } else if (isOutgoing) {
+                                return -slideDir * root.scaledPageWidth * parallaxFactor * pageArea.progress;
+                            } else {
+                                return myIdx < pageArea.newIdx ? -root.scaledPageWidth : root.scaledPageWidth;
+                            }
+                        }
+                        
+                        opacity: {
+                            if (Anim.style !== "parallax") return 1.0;
+                            if (isIncoming) return pageArea.progress;
+                            if (isOutgoing) return 1.0 - pageArea.progress;
+                            return 0.0;
+                        }
+                        
+                        visible: isCurrent || (isOutgoing && pageArea.progress < 1.0)
+                    }
+
+                    SlidePage {
+                        myIdx: 0
                         DashHome { 
                             anchors.fill: parent 
                             localScale:   root.localScale
                         }
                     }
 
-                    Item {
-                        anchors.fill: parent
-                        visible:      root.page === "stats"
+                    SlidePage {
+                        myIdx: 1
                         DashStats { 
                             anchors.fill: parent 
                             localScale:   root.localScale
                         }
                     }
 
-                    Item {
-                        anchors.fill: parent
-                        visible:      root.page === "kanban"
+                    SlidePage {
+                        myIdx: 2
                         KanbanBoard { 
                             anchors.fill: parent 
                             localScale:   root.localScale
                         }
                     }
 
-                    Item {
-                        anchors.fill: parent
-                        visible:      root.page === "launcher"
+                    SlidePage {
+                        myIdx: 3
                         AppLauncher { 
                             anchors.fill: parent 
                             localScale:   root.localScale
                         }
                     }
 
-                    Item {
-                        anchors.fill: parent
-                        visible:      root.page === "config"
+                    SlidePage {
+                        myIdx: 4
                         ShellConfig { 
                             anchors.fill: parent 
                             localScale:   root.localScale

@@ -16,7 +16,7 @@ Item {
     implicitHeight: Math.round(28 * localScale)
 
     opacity: root.enabled ? 1 : 0.35
-    Behavior on opacity { NumberAnimation { duration: 120 } }
+    Behavior on opacity { NumberAnimation { duration: Anim.color} }
 
     Rectangle {
         anchors.fill: parent
@@ -30,8 +30,8 @@ Item {
                           : Qt.rgba(1, 1, 1, 0.18)
         border.width: 1
 
-        Behavior on color        { ColorAnimation { duration: 120 } }
-        Behavior on border.color { ColorAnimation { duration: 120 } }
+        Behavior on color        { ColorAnimation { duration: Anim.color} }
+        Behavior on border.color { ColorAnimation { duration: Anim.color} }
     }
 
     Row {
@@ -45,7 +45,7 @@ Item {
             font.pixelSize: Math.round(12 * localScale)
             color:          root.active ? Theme.background : Qt.rgba(1, 1, 1, 0.7)
             anchors.verticalCenter: parent.verticalCenter
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { ColorAnimation { duration: Anim.color} }
         }
 
         Text {
@@ -54,7 +54,7 @@ Item {
             font.weight:    root.active ? Font.Medium : Font.Normal
             color:          root.active ? Theme.background : Qt.rgba(1, 1, 1, 0.7)
             anchors.verticalCenter: parent.verticalCenter
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { ColorAnimation { duration: Anim.color} }
         }
     }
 

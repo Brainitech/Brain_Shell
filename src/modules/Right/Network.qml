@@ -94,10 +94,16 @@ Item {
         Text {
             id: netIcon
             text:           root._netIcon
-            color:          root._netColor
+            color:          wifiHov.hovered ? Theme.active : root._netColor
             font.pixelSize: Math.round(16 * localScale)
             anchors.verticalCenter: parent.verticalCenter
             Behavior on color { ColorAnimation { duration: Anim.normal} }
+            HoverHandler {
+                id: wifiHov
+                onHoveredChanged: {
+                    if (hovered && !Popups.networkPinned) Popups.networkPage = "wifi"
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -105,6 +111,7 @@ Item {
                     Popups.closeAll()
                     Popups.networkPage = "wifi"
                     Popups.networkOpen = true
+                    Popups.networkPinned = true
                 }
             }
         }
@@ -116,9 +123,15 @@ Item {
             font.pixelSize: Math.round(14 * localScale)
             anchors.verticalCenter: parent.verticalCenter
             opacity:        root._vpnOpacity
-            color: ShellState.vpnActive ? Theme.active : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.70)
+            color: ShellState.vpnActive ? Theme.active : (vpHov.hovered ? Theme.active : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.70))
             Behavior on color   { ColorAnimation  { duration: Anim.normal} }
             Behavior on opacity { NumberAnimation { duration: Anim.superFast} }
+            HoverHandler {
+                id: vpHov
+                onHoveredChanged: {
+                    if (hovered && !Popups.networkPinned) Popups.networkPage = "vpn"
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -126,6 +139,7 @@ Item {
                     Popups.closeAll()
                     Popups.networkPage = "vpn"
                     Popups.networkOpen = true
+                    Popups.networkPinned = true
                 }
             }
         }
@@ -136,8 +150,14 @@ Item {
             text:           ShellState.btConnected ? "󰂱" : "󰂯"
             font.pixelSize: Math.round(14 * localScale)
             anchors.verticalCenter: parent.verticalCenter
-            color: ShellState.btConnected ? (hov.hovered ? Theme.active : Theme.text) : Qt.rgba(1,1,1,0.32)
+            color: ShellState.btConnected ? (btHov.hovered ? Theme.active : Theme.text) : Qt.rgba(1,1,1,0.32)
             Behavior on color { ColorAnimation { duration: Anim.normal} }
+            HoverHandler {
+                id: btHov
+                onHoveredChanged: {
+                    if (hovered && !Popups.networkPinned) Popups.networkPage = "bluetooth"
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -145,6 +165,7 @@ Item {
                     Popups.closeAll()
                     Popups.networkPage = "bluetooth"
                     Popups.networkOpen = true
+                    Popups.networkPinned = true
                 }
             }
         }
@@ -155,8 +176,14 @@ Item {
             text:           "󰀂"
             font.pixelSize: Math.round(14 * localScale)
             anchors.verticalCenter: parent.verticalCenter
-            color:          Theme.active
+            color:          hotspotHov.hovered ? Theme.active : Theme.text
             Behavior on color { ColorAnimation { duration: Anim.normal} }
+            HoverHandler {
+                id: hotspotHov
+                onHoveredChanged: {
+                    if (hovered && !Popups.networkPinned) Popups.networkPage = "hotspot"
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -164,6 +191,7 @@ Item {
                     Popups.closeAll()
                     Popups.networkPage = "hotspot"
                     Popups.networkOpen = true
+                    Popups.networkPinned = true
                 }
             }
         }

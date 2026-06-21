@@ -15,6 +15,7 @@ IconBtn {
         var next = !Popups.notificationsOpen
         Popups.closeAll()
         Popups.notificationsOpen = next
+        if (next) Popups.notificationsPinned = true
     }
 
     HoverHandler {

@@ -65,6 +65,7 @@ PanelWindow {
     }
 
     property bool allowHover: Popups.clipboardAllowHover
+    property bool pinned:     Popups.clipboardPinned
     property bool selfHovered: false
 
     onSelfHoveredChanged: {
@@ -91,8 +92,11 @@ PanelWindow {
         id: hoverCloseTimer
         interval: Popups.hoverCloseDelay
         onTriggered: {
-            if (root.allowHover && !Popups.clipboardTriggerHovered && !root.selfHovered)
-                Popups.clipboardOpen = false
+            if (root.allowHover && !Popups.clipboardTriggerHovered && !root.selfHovered) {
+                if (!root.pinned) {
+                    Popups.clipboardOpen = false
+                }
+            }
         }
     }
 
@@ -124,9 +128,11 @@ PanelWindow {
         Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
         Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
 
-        MouseArea {
-            anchors.fill: parent
-            onClicked:    {}
+        TapHandler {
+            onTapped: {
+                Popups.clipboardOpen = true
+                Popups.clipboardPinned = true
+            }
         }
 
 

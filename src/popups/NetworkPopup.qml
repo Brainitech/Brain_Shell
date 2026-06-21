@@ -38,7 +38,7 @@ PanelWindow {
         x:      root.implicitWidth - sizer.width
         y:      0
         width:  sizer.width
-        height: sizer.height
+        height: Math.max(sizer.height, Math.round(Theme.notchHeight * root.localScale))
     }
 
     // ── Visibility gate ───────────────────────────────────────────────────────
@@ -77,6 +77,7 @@ PanelWindow {
     }
 
     property bool allowHover: Popups.networkAllowHover
+    property bool pinned:     Popups.networkPinned
     property bool selfHovered: false
 
     onSelfHoveredChanged: {
@@ -103,8 +104,11 @@ PanelWindow {
         id: hoverCloseTimer
         interval: Popups.hoverCloseDelay
         onTriggered: {
-            if (root.allowHover && !Popups.networkTriggerHovered && !root.selfHovered)
-                Popups.networkOpen = false
+            if (root.allowHover && !Popups.networkTriggerHovered && !root.selfHovered) {
+                if (!root.pinned) {
+                    Popups.networkOpen = false
+                }
+            }
         }
     }
 
@@ -116,284 +120,304 @@ PanelWindow {
 
     // ── Sizer — clip container, grows downward from y:0 ──────────────────────
     Item {
-        id: sizer
+        id: hoverContainer
         anchors.right: parent.right
         anchors.rightMargin: Math.round(Theme.borderWidth * root.localScale)
         y: 0
-        clip: true
-
-        width: Popups.networkOpen
-       ? root.popupWidth + root.fw
-       : Math.round(Theme.rNotchMinWidth * root.localScale) + root.fw
+        width: sizer.width
+        height: Math.max(sizer.height, Math.round(Theme.notchHeight * root.localScale))
 
         HoverHandler {
             onHoveredChanged: root.selfHovered = hovered
         }
 
-        height: Popups.networkOpen ? root.popupHeight : 0
-
-        Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-        Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-
-        PopupShape {
-            anchors.fill: parent
-            attachedEdge: "right"
-            color:        Theme.background
-            radius:       Math.round(Theme.cornerRadius * root.localScale)
-            flareWidth:   root.fw
-            flareHeight:  root.fh
-        }
-
-        Keys.onEscapePressed: Popups.networkOpen = false
-
         Item {
-            id: contentArea
-            anchors {
-                fill:         parent
-                topMargin:    Math.round(Theme.notchHeight * root.localScale)
-                leftMargin:   root.fw
-                rightMargin:  root.fw/2
-                bottomMargin: root.fh + Math.round(Theme.cornerRadius * root.localScale)
-            }
-
-            opacity: Popups.networkOpen ? 1 : 0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Popups.networkOpen
-                        ? Anim.transition * 0.5
-                        : Anim.transition * 0.15
+            id: sizer
+            anchors.top: parent.top
+            anchors.right: parent.right
+            clip: true
+            
+            TapHandler {
+                onTapped: {
+                    Popups.networkOpen = true
+                    Popups.networkPinned = true
                 }
             }
 
-            // ── Tab page area ─────────────────────────────────────────────────
+            width: Popups.networkOpen ? root.popupWidth + root.fw : Math.round(Theme.rNotchMinWidth * root.localScale) + root.fw
+
+            TapHandler {
+                onTapped: {
+                    Popups.networkOpen = true
+                    Popups.networkPinned = true
+                }
+            }
+
+            height: Popups.networkOpen ? root.popupHeight : 0
+    
+            Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+            Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+    
+            PopupShape {
+                anchors.fill: parent
+                attachedEdge: "right"
+                color:        Theme.background
+                radius:       Math.round(Theme.cornerRadius * root.localScale)
+                flareWidth:   root.fw
+                flareHeight:  root.fh
+            }
+    
+            Keys.onEscapePressed: Popups.networkOpen = false
+    
             Item {
-                id: tabContent
-                clip: true
-                
-                property int pageIdx: Math.max(0, ["wifi", "bluetooth", "vpn", "hotspot"].indexOf(root.page))
-
+                id: contentArea
                 anchors {
-                    top:    parent.top
-                    left:   parent.left
-                    right:  parent.right
-                    bottom: tabBar.top
+                    fill:         parent
+                    topMargin:    Math.round(Theme.notchHeight * root.localScale)
+                    leftMargin:   root.fw
+                    rightMargin:  root.fw/2
+                    bottomMargin: root.fh + Math.round(Theme.cornerRadius * root.localScale)
                 }
-
-                Loader {
-                    id: tabWifi
-                    readonly property int myIdx: 0
-                    property bool isCurrent: root.page === "wifi"
-                    property bool wasCurrent: false
-                    property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
-                    onIsCurrentChanged: { 
-                        if (isCurrent) wasCurrent = false;
-                        else if (Anim.style === "none") wasCurrent = false;
-                        else wasCurrent = true;
+    
+                opacity: Popups.networkOpen ? 1 : 0
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: Popups.networkOpen
+                            ? Anim.transition * 0.5
+                            : Anim.transition * 0.15
                     }
+                }
+    
+                // ── Tab page area ─────────────────────────────────────────────────
+                Item {
+                    id: tabContent
+                    clip: true
                     
-                    width: parent.width; height: parent.height
-                    
-                    property real targetX: {
-                        if (Anim.style === "none") return 0;
-                        if (isCurrent) return 0;
-                        if (myIdx < tabContent.pageIdx) return -width * parallaxFactor;
-                        return width;
+                    property int pageIdx: Math.max(0, ["wifi", "bluetooth", "vpn", "hotspot"].indexOf(root.page))
+    
+                    anchors {
+                        top:    parent.top
+                        left:   parent.left
+                        right:  parent.right
+                        bottom: tabBar.top
                     }
-                    
-                    x: targetX
-                    Behavior on x {
-                        enabled: Anim.style !== "none"
-                        NumberAnimation { 
-                            duration: Anim.slow; easing.type: Anim.outExpo
-                            onRunningChanged: { if (!running && !tabWifi.isCurrent) tabWifi.wasCurrent = false; }
+    
+                    Loader {
+                        id: tabWifi
+                        readonly property int myIdx: 0
+                        property bool isCurrent: root.page === "wifi"
+                        property bool wasCurrent: false
+                        property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                        onIsCurrentChanged: { 
+                            if (isCurrent) wasCurrent = false;
+                            else if (Anim.style === "none") wasCurrent = false;
+                            else wasCurrent = true;
                         }
-                    }
-                    
-                    property real targetOpacity: {
-                        if (Anim.style !== "parallax") return 1.0;
-                        if (isCurrent) return 1.0;
-                        return 0.0;
-                    }
-                    opacity: targetOpacity
-                    Behavior on opacity {
-                        enabled: Anim.style === "parallax"
-                        NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
-                    }
-                    
-                    active: isCurrent || wasCurrent
-                    visible: active
-                    
-                    source:       "WifiTab.qml"
-                    onLoaded:     item.localScale = root.localScale
-                }
-
-                Loader {
-                    id: tabBluetooth
-                    readonly property int myIdx: 1
-                    property bool isCurrent: root.page === "bluetooth"
-                    property bool wasCurrent: false
-                    property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
-                    onIsCurrentChanged: { 
-                        if (isCurrent) wasCurrent = false;
-                        else if (Anim.style === "none") wasCurrent = false;
-                        else wasCurrent = true;
-                    }
-                    
-                    width: parent.width; height: parent.height
-                    
-                    property real targetX: {
-                        if (Anim.style === "none") return 0;
-                        if (isCurrent) return 0;
-                        if (myIdx < tabContent.pageIdx) return -width * parallaxFactor;
-                        return width;
-                    }
-                    
-                    x: targetX
-                    Behavior on x {
-                        enabled: Anim.style !== "none"
-                        NumberAnimation { 
-                            duration: Anim.slow; easing.type: Anim.outExpo
-                            onRunningChanged: { if (!running && !tabBluetooth.isCurrent) tabBluetooth.wasCurrent = false; }
+                        
+                        width: parent.width; height: parent.height
+                        
+                        property real targetX: {
+                            if (Anim.style === "none") return 0;
+                            if (isCurrent) return 0;
+                            if (myIdx < tabContent.pageIdx) return -width * parallaxFactor;
+                            return width;
                         }
-                    }
-                    
-                    property real targetOpacity: {
-                        if (Anim.style !== "parallax") return 1.0;
-                        if (isCurrent) return 1.0;
-                        return 0.0;
-                    }
-                    opacity: targetOpacity
-                    Behavior on opacity {
-                        enabled: Anim.style === "parallax"
-                        NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
-                    }
-                    
-                    active: isCurrent || wasCurrent
-                    visible: active
-                    
-                    source:       "BluetoothTab.qml"
-                    onLoaded:     item.localScale = root.localScale
-                }
-
-                // VPN — WireGuard connections
-                Loader {
-                    id: tabVpn
-                    readonly property int myIdx: 2
-                    property bool isCurrent: root.page === "vpn"
-                    property bool wasCurrent: false
-                    property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
-                    onIsCurrentChanged: { 
-                        if (isCurrent) wasCurrent = false;
-                        else if (Anim.style === "none") wasCurrent = false;
-                        else wasCurrent = true;
-                    }
-                    
-                    width: parent.width; height: parent.height
-                    
-                    property real targetX: {
-                        if (Anim.style === "none") return 0;
-                        if (isCurrent) return 0;
-                        if (myIdx < tabContent.pageIdx) return -width * parallaxFactor;
-                        return width;
-                    }
-                    
-                    x: targetX
-                    Behavior on x {
-                        enabled: Anim.style !== "none"
-                        NumberAnimation { 
-                            duration: Anim.slow; easing.type: Anim.outExpo
-                            onRunningChanged: { if (!running && !tabVpn.isCurrent) tabVpn.wasCurrent = false; }
+                        
+                        x: targetX
+                        Behavior on x {
+                            enabled: Anim.style !== "none"
+                            NumberAnimation { 
+                                duration: Anim.slow; easing.type: Anim.outExpo
+                                onRunningChanged: { if (!running && !tabWifi.isCurrent) tabWifi.wasCurrent = false; }
+                            }
                         }
-                    }
-                    
-                    property real targetOpacity: {
-                        if (Anim.style !== "parallax") return 1.0;
-                        if (isCurrent) return 1.0;
-                        return 0.0;
-                    }
-                    opacity: targetOpacity
-                    Behavior on opacity {
-                        enabled: Anim.style === "parallax"
-                        NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
-                    }
-                    
-                    active: isCurrent || wasCurrent
-                    visible: active
-                    
-                    source:       "VPNTab.qml"
-                    onLoaded:     item.localScale = root.localScale
-                }
-
-                // Hotspot — virtual AP interface
-                Loader {
-                    id: tabHotspot
-                    readonly property int myIdx: 3
-                    property bool isCurrent: root.page === "hotspot"
-                    property bool wasCurrent: false
-                    property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
-                    onIsCurrentChanged: { 
-                        if (isCurrent) wasCurrent = false;
-                        else if (Anim.style === "none") wasCurrent = false;
-                        else wasCurrent = true;
-                    }
-                    
-                    width: parent.width; height: parent.height
-                    
-                    property real targetX: {
-                        if (Anim.style === "none") return 0;
-                        if (isCurrent) return 0;
-                        if (myIdx < tabContent.pageIdx) return -width * parallaxFactor;
-                        return width;
-                    }
-                    
-                    x: targetX
-                    Behavior on x {
-                        enabled: Anim.style !== "none"
-                        NumberAnimation { 
-                            duration: Anim.slow; easing.type: Anim.outExpo
-                            onRunningChanged: { if (!running && !tabHotspot.isCurrent) tabHotspot.wasCurrent = false; }
+                        
+                        property real targetOpacity: {
+                            if (Anim.style !== "parallax") return 1.0;
+                            if (isCurrent) return 1.0;
+                            return 0.0;
                         }
+                        opacity: targetOpacity
+                        Behavior on opacity {
+                            enabled: Anim.style === "parallax"
+                            NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                        }
+                        
+                        active: isCurrent || wasCurrent
+                        visible: active
+                        
+                        source:       "WifiTab.qml"
+                        onLoaded:     item.localScale = root.localScale
                     }
-                    
-                    property real targetOpacity: {
-                        if (Anim.style !== "parallax") return 1.0;
-                        if (isCurrent) return 1.0;
-                        return 0.0;
+    
+                    Loader {
+                        id: tabBluetooth
+                        readonly property int myIdx: 1
+                        property bool isCurrent: root.page === "bluetooth"
+                        property bool wasCurrent: false
+                        property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                        onIsCurrentChanged: { 
+                            if (isCurrent) wasCurrent = false;
+                            else if (Anim.style === "none") wasCurrent = false;
+                            else wasCurrent = true;
+                        }
+                        
+                        width: parent.width; height: parent.height
+                        
+                        property real targetX: {
+                            if (Anim.style === "none") return 0;
+                            if (isCurrent) return 0;
+                            if (myIdx < tabContent.pageIdx) return -width * parallaxFactor;
+                            return width;
+                        }
+                        
+                        x: targetX
+                        Behavior on x {
+                            enabled: Anim.style !== "none"
+                            NumberAnimation { 
+                                duration: Anim.slow; easing.type: Anim.outExpo
+                                onRunningChanged: { if (!running && !tabBluetooth.isCurrent) tabBluetooth.wasCurrent = false; }
+                            }
+                        }
+                        
+                        property real targetOpacity: {
+                            if (Anim.style !== "parallax") return 1.0;
+                            if (isCurrent) return 1.0;
+                            return 0.0;
+                        }
+                        opacity: targetOpacity
+                        Behavior on opacity {
+                            enabled: Anim.style === "parallax"
+                            NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                        }
+                        
+                        active: isCurrent || wasCurrent
+                        visible: active
+                        
+                        source:       "BluetoothTab.qml"
+                        onLoaded:     item.localScale = root.localScale
                     }
-                    opacity: targetOpacity
-                    Behavior on opacity {
-                        enabled: Anim.style === "parallax"
-                        NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+    
+                    // VPN — WireGuard connections
+                    Loader {
+                        id: tabVpn
+                        readonly property int myIdx: 2
+                        property bool isCurrent: root.page === "vpn"
+                        property bool wasCurrent: false
+                        property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                        onIsCurrentChanged: { 
+                            if (isCurrent) wasCurrent = false;
+                            else if (Anim.style === "none") wasCurrent = false;
+                            else wasCurrent = true;
+                        }
+                        
+                        width: parent.width; height: parent.height
+                        
+                        property real targetX: {
+                            if (Anim.style === "none") return 0;
+                            if (isCurrent) return 0;
+                            if (myIdx < tabContent.pageIdx) return -width * parallaxFactor;
+                            return width;
+                        }
+                        
+                        x: targetX
+                        Behavior on x {
+                            enabled: Anim.style !== "none"
+                            NumberAnimation { 
+                                duration: Anim.slow; easing.type: Anim.outExpo
+                                onRunningChanged: { if (!running && !tabVpn.isCurrent) tabVpn.wasCurrent = false; }
+                            }
+                        }
+                        
+                        property real targetOpacity: {
+                            if (Anim.style !== "parallax") return 1.0;
+                            if (isCurrent) return 1.0;
+                            return 0.0;
+                        }
+                        opacity: targetOpacity
+                        Behavior on opacity {
+                            enabled: Anim.style === "parallax"
+                            NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                        }
+                        
+                        active: isCurrent || wasCurrent
+                        visible: active
+                        
+                        source:       "VPNTab.qml"
+                        onLoaded:     item.localScale = root.localScale
                     }
-                    
-                    active: isCurrent || wasCurrent
-                    visible: active
-                    
-                    source:       "HotspotTab.qml"
-                    onLoaded:     item.localScale = root.localScale
+    
+                    // Hotspot — virtual AP interface
+                    Loader {
+                        id: tabHotspot
+                        readonly property int myIdx: 3
+                        property bool isCurrent: root.page === "hotspot"
+                        property bool wasCurrent: false
+                        property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                        onIsCurrentChanged: { 
+                            if (isCurrent) wasCurrent = false;
+                            else if (Anim.style === "none") wasCurrent = false;
+                            else wasCurrent = true;
+                        }
+                        
+                        width: parent.width; height: parent.height
+                        
+                        property real targetX: {
+                            if (Anim.style === "none") return 0;
+                            if (isCurrent) return 0;
+                            if (myIdx < tabContent.pageIdx) return -width * parallaxFactor;
+                            return width;
+                        }
+                        
+                        x: targetX
+                        Behavior on x {
+                            enabled: Anim.style !== "none"
+                            NumberAnimation { 
+                                duration: Anim.slow; easing.type: Anim.outExpo
+                                onRunningChanged: { if (!running && !tabHotspot.isCurrent) tabHotspot.wasCurrent = false; }
+                            }
+                        }
+                        
+                        property real targetOpacity: {
+                            if (Anim.style !== "parallax") return 1.0;
+                            if (isCurrent) return 1.0;
+                            return 0.0;
+                        }
+                        opacity: targetOpacity
+                        Behavior on opacity {
+                            enabled: Anim.style === "parallax"
+                            NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                        }
+                        
+                        active: isCurrent || wasCurrent
+                        visible: active
+                        
+                        source:       "HotspotTab.qml"
+                        onLoaded:     item.localScale = root.localScale
+                    }
                 }
-            }
-
-            // ── Tab bar — lifted by cornerRadius from the popup bottom ────────
-            TabSwitcher {
-                id: tabBar
-                localScale: root.localScale || 1.0
-                anchors {
-                left:         parent.left
-                right:        parent.right
-                bottom:       parent.bottom
-                bottomMargin: Math.round(-16 * root.localScale)
-            }
-                orientation: "horizontal"
-                width:        parent.width
-                currentPage:  root.page
-                model: [
-                    { key: "wifi",      icon: "󰤨", label: "Wi-Fi"     },
-                    { key: "bluetooth", icon: "󰂯", label: "Bluetooth" },
-                    { key: "vpn",       icon: "󰦝", label: "VPN"       },
-                    { key: "hotspot",   icon: "󰀃", label: "Hotspot"   },
-                ]
-                onPageChanged: function(key) { Popups.networkPage = key }
+    
+                // ── Tab bar — lifted by cornerRadius from the popup bottom ────────
+                TabSwitcher {
+                    id: tabBar
+                    localScale: root.localScale || 1.0
+                    anchors {
+                        left:         parent.left
+                        right:        parent.right
+                        bottom:       parent.bottom
+                        bottomMargin: Math.round(-16 * root.localScale)
+                    }
+                    orientation: "horizontal"
+                    width:        parent.width
+                    currentPage:  root.page
+                    model: [
+                        { key: "wifi",      icon: "󰤨", label: "Wi-Fi"     },
+                        { key: "bluetooth", icon: "󰂯", label: "Bluetooth" },
+                        { key: "vpn",       icon: "󰦝", label: "VPN"       },
+                        { key: "hotspot",   icon: "󰀃", label: "Hotspot"   },
+                    ]
+                    onPageChanged: function(key) { Popups.networkPage = key }
+                }
             }
         }
     }

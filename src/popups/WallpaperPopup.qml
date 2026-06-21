@@ -46,8 +46,8 @@ PanelWindow {
 
     // ── Self-hover tracking ───────────────────────────────────────────────────
     property bool selfHovered: true
-    
     property bool allowHover: Popups.wallpaperAllowHover
+    property bool pinned:     Popups.wallpaperPinned
 
     // ── Hover close timer ─────────────────────────────────────────────────────
     // Fires when both the trigger region and the popup itself are no longer hovered.
@@ -55,8 +55,11 @@ PanelWindow {
         id: hoverCloseTimer
         interval: Popups.hoverCloseDelay
         onTriggered: {
-            if (root.allowHover && !Popups.wallpaperTriggerHovered && !root.selfHovered)
-                Popups.wallpaperOpen = false
+            if (root.allowHover && !Popups.wallpaperTriggerHovered && !root.selfHovered) {
+                if (!root.pinned) {
+                    Popups.wallpaperOpen = false
+                }
+            }
         }
     }
 
@@ -184,9 +187,11 @@ PanelWindow {
 
 
 
-        MouseArea {
-            anchors.fill: parent
-            onClicked:    {}
+        TapHandler {
+            onTapped: {
+                Popups.wallpaperOpen = true
+                Popups.wallpaperPinned = true
+            }
         }
 
         PopupShape {

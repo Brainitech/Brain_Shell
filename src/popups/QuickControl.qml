@@ -109,7 +109,12 @@ PopupWindow {
         open:             Popups.quickOpen
         hoverEnabled:     !Popups.audioAllowHover && Popups.quickAllowHover
         triggerHovered:   Popups.quickTriggerHovered
+        pinned:           Popups.quickPinned
         onCloseRequested: Popups.quickOpen = false
+        onPinRequested: {
+            Popups.quickOpen = true
+            Popups.quickPinned = true
+        }
 
         Item {
             id: sizer

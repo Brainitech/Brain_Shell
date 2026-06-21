@@ -39,6 +39,7 @@ Item {
     // ── Hover-to-open (optional) ──────────────────────────────────────────────
     property bool hoverEnabled:   false
     property bool triggerHovered: false   // bind to Popups.*TriggerHovered
+    property bool pinned:         false   // bind to Popups.*Pinned
 
     // ── Universal timing — sourced from Popups singleton ──────────────────────
     property int slideDuration: Popups.slideDuration
@@ -51,6 +52,9 @@ Item {
 
     // Emitted after closeDelay when hover leaves — popup sets its Popups.* bool
     signal closeRequested()
+
+    // Emitted when clicked inside the popup to pin it open
+    signal pinRequested()
 
     // ── Internal ──────────────────────────────────────────────────────────────
     property bool _selfHovered: false
@@ -120,8 +124,11 @@ Item {
         onTriggered: {
             // Double-check hover is still gone before requesting close
             if (!root.triggerHovered && !root._selfHovered) {
-                root.windowVisible = false
-                root.closeRequested()
+                root._hoverOpenActive = false
+                if (!root.pinned) {
+                    root.windowVisible = false
+                    root.closeRequested()
+                }
             }
         }
     }
@@ -144,6 +151,11 @@ Item {
         // Self-hover tracking — automatically available to all popups
         HoverHandler {
             onHoveredChanged: root._selfHovered = hovered
+        }
+
+        // Interaction pinning — passively detect clicks inside to pin
+        TapHandler {
+            onTapped: root.pinRequested()
         }
     }
 }

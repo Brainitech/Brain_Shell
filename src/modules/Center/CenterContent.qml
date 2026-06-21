@@ -863,6 +863,7 @@ Item {
 					var next = !Popups.dashboardOpen
 					Popups.closeAll()
 					Popups.dashboardOpen = next
+					if (next) Popups.dashboardPinned = true
 				}
 			}
 

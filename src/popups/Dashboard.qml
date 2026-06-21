@@ -100,6 +100,7 @@ PanelWindow {
     }
 
     property bool allowHover: Popups.dashboardAllowHover
+    property bool pinned:     Popups.dashboardPinned
     property bool selfHovered: false
 
     onSelfHoveredChanged: {
@@ -126,8 +127,11 @@ PanelWindow {
         id: hoverCloseTimer
         interval: Popups.hoverCloseDelay
         onTriggered: {
-            if (root.allowHover && !Popups.dashboardTriggerHovered && !root.selfHovered)
-                Popups.dashboardOpen = false
+            if (root.allowHover && !Popups.dashboardTriggerHovered && !root.selfHovered) {
+                if (!root.pinned) {
+                    Popups.dashboardOpen = false
+                }
+            }
         }
     }
     Timer {
@@ -145,32 +149,45 @@ PanelWindow {
         onClicked:    Popups.dashboardOpen = false
     }
 
+
+
     // ── Sizer ─────────────────────────────────────────────────────────────────
     // topMargin: Theme.notchHeight places the sizer top exactly at the notch
     // bottom — identical to where PopupWindow put it. No fh subtraction, which
     // was the source of the vertical offset in the text-working variant.
     Item {
-        id: sizer
-        anchors.top:              parent.top
+        id: hoverContainer
+        anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        clip: true
+        width: sizer.width
+        height: Math.max(sizer.height, Math.round(Theme.notchHeight * root.localScale))
 
-        width:  Popups.dashboardOpen ? root.scaledPageWidth + 2 * root.fw : Theme.cNotchMinWidth + 2 * root.fw
+        HoverHandler {
+            onHoveredChanged: root.selfHovered = hovered
+        }
+
+        Item {
+            id: sizer
+            anchors.top:              parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+            clip: true
+            
+            TapHandler {
+                onTapped: {
+                    Popups.dashboardOpen = true
+                    Popups.dashboardPinned = true
+                }
+            }
+
+            width:  Popups.dashboardOpen ? root.scaledPageWidth + 2 * root.fw : Theme.cNotchMinWidth + 2 * root.fw
         height: Popups.dashboardOpen 
             ? Math.min(Theme.dashboardHeight * localScale, (screen ? screen.height : 1080) * 0.90) 
             : Theme.notchHeight / 2
 
         Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
         Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
-        
-        MouseArea {
-            anchors.fill: parent
-            onClicked:    {}
-        }
 
-        HoverHandler {
-            onHoveredChanged: root.selfHovered = hovered
-        }
+        //The number of bugs I had to fix to get this to work properly is insane. I don't even want to think about it.
 
         // ── Background ────────────────────────────────────────────────────────
         PopupShape {
@@ -329,6 +346,7 @@ PanelWindow {
                     Keys.onEscapePressed: Popups.dashboardOpen = false
                 }
             }
+        }
         }
     }
 }

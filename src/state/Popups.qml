@@ -15,6 +15,17 @@ QtObject {
     property bool quickOpen: false
     property bool clipboardOpen:     false
 
+    // ── Per-popup pinned state (ignores hover-leave) ──────────────────────────
+    property bool audioPinned:         false
+    property bool networkPinned:       false
+    property bool batteryPinned:       false
+    property bool notificationsPinned: false
+    property bool archMenuPinned:      false
+    property bool dashboardPinned:     false
+    property bool wallpaperPinned:     false
+    property bool quickPinned:         false
+    property bool clipboardPinned:     false
+
     // ── Dashboard — per-page state ───────────────────────────────────────────
     property int    dashboardPageWidth: 900
     property string dashboardPage:      "home"
@@ -26,7 +37,7 @@ QtObject {
     property string networkPage: "wifi"
 
     // ── Per-popup trigger hover state ─────────────────────────────────────────
-    property bool archMenuTriggerHovered: false
+    property bool archMenuTriggerHovered:      false
     property bool audioTriggerHovered:         false
     property bool networkTriggerHovered:       false
     property bool batteryTriggerHovered:       false
@@ -37,14 +48,14 @@ QtObject {
     property bool clipboardTriggerHovered:     false
 
     // ── Hover allowance settings ──────────────────────────────────────────────
-    property bool audioAllowHover:         true
-    property bool networkAllowHover:       true
-    property bool archMenuAllowHover:      true
-    property bool wallpaperAllowHover:     true
-    property bool clipboardAllowHover:     true
-    property bool notificationsAllowHover: true
+    property bool audioAllowHover:         false
+    property bool networkAllowHover:       false
+    property bool archMenuAllowHover:      false
+    property bool wallpaperAllowHover:     false
+    property bool clipboardAllowHover:     false
+    property bool notificationsAllowHover: false
     property bool quickAllowHover:         true
-    property bool dashboardAllowHover:     true
+    property bool dashboardAllowHover:     false
 
     // ── Universal popup behavior settings ─────────────────────────────────────
     property int  slideDuration:   Anim.transition
@@ -91,5 +102,15 @@ QtObject {
         wallpaperOpen     = false
         quickOpen         = false
         clipboardOpen     = false
+
+        audioPinned         = false
+        networkPinned       = false
+        batteryPinned       = false
+        notificationsPinned = false
+        archMenuPinned      = false
+        dashboardPinned     = false
+        wallpaperPinned     = false
+        quickPinned         = false
+        clipboardPinned     = false
     }
 }

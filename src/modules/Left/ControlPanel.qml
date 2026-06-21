@@ -9,5 +9,6 @@ IconBtn {
         var next = !Popups.archMenuOpen
         Popups.closeAll()
         Popups.archMenuOpen = next
+        if (next) Popups.archMenuPinned = true
     }
 }

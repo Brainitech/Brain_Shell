@@ -78,6 +78,7 @@ Item {
                 var next = !Popups.audioOpen
                 Popups.closeAll()
                 Popups.audioOpen = next
+                if (next) Popups.audioPinned = true
             }
         }
     }

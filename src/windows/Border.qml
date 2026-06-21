@@ -178,6 +178,7 @@ PanelWindow {
                     var next = !Popups.wallpaperOpen
                     Popups.closeAll()
                     Popups.wallpaperOpen = next
+                    if (next) Popups.wallpaperPinned = true
                 }
             }
         }
@@ -199,6 +200,7 @@ PanelWindow {
                     var next = !Popups.clipboardOpen
                     Popups.closeAll()
                     Popups.clipboardOpen = next
+                    if (next) Popups.clipboardPinned = true
                 }
             }
         }

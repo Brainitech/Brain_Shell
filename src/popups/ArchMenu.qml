@@ -62,8 +62,13 @@ PopupWindow {
 		edge:             "left"
 		hoverEnabled:     Popups.archMenuAllowHover
 		triggerHovered:   Popups.archMenuTriggerHovered
+		pinned:           Popups.archMenuPinned
 		open:             Popups.archMenuOpen
 		onCloseRequested: Popups.archMenuOpen = false
+		onPinRequested: {
+			Popups.archMenuOpen = true
+			Popups.archMenuPinned = true
+		}
 
 		Item {
 			id: sizer

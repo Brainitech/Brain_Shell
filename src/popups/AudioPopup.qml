@@ -57,7 +57,12 @@ PopupWindow {
 		open:             Popups.audioOpen
 		hoverEnabled:     Popups.audioAllowHover
 		triggerHovered:   Popups.audioTriggerHovered
+		pinned:           Popups.audioPinned
 		onCloseRequested: Popups.audioOpen = false
+		onPinRequested: {
+			Popups.audioOpen = true
+			Popups.audioPinned = true
+		}
 
 		Connections {
 			target: Popups

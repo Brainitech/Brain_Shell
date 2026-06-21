@@ -67,7 +67,7 @@ PanelWindow {
 
     Timer {
         id: closeTimer
-        interval: Theme.animDuration + 20
+        interval: Anim.transition + 20
         onTriggered: { if (!Popups.networkOpen) root.windowVisible = false }
     }
 
@@ -85,8 +85,8 @@ PanelWindow {
 
         height: Popups.networkOpen ? root.popupHeight : 0
 
-        Behavior on width  { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
-        Behavior on height { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+        Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+        Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
 
         PopupShape {
             anchors.fill: parent
@@ -113,8 +113,8 @@ PanelWindow {
             Behavior on opacity {
                 NumberAnimation {
                     duration: Popups.networkOpen
-                        ? Theme.animDuration * 0.5
-                        : Theme.animDuration * 0.15
+                        ? Anim.transition * 0.5
+                        : Anim.transition * 0.15
                 }
             }
 
@@ -124,12 +124,6 @@ PanelWindow {
                 clip: true
                 
                 property int pageIdx: Math.max(0, ["wifi", "bluetooth", "vpn", "hotspot"].indexOf(root.page))
-                property real animIdx: pageIdx
-                
-                Behavior on animIdx {
-                    enabled: tabContent.width > 0
-                    NumberAnimation { duration: 350; easing.type: Easing.OutExpo }
-                }
 
                 anchors {
                     top:    parent.top
@@ -139,12 +133,47 @@ PanelWindow {
                 }
 
                 Loader {
+                    id: tabWifi
                     readonly property int myIdx: 0
                     property bool isCurrent: root.page === "wifi"
+                    property bool wasCurrent: false
+                    property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                    onIsCurrentChanged: { 
+                        if (isCurrent) wasCurrent = false;
+                        else if (Anim.style === "none") wasCurrent = false;
+                        else wasCurrent = true;
+                    }
+                    
                     width: parent.width; height: parent.height
                     
-                    x: (myIdx - tabContent.animIdx) * width
-                    active: isCurrent || Math.abs(x) < width
+                    property real targetX: {
+                        if (Anim.style === "none") return 0;
+                        if (isCurrent) return 0;
+                        if (myIdx < tabContent.pageIdx) return -width * parallaxFactor;
+                        return width;
+                    }
+                    
+                    x: targetX
+                    Behavior on x {
+                        enabled: Anim.style !== "none"
+                        NumberAnimation { 
+                            duration: Anim.slow; easing.type: Anim.outExpo
+                            onRunningChanged: { if (!running && !tabWifi.isCurrent) tabWifi.wasCurrent = false; }
+                        }
+                    }
+                    
+                    property real targetOpacity: {
+                        if (Anim.style !== "parallax") return 1.0;
+                        if (isCurrent) return 1.0;
+                        return 0.0;
+                    }
+                    opacity: targetOpacity
+                    Behavior on opacity {
+                        enabled: Anim.style === "parallax"
+                        NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                    }
+                    
+                    active: isCurrent || wasCurrent
                     visible: active
                     
                     source:       "WifiTab.qml"
@@ -152,12 +181,47 @@ PanelWindow {
                 }
 
                 Loader {
+                    id: tabBluetooth
                     readonly property int myIdx: 1
                     property bool isCurrent: root.page === "bluetooth"
+                    property bool wasCurrent: false
+                    property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                    onIsCurrentChanged: { 
+                        if (isCurrent) wasCurrent = false;
+                        else if (Anim.style === "none") wasCurrent = false;
+                        else wasCurrent = true;
+                    }
+                    
                     width: parent.width; height: parent.height
                     
-                    x: (myIdx - tabContent.animIdx) * width
-                    active: isCurrent || Math.abs(x) < width
+                    property real targetX: {
+                        if (Anim.style === "none") return 0;
+                        if (isCurrent) return 0;
+                        if (myIdx < tabContent.pageIdx) return -width * parallaxFactor;
+                        return width;
+                    }
+                    
+                    x: targetX
+                    Behavior on x {
+                        enabled: Anim.style !== "none"
+                        NumberAnimation { 
+                            duration: Anim.slow; easing.type: Anim.outExpo
+                            onRunningChanged: { if (!running && !tabBluetooth.isCurrent) tabBluetooth.wasCurrent = false; }
+                        }
+                    }
+                    
+                    property real targetOpacity: {
+                        if (Anim.style !== "parallax") return 1.0;
+                        if (isCurrent) return 1.0;
+                        return 0.0;
+                    }
+                    opacity: targetOpacity
+                    Behavior on opacity {
+                        enabled: Anim.style === "parallax"
+                        NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                    }
+                    
+                    active: isCurrent || wasCurrent
                     visible: active
                     
                     source:       "BluetoothTab.qml"
@@ -166,12 +230,47 @@ PanelWindow {
 
                 // VPN — WireGuard connections
                 Loader {
+                    id: tabVpn
                     readonly property int myIdx: 2
                     property bool isCurrent: root.page === "vpn"
+                    property bool wasCurrent: false
+                    property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                    onIsCurrentChanged: { 
+                        if (isCurrent) wasCurrent = false;
+                        else if (Anim.style === "none") wasCurrent = false;
+                        else wasCurrent = true;
+                    }
+                    
                     width: parent.width; height: parent.height
                     
-                    x: (myIdx - tabContent.animIdx) * width
-                    active: isCurrent || Math.abs(x) < width
+                    property real targetX: {
+                        if (Anim.style === "none") return 0;
+                        if (isCurrent) return 0;
+                        if (myIdx < tabContent.pageIdx) return -width * parallaxFactor;
+                        return width;
+                    }
+                    
+                    x: targetX
+                    Behavior on x {
+                        enabled: Anim.style !== "none"
+                        NumberAnimation { 
+                            duration: Anim.slow; easing.type: Anim.outExpo
+                            onRunningChanged: { if (!running && !tabVpn.isCurrent) tabVpn.wasCurrent = false; }
+                        }
+                    }
+                    
+                    property real targetOpacity: {
+                        if (Anim.style !== "parallax") return 1.0;
+                        if (isCurrent) return 1.0;
+                        return 0.0;
+                    }
+                    opacity: targetOpacity
+                    Behavior on opacity {
+                        enabled: Anim.style === "parallax"
+                        NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                    }
+                    
+                    active: isCurrent || wasCurrent
                     visible: active
                     
                     source:       "VPNTab.qml"
@@ -180,12 +279,47 @@ PanelWindow {
 
                 // Hotspot — virtual AP interface
                 Loader {
+                    id: tabHotspot
                     readonly property int myIdx: 3
                     property bool isCurrent: root.page === "hotspot"
+                    property bool wasCurrent: false
+                    property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                    onIsCurrentChanged: { 
+                        if (isCurrent) wasCurrent = false;
+                        else if (Anim.style === "none") wasCurrent = false;
+                        else wasCurrent = true;
+                    }
+                    
                     width: parent.width; height: parent.height
                     
-                    x: (myIdx - tabContent.animIdx) * width
-                    active: isCurrent || Math.abs(x) < width
+                    property real targetX: {
+                        if (Anim.style === "none") return 0;
+                        if (isCurrent) return 0;
+                        if (myIdx < tabContent.pageIdx) return -width * parallaxFactor;
+                        return width;
+                    }
+                    
+                    x: targetX
+                    Behavior on x {
+                        enabled: Anim.style !== "none"
+                        NumberAnimation { 
+                            duration: Anim.slow; easing.type: Anim.outExpo
+                            onRunningChanged: { if (!running && !tabHotspot.isCurrent) tabHotspot.wasCurrent = false; }
+                        }
+                    }
+                    
+                    property real targetOpacity: {
+                        if (Anim.style !== "parallax") return 1.0;
+                        if (isCurrent) return 1.0;
+                        return 0.0;
+                    }
+                    opacity: targetOpacity
+                    Behavior on opacity {
+                        enabled: Anim.style === "parallax"
+                        NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                    }
+                    
+                    active: isCurrent || wasCurrent
                     visible: active
                     
                     source:       "HotspotTab.qml"

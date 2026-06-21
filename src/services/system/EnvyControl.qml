@@ -138,14 +138,14 @@ Column {
                 height: 24
                 radius: 12
                 color:  root.dgpuEnabled ? Theme.active : Qt.rgba(1, 1, 1, 0.15)
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
 
                 Rectangle {
                     width:  18; height: 18; radius: 9
                     color:  "white"
                     anchors.verticalCenter: parent.verticalCenter
                     x: root.dgpuEnabled ? parent.width - width - 3 : 3
-                    Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+                    Behavior on x { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
                 }
 
                 HoverHandler { cursorShape: Qt.PointingHandCursor }

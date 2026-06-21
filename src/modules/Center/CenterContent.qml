@@ -211,7 +211,7 @@ Item {
 
 		opacity: Popups.dashboardOpen ? 0 : 1
 		visible: opacity > 0
-		Behavior on opacity { NumberAnimation { duration: 150 } }
+		Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
 
 		WheelHandler {
 			acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
@@ -242,7 +242,7 @@ Item {
 			interactive:  false
 
 			Behavior on contentY {
-				NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+				NumberAnimation { duration: Anim.mediumSlow; easing.type: Anim.outCubic}
 			}
 
 			model: root._items
@@ -360,7 +360,7 @@ Item {
 												Theme.active.r, Theme.active.g, Theme.active.b,
 												0.28 + _amp * 0.72)
 												Behavior on height {
-													NumberAnimation { duration: 50; easing.type: Easing.OutCubic }
+													NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic}
 												}
 											}
 										}
@@ -384,7 +384,7 @@ Item {
 								text:           "󰔟"
 								font.pixelSize: Math.round(16 * localScale)
 								color:          root.timerUrgent ? "#ff5555" : Theme.active
-								Behavior on color { ColorAnimation { duration: 200 } }
+								Behavior on color { ColorAnimation { duration: Anim.normal} }
 							}
 
 							// Time display — centered in remaining space
@@ -403,15 +403,15 @@ Item {
 								font.family:    "JetBrains Mono"
 								horizontalAlignment: Text.AlignHCenter
 								color:          root.timerUrgent ? "#ff5555" : Theme.text
-								Behavior on color { ColorAnimation { duration: 200 } }
+								Behavior on color { ColorAnimation { duration: Anim.normal} }
 
 								// Blink when urgent — opacity pulses 1 → 0.25 → 1
 								SequentialAnimation on opacity {
 									id: timerBlink
 									running:  root.timerUrgent
 									loops:    Animation.Infinite
-									NumberAnimation { to: 0.25; duration: 500; easing.type: Easing.InOutSine }
-									NumberAnimation { to: 1.0;  duration: 500; easing.type: Easing.InOutSine }
+									NumberAnimation { to: 0.25; duration: Anim.verySlow; easing.type: Anim.inOutSine}
+									NumberAnimation { to: 1.0;  duration: Anim.verySlow; easing.type: Anim.inOutSine}
 								}
 
 								// Snap back to full opacity when blink stops
@@ -571,8 +571,8 @@ Item {
 										? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.3)
 										: Qt.rgba(1,1,1,0.1)
 										border.width: 1
-										Behavior on color        { ColorAnimation { duration: 100 } }
-										Behavior on border.color { ColorAnimation { duration: 100 } }
+										Behavior on color        { ColorAnimation { duration: Anim.fast} }
+										Behavior on border.color { ColorAnimation { duration: Anim.fast} }
 									}
 									Row {
 										id: csRow
@@ -584,7 +584,7 @@ Item {
 											color: ScreenRecService.openStrip === "capture"
 											? Theme.active : Qt.rgba(1,1,1,0.7)
 											anchors.verticalCenter: parent.verticalCenter
-											Behavior on color { ColorAnimation { duration: 100 } }
+											Behavior on color { ColorAnimation { duration: Anim.fast} }
 										}
 										Text {
 											text: ScreenRecService.captureLabel
@@ -592,7 +592,7 @@ Item {
 											color: ScreenRecService.openStrip === "capture"
 											? Theme.active : Qt.rgba(1,1,1,0.7)
 											anchors.verticalCenter: parent.verticalCenter
-											Behavior on color { ColorAnimation { duration: 100 } }
+											Behavior on color { ColorAnimation { duration: Anim.fast} }
 										}
 										Text {
 											text: "▾"; font.pixelSize: Math.round(8 * localScale)
@@ -633,8 +633,8 @@ Item {
 										? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.3)
 										: Qt.rgba(1,1,1,0.1)
 										border.width: 1
-										Behavior on color        { ColorAnimation { duration: 100 } }
-										Behavior on border.color { ColorAnimation { duration: 100 } }
+										Behavior on color        { ColorAnimation { duration: Anim.fast} }
+										Behavior on border.color { ColorAnimation { duration: Anim.fast} }
 									}
 									Row {
 										id: asRow
@@ -650,7 +650,7 @@ Item {
 											color: ScreenRecService.openStrip === "audio"
 											? Theme.active : Qt.rgba(1,1,1,0.7)
 											anchors.verticalCenter: parent.verticalCenter
-											Behavior on color { ColorAnimation { duration: 100 } }
+											Behavior on color { ColorAnimation { duration: Anim.fast} }
 										}
 										Text {
 											text: "▾"; font.pixelSize: Math.round(8 * localScale)
@@ -695,7 +695,7 @@ Item {
 									color:  recBtnH.hovered
 									? Qt.rgba(0.9, 0.2, 0.2, 0.85)
 									: Qt.rgba(0.8, 0.1, 0.1, 0.7)
-									Behavior on color { ColorAnimation { duration: 100 } }
+									Behavior on color { ColorAnimation { duration: Anim.fast} }
 									Row {
 										anchors.centerIn: parent
 										spacing: Math.round(5 * localScale)
@@ -744,8 +744,8 @@ Item {
 									SequentialAnimation on opacity {
 										running: ScreenRecService.recording
 										loops:   Animation.Infinite
-										NumberAnimation { to: 0.25; duration: 600; easing.type: Easing.InOutSine }
-										NumberAnimation { to: 1.0;  duration: 600; easing.type: Easing.InOutSine }
+										NumberAnimation { to: 0.25; duration: Anim.extraSlow; easing.type: Anim.inOutSine}
+										NumberAnimation { to: 1.0;  duration: Anim.extraSlow; easing.type: Anim.inOutSine}
 									}
 								}
 
@@ -790,7 +790,7 @@ Item {
 												? Qt.rgba(0.95, 0.3, 0.3, 0.30 + _amp * 0.70)
 												: Qt.rgba(1, 1, 1, 0.10)
 												Behavior on height {
-													NumberAnimation { duration: 50; easing.type: Easing.OutCubic }
+													NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic}
 												}
 											}
 										}
@@ -814,7 +814,7 @@ Item {
 									color: recDiscardH.hovered
 									? Qt.rgba(1, 1, 1, 0.12)
 									: Qt.rgba(1, 1, 1, 0.05)
-									Behavior on color { ColorAnimation { duration: 100 } }
+									Behavior on color { ColorAnimation { duration: Anim.fast} }
 									Text {
 										anchors.centerIn: parent
 										text:           "󰩺"
@@ -822,7 +822,7 @@ Item {
 										color:          recDiscardH.hovered
 										? Qt.rgba(1, 0.4, 0.4, 1.0)
 										: Qt.rgba(1, 1, 1, 0.4)
-										Behavior on color { ColorAnimation { duration: 100 } }
+										Behavior on color { ColorAnimation { duration: Anim.fast} }
 									}
 									HoverHandler { id: recDiscardH }
 									MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ScreenRecService.discardRecording() }
@@ -835,7 +835,7 @@ Item {
 									color: recStopH.hovered
 									? Qt.rgba(0.9, 0.2, 0.2, 0.55)
 									: Qt.rgba(0.8, 0.1, 0.1, 0.32)
-									Behavior on color { ColorAnimation { duration: 100 } }
+									Behavior on color { ColorAnimation { duration: Anim.fast} }
 									Text {
 										anchors.centerIn: parent
 										text:           "⏹"

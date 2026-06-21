@@ -65,20 +65,50 @@ Item {
             clip:   true
 
             property int pageIdx: Math.max(0, ["output", "input", "mixer"].indexOf(root.page))
-            property real animIdx: pageIdx
-            
-            Behavior on animIdx {
-                enabled: contentArea.width > 0
-                NumberAnimation { duration: 350; easing.type: Easing.OutExpo }
-            }
 
             // Output
             PopupPage {
+                id: pageOutput
                 readonly property int myIdx: 0
+                property bool isCurrent: root.page === "output"
+                property bool wasCurrent: false
+                property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                onIsCurrentChanged: { 
+                    if (isCurrent) wasCurrent = false;
+                    else if (Anim.style === "none") wasCurrent = false;
+                    else wasCurrent = true;
+                }
+                
                 width: parent.width; height: parent.height
                 
-                y: (myIdx - contentArea.animIdx) * height
-                visible: Math.abs(y) < height || root.page === "output"
+                property real targetY: {
+                    if (Anim.style === "none") return 0;
+                    if (isCurrent) return 0;
+                    if (myIdx < contentArea.pageIdx) return -height * parallaxFactor;
+                    return height;
+                }
+                
+                y: targetY
+                Behavior on y {
+                    enabled: Anim.style !== "none"
+                    NumberAnimation { 
+                        duration: Anim.slow; easing.type: Anim.outExpo
+                        onRunningChanged: { if (!running && !pageOutput.isCurrent) pageOutput.wasCurrent = false; }
+                    }
+                }
+                
+                property real targetOpacity: {
+                    if (Anim.style !== "parallax") return 1.0;
+                    if (isCurrent) return 1.0;
+                    return 0.0;
+                }
+                opacity: targetOpacity
+                Behavior on opacity {
+                    enabled: Anim.style === "parallax"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                }
+                
+                visible: isCurrent || wasCurrent
 
                 ChannelColumn {
                     localScale: root.localScale
@@ -106,11 +136,47 @@ Item {
 
             // Input
             PopupPage {
+                id: pageInput
                 readonly property int myIdx: 1
+                property bool isCurrent: root.page === "input"
+                property bool wasCurrent: false
+                property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                onIsCurrentChanged: { 
+                    if (isCurrent) wasCurrent = false;
+                    else if (Anim.style === "none") wasCurrent = false;
+                    else wasCurrent = true;
+                }
+                
                 width: parent.width; height: parent.height
                 
-                y: (myIdx - contentArea.animIdx) * height
-                visible: Math.abs(y) < height || root.page === "input"
+                property real targetY: {
+                    if (Anim.style === "none") return 0;
+                    if (isCurrent) return 0;
+                    if (myIdx < contentArea.pageIdx) return -height * parallaxFactor;
+                    return height;
+                }
+                
+                y: targetY
+                Behavior on y {
+                    enabled: Anim.style !== "none"
+                    NumberAnimation { 
+                        duration: Anim.slow; easing.type: Anim.outExpo
+                        onRunningChanged: { if (!running && !pageInput.isCurrent) pageInput.wasCurrent = false; }
+                    }
+                }
+                
+                property real targetOpacity: {
+                    if (Anim.style !== "parallax") return 1.0;
+                    if (isCurrent) return 1.0;
+                    return 0.0;
+                }
+                opacity: targetOpacity
+                Behavior on opacity {
+                    enabled: Anim.style === "parallax"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                }
+                
+                visible: isCurrent || wasCurrent
 
                 ChannelColumn {
                     localScale: root.localScale
@@ -132,11 +198,47 @@ Item {
 
             // Mixer
             PopupPage {
+                id: pageMixer
                 readonly property int myIdx: 2
+                property bool isCurrent: root.page === "mixer"
+                property bool wasCurrent: false
+                property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                onIsCurrentChanged: { 
+                    if (isCurrent) wasCurrent = false;
+                    else if (Anim.style === "none") wasCurrent = false;
+                    else wasCurrent = true;
+                }
+                
                 width: parent.width; height: parent.height
                 
-                y: (myIdx - contentArea.animIdx) * height
-                visible: Math.abs(y) < height || root.page === "mixer"
+                property real targetY: {
+                    if (Anim.style === "none") return 0;
+                    if (isCurrent) return 0;
+                    if (myIdx < contentArea.pageIdx) return -height * parallaxFactor;
+                    return height;
+                }
+                
+                y: targetY
+                Behavior on y {
+                    enabled: Anim.style !== "none"
+                    NumberAnimation { 
+                        duration: Anim.slow; easing.type: Anim.outExpo
+                        onRunningChanged: { if (!running && !pageMixer.isCurrent) pageMixer.wasCurrent = false; }
+                    }
+                }
+                
+                property real targetOpacity: {
+                    if (Anim.style !== "parallax") return 1.0;
+                    if (isCurrent) return 1.0;
+                    return 0.0;
+                }
+                opacity: targetOpacity
+                Behavior on opacity {
+                    enabled: Anim.style === "parallax"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                }
+                
+                visible: isCurrent || wasCurrent
 
                 SectionLabel { text: "Output Devices" }
 
@@ -246,7 +348,7 @@ Item {
                 color:          col.muted ? Qt.rgba(1,1,1,0.25) : Theme.text
                 font.pixelSize: Math.round(13 * localScale)
                 font.bold:      true
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
             }
 
             Item {
@@ -266,8 +368,8 @@ Item {
                         height: Math.max(parent.radius * 2, parent.height * col.value)
                         radius: parent.radius
                         color:  col.muted ? Qt.rgba(1,1,1,0.15) : Theme.active
-                        Behavior on color  { ColorAnimation  { duration: 150 } }
-                        Behavior on height { NumberAnimation { duration: 80; easing.type: Easing.OutCubic } }
+                        Behavior on color  { ColorAnimation  { duration: Anim.mediumFast} }
+                        Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
                     }
 
                     // Thumb
@@ -282,7 +384,7 @@ Item {
                             var travel = track.height - height
                             return Math.max(0, Math.min(travel, (1.0 - col.value) * travel))
                         }
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
 
                     // Drag to change volume
@@ -319,7 +421,7 @@ Item {
                 color:  col.muted
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2)
                             : Qt.rgba(1,1,1,0.06)
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
 
                 Row {
                     anchors.centerIn: parent
@@ -329,20 +431,20 @@ Item {
                         font.pixelSize: Math.round(13 * localScale)
                         color:          col.muted ? Theme.active : Qt.rgba(1,1,1,0.55)
                         anchors.verticalCenter: parent.verticalCenter
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
                     Text {
                         text:           col.muted ? "Muted" : "Mute"
                         font.pixelSize: Math.round(11 * localScale)
                         color:          col.muted ? Theme.active : Qt.rgba(1,1,1,0.4)
                         anchors.verticalCenter: parent.verticalCenter
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
                 }
                 Rectangle {
                     anchors.fill: parent; radius: parent.radius
                     color: muteHov.hovered ? Qt.rgba(1,1,1,0.05) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
                 }
                 HoverHandler { id: muteHov; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: col.muteToggled() }
@@ -390,7 +492,7 @@ Item {
             color:  row.isDefault
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.12)
                         : (rowHov.hovered ? Qt.rgba(1,1,1,0.05) : "transparent")
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { ColorAnimation { duration: Anim.color} }
         }
 
         Row {
@@ -401,7 +503,7 @@ Item {
                 width: Math.round(6 * localScale); height: Math.round(6 * localScale); radius: width / 2
                 anchors.verticalCenter: parent.verticalCenter
                 color: row.isDefault ? Theme.active : Qt.rgba(1,1,1,0.2)
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
             }
 
             Text {
@@ -411,7 +513,7 @@ Item {
                 elide:          Text.ElideRight
                 width:          parent.width - Math.round(14 * localScale) - parent.spacing
                 anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
             }
         }
 

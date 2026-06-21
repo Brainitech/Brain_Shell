@@ -77,8 +77,8 @@ Item {
                     : Qt.rgba(1, 1, 1, 0.04)
                 border.color: Qt.rgba(248/255, 113/255, 113/255, clearH.hovered ? 0.38 : 0.12)
                 border.width: 1
-                Behavior on color        { ColorAnimation { duration: 150 } }
-                Behavior on border.color { ColorAnimation { duration: 150 } }
+                Behavior on color        { ColorAnimation { duration: Anim.mediumFast} }
+                Behavior on border.color { ColorAnimation { duration: Anim.mediumFast} }
 
                 Row {
                     id: clearRow
@@ -119,8 +119,8 @@ Item {
                     text: "○"; font.pixelSize: 22; color: Theme.active
                     SequentialAnimation on opacity {
                         running: parent.visible; loops: Animation.Infinite
-                        NumberAnimation { to: 0.15; duration: 500 }
-                        NumberAnimation { to: 1.0;  duration: 500 }
+                        NumberAnimation { to: 0.15; duration: Anim.verySlow}
+                        NumberAnimation { to: 1.0;  duration: Anim.verySlow}
                     }
                 }
                 Text {
@@ -173,7 +173,7 @@ Item {
 
                 // Smooth repositioning when items are removed
                 displaced: Transition {
-                    NumberAnimation { property: "y"; duration: 220; easing.type: Easing.OutCubic }
+                    NumberAnimation { property: "y"; duration: Anim.normal; easing.type: Anim.outCubic}
                 }
 
                 Keys.onPressed: (event) => {
@@ -289,8 +289,8 @@ component ClipRow: Item {
     opacity: _removing ? 0 : 1
     clip: true
 
-    Behavior on height  { NumberAnimation { duration: 210; easing.type: Easing.InCubic } }
-    Behavior on opacity { NumberAnimation { duration: 160 } }
+    Behavior on height  { NumberAnimation { duration: Anim.normal; easing.type: Anim.inCubic} }
+    Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
 
     // ── Card ──────────────────────────────────────────────────────────────────
     Rectangle {
@@ -311,8 +311,8 @@ component ClipRow: Item {
                 : rHov.hovered ? Qt.rgba(1, 1, 1, 0.13) : Qt.rgba(1, 1, 1, 0.065)
         border.width: 1
 
-        Behavior on color        { ColorAnimation { duration: 140 } }
-        Behavior on border.color { ColorAnimation { duration: 140 } }
+        Behavior on color        { ColorAnimation { duration: Anim.color} }
+        Behavior on border.color { ColorAnimation { duration: Anim.color} }
 
         // ── Inner layout ──────────────────────────────────────────────────────
         Row {
@@ -352,7 +352,7 @@ component ClipRow: Item {
                         smooth:   true
                         asynchronous: true
                         opacity: thumbImg.status === Image.Ready ? 1.0 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+                        Behavior on opacity { NumberAnimation { duration: Anim.mediumSlow; easing.type: Anim.outCubic} }
                     }
 
                     // Placeholder while loading / no path yet
@@ -408,7 +408,7 @@ component ClipRow: Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2
                 opacity: rHov.hovered || row.highlighted ? 1 : 0
-                Behavior on opacity { NumberAnimation { duration: 160 } }
+                Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
 
                 // Copy
                 ActionBtn {
@@ -462,7 +462,7 @@ component ClipRow: Item {
             }
 
             scale: row.isPinned ? 1.0 : 0.0
-            Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
+            Behavior on scale { NumberAnimation { duration: Anim.normal; easing.type: Anim.outBack} }
         }
     }
 
@@ -514,15 +514,15 @@ component ActionBtn: Rectangle {
             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
             : (aH.hovered ? Qt.rgba(1, 1, 1, 0.11) : "transparent")
 
-    Behavior on color { ColorAnimation { duration: 110 } }
+    Behavior on color { ColorAnimation { duration: Anim.color} }
 
     // Subtle scale-up on hover
     transform: Scale {
         origin.x: 13; origin.y: 13
         xScale: aH.hovered ? 1.10 : 1.0
         yScale: aH.hovered ? 1.10 : 1.0
-        Behavior on xScale { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
-        Behavior on yScale { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
+        Behavior on xScale { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+        Behavior on yScale { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
     }
 
     Text {
@@ -534,7 +534,7 @@ component ActionBtn: Rectangle {
             : ab.active
                 ? Theme.active
                 : (aH.hovered ? Qt.rgba(1, 1, 1, 0.88) : Qt.rgba(1, 1, 1, 0.38))
-        Behavior on color { ColorAnimation { duration: 110 } }
+        Behavior on color { ColorAnimation { duration: Anim.color} }
     }
 
     HoverHandler { id: aH; cursorShape: Qt.PointingHandCursor }

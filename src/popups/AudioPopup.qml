@@ -73,7 +73,7 @@ PopupWindow {
 
 		Timer {
 			id: audioResetTimer
-			interval: Theme.animDuration + 20
+			interval: Anim.transition + 20
 			onTriggered: audioControl.reset()
 		}
 
@@ -86,7 +86,7 @@ PopupWindow {
 			width:  (root.pageWidths[audioControl.page] ?? root.maxWidth)
 			height: root.popupHeight
 
-			Behavior on width { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+			Behavior on width { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
 
 			PopupShape {
 				id: bg

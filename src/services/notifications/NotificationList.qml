@@ -42,7 +42,7 @@ Item {
                 anchors.fill: parent
                 radius:       13
                 color:        clearHover.containsMouse ? Qt.rgba(1,1,1,0.10) : "transparent"
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { ColorAnimation { duration: Anim.color} }
             }
             Text {
                 id:               clearLabel
@@ -153,7 +153,7 @@ Item {
         Rectangle {
             anchors.fill: parent
             color:        cardHover.containsMouse ? Qt.rgba(1, 1, 1, 0.05) : "transparent"
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { ColorAnimation { duration: Anim.color} }
         }
 
         // Left urgency accent bar
@@ -275,7 +275,7 @@ Item {
                                 color:        actHover.containsMouse
                                               ? Qt.rgba(1,1,1,0.15)
                                               : Qt.rgba(1,1,1,0.07)
-                                Behavior on color { ColorAnimation { duration: 100 } }
+                                Behavior on color { ColorAnimation { duration: Anim.fast} }
                             }
                             Text {
                                 id:               actionLbl
@@ -301,7 +301,7 @@ Item {
                     anchors.fill: parent
                     radius:       width / 2
                     color:        xHover.containsMouse ? Qt.rgba(1,1,1,0.12) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
                 }
                 Text {
                     anchors.centerIn: parent

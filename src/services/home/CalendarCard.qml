@@ -90,7 +90,7 @@ StatCard {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                 text: "‹"; font.pixelSize: Math.round(15 * localScale)
                 color: pH.hovered ? Qt.rgba(1,1,1,0.7) : Qt.rgba(1,1,1,0.25)
-                Behavior on color { ColorAnimation { duration: 100 } }
+                Behavior on color { ColorAnimation { duration: Anim.fast} }
                 HoverHandler { id: pH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root._prev() }
             }
@@ -103,7 +103,7 @@ StatCard {
                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                 text: "›"; font.pixelSize: Math.round(15 * localScale)
                 color: nH.hovered ? Qt.rgba(1,1,1,0.7) : Qt.rgba(1,1,1,0.25)
-                Behavior on color { ColorAnimation { duration: 100 } }
+                Behavior on color { ColorAnimation { duration: Anim.fast} }
                 HoverHandler { id: nH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root._next() }
             }
@@ -157,7 +157,7 @@ StatCard {
                                : dH.hovered && modelData.cur ? Qt.rgba(1,1,1,0.07) : "transparent"
                         border.color: isToday ? Qt.rgba(166/255,208/255,247/255,0.3) : "transparent"
                         border.width: 1
-                        Behavior on color { ColorAnimation { duration: 80 } }
+                        Behavior on color { ColorAnimation { duration: Anim.superFast} }
                         Text {
                             anchors.centerIn: parent; text: modelData.n
                             font.pixelSize: Math.round(9 * localScale); font.family: "JetBrains Mono"

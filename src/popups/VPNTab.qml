@@ -375,8 +375,8 @@ Item {
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.40)
                         : Qt.rgba(1,1,1,0.10)
                     border.width: Math.max(1, Math.round(1 * localScale))
-                    Behavior on color        { ColorAnimation { duration: 130 } }
-                    Behavior on border.color { ColorAnimation { duration: 130 } }
+                    Behavior on color        { ColorAnimation { duration: Anim.color} }
+                    Behavior on border.color { ColorAnimation { duration: Anim.color} }
 
                     Row {
                         id: ksRow; anchors.centerIn: parent; spacing: Math.round(6 * localScale)
@@ -385,13 +385,13 @@ Item {
                             anchors.verticalCenter: parent.verticalCenter
                             text: "󰒃"; font.pixelSize: Math.round(13 * localScale)
                             color: root._killSwitch ? Theme.active : Qt.rgba(1,1,1,0.40)
-                            Behavior on color { ColorAnimation { duration: 130 } }
+                            Behavior on color { ColorAnimation { duration: Anim.color} }
                         }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: "Kill Switch"; font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium
                             color: root._killSwitch ? Theme.active : Qt.rgba(1,1,1,0.45)
-                            Behavior on color { ColorAnimation { duration: 130 } }
+                            Behavior on color { ColorAnimation { duration: Anim.color} }
                         }
                     }
 
@@ -405,18 +405,18 @@ Item {
                     color: rfH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15) : Qt.rgba(1,1,1,0.05)
                     border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.28)
                     border.width: Math.max(1, Math.round(1 * localScale))
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { ColorAnimation { duration: Anim.color} }
 
                     Text {
                         id: rfIcon; anchors.centerIn: parent; text: "󰑐"; font.pixelSize: Math.round(15 * localScale)
                         color: root._loading
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
                             : Theme.active
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                         RotationAnimator {
-                            target: rfIcon; from: 0; to: 360; duration: 900
+                            target: rfIcon; from: 0; to: 360; duration: Anim.megaSlow
                             loops: Animation.Infinite; running: root._loading
-                            easing.type: Easing.Linear
+                            easing.type: Anim.linear
                         }
                     }
                     HoverHandler { id: rfH; cursorShape: Qt.PointingHandCursor }
@@ -516,8 +516,8 @@ Item {
                             SequentialAnimation on opacity {
                                 running: root._loading && root._connections.length === 0
                                 loops:   Animation.Infinite
-                                NumberAnimation { to: 0.15; duration: 550 }
-                                NumberAnimation { to: 1.0;  duration: 550 }
+                                NumberAnimation { to: 0.15; duration: Anim.verySlow}
+                                NumberAnimation { to: 1.0;  duration: Anim.verySlow}
                             }
                         }
                         Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Loading…"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(1,1,1,0.25) }
@@ -551,13 +551,13 @@ Item {
                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
                 : Qt.rgba(1,1,1,0.07)
             border.width: Math.max(1, Math.round(1 * localScale))
-            Behavior on color        { ColorAnimation { duration: 200 } }
-            Behavior on border.color { ColorAnimation { duration: 200 } }
+            Behavior on color        { ColorAnimation { duration: Anim.normal} }
+            Behavior on border.color { ColorAnimation { duration: Anim.normal} }
 
             SequentialAnimation {
                 id: pulseAnim; running: false
-                ColorAnimation { target: card; to: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30); duration: 160 }
-                ColorAnimation { target: card; to: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08); duration: 500; easing.type: Easing.OutCubic }
+                ColorAnimation { target: card; to: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30); duration: Anim.mediumFast}
+                ColorAnimation { target: card; to: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08); duration: Anim.verySlow; easing.type: Anim.outCubic}
             }
         }
 
@@ -574,7 +574,7 @@ Item {
                     : vRow.con.busy
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5)
                         : Qt.rgba(1,1,1,0.28)
-                Behavior on color { ColorAnimation { duration: 200 } }
+                Behavior on color { ColorAnimation { duration: Anim.normal} }
             }
 
             Column {
@@ -594,7 +594,7 @@ Item {
                     color: vRow.con.busy
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.60)
                         : vRow.con.active ? Theme.active : Qt.rgba(1,1,1,0.32)
-                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on color { ColorAnimation { duration: Anim.normal} }
                 }
             }
         }
@@ -609,8 +609,8 @@ Item {
                 text: "○"; font.pixelSize: Math.round(16 * localScale); color: Theme.active
                 SequentialAnimation on opacity {
                     running: vRow.con.busy; loops: Animation.Infinite
-                    NumberAnimation { to: 0.15; duration: 450 }
-                    NumberAnimation { to: 1.0;  duration: 450 }
+                    NumberAnimation { to: 0.15; duration: Anim.slower}
+                    NumberAnimation { to: 1.0;  duration: Anim.slower}
                 }
             }
 
@@ -620,7 +620,7 @@ Item {
                 color: vRow.con.active
                     ? Theme.active
                     : vHov.hovered ? Qt.rgba(1,1,1,0.35) : Qt.rgba(1,1,1,0.18)
-                Behavior on color { ColorAnimation { duration: 200 } }
+                Behavior on color { ColorAnimation { duration: Anim.normal} }
             }
         }
 

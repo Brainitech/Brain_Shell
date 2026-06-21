@@ -29,7 +29,7 @@ PanelWindow {
 
     margins {
         top: (edge !== "bottom") ? ShellState.focusMode ? Math.round(Theme.borderWidth * root.localScale) : Math.round((Theme.notchHeight-1) * root.localScale) : 0
-        Behavior on top { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }}
+        Behavior on top { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}}
         bottom: (edge !== "bottom") ? radius : 0
     }
 

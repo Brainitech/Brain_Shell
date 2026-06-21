@@ -88,13 +88,13 @@ Item {
 			property real animIdx: activeIdx
 			Behavior on animIdx {
 				enabled: hMorph.isReady
-				NumberAnimation { duration: 350; easing.type: Easing.OutExpo }
+				NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo}
 			}
 
 			property real animWidth: targetWidth
 			Behavior on animWidth {
 				enabled: hMorph.isReady
-				NumberAnimation { duration: 350; easing.type: Easing.OutExpo }
+				NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo}
 			}
 
 			height: parent.height - Math.round(8 * localScale)
@@ -132,7 +132,7 @@ Item {
 						height: parent.height - Math.round(8 * localScale)
 						radius: height / 2
 						color: !hTab.isActive && hHov.hovered ? Qt.rgba(1, 1, 1, 0.07) : "transparent"
-						Behavior on color { ColorAnimation { duration: 120 } }
+						Behavior on color { ColorAnimation { duration: Anim.color} }
 					}
 
 					// Icon + label
@@ -148,7 +148,7 @@ Item {
 							color: hTab.isActive
 							? Theme.background
 							: (hHov.hovered ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.4))
-							Behavior on color { ColorAnimation { duration: 120 } }
+							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 
 						Text {
@@ -161,7 +161,7 @@ Item {
 							color: hTab.isActive
 							? Theme.background
 							: (hHov.hovered ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.4))
-							Behavior on color { ColorAnimation { duration: 120 } }
+							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 					}
 
@@ -222,7 +222,7 @@ Item {
 				
 				Behavior on animIdx {
 					enabled: vMorph.isReady
-					NumberAnimation { duration: 350; easing.type: Easing.OutExpo }
+					NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo}
 				}
 
 				y: animIdx * (vContainer.tabH + vContainer.vSpacing)
@@ -249,7 +249,7 @@ Item {
 							anchors.fill: parent
 							radius: Math.round(Theme.cornerRadius * 2 * localScale)
 							color: !vTab.isActive && vHov.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
-							Behavior on color { ColorAnimation { duration: 120 } }
+							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 		
 						// Icon-only (no label)
@@ -259,7 +259,7 @@ Item {
 							text:             modelData.icon
 							font.pixelSize:   Math.round(16 * localScale)
 							color: vTab.isActive ? Theme.background : Theme.text
-							Behavior on color { ColorAnimation { duration: 120 } }
+							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 		
 						// Icon + label row
@@ -279,7 +279,7 @@ Item {
 								color: vTab.isActive
 									? Theme.background
 									: (vHov.hovered ? Qt.rgba(1, 1, 1, 0.80) : Qt.rgba(1, 1, 1, 0.42))
-								Behavior on color { ColorAnimation { duration: 120 } }
+								Behavior on color { ColorAnimation { duration: Anim.color} }
 							}
 		
 							Text {
@@ -290,7 +290,7 @@ Item {
 								color: vTab.isActive
 									? Theme.background
 									: (vHov.hovered ? Qt.rgba(1, 1, 1, 0.80) : Qt.rgba(1, 1, 1, 0.42))
-								Behavior on color { ColorAnimation { duration: 120 } }
+								Behavior on color { ColorAnimation { duration: Anim.color} }
 							}
 						}
 		

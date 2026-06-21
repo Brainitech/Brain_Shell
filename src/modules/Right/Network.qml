@@ -42,8 +42,8 @@ Item {
     property real _vpnOpacity: 1.0
     SequentialAnimation on _vpnOpacity {
         running: ShellState.vpnConnecting; loops: Animation.Infinite
-        NumberAnimation { to: 0.20; duration: 500; easing.type: Easing.InOutSine }
-        NumberAnimation { to: 1.0;  duration: 500; easing.type: Easing.InOutSine }
+        NumberAnimation { to: 0.20; duration: Anim.verySlow; easing.type: Anim.inOutSine}
+        NumberAnimation { to: 1.0;  duration: Anim.verySlow; easing.type: Anim.inOutSine}
     }
     Connections {
         target: ShellState
@@ -97,7 +97,7 @@ Item {
             color:          root._netColor
             font.pixelSize: Math.round(16 * localScale)
             anchors.verticalCenter: parent.verticalCenter
-            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on color { ColorAnimation { duration: Anim.normal} }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -117,8 +117,8 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             opacity:        root._vpnOpacity
             color: ShellState.vpnActive ? Theme.active : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.70)
-            Behavior on color   { ColorAnimation  { duration: 200 } }
-            Behavior on opacity { NumberAnimation { duration: 80  } }
+            Behavior on color   { ColorAnimation  { duration: Anim.normal} }
+            Behavior on opacity { NumberAnimation { duration: Anim.superFast} }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -137,7 +137,7 @@ Item {
             font.pixelSize: Math.round(14 * localScale)
             anchors.verticalCenter: parent.verticalCenter
             color: ShellState.btConnected ? (hov.hovered ? Theme.active : Theme.text) : Qt.rgba(1,1,1,0.32)
-            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on color { ColorAnimation { duration: Anim.normal} }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -156,7 +156,7 @@ Item {
             font.pixelSize: Math.round(14 * localScale)
             anchors.verticalCenter: parent.verticalCenter
             color:          Theme.active
-            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on color { ColorAnimation { duration: Anim.normal} }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor

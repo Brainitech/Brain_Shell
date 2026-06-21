@@ -13,7 +13,7 @@ Item {
     implicitWidth: contentRow.implicitWidth
 
     //Behavior on implicitWidth {
-    //    NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+    //    NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
     //}
     implicitHeight: parent.height
 
@@ -28,7 +28,7 @@ Item {
 
         opacity: (Popups.notificationsOpen || Popups.networkOpen) ? 0 : 1
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 150 } }
+        Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
 
         Network{ 
             localScale: root.localScale
@@ -64,6 +64,6 @@ Item {
         font.pixelSize: Math.round(14 * localScale)
         opacity:        (Popups.notificationsOpen || Popups.networkOpen) ? 1 : 0
         visible:        opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 150 } }
+        Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
     }
 }

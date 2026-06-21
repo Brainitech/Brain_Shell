@@ -71,7 +71,7 @@ Item {
         border.width: root.hasPending ? 1 : 0
         radius: 8
 
-        Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on height { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
 
         Row {
             anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: 10 }
@@ -93,7 +93,7 @@ Item {
                 width: 62; height: 26; radius: 7
                 color: _discardH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
                 border.color: Qt.rgba(1,1,1,0.13); border.width: 1
-                Behavior on color { ColorAnimation { duration: 100 } }
+                Behavior on color { ColorAnimation { duration: Anim.fast} }
                 Text { anchors.centerIn: parent; text: "Discard"; font.pixelSize: 10
                     color: Qt.rgba(1,1,1,0.48) }
                 HoverHandler { id: _discardH; cursorShape: Qt.PointingHandCursor }
@@ -108,7 +108,7 @@ Item {
                     : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.16)
                 border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.42)
                 border.width: 1
-                Behavior on color { ColorAnimation { duration: 100 } }
+                Behavior on color { ColorAnimation { duration: Anim.fast} }
                 Text { anchors.centerIn: parent; text: "Save"; font.pixelSize: 10
                     font.weight: Font.Medium; color: Theme.active }
                 HoverHandler { id: _saveH; cursorShape: Qt.PointingHandCursor }
@@ -256,7 +256,7 @@ Item {
 
         height: isCapturing ? 58 : 36
         clip: true
-        Behavior on height { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+        Behavior on height { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
 
         onIsCapturingChanged: {
             if (isCapturing) {
@@ -282,7 +282,7 @@ Item {
                     ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.20)
                     : "transparent"
             border.width: 1
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { ColorAnimation { duration: Anim.color} }
         }
 
         // ── Invisible focus target for key capture ────────────────────────────
@@ -356,7 +356,7 @@ Item {
                 text:           br._b ? br._b.label : br.action
                 font.pixelSize: 12
                 color:          br._savedDupe ? "#f87171" : (br._isUnbound ? Qt.rgba(1, 1, 1, 0.35) : Qt.rgba(1, 1, 1, 0.68))
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { ColorAnimation { duration: Anim.color} }
             }
 
             Row {
@@ -377,7 +377,7 @@ Item {
                     visible: br._pillText !== "Unbound"
                     width: 22; height: 22; radius: 6
                     color: _clrH.hovered ? Qt.rgba(1,1,1,0.09) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
                     Text { anchors.centerIn: parent; text: "󰩺"; font.pixelSize: 11
                         color: _clrH.hovered ? "#ff4444" : Qt.rgba(1,1,1,0.28) }
                     HoverHandler { id: _clrH; cursorShape: Qt.PointingHandCursor }
@@ -395,7 +395,7 @@ Item {
                     visible: !br._isDefault
                     width: 22; height: 22; radius: 6
                     color: _rstH.hovered ? Qt.rgba(1,1,1,0.09) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
                     Text { anchors.centerIn: parent; text: "↺"; font.pixelSize: 11
                         color: _rstH.hovered ? Theme.active : Qt.rgba(1,1,1,0.28) }
                     HoverHandler { id: _rstH; cursorShape: Qt.PointingHandCursor }
@@ -439,9 +439,9 @@ Item {
                     
                     opacity: br._interactive ? (br._isUnbound ? 0.7 : 1.0) : 0.4
                     
-                    Behavior on color        { ColorAnimation { duration: 100 } }
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
-                    Behavior on opacity      { NumberAnimation { duration: 120 } }
+                    Behavior on color        { ColorAnimation { duration: Anim.fast} }
+                    Behavior on border.color { ColorAnimation { duration: Anim.mediumFast} }
+                    Behavior on opacity      { NumberAnimation { duration: Anim.color} }
 
                     Text {
                         id: _pillT
@@ -454,7 +454,7 @@ Item {
                             ? Qt.rgba(1, 1, 1, 0.45) 
                             : (br._isPending ? Qt.rgba(1.0, 0.74, 0.22, 1.0) : Theme.active)
                             
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
                     HoverHandler { id: _pillH; cursorShape: br._interactive ? Qt.PointingHandCursor : Qt.ArrowCursor }
                     MouseArea {
@@ -498,7 +498,7 @@ Item {
                             : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,
                                       br.capturedKey !== "" ? 0.40 : 0.18)
                         border.width: 1
-                        Behavior on border.color { ColorAnimation { duration: 120 } }
+                        Behavior on border.color { ColorAnimation { duration: Anim.color} }
 
                         Text {
                             id: _capT
@@ -523,7 +523,7 @@ Item {
                     Rectangle {
                         width: 28; height: 24; radius: 6
                         color: _cnH.hovered ? Qt.rgba(1,1,1,0.09) : "transparent"
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
                         Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: 10
                             color: Qt.rgba(1,1,1,0.38) }
                         HoverHandler { id: _cnH; cursorShape: Qt.PointingHandCursor }
@@ -536,7 +536,7 @@ Item {
             Item {
                 width: parent.width; height: 22
                 opacity: (br.capturedKey !== "" && br._hasConflict) ? 1 : 0
-                Behavior on opacity { NumberAnimation { duration: 140 } }
+                Behavior on opacity { NumberAnimation { duration: Anim.color} }
 
                 Text {
                     anchors { left: parent.left; leftMargin: 2; verticalCenter: parent.verticalCenter }

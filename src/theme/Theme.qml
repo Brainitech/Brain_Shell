@@ -63,5 +63,4 @@ QtObject {
     property int wsPadding:     Metrics.wsPadding
     property int wsRadius:      Metrics.wsRadius
 
-    property int animDuration: Metrics.animDuration
 }

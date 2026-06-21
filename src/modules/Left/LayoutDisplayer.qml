@@ -136,7 +136,7 @@ Item {
         color: mouseArea.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
 
         Behavior on color {
-            ColorAnimation { duration: 120 }
+            ColorAnimation { duration: Anim.color}
         }
 
         MouseArea {
@@ -167,13 +167,13 @@ Item {
                 SequentialAnimation {
                     NumberAnimation {
                         target: icon; property: "scale"
-                        to: 0.6; duration: 80
-                        easing.type: Easing.InQuad
+                        to: 0.6; duration: Anim.superFast
+                        easing.type: Anim.inQuad
                     }
                     NumberAnimation {
                         target: icon; property: "scale"
-                        to: 1.0; duration: 120
-                        easing.type: Easing.OutBack
+                        to: 1.0; duration: Anim.color
+                        easing.type: Anim.outBack
                     }
                 }
             }

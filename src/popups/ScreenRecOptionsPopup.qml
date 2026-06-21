@@ -121,7 +121,7 @@ PopupWindow {
             color: row._selected
                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
                    : rH.hovered ? Qt.rgba(1, 1, 1, 0.07) : "transparent"
-            Behavior on color { ColorAnimation { duration: 100 } }
+            Behavior on color { ColorAnimation { duration: Anim.fast} }
         }
 
         Row {
@@ -133,7 +133,7 @@ PopupWindow {
                 font.pixelSize: Math.round(13 * root.localScale)
                 color:          row._selected ? Theme.active : Qt.rgba(1, 1, 1, 0.45)
                 anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 100 } }
+                Behavior on color { ColorAnimation { duration: Anim.fast} }
             }
             Text {
                 id:             _lbl
@@ -141,7 +141,7 @@ PopupWindow {
                 font.pixelSize: Math.round(12 * root.localScale)
                 color:          row._selected ? Theme.active : Qt.rgba(1, 1, 1, 0.70)
                 anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 100 } }
+                Behavior on color { ColorAnimation { duration: Anim.fast} }
             }
         }
 

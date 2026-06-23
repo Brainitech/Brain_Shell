@@ -5,6 +5,12 @@
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (causes existing functionality to not work as expected)
+- [ ] Documentation update
+- [ ] Chore / Maintenance
+
+## Screenshots / Video
+*(If this PR involves UI changes, please provide screenshots or a short screen recording of the changes. If not applicable, write "N/A".)*
+
 
 ## Testing Checklist
 

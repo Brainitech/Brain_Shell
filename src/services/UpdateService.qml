@@ -40,12 +40,12 @@ QtObject {
                 root.check()
             } else {
                 root._pingAttempts++
-                console.log("Ping attempt " + root._pingAttempts + " failed, retrying...")
+                // console.log("Ping attempt " + root._pingAttempts + " failed, retrying...")
                 if (root._pingAttempts < root._pingMaxAttempts) {
                     root._pingRetryTimer.restart()
                 } else {
                     root._pingAttempts = 0  // silent cancel
-                    console.log("Max ping attempts reached. Update check aborted.")
+                    // console.log("Max ping attempts reached. Update check aborted.")
                 }
             }
         }
@@ -54,7 +54,7 @@ QtObject {
     function _startConnectivityCheck() {
         root._pingAttempts = 0
         root._pingCheck()
-        console.log("Started connectivity check for updates.")
+        // console.log("Started connectivity check for updates.")
     }
     
     function _pingCheck() {
@@ -100,16 +100,16 @@ QtObject {
                     var o = JSON.parse(text.trim())
                     if (typeof o.autoUpdate === "boolean")
                         root.autoUpdate = o.autoUpdate
-                    console.log("UpdateService: Loaded config. autoUpdate=" + root.autoUpdate)
+                    // console.log("UpdateService: Loaded config. autoUpdate=" + root.autoUpdate)
                 } catch(e) {
-                    console.log("UpdateService: Failed to parse config JSON:", e)
+                    // console.log("UpdateService: Failed to parse config JSON:", e)
                 }
 
                 if (root.autoUpdate) {
-                    console.log("UpdateService: Auto-update enabled. Starting 30s delay timer.")
+                    // console.log("UpdateService: Auto-update enabled. Starting 30s delay timer.")
                     root._startTimer.start()
                 } else {
-                    console.log("UpdateService: Auto-update disabled.")
+                    // console.log("UpdateService: Auto-update disabled.")
                 }
             }
         }
@@ -119,7 +119,7 @@ QtObject {
     property var _saveProc: Process { command: []; running: false }
 
     function _saveConfig() {
-        console.log("UpdateService: Saving config. autoUpdate=" + root.autoUpdate)
+        // console.log("UpdateService: Saving config. autoUpdate=" + root.autoUpdate)
         var json = JSON.stringify({ autoUpdate: root.autoUpdate })
         _saveProc.command = ["bash", "-c",
             "printf '%s' '" + json.replace(/'/g, "'\\''") +
@@ -134,12 +134,12 @@ QtObject {
         running: false
         onExited: function(code) {
             if (code !== 0) {
-                console.log("UpdateService: git fetch failed with code " + code)
+                // console.log("UpdateService: git fetch failed with code " + code)
                 root.checking  = false
                 root.lastError = "Could not reach remote. Check your connection."
                 return
             }
-            console.log("UpdateService: git fetch successful.")
+            // console.log("UpdateService: git fetch successful.")
             _countProc.running = false
             _countProc.running = true
         }
@@ -154,13 +154,13 @@ QtObject {
             onStreamFinished: {
                 var n = parseInt(text.trim())
                 root.commitsBehind = isNaN(n) ? 0 : n
-                console.log("UpdateService: Commits behind origin/main: " + root.commitsBehind)
+                // console.log("UpdateService: Commits behind origin/main: " + root.commitsBehind)
                 if (root.commitsBehind > 0) {
                     _logProc.running = false
                     _logProc.running = true
                 } else {
                     root.checking = false
-                    console.log("UpdateService: Up to date.")
+                    // console.log("UpdateService: Up to date.")
                 }
             }
         }
@@ -191,13 +191,13 @@ QtObject {
         onExited: function(code) {
             root.updating = false
             if (code === 0) {
-                console.log("UpdateService: git pull successful.")
+                // console.log("UpdateService: git pull successful.")
                 root.updateAvailable = false
                 root.hasConflict     = false
                 root.lastError       = ""
                 root.updateSuccess   = true
             } else {
-                console.log("UpdateService: git pull failed with code " + code + ". (Likely local conflict)")
+                // console.log("UpdateService: git pull failed with code " + code + ". (Likely local conflict)")
                 // fetch succeeded earlier, so failure = local changes conflict
                 root.hasConflict = true
                 root.lastError   = ""
@@ -217,13 +217,13 @@ QtObject {
         onExited: function(code) {
             root.updating = false
             if (code === 0) {
-                console.log("UpdateService: git stash + pull successful.")
+                // console.log("UpdateService: git stash + pull successful.")
                 root.updateAvailable = false
                 root.hasConflict     = false
                 root.lastError       = ""
                 root.updateSuccess   = true
             } else {
-                console.log("UpdateService: git stash + pull failed with code " + code)
+                // console.log("UpdateService: git stash + pull failed with code " + code)
                 root.hasConflict = false
                 root.lastError   = "Stash + pull failed. Try manually: git pull origin main"
             }
@@ -233,7 +233,7 @@ QtObject {
     // ── Public API ─────────────────────────────────────────────────────────
 
     function check() {
-        console.log("UpdateService: check() triggered")
+        // console.log("UpdateService: check() triggered")
         if (root.checking || root.updating) return
         root.checking        = true
         root.lastError       = ""
@@ -245,7 +245,7 @@ QtObject {
     }
 
     function applyUpdate() {
-        console.log("UpdateService: applyUpdate() triggered")
+        // console.log("UpdateService: applyUpdate() triggered")
         if (root.updating) return
         root.updating        = true
         root.hasConflict     = false
@@ -256,7 +256,7 @@ QtObject {
     }
 
     function stashAndUpdate() {
-        console.log("UpdateService: stashAndUpdate() triggered")
+        // console.log("UpdateService: stashAndUpdate() triggered")
         if (root.updating) return
         root.updating            = true
         root.hasConflict         = false
@@ -267,7 +267,7 @@ QtObject {
     }
 
     function dismiss() {
-        console.log("UpdateService: dismiss() triggered")
+        // console.log("UpdateService: dismiss() triggered")
         root.updateAvailable = false
         root.hasConflict     = false
         root.lastError       = ""
@@ -275,7 +275,7 @@ QtObject {
     }
 
     function disableAutoUpdate() {
-        console.log("UpdateService: disableAutoUpdate() triggered")
+        // console.log("UpdateService: disableAutoUpdate() triggered")
         root.autoUpdate      = false
         root.updateAvailable = false
         root.hasConflict     = false

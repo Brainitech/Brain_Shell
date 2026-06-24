@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import "../"
 import "../../"
+import "../../components"
 
 Item {
     id: root
@@ -146,42 +147,36 @@ Item {
         Column {
             id: _col
             width:   parent.width - 12
-            spacing: 2
+            spacing: 32
 
             Repeater {
                 model: root._groups
-                delegate: Column {
+                delegate: SettingsGroup {
                     required property var modelData
                     required property int index
                     width:   _col.width
-                    spacing: 2
-
-                    Item {
-                        width:  parent.width
-                        height: index > 0 ? 30 : 16
-                        Text {
-                            anchors.bottom:       parent.bottom
-                            anchors.bottomMargin: 4
-                            text:           modelData.name
-                            font.pixelSize: 9
-                            font.weight:    Font.Bold
-                            color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
-                        }
-                    }
+                    title:   modelData.name
 
                     Repeater {
                         model: modelData.actions
-                        delegate: BindRow {
-                            id: _br
-                            required property string modelData
-                            width:        _col.width
-                            action:       modelData
-                            isCapturing:  root._capturing === modelData
-                            pendingCombo: root._pending[modelData] || null
-                            onRequestCapture: root._capturing = modelData
-                            onReleaseCapture: root._capturing = ""
-                            onCaptureAccepted: function(newMods, newKey) {
-                                root._addPending(_br.action, newMods, newKey)
+                        delegate: Column {
+                            width: parent.width
+                            
+                            SettingsDivider {
+                                visible: index > 0
+                                width: parent.width
+                            }
+                            BindRow {
+                                id: _br
+                                width:        parent.width
+                                action:       modelData
+                                isCapturing:  root._capturing === modelData
+                                pendingCombo: root._pending[modelData] || null
+                                onRequestCapture: root._capturing = modelData
+                                onReleaseCapture: root._capturing = ""
+                                onCaptureAccepted: function(newMods, newKey) {
+                                    root._addPending(_br.action, newMods, newKey)
+                                }
                             }
                         }
                     }

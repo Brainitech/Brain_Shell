@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import "../"
 import "../../components"
@@ -25,6 +26,38 @@ Item {
     // ── Avatar path ───────────────────────────────────────────────────────────
     property string _avatarPath: ""
     property string _staticJpg:  ""   // resolved once: $HOME/.curr_wall_static.jpg
+    property string _customAvatar: ""
+
+    FileView {
+        id: profilePrefs
+        path: Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/profile_prefs.json"
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: {
+            var txt = text()
+            if (txt && txt !== "") {
+                try {
+                    var obj = JSON.parse(txt)
+                    if (obj.custom_avatar && obj.custom_avatar !== "") {
+                        root._customAvatar = obj.custom_avatar
+                    } else {
+                        root._customAvatar = ""
+                    }
+                } catch(e) {}
+            } else {
+                root._customAvatar = ""
+            }
+            root._updateAvatar()
+        }
+    }
+
+    function _updateAvatar() {
+        if (root._customAvatar !== "") {
+            root._avatarPath = root._customAvatar
+        } else if (root._staticJpg !== "") {
+            root._avatarPath = root._staticJpg
+        }
+    }
 
     // Resolve $HOME once, then set the fixed path.
     // Both gif (magick frame) and non-gif (symlink) cases now land at the
@@ -37,15 +70,12 @@ Item {
                 var h = line.trim()
                 if (h === "") return
                 root._staticJpg  = h + "/.curr_wall_static.jpg"
-                root._avatarPath = root._staticJpg
+                root._updateAvatar()
             }
         }
     }
 
     // Re-arm the image on every successful apply.
-    // Because the path never changes, Qt's image cache would serve the old
-    // texture. Clearing _avatarPath for one frame then restoring it forces
-    // the Image to re-read the file from disk.
     Connections {
         target: WallpaperService
         function onWallpaperApplied(path) {
@@ -58,7 +88,17 @@ Item {
         id: reloadTimer
         interval: 0
         repeat:   false
-        onTriggered: root._avatarPath = root._staticJpg
+        onTriggered: root._updateAvatar()
+    }
+
+    Component.onCompleted: {
+        var p = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/profile_prefs.json"
+        var initProc = Qt.createQmlObject('import QtQuick; import Quickshell.Io; Process { }', root, "InitProfileProc")
+        initProc.command = [
+            "bash", "-c",
+            "if [ ! -f '" + p + "' ]; then mkdir -p \"$(dirname '" + p + "')\" && echo '{\"custom_avatar\": \"\"}' > '" + p + "'; fi"
+        ]
+        initProc.running = true
     }
 
     // ── Left column ───────────────────────────────────────────────────────────

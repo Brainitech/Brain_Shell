@@ -7,13 +7,13 @@ Item {
     id: root
 
     property real localScale: 1.0
-    property string _page: "appearance"
+    property string _page: "general"
 
     readonly property var _tabs: [
-        { key: "appearance", icon: "󰏘", label: "Appearance"        },
-        { key: "layout",     icon: "󰕰", label: "Layout & Behavior" },
-        { key: "data",       icon: "󰋊", label: "Data & Storage"    },
+        { key: "general",    icon: "󰒓", label: "General"            },
+        { key: "visuals",    icon: "󰏘", label: "Visuals & Behavior" },
         { key: "keybinds",   icon: "󰌌", label: "Keybinds"          },
+        { key: "data",       icon: "󰋊", label: "Data & Storage"    },
         { key: "misc",       icon: "󰒓", label: "Misc"               },
     ]
 
@@ -59,18 +59,13 @@ Item {
 
             Item {
                 anchors.fill: parent
-                visible: root._page === "appearance"
-                Text { anchors.centerIn: parent; text: "Appearance Coming Soon!"; font.pixelSize: Math.round(13 * localScale); color: Qt.rgba(1,1,1,0.12) }
+                visible: root._page === "general"
+                GeneralPage { anchors.fill: parent; localScale: root.localScale }
             }
             Item {
                 anchors.fill: parent
-                visible: root._page === "layout"
-                Text { anchors.centerIn: parent; text: "Layout & Behavior Coming Soon!"; font.pixelSize: Math.round(13 * localScale); color: Qt.rgba(1,1,1,0.12) }
-            }
-            Item {
-                anchors.fill: parent
-                visible: root._page === "data"
-                Text { anchors.centerIn: parent; text: "Data & Storage Coming Soon! "; font.pixelSize: Math.round(13 * localScale); color: Qt.rgba(1,1,1,0.12) }
+                visible: root._page === "visuals"
+                VisualsBehaviorPage { anchors.fill: parent; localScale: root.localScale }
             }
             Item {
                 anchors.fill: parent
@@ -82,8 +77,13 @@ Item {
             }
             Item {
                 anchors.fill: parent
+                visible: root._page === "data"
+                DataPage { anchors.fill: parent; localScale: root.localScale }
+            }
+            Item {
+                anchors.fill: parent
                 visible: root._page === "misc"
-                Text { anchors.centerIn: parent; text: "Misc Coming Soon!"; font.pixelSize: Math.round(13 * localScale); color: Qt.rgba(1,1,1,0.12) }
+                MiscPage { anchors.fill: parent; localScale: root.localScale }
             }
         }
     }

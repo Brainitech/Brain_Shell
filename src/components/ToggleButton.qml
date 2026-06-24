@@ -7,6 +7,11 @@ Item {
     property string text: "Toggle Option"
     property string description: ""
     property bool checked: false
+    
+    property var defaultValue: undefined
+    readonly property bool _hasDefault: defaultValue !== undefined
+    readonly property bool _isDefault: _hasDefault && checked === defaultValue
+    
     signal toggled()
 
     width: parent ? parent.width : 400
@@ -77,6 +82,34 @@ Item {
             Behavior on x { NumberAnimation { duration: Anim.fast; easing.type: Anim.globalCurve } }
 
             color: "white"
+        }
+    }
+
+    // Reset to default
+    Rectangle {
+        id: rstBtn
+        visible: root._hasDefault && !root._isDefault
+        width: Math.round(22 * localScale)
+        height: Math.round(22 * localScale)
+        radius: Math.round(6 * localScale)
+        anchors { right: switchRect.left; rightMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
+        color: rstH.hovered ? Qt.rgba(1, 1, 1, 0.09) : "transparent"
+        Behavior on color { ColorAnimation { duration: Anim.fast } }
+        
+        Text { 
+            anchors.centerIn: parent
+            text: "↺"
+            font.pixelSize: Math.round(13 * localScale)
+            color: rstH.hovered ? Theme.active : Qt.rgba(1, 1, 1, 0.4) 
+        }
+        
+        HoverHandler { id: rstH; cursorShape: Qt.PointingHandCursor }
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                root.checked = root.defaultValue
+                root.toggled()
+            }
         }
     }
 

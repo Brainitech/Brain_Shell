@@ -12,7 +12,17 @@ Item {
     property real stepSize: 0.1
     property bool showValue: true
     property string valueSuffix: ""
-    property var formatValue: function(v) { return Math.round(v * 10) / 10 }
+    property var formatValue: function(v) { 
+        if (valueSuffix === "ms") {
+            if (v >= 1000) return (v / 1000).toString() + "s"
+            return v.toString() + "ms"
+        }
+        return (Math.round(v * 10) / 10).toString() + valueSuffix
+    }
+    
+    property var defaultValue: undefined
+    readonly property bool _hasDefault: defaultValue !== undefined
+    readonly property bool _isDefault: _hasDefault && Math.abs(value - defaultValue) < 0.001
 
     width: parent ? parent.width : 400
     height: Math.round(description !== "" ? (44 * localScale) : (32 * localScale))
@@ -56,7 +66,7 @@ Item {
         Rectangle {
             id: track
             anchors.verticalCenter: parent.verticalCenter
-            width: root.showValue ? (parent.width - Math.round(40 * localScale)) : parent.width
+            width: root.showValue ? (parent.width - Math.round(50 * localScale)) : parent.width
             height: Math.round(6 * localScale)
             radius: height / 2
             color: Qt.rgba(1, 1, 1, 0.1)
@@ -71,7 +81,10 @@ Item {
                 }
                 radius: parent.radius
                 color: Theme.active
-                Behavior on width { NumberAnimation { duration: Anim.superFast; easing.type: Anim.linear } }
+                Behavior on width { 
+                    enabled: !dragArea.pressed
+                    NumberAnimation { duration: Anim.superFast; easing.type: Anim.linear } 
+                }
             }
 
             // Thumb
@@ -88,11 +101,15 @@ Item {
                 color: "white"
                 border.color: Qt.rgba(0, 0, 0, 0.2)
                 border.width: 1
-                Behavior on x { NumberAnimation { duration: Anim.superFast; easing.type: Anim.linear } }
+                Behavior on x { 
+                    enabled: !dragArea.pressed
+                    NumberAnimation { duration: Anim.superFast; easing.type: Anim.linear } 
+                }
             }
 
             // Drag area
             MouseArea {
+                id: dragArea
                 anchors.fill: parent
                 anchors.margins: Math.round(-10 * localScale)
                 cursorShape: Qt.PointingHandCursor
@@ -122,15 +139,41 @@ Item {
             }
         }
 
+        // Reset to default
+        Rectangle {
+            id: rstBtn
+            visible: root._hasDefault && !root._isDefault
+            width: Math.round(20 * localScale)
+            height: Math.round(20 * localScale)
+            radius: Math.round(6 * localScale)
+            anchors { right: sliderArea.left; rightMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
+            color: rstH.hovered ? Qt.rgba(1, 1, 1, 0.09) : "transparent"
+            Behavior on color { ColorAnimation { duration: Anim.fast } }
+            
+            Text { 
+                anchors.centerIn: parent
+                text: "↺"
+                font.pixelSize: Math.round(13 * localScale)
+                color: rstH.hovered ? Theme.active : Qt.rgba(1, 1, 1, 0.4) 
+            }
+            
+            HoverHandler { id: rstH; cursorShape: Qt.PointingHandCursor }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: root.value = root.defaultValue
+            }
+        }
+
         // Value text
         Text {
+            id: valText
             visible: root.showValue
             anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-            text: root.formatValue(root.value) + root.valueSuffix
+            text: root.formatValue(root.value)
             color: Qt.rgba(1, 1, 1, 0.6)
             font.pixelSize: Math.round(12 * localScale)
             horizontalAlignment: Text.AlignRight
-            width: Math.round(35 * localScale)
+            width: Math.round(45 * localScale)
         }
     }
 }

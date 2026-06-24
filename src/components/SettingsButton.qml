@@ -17,9 +17,14 @@ Item {
     property string selectedOption: ""
     property string inputText: ""
     
-    // Built-in file/dir validation ("file" or "dir")
     property string validateAs: ""
     property bool _isInvalid: false
+    
+    property var defaultValue: undefined
+    readonly property bool _hasDefault: defaultValue !== undefined
+    readonly property bool _isDefault: _hasDefault && 
+        (inputType === "options" ? selectedOption === defaultValue : 
+         (inputType === "text" ? inputText === defaultValue : false))
 
     property var _valProc: Process {
         command: []
@@ -99,6 +104,41 @@ Item {
                 font.pixelSize: Math.round(11 * localScale)
                 wrapMode: Text.WordWrap
                 width: parent.width
+            }
+        }
+
+
+
+        // Reset to default
+        Rectangle {
+            id: rstBtn
+            visible: root._hasDefault && !root._isDefault
+            width: Math.round(22 * localScale)
+            height: Math.round(22 * localScale)
+            radius: Math.round(6 * localScale)
+            anchors { right: actionBtn.left; rightMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
+            color: rstH.hovered ? Qt.rgba(1, 1, 1, 0.09) : "transparent"
+            Behavior on color { ColorAnimation { duration: Anim.fast } }
+            
+            Text { 
+                anchors.centerIn: parent
+                text: "↺"
+                font.pixelSize: Math.round(13 * localScale)
+                color: rstH.hovered ? Theme.active : Qt.rgba(1, 1, 1, 0.4) 
+            }
+            
+            HoverHandler { id: rstH; cursorShape: Qt.PointingHandCursor }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    if (root.inputType === "options") {
+                        root.optionSelected(root.defaultValue)
+                    } else if (root.inputType === "text") {
+                        root.inputText = root.defaultValue
+                        root.inputAccepted(root.defaultValue)
+                        root._validate(root.inputText)
+                    }
+                }
             }
         }
 
@@ -207,7 +247,6 @@ Item {
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                root.selectedOption = modelData
                                 root.optionSelected(modelData)
                                 root.expanded = false
                             }

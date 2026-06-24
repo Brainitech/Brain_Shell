@@ -16,155 +16,82 @@ QtObject {
 
     // ── Dashboard Toggles ────────────────────────────────────
 
+    function _openDashboard(page) {
+        Popups._ignoreDefaultTab = true
+        if(Popups.anyOpen && !Popups.dashboardOpen){
+            Popups.closeAll()
+            Popups.dashboardOpen = true
+            Popups.dashboardPage = page
+            Popups.dashboardPinned = true
+        } else if(Popups.dashboardOpen && Popups.dashboardPage != page) {
+            Popups.dashboardPage = page
+        } else {
+            var next = !Popups.dashboardOpen
+            Popups.closeAll()
+            Popups.dashboardOpen = next
+            if (next) { Popups.dashboardPage = page; Popups.dashboardPinned = true; }
+        }
+        Popups._ignoreDefaultTab = false
+    }
+
     property var dashboardHome: IpcHandler {
         target: "dashboard-home"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "home"
-                Popups.dashboardPinned = true
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "home") {
-                Popups.dashboardPage = "home"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) { Popups.dashboardPage = "home"; Popups.dashboardPinned = true; }
-            }
-        }
+        function toggle() { _openDashboard("home") }
     }
 
     property var dashboardStats: IpcHandler {
         target: "dashboard-stats"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "stats"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "stats") {
-                Popups.dashboardPage = "stats"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) { Popups.dashboardPage = "stats"; Popups.dashboardPinned = true; }
-            }
-        }
+        function toggle() { _openDashboard("stats") }
     }
 
     property var dashboardKanban: IpcHandler {
         target: "dashboard-kanban"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "kanban"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "kanban") {
-                Popups.dashboardPage = "kanban"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) { Popups.dashboardPage = "kanban"; Popups.dashboardPinned = true; }
-            }
-        }
+        function toggle() { _openDashboard("kanban") }
     }
 
     property var dashboardLauncher: IpcHandler {
         target: "dashboard-launcher"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "launcher"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "launcher") {
-                Popups.dashboardPage = "launcher"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) { Popups.dashboardPage = "launcher"; Popups.dashboardPinned = true; }
-            }
-        }
+        function toggle() { _openDashboard("launcher") }
     }
 
     property var dashboardConfig: IpcHandler {
         target: "dashboard-config"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "config"
-                Popups.dashboardPinned = true
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "config") {
-                Popups.dashboardPage = "config"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) { Popups.dashboardPage = "config"; Popups.dashboardPinned = true; }
-            }
-        }
+        function toggle() { _openDashboard("config") }
     }
 
     // ── Audio Toggles ────────────────────────────────────────
 
+    function _openAudio(page) {
+        Popups._ignoreDefaultTab = true
+        if(Popups.anyOpen && !Popups.audioOpen) {
+            Popups.closeAll()
+            Popups.audioOpen = true
+            Popups.audioPage = page
+            Popups.audioPinned = true
+        } else if (Popups.audioOpen && Popups.audioPage != page) {
+            Popups.audioPage = page
+        } else {
+            var next = !Popups.audioOpen
+            Popups.closeAll()
+            Popups.audioOpen = next
+            if (next) { Popups.audioPage = page; Popups.audioPinned = true; }
+        }
+        Popups._ignoreDefaultTab = false
+    }
+
     property var audioOut: IpcHandler {
         target: "audioOut-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.audioOpen) {
-                Popups.closeAll()
-                Popups.audioPage = "output"
-                Popups.audioOpen = true
-                Popups.audioPinned = true
-            } else if (Popups.audioOpen && Popups.audioPage != "output") {
-                Popups.audioPage = "output"
-            } else {
-                var next = !Popups.audioOpen
-                Popups.closeAll()
-                Popups.audioOpen = next
-                if (next) { Popups.audioPage = "output"; Popups.audioPinned = true; }
-            }
-        }
+        function toggle() { _openAudio("output") }
     }
 
     property var audioMix: IpcHandler {
         target: "audioMix-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.audioOpen) {
-                Popups.closeAll()
-                Popups.audioPage = "mixer"
-                Popups.audioOpen = true
-                Popups.audioPinned = true
-            } else if (Popups.audioOpen && Popups.audioPage != "mixer") {
-                Popups.audioPage = "mixer"
-            } else {
-                var next = !Popups.audioOpen
-                Popups.closeAll()
-                Popups.audioOpen = next
-                if (next) { Popups.audioPage = "mixer"; Popups.audioPinned = true; }
-            }
-        }
+        function toggle() { _openAudio("mixer") }
     }
 
     property var audioIn: IpcHandler {
         target: "audioIn-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.audioOpen) {
-                Popups.closeAll()
-                Popups.audioPage = "input"
-                Popups.audioOpen = true
-                Popups.audioPinned = true
-            } else if (Popups.audioOpen && Popups.audioPage != "input") {
-                Popups.audioPage = "input"
-            } else {
-                var next = !Popups.audioOpen
-                Popups.closeAll()
-                Popups.audioOpen = next
-                if (next) { Popups.audioPage = "input"; Popups.audioPinned = true; }
-            }
-        }
+        function toggle() { _openAudio("input") }
     }
 
     // ── Network Toggles ──────────────────────────────────────

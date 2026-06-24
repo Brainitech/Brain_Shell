@@ -383,16 +383,22 @@ QtObject {
             _includeProc.command = ["bash", "-c", [
                 "MARKER='Brain_ShellKeybinds'",
                 "LUA=\"$HOME/.config/hypr/hyprland.lua\"",
-                "if [ -f \"$LUA\" ] && ! grep -qF \"$MARKER\" \"$LUA\"; then",
-                "  printf '\\n-- Brain_ShellKeybinds\\ndofile(\"" + lp + "\")\\n' >> \"$LUA\"",
+                "if [ -f \"$LUA\" ]; then",
+                "  sed -i '/quickshellKeybinds/d' \"$LUA\"",
+                "  if ! grep -qF \"$MARKER\" \"$LUA\"; then",
+                "    printf '\\n-- Brain_ShellKeybinds\\ndofile(\"" + lp + "\")\\n' >> \"$LUA\"",
+                "  fi",
                 "fi",
             ].join("\n")]
         } else {
             _includeProc.command = ["bash", "-c", [
                 "MARKER='Brain_ShellKeybinds'",
                 "CONF=\"$HOME/.config/hypr/hyprland.conf\"",
-                "if [ -f \"$CONF\" ] && ! grep -qF \"$MARKER\" \"$CONF\"; then",
-                "  printf '\\n# Brain_ShellKeybinds\\nsource = " + cp + "\\n' >> \"$CONF\"",
+                "if [ -f \"$CONF\" ]; then",
+                "  sed -i '/quickshellKeybinds/d' \"$CONF\"",
+                "  if ! grep -qF \"$MARKER\" \"$CONF\"; then",
+                "    printf '\\n# Brain_ShellKeybinds\\nsource = " + cp + "\\n' >> \"$CONF\"",
+                "  fi",
                 "fi",
             ].join("\n")]
         }

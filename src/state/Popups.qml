@@ -3,13 +3,35 @@ import QtQuick
 import "../"
 
 QtObject {
+    property bool _ignoreDefaultTab: false
+
     // ── Per-popup open state ───────────────────────────────────────────────────
     property bool audioOpen:         false
+    onAudioOpenChanged: {
+        if (audioOpen && !_ignoreDefaultTab) {
+            let opt = PrefsService.defaultAudioTab
+            if (opt === "Input") audioPage = "input"
+            else if (opt === "Mixers") audioPage = "mixer"
+            else audioPage = "output"
+        }
+    }
+    
     property bool networkOpen:       false
     property bool batteryOpen:       false
     property bool notificationsOpen: false
     property bool archMenuOpen:      false
     property bool dashboardOpen:     false
+    onDashboardOpenChanged: {
+        if (dashboardOpen && !_ignoreDefaultTab) {
+            let opt = PrefsService.defaultDashboardTab
+            if (opt === "System") dashboardPage = "stats"
+            else if (opt === "Tasks") dashboardPage = "kanban"
+            else if (opt === "Apps") dashboardPage = "launcher"
+            else if (opt === "Config") dashboardPage = "config"
+            else dashboardPage = "home"
+        }
+    }
+    
     property bool wallpaperOpen:     false
     property bool notificationToastOpen:    false
     property bool quickOpen: false

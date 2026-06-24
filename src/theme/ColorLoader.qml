@@ -11,6 +11,9 @@ import Quickshell.Io
 
 QtObject {
     id: root
+    
+    // Import PrefsService implicitly from parent context or manually
+    property bool overrideMode: false
 
     // ── Parsed colors (with fallbacks matching original palette) ──────────────
     property color background: "#1a282a"
@@ -44,6 +47,10 @@ QtObject {
     // ── Parser ────────────────────────────────────────────────────────────────
     function _parse(raw) {
         if (!raw || raw.trim() === "") return
+        if (root.overrideMode) {
+            root._resetToDefaults()
+            return
+        }
         try {
             var obj = JSON.parse(raw)
             if (obj.background) root.background = obj.background
@@ -54,6 +61,24 @@ QtObject {
             if (obj.iconFont)   root.iconFont   = obj.iconFont
         } catch (e) {
             // Malformed JSON — keep fallback values
+        }
+    }
+
+    function _resetToDefaults() {
+        root.background = "#1a282a"
+        root.active     = "#a6d0f7"
+        root.text       = "#cdd6f4"
+        root.subtext    = "#94e2d5"
+        root.icon       = "#cdd6f4"
+        root.border     = "#ffffff"
+        root.iconFont   = "#2f8d97"
+    }
+    
+    onOverrideModeChanged: {
+        if (overrideMode) {
+            _resetToDefaults()
+        } else {
+            _parse(colorsFile.text())
         }
     }
 }

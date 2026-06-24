@@ -52,7 +52,7 @@ QtObject {
         var json = JSON.stringify({
             "_comment_style": "Available styles: 'slide', 'parallax', 'none'",
             "style": root.style,
-            "_comment_speed": "Multiplier for all animations. 1.0 is default. 0.5 is 2x faster, 2.0 is 2x slower.",
+            "_comment_speed": "Animation speed. 1.0 is default. 2.0 is 2x faster, 0.5 is 2x slower.",
             "speed_multiplier": root.speedMultiplier,
             "_comment_curve": "Available curves: 'smooth', 'spring', 'linear', 'cinematic'",
             "curve": root.curveStyle
@@ -67,25 +67,25 @@ QtObject {
     }
 
     // Standard durations automatically scaled by speedMultiplier
-    readonly property int superFast:  Math.max(0, Math.round(80 * speedMultiplier))
-    readonly property int fast:       Math.max(0, Math.round(100 * speedMultiplier))
-    readonly property int color:      Math.max(0, Math.round(120 * speedMultiplier))
-    readonly property int mediumFast: Math.max(0, Math.round(150 * speedMultiplier))
-    readonly property int normal:     Math.max(0, Math.round(200 * speedMultiplier))
-    readonly property int mediumSlow: Math.max(0, Math.round(250 * speedMultiplier))
-    readonly property int slow:       Math.max(0, Math.round(350 * speedMultiplier))
-    readonly property int slower:     Math.max(0, Math.round(400 * speedMultiplier))
-    readonly property int verySlow:   Math.max(0, Math.round(500 * speedMultiplier))
-    readonly property int extraSlow:  Math.max(0, Math.round(600 * speedMultiplier))
-    readonly property int megaSlow:   Math.max(0, Math.round(900 * speedMultiplier))
-    readonly property int transition: Math.max(0, Math.round(320 * speedMultiplier))
+    readonly property int superFast:  Math.max(0, Math.round(80 / speedMultiplier))
+    readonly property int fast:       Math.max(0, Math.round(100 / speedMultiplier))
+    readonly property int color:      Math.max(0, Math.round(120 / speedMultiplier))
+    readonly property int mediumFast: Math.max(0, Math.round(150 / speedMultiplier))
+    readonly property int normal:     Math.max(0, Math.round(200 / speedMultiplier))
+    readonly property int mediumSlow: Math.max(0, Math.round(250 / speedMultiplier))
+    readonly property int slow:       Math.max(0, Math.round(350 / speedMultiplier))
+    readonly property int slower:     Math.max(0, Math.round(400 / speedMultiplier))
+    readonly property int verySlow:   Math.max(0, Math.round(500 / speedMultiplier))
+    readonly property int extraSlow:  Math.max(0, Math.round(600 / speedMultiplier))
+    readonly property int megaSlow:   Math.max(0, Math.round(900 / speedMultiplier))
+    readonly property int transition: Math.max(0, Math.round(320 / speedMultiplier))
 
     // Global Curve Modifier
     readonly property int globalCurve: {
         if (curveStyle === "spring") return Easing.OutBack;
-        if (curveStyle === "cinematic") return Easing.InOutCubic;
+        if (curveStyle === "cinematic") return Easing.InOutQuart;
         if (curveStyle === "linear") return Easing.Linear;
-        return Easing.OutExpo; // Default to smooth
+        return Easing.OutQuart; // Default to smooth
     }
 
     // Easings (Mapping legacy bindings to the new global curve where appropriate)

@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import "../"
 import "."
 
 QtObject {
@@ -7,7 +8,10 @@ QtObject {
 
     // ── Color loader — watches matugen output and updates live ────────────────
     // Use a unique ID to avoid namespace collision with the 'Colors' singleton
-    property var _loader: ColorLoader { id: internalLoader }
+    property var _loader: ColorLoader { 
+        id: internalLoader 
+        overrideMode: PrefsService.dynamicThemeOverride
+    }
 
     // ── Colors — bound to loader, update automatically when matugen runs ──────
     property color background: internalLoader.background

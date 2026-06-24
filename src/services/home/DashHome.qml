@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import "../"
 import "../../components"
+import "../../"
 
 // Dashboard Home tab — layout only.
 //
@@ -23,39 +24,21 @@ Item {
     readonly property int profileH: Math.round(160 * localScale)
     readonly property int clockH:   Math.round(220 * localScale)
 
-    // ── Avatar path ───────────────────────────────────────────────────────────
     property string _avatarPath: ""
     property string _staticJpg:  ""   // resolved once: $HOME/.curr_wall_static.jpg
-    property string _customAvatar: ""
-
-    FileView {
-        id: profilePrefs
-        path: Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/profile_prefs.json"
-        watchChanges: true
-        onFileChanged: reload()
-        onLoaded: {
-            var txt = text()
-            if (txt && txt !== "") {
-                try {
-                    var obj = JSON.parse(txt)
-                    if (obj.custom_avatar && obj.custom_avatar !== "") {
-                        root._customAvatar = obj.custom_avatar
-                    } else {
-                        root._customAvatar = ""
-                    }
-                } catch(e) {}
-            } else {
-                root._customAvatar = ""
-            }
-            root._updateAvatar()
-        }
-    }
 
     function _updateAvatar() {
-        if (root._customAvatar !== "") {
-            root._avatarPath = root._customAvatar
+        if (PrefsService.customAvatarPath !== "") {
+            root._avatarPath = PrefsService.customAvatarPath
         } else if (root._staticJpg !== "") {
             root._avatarPath = root._staticJpg
+        }
+    }
+    
+    Connections {
+        target: PrefsService
+        function onCustomAvatarPathChanged() {
+            root._updateAvatar()
         }
     }
 
@@ -92,13 +75,7 @@ Item {
     }
 
     Component.onCompleted: {
-        var p = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/profile_prefs.json"
-        var initProc = Qt.createQmlObject('import QtQuick; import Quickshell.Io; Process { }', root, "InitProfileProc")
-        initProc.command = [
-            "bash", "-c",
-            "if [ ! -f '" + p + "' ]; then mkdir -p \"$(dirname '" + p + "')\" && echo '{\"custom_avatar\": \"\"}' > '" + p + "'; fi"
-        ]
-        initProc.running = true
+        root._updateAvatar()
     }
 
     // ── Left column ───────────────────────────────────────────────────────────

@@ -117,4 +117,15 @@ QtObject {
             console.error("Brain Shell: Failed to parse config_Provider.json")
         }
     }
+    
+    property bool _bootFocusModeApplied: false
+    property var _bootFocusConn: Connections {
+        target: PrefsService
+        function onLoaded() {
+            if (!root._bootFocusModeApplied) {
+                root.focusMode = PrefsService.bootFocusMode
+                root._bootFocusModeApplied = true
+            }
+        }
+    }
 }

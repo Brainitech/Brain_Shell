@@ -61,17 +61,24 @@ Text {
 
     function updateText() {
         let now = new Date()
+        let tf = PrefsService.use24HourTime ? "hh:mm" : "h:mm ap"
+        let tfs = PrefsService.use24HourTime ? "hh:mm:ss" : "h:mm:ss ap"
         switch(formatMode) {
             case 0:
-                text = Qt.formatDateTime(now, "hh:mm")
+                text = Qt.formatDateTime(now, tf)
                 break
             case 1:
-                text = Qt.formatDateTime(now, "hh:mm:ss")
+                text = Qt.formatDateTime(now, tfs)
                 break
             case 2:
                 text = Qt.formatDateTime(now, "dd-MM-yyyy")
                 break
         }
+    }
+    
+    Connections {
+        target: PrefsService
+        function onUse24HourTimeChanged() { updateText() }
     }
 
     Component.onCompleted: updateText()

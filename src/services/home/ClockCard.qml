@@ -21,6 +21,7 @@ StatCard {
     property string _sec:      "00"
     property int    _currentH: 0
     property int    _currentM: 0
+    property string _amPm:     "AM"
 
     // ── Timer ─────────────────────────────────────────────────────────────────
     property int  _timerTotal:   10 * 60
@@ -88,10 +89,14 @@ StatCard {
         var d = new Date()
         var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds()
         _currentH = h; _currentM = m
-        _hm  = _zp(h) + ":" + _zp(m) + ":" + _zp(s)
-        _hStr = _zp(h)
+        
+        var displayH = PrefsService.use24HourTime ? h : (h % 12 || 12)
+        
+        _hm  = _zp(displayH) + ":" + _zp(m) + ":" + _zp(s)
+        _hStr = _zp(displayH)
         _mStr = _zp(m)
         _sec = _zp(s)
+        _amPm = h >= 12 ? "PM" : "AM"
     }
 
     function _timerDisplay() {
@@ -224,6 +229,11 @@ StatCard {
         }
     }
     
+    Connections {
+        target: PrefsService
+        function onUse24HourTimeChanged() { root._tick() }
+    }
+    
     // ── UI ────────────────────────────────────────────────────────────────────
     Item {
         anchors.fill: parent
@@ -313,13 +323,25 @@ StatCard {
                     }
                 }
 
-                // Seconds — vertically centered beside the stack
-                Text {
+                // Seconds and AM/PM
+                Column {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: root._sec
-                    font.pixelSize: Math.round(22 * localScale); font.weight: Font.Medium
-                    font.family: "JetBrains Mono"
-                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
+                    spacing: Math.round(4 * localScale)
+                    
+                    Text {
+                        text: root._sec
+                        font.pixelSize: Math.round(22 * localScale); font.weight: Font.Medium
+                        font.family: "JetBrains Mono"
+                        color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
+                    }
+                    
+                    Text {
+                        visible: !PrefsService.use24HourTime
+                        text: root._amPm
+                        font.pixelSize: Math.round(14 * localScale); font.weight: Font.Bold
+                        font.family: "JetBrains Mono"
+                        color: Theme.active
+                    }
                 }
             }
         }

@@ -179,6 +179,10 @@ PanelWindow {
         anchors.bottomMargin:     Math.round(Theme.borderWidth * root.localScale)
         clip: true
 
+        HoverHandler {
+            onHoveredChanged: root.selfHovered = hovered
+        }
+
         width:  Popups.wallpaperOpen ? root.panelWidth + 2 * root.fw : Math.round(Theme.cNotchMinWidth * root.localScale) + 2 * root.fw
         height: Popups.wallpaperOpen ? root.panelHeight : 0
 
@@ -775,14 +779,4 @@ PanelWindow {
         }
     }
 
-    Item {
-        anchors.horizontalCenter: sizer.horizontalCenter
-        anchors.bottom: parent.bottom
-        width: sizer.width
-        height: sizer.height + Math.round(Theme.borderWidth * root.localScale)
-
-        HoverHandler {
-            onHoveredChanged: root.selfHovered = hovered
-        }
-    }
 }

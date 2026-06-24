@@ -122,6 +122,10 @@ PanelWindow {
         anchors.bottomMargin: Theme.borderWidth
         clip: true
 
+        HoverHandler {
+            onHoveredChanged: root.selfHovered = hovered
+        }
+
         width:  Popups.clipboardOpen ? root.popupWidth  + root.fw : 0
         height: Popups.clipboardOpen ? root.popupHeight + root.fh : 0
 
@@ -168,14 +172,4 @@ PanelWindow {
         }
     }
 
-    Item {
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        width: sizer.width + Theme.borderWidth
-        height: sizer.height + Theme.borderWidth
-
-        HoverHandler {
-            onHoveredChanged: root.selfHovered = hovered
-        }
-    }
 }

@@ -185,47 +185,32 @@ PanelWindow {
                 spacing: Math.round(10 * localScale)
 
                 Text {
-                    text: UpdateService.commitsBehind + " new commit" +
-                          (UpdateService.commitsBehind === 1 ? "" : "s") + " on main"
+                    text: UpdateService.updateVersion !== "" ? ("Version " + UpdateService.updateVersion + " is available") : "Update Available"
                     font.pixelSize: Math.round(12 * localScale)
                     color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.55)
                 }
 
-                Column {
-                    width:   parent.width
-                    spacing: Math.round(4 * localScale)
-
-                    Repeater {
-                        model: Math.min(3, UpdateService.commitMessages.length)
-                        delegate: Row {
-                            spacing: Math.round(8 * localScale)
-                            Text {
-                                text:           "·"
-                                font.pixelSize: Math.round(11 * localScale)
-                                color:          Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.60)
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                            Text {
-                                width:          parent.parent.width - Math.round(18 * localScale)
-                                font.pixelSize: Math.round(11 * localScale)
-                                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.55)
-                                elide:          Text.ElideRight
-                                // Strip the short hash prefix from the commit line
-                                text: {
-                                    var m = UpdateService.commitMessages[index] || ""
-                                    var sp = m.indexOf(" ")
-                                    return sp >= 0 ? m.substring(sp + 1) : m
-                                }
-                            }
+                Item {
+                    width: parent.width
+                    height: Math.min(patchNotesText.implicitHeight, Math.round(180 * localScale))
+                    clip: true
+                    
+                    Flickable {
+                        anchors.fill: parent
+                        contentWidth: width
+                        contentHeight: patchNotesText.implicitHeight
+                        boundsBehavior: Flickable.StopAtBounds
+                        
+                        Text {
+                            id: patchNotesText
+                            width: parent.width
+                            text: UpdateService.patchNotes
+                            font.pixelSize: Math.round(11 * localScale)
+                            color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.65)
+                            wrapMode: Text.WordWrap
+                            textFormat: Text.MarkdownText
+                            onLinkActivated: function(link) { Qt.openUrlExternally(link) }
                         }
-                    }
-
-                    Text {
-                        visible:        UpdateService.commitMessages.length > 3
-                        text:           "+ " + (UpdateService.commitMessages.length - 3) + " more"
-                        font.pixelSize: Math.round(10 * localScale)
-                        color:          Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.40)
-                        leftPadding:    Math.round(16 * localScale)
                     }
                 }
 

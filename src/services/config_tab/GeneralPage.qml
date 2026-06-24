@@ -1,10 +1,13 @@
 import QtQuick
+import Quickshell
+import Quickshell.Io
 import "../../components"
 import "../../"
-
 Item {
     id: root
     property real localScale: 1.0
+    
+    // Replaced local path validator with SettingsButton's built-in validation.
 
     Flickable {
         anchors.fill: parent
@@ -26,8 +29,15 @@ Item {
                 SettingsButton {
                     localScale: root.localScale
                     text: "Custom Avatar"
-                    description: "Select an image to override your profile picture in the dashboard."
-                    buttonText: "Browse..."
+                    description: "Custom profile picture. Leave blank to use wallpaper."
+                    inputType: "text"
+                    validateAs: "image"
+                    inputText: PrefsService.customAvatarPath
+                    buttonText: inputText !== "" ? inputText : "Browse..."
+                    onInputAccepted: function(txt) {
+                        PrefsService.customAvatarPath = txt
+                        PrefsService.saveConfig()
+                    }
                 }
             }
 
@@ -40,48 +50,75 @@ Item {
                     localScale: root.localScale
                     text: "Boot into Focus Mode"
                     description: "Start the shell with notches and gaps hidden for maximum workspace."
-                    checked: false
+                    checked: PrefsService.bootFocusMode
+                    onCheckedChanged: {
+                        if (checked !== PrefsService.bootFocusMode) {
+                            PrefsService.bootFocusMode = checked
+                            PrefsService.saveConfig()
+                        }
+                    }
                 }
                 SettingsDivider { localScale: root.localScale }
                 ToggleButton {
                     localScale: root.localScale
                     text: "Auto-check for Updates"
                     description: "Periodically check the remote repository for shell updates."
-                    checked: true
+                    checked: UpdateService.autoUpdate
+                    onCheckedChanged: {
+                        if (checked !== UpdateService.autoUpdate) {
+                            UpdateService.autoUpdate = checked
+                            UpdateService._saveConfig()
+                        }
+                    }
                 }
                 SettingsDivider { localScale: root.localScale }
-                SettingsButton {
-                    localScale: root.localScale
-                    text: "Default Dashboard Tab"
-                    description: "Which view opens when you launch the dashboard."
-                    buttonText: "Home"
-                }
+                    SettingsButton {
+                        localScale: root.localScale
+                        text: "Default Dashboard Tab"
+                        description: "Which view opens when you launch the dashboard."
+                        inputType: "options"
+                        options: ["Home", "System", "Tasks", "Apps", "Config"]
+                        selectedOption: PrefsService.defaultDashboardTab
+                        buttonText: selectedOption
+                        onOptionSelected: function(opt) {
+                            PrefsService.defaultDashboardTab = opt
+                            PrefsService.saveConfig()
+                        }
+                    }
                 SettingsDivider { localScale: root.localScale }
-                SettingsButton {
-                    localScale: root.localScale
-                    text: "Default Audio Tab"
-                    description: "Which view opens when you launch the audio popup."
-                    buttonText: "Output"
-                }
+                    SettingsButton {
+                        localScale: root.localScale
+                        text: "Default Audio Tab"
+                        description: "Which view opens when you launch the audio popup."
+                        inputType: "options"
+                        options: ["Output", "Input", "Mixers"]
+                        selectedOption: PrefsService.defaultAudioTab
+                        buttonText: selectedOption
+                        onOptionSelected: function(opt) {
+                            PrefsService.defaultAudioTab = opt
+                            PrefsService.saveConfig()
+                        }
+                    }
             }
 
             SettingsGroup {
                 localScale: root.localScale
                 title: "Media & Capture"
-                description: "Settings for screen recording and screenshots."
+                description: "Settings for screen recording."
 
                 SettingsButton {
                     localScale: root.localScale
                     text: "Save Directory"
-                    description: "Where media files are saved (e.g. ~/Videos)."
-                    buttonText: "Select..."
-                }
-                SettingsDivider { localScale: root.localScale }
-                ToggleButton {
-                    localScale: root.localScale
-                    text: "Record Audio by Default"
-                    description: "Include system audio when starting a screen recording."
-                    checked: false
+                    description: "Directory for saved media files."
+                    inputType: "text"
+                    buttonText: inputText !== "" ? inputText : "Browse..."
+                    inputText: ScreenRecService.saveDir
+                    validateAs: "dir"
+                    onInputAccepted: function(txt) {
+                        if (txt === "") return
+                        ScreenRecService.saveDir = txt
+                        ScreenRecService.saveConfig()
+                    }
                 }
             }
 
@@ -93,7 +130,13 @@ Item {
                     localScale: root.localScale
                     text: "Use 24-Hour Time"
                     description: "Switch clock displays from 12h (AM/PM) to 24h format."
-                    checked: false
+                    checked: PrefsService.use24HourTime
+                    onCheckedChanged: {
+                        if (checked !== PrefsService.use24HourTime) {
+                            PrefsService.use24HourTime = checked
+                            PrefsService.saveConfig()
+                        }
+                    }
                 }
             }
         }

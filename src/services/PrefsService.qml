@@ -14,6 +14,28 @@ QtObject {
     property string defaultAudioTab: "Output"
     property bool use24HourTime: false
 
+    // Sizing & Borders
+    property bool barEnabled: true
+    property int borderWidth: 6
+    property int cornerRadius: 17
+    property int notchRadius: 15
+
+    // Popup Behavior
+    property bool globalHoverMode: false
+    property bool hoverDashboard: false
+    property bool hoverNetwork: false
+    property bool hoverAudio: false
+    property bool hoverQuick: true
+    property bool hoverArchMenu: false
+    property bool hoverNotifications: false
+    property bool hoverClipboard: false
+    property bool hoverWallpaper: false
+    
+    property int hoverOpenDelay: 150
+    property int hoverCloseDelay: 300
+
+    property bool dynamicThemeOverride: false
+
     property string _cfgBuf: ""
     
     property var _configFile: FileView {
@@ -32,6 +54,26 @@ QtObject {
             if (o.defaultDashboardTab !== undefined) root.defaultDashboardTab = o.defaultDashboardTab
             if (o.defaultAudioTab !== undefined) root.defaultAudioTab = o.defaultAudioTab
             if (o.use24HourTime !== undefined) root.use24HourTime = o.use24HourTime
+
+            if (o.barEnabled !== undefined) root.barEnabled = o.barEnabled
+            if (o.borderWidth !== undefined) root.borderWidth = o.borderWidth
+            if (o.cornerRadius !== undefined) root.cornerRadius = o.cornerRadius
+            if (o.notchRadius !== undefined) root.notchRadius = o.notchRadius
+
+            if (o.globalHoverMode !== undefined) root.globalHoverMode = o.globalHoverMode
+            if (o.hoverDashboard !== undefined) root.hoverDashboard = o.hoverDashboard
+            if (o.hoverNetwork !== undefined) root.hoverNetwork = o.hoverNetwork
+            if (o.hoverAudio !== undefined) root.hoverAudio = o.hoverAudio
+            if (o.hoverQuick !== undefined) root.hoverQuick = o.hoverQuick
+            if (o.hoverArchMenu !== undefined) root.hoverArchMenu = o.hoverArchMenu
+            if (o.hoverNotifications !== undefined) root.hoverNotifications = o.hoverNotifications
+            if (o.hoverClipboard !== undefined) root.hoverClipboard = o.hoverClipboard
+            if (o.hoverWallpaper !== undefined) root.hoverWallpaper = o.hoverWallpaper
+
+            if (o.hoverOpenDelay !== undefined) root.hoverOpenDelay = o.hoverOpenDelay
+            if (o.hoverCloseDelay !== undefined) root.hoverCloseDelay = o.hoverCloseDelay
+
+            if (o.dynamicThemeOverride !== undefined) root.dynamicThemeOverride = o.dynamicThemeOverride
         } catch(e) {}
         root.loaded()
     }
@@ -43,7 +85,23 @@ QtObject {
             bootFocusMode: root.bootFocusMode,
             defaultDashboardTab: root.defaultDashboardTab,
             defaultAudioTab: root.defaultAudioTab,
-            use24HourTime: root.use24HourTime
+            use24HourTime: root.use24HourTime,
+            barEnabled: root.barEnabled,
+            borderWidth: root.borderWidth,
+            cornerRadius: root.cornerRadius,
+            notchRadius: root.notchRadius,
+            globalHoverMode: root.globalHoverMode,
+            hoverDashboard: root.hoverDashboard,
+            hoverNetwork: root.hoverNetwork,
+            hoverAudio: root.hoverAudio,
+            hoverQuick: root.hoverQuick,
+            hoverArchMenu: root.hoverArchMenu,
+            hoverNotifications: root.hoverNotifications,
+            hoverClipboard: root.hoverClipboard,
+            hoverWallpaper: root.hoverWallpaper,
+            hoverOpenDelay: root.hoverOpenDelay,
+            hoverCloseDelay: root.hoverCloseDelay,
+            dynamicThemeOverride: root.dynamicThemeOverride
         })
         _saveProc.command = ["bash", "-c", "mkdir -p \"$(dirname '" + path + "')\" && printf '%s' '" + data.replace(/'/g, "'\\''") + "' > '" + path + "'"]
         _saveProc.running = false

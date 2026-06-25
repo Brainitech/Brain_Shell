@@ -70,19 +70,19 @@ QtObject {
     property bool clipboardTriggerHovered:     false
 
     // ── Hover allowance settings ──────────────────────────────────────────────
-    property bool audioAllowHover:         false
-    property bool networkAllowHover:       false
-    property bool archMenuAllowHover:      false
-    property bool wallpaperAllowHover:     false
-    property bool clipboardAllowHover:     false
-    property bool notificationsAllowHover: false
-    property bool quickAllowHover:         true
-    property bool dashboardAllowHover:     false
+    property bool audioAllowHover:         PrefsService.globalHoverMode && PrefsService.hoverAudio
+    property bool networkAllowHover:       PrefsService.globalHoverMode && PrefsService.hoverNetwork
+    property bool archMenuAllowHover:      PrefsService.globalHoverMode && PrefsService.hoverArchMenu
+    property bool wallpaperAllowHover:     PrefsService.globalHoverMode && PrefsService.hoverWallpaper
+    property bool clipboardAllowHover:     PrefsService.globalHoverMode && PrefsService.hoverClipboard
+    property bool notificationsAllowHover: PrefsService.globalHoverMode && PrefsService.hoverNotifications
+    property bool quickAllowHover:         PrefsService.globalHoverMode && PrefsService.hoverQuick
+    property bool dashboardAllowHover:     PrefsService.globalHoverMode && PrefsService.hoverDashboard
 
     // ── Universal popup behavior settings ─────────────────────────────────────
     property int  slideDuration:   Anim.transition
-    property int  hoverCloseDelay: Anim.transition          // delay after hover leaves before closing
-    property int  hoverOpenDelay:  150                     // delay before hover opens
+    property int  hoverCloseDelay: PrefsService.hoverCloseDelay          // delay after hover leaves before closing
+    property int  hoverOpenDelay:  PrefsService.hoverOpenDelay           // delay before hover opens
 
     // ── Confirm dialog ────────────────────────────────────────────────────────
     property bool   confirmOpen:    false

@@ -76,6 +76,18 @@ PopupWindow {
             }
 		}
 
+		Connections {
+			target: slide
+			function onWindowVisibleChanged() {
+				if (slide.windowVisible && !Popups.audioOpen) {
+					let opt = PrefsService.defaultAudioTab
+					if (opt === "Input") Popups.audioPage = "input"
+					else if (opt === "Mixers") Popups.audioPage = "mixer"
+					else Popups.audioPage = "output"
+				}
+			}
+		}
+
 		Timer {
 			id: audioResetTimer
 			interval: Anim.transition + 20

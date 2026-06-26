@@ -35,10 +35,10 @@ PanelWindow {
 
     Item {
         id: maskProxy
-        x:      root.implicitWidth - sizer.width
+        x:      root.implicitWidth - (Popups.networkOpen ? root.popupWidth + root.fw : sizer.width)
         y:      0
-        width:  sizer.width
-        height: Math.max(sizer.height, Math.round(Theme.notchHeight * root.localScale))
+        width:  Popups.networkOpen ? root.popupWidth + root.fw : sizer.width
+        height: Popups.networkOpen ? root.popupHeight : Math.max(sizer.height, Math.round(Theme.notchHeight * root.localScale))
     }
 
     // ── Visibility gate ───────────────────────────────────────────────────────
@@ -122,10 +122,9 @@ PanelWindow {
     Item {
         id: hoverContainer
         anchors.right: parent.right
-        anchors.rightMargin: Math.round(Theme.borderWidth * root.localScale)
         y: 0
-        width: sizer.width
-        height: Math.max(sizer.height, Math.round(Theme.notchHeight * root.localScale))
+        width: maskProxy.width
+        height: maskProxy.height
 
         HoverHandler {
             onHoveredChanged: root.selfHovered = hovered
@@ -155,7 +154,7 @@ PanelWindow {
 
             height: Popups.networkOpen ? root.popupHeight : 0
     
-            Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+            Behavior on width  { id: sizerWidthAnim; NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
             Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
     
             PopupShape {
@@ -225,7 +224,7 @@ PanelWindow {
                         
                         x: targetX
                         Behavior on x {
-                            enabled: Anim.style !== "none"
+                            enabled: Anim.style !== "none" && Popups.networkOpen && Math.round(sizer.width) === root.popupWidth + root.fw
                             NumberAnimation { 
                                 duration: Anim.slow; easing.type: Anim.outExpo
                                 onRunningChanged: { if (!running && !tabWifi.isCurrent) tabWifi.wasCurrent = false; }
@@ -273,7 +272,7 @@ PanelWindow {
                         
                         x: targetX
                         Behavior on x {
-                            enabled: Anim.style !== "none"
+                            enabled: Anim.style !== "none" && Popups.networkOpen && Math.round(sizer.width) === root.popupWidth + root.fw
                             NumberAnimation { 
                                 duration: Anim.slow; easing.type: Anim.outExpo
                                 onRunningChanged: { if (!running && !tabBluetooth.isCurrent) tabBluetooth.wasCurrent = false; }
@@ -322,7 +321,7 @@ PanelWindow {
                         
                         x: targetX
                         Behavior on x {
-                            enabled: Anim.style !== "none"
+                            enabled: Anim.style !== "none" && Popups.networkOpen && Math.round(sizer.width) === root.popupWidth + root.fw
                             NumberAnimation { 
                                 duration: Anim.slow; easing.type: Anim.outExpo
                                 onRunningChanged: { if (!running && !tabVpn.isCurrent) tabVpn.wasCurrent = false; }
@@ -371,7 +370,7 @@ PanelWindow {
                         
                         x: targetX
                         Behavior on x {
-                            enabled: Anim.style !== "none"
+                            enabled: Anim.style !== "none" && Popups.networkOpen && Math.round(sizer.width) === root.popupWidth + root.fw
                             NumberAnimation { 
                                 duration: Anim.slow; easing.type: Anim.outExpo
                                 onRunningChanged: { if (!running && !tabHotspot.isCurrent) tabHotspot.wasCurrent = false; }

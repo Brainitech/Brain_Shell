@@ -115,48 +115,54 @@ PanelWindow {
     }
 
     Item {
-        id: sizer
+        id: hoverContainer
         anchors.right:  parent.right
         anchors.bottom: parent.bottom
-        anchors.rightMargin: Theme.borderWidth
-        anchors.bottomMargin: Theme.borderWidth
-        clip: true
+        width:  sizer.width  + Theme.borderWidth
+        height: sizer.height + Theme.borderWidth
 
         HoverHandler {
             onHoveredChanged: root.selfHovered = hovered
         }
 
-        width:  Popups.clipboardOpen ? root.popupWidth  + root.fw : 0
-        height: Popups.clipboardOpen ? root.popupHeight + root.fh : 0
-
-        Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-        Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-
-        TapHandler {
-            onTapped: {
-                Popups.clipboardOpen = true
-                Popups.clipboardPinned = true
-            }
-        }
-
-
-        PopupShape {
-            anchors.fill: parent
-            attachedEdge: "bottom-right"
-            color:        Theme.background
-            radius:       Math.round(Theme.cornerRadius * root.localScale)
-            flareWidth:   root.fw
-            flareHeight:  root.fh
-        }
-
         Item {
-            id: content
-            anchors {
-                fill:         parent
-                topMargin:    root.fh + Math.round(8 * root.localScale)
-                leftMargin:   root.fw + Math.round(10 * root.localScale)
-                bottomMargin: Math.round(8 * root.localScale)
+            id: sizer
+            anchors.top:  parent.top
+            anchors.left: parent.left
+            clip: true
+
+            width:  Popups.clipboardOpen ? root.popupWidth  + root.fw : 0
+            height: Popups.clipboardOpen ? root.popupHeight + root.fh : 0
+
+            Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+            Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+
+            TapHandler {
+                onTapped: {
+                    Popups.clipboardOpen = true
+                    Popups.clipboardPinned = true
+                }
             }
+
+
+            PopupShape {
+                anchors.fill: parent
+                attachedEdge: "bottom-right"
+                color:        Theme.background
+                radius:       Math.round(Theme.cornerRadius * root.localScale)
+                flareWidth:   root.fw
+                flareHeight:  root.fh
+            }
+
+            Item {
+                id: content
+                anchors {
+                    right:        parent.right
+                    bottom:       parent.bottom
+                    bottomMargin: Math.round(8 * root.localScale)
+                }
+                width:  root.popupWidth  - Math.round(10 * root.localScale)
+                height: root.popupHeight - Math.round(16 * root.localScale)
 
             opacity: Popups.clipboardOpen ? 1 : 0
             Behavior on opacity {
@@ -171,5 +177,7 @@ PanelWindow {
             }
         }
     }
+}
+
 
 }

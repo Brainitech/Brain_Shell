@@ -103,7 +103,7 @@ PopupWindow {
 			width:  (root.pageWidths[audioControl.page] ?? root.maxWidth)
 			height: root.popupHeight
 
-			Behavior on width { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+			Behavior on width { id: sizerWidthAnim; NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
 
 			PopupShape {
 				id: bg
@@ -118,6 +118,7 @@ PopupWindow {
 			AudioControl {
 				id: audioControl
 				localScale: root.localScale
+				fullyOpen: Popups.audioOpen && !slide.sliding && Math.round(sizer.width) === Math.round(root.pageWidths[audioControl.page] ?? root.maxWidth)
 				anchors {
 					fill:         parent
 					topMargin:    root.fh + Math.round(6 * root.localScale)

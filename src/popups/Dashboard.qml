@@ -184,7 +184,7 @@ PanelWindow {
             ? Math.min(Theme.dashboardHeight * localScale, (screen ? screen.height : 1080) * 0.90) 
             : Theme.notchHeight / 2
 
-        Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
+        Behavior on width  { id: sizerWidthAnim; NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
         Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
 
         //The number of bugs I had to fix to get this to work properly is insane. I don't even want to think about it.
@@ -251,7 +251,7 @@ PanelWindow {
                     
                     property int pageIdx: Math.max(0, ["home", "stats", "kanban", "launcher", "config"].indexOf(root.page))
                     
-                    property int oldIdx: 0
+                    property int oldIdx: pageIdx
                     property int newIdx: pageIdx
                     property real progress: 1.0
                     
@@ -266,9 +266,15 @@ PanelWindow {
                     }
                     
                     onPageIdxChanged: {
-                        oldIdx = newIdx;
-                        newIdx = pageIdx;
-                        progressAnim.restart();
+                        if (!Popups.dashboardOpen || !root.windowVisible || Math.round(sizer.width) !== Math.round(root.scaledPageWidth + 2 * root.fw)) {
+                            oldIdx = pageIdx;
+                            newIdx = pageIdx;
+                            progress = 1.0;
+                        } else {
+                            oldIdx = newIdx;
+                            newIdx = pageIdx;
+                            progressAnim.restart();
+                        }
                     }
 
                     component SlidePage: Item {

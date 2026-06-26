@@ -7,6 +7,7 @@ Item {
     id: root
 
     property real localScale: 1.0
+    property bool fullyOpen: true
 
     readonly property var sink:   Pipewire.defaultAudioSink
     readonly property var source: Pipewire.defaultAudioSource
@@ -90,7 +91,7 @@ Item {
                 
                 y: targetY
                 Behavior on y {
-                    enabled: Anim.style !== "none"
+                    enabled: Anim.style !== "none" && Popups.audioOpen && root.fullyOpen
                     NumberAnimation { 
                         duration: Anim.slow; easing.type: Anim.outExpo
                         onRunningChanged: { if (!running && !pageOutput.isCurrent) pageOutput.wasCurrent = false; }
@@ -158,7 +159,7 @@ Item {
                 
                 y: targetY
                 Behavior on y {
-                    enabled: Anim.style !== "none"
+                    enabled: Anim.style !== "none" && Popups.audioOpen && root.fullyOpen
                     NumberAnimation { 
                         duration: Anim.slow; easing.type: Anim.outExpo
                         onRunningChanged: { if (!running && !pageInput.isCurrent) pageInput.wasCurrent = false; }
@@ -220,7 +221,7 @@ Item {
                 
                 y: targetY
                 Behavior on y {
-                    enabled: Anim.style !== "none"
+                    enabled: Anim.style !== "none" && Popups.audioOpen && root.fullyOpen
                     NumberAnimation { 
                         duration: Anim.slow; easing.type: Anim.outExpo
                         onRunningChanged: { if (!running && !pageMixer.isCurrent) pageMixer.wasCurrent = false; }

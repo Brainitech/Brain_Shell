@@ -49,6 +49,7 @@ Item {
     // ── Output ────────────────────────────────────────────────────────────────
     // Bind PopupWindow.visible to this
     property bool windowVisible: false
+    readonly property bool sliding: xAnim.running || yAnim.running
 
     // Emitted after closeDelay when hover leaves — popup sets its Popups.* bool
     signal closeRequested()
@@ -77,7 +78,9 @@ Item {
             }
         } else {
             hoverOpenTimer.stop()
-            _hoverOpenActive = false
+            if (_hoverOpenActive) {
+                hoverCloseTimer.restart()
+            }
         }
     }
 
@@ -99,18 +102,14 @@ Item {
     on_EffectiveOpenChanged: {
         if (_effectiveOpen) {
             hoverCloseTimer.stop()
+            slideCloseTimer.stop()
             windowVisible = true
         } else {
-            if (hoverEnabled) {
-                // Delay so the user can move from trigger to popup without flicker
-                hoverCloseTimer.restart()
-            } else {
-                slideCloseTimer.restart()
-            }
+            slideCloseTimer.restart()
         }
     }
 
-    // Wait for slide-out to finish before hiding window (click-close path)
+    // Wait for slide-out to finish before hiding window
     Timer {
         id: slideCloseTimer
         interval: root.slideDuration + 20
@@ -126,7 +125,6 @@ Item {
             if (!root.triggerHovered && !root._selfHovered) {
                 root._hoverOpenActive = false
                 if (!root.pinned) {
-                    root.windowVisible = false
                     root.closeRequested()
                 }
             }
@@ -145,8 +143,8 @@ Item {
         y: root._effectiveOpen ? 0 : (root.edge === "top"    ? -height :
                                        root.edge === "bottom" ?  height : 0)
 
-        Behavior on x { NumberAnimation { duration: root.slideDuration; easing.type: Anim.outCubic} }
-        Behavior on y { NumberAnimation { duration: root.slideDuration; easing.type: Anim.outCubic} }
+        Behavior on x { NumberAnimation { id: xAnim; duration: root.slideDuration; easing.type: Anim.outCubic} }
+        Behavior on y { NumberAnimation { id: yAnim; duration: root.slideDuration; easing.type: Anim.outCubic} }
 
         // Self-hover tracking — automatically available to all popups
         HoverHandler {

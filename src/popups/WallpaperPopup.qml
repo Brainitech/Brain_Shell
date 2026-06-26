@@ -173,50 +173,56 @@ PanelWindow {
     }
 
     Item {
-        id: sizer
+        id: hoverContainer
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom:           parent.bottom
-        anchors.bottomMargin:     Math.round(Theme.borderWidth * root.localScale)
-        clip: true
+        width:  sizer.width
+        height: sizer.height + Math.round(Theme.borderWidth * root.localScale)
 
         HoverHandler {
             onHoveredChanged: root.selfHovered = hovered
         }
 
-        width:  Popups.wallpaperOpen ? root.panelWidth + 2 * root.fw : Math.round(Theme.cNotchMinWidth * root.localScale) + 2 * root.fw
-        height: Popups.wallpaperOpen ? root.panelHeight : 0
-
-        Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-        Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-
-
-
-        TapHandler {
-            onTapped: {
-                Popups.wallpaperOpen = true
-                Popups.wallpaperPinned = true
-            }
-        }
-
-        PopupShape {
-            anchors.fill: parent
-            attachedEdge: "bottom"
-            color:        Theme.background
-            radius:       Math.round(Theme.cornerRadius * root.localScale)
-            flareWidth:   root.fw
-            flareHeight:  root.fh
-        }
-
         Item {
-            id: content
-            focus: true
-            anchors {
-                fill:         parent
-                topMargin:    Math.round(16 * root.localScale)
-                bottomMargin: root.fh + Math.round(8 * root.localScale)
-                leftMargin:   root.fw + Math.round(16 * root.localScale)
-                rightMargin:  root.fw + Math.round(16 * root.localScale)
+            id: sizer
+            anchors.top:              parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+            clip: true
+
+            width:  Popups.wallpaperOpen ? root.panelWidth + 2 * root.fw : Math.round(Theme.cNotchMinWidth * root.localScale) + 2 * root.fw
+            height: Popups.wallpaperOpen ? root.panelHeight : 0
+
+            Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+            Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+
+
+
+            TapHandler {
+                onTapped: {
+                    Popups.wallpaperOpen = true
+                    Popups.wallpaperPinned = true
+                }
             }
+
+            PopupShape {
+                anchors.fill: parent
+                attachedEdge: "bottom"
+                color:        Theme.background
+                radius:       Math.round(Theme.cornerRadius * root.localScale)
+                flareWidth:   root.fw
+                flareHeight:  root.fh
+            }
+
+            Item {
+                id: content
+                focus: true
+                anchors {
+                    bottom:           parent.bottom
+                    bottomMargin:     root.fh + Math.round(8 * root.localScale)
+                    horizontalCenter: parent.horizontalCenter
+                }
+                width:  root.panelWidth - Math.round(32 * root.localScale)
+                height: root.panelHeight - root.fh - Math.round(24 * root.localScale)
 
             property string searchQuery:     ""
             property bool   schemePopupOpen: false
@@ -778,5 +784,7 @@ PanelWindow {
             }
         }
     }
-
 }
+}
+
+

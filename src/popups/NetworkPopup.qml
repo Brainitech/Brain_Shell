@@ -122,6 +122,7 @@ PanelWindow {
     Item {
         id: hoverContainer
         anchors.right: parent.right
+        anchors.rightMargin: Math.round(Theme.borderWidth * root.localScale)
         y: 0
         width: maskProxy.width
         height: maskProxy.height

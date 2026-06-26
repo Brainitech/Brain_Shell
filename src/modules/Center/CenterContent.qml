@@ -109,7 +109,7 @@ Item {
 		? _items[_carouselIndex] : "title"
 
 		var list = ["title"]
-		if (root.player                    !== null) list.push("music")
+		if (root.player !== null || CavaService.audioActive) list.push("music")
 		if (ClockState.timerStarted)                   list.push("timer")
 		if (ClockState.swStarted)                      list.push("stopwatch")
 		if (ShellState.screenRecord && !ScreenRecService.recording) list.push("record_setup")
@@ -145,6 +145,13 @@ Item {
 	}
 
 	onPlayerChanged: _rebuildItems(player !== null ? "music" : null)
+
+	Connections {
+		target: CavaService
+		function onAudioActiveChanged() {
+			_rebuildItems(CavaService.audioActive ? "music" : null)
+		}
+	}
 
 	// ── State monitor — timer urgency + carousel transitions ─────────────────
 	readonly property bool timerUrgent:

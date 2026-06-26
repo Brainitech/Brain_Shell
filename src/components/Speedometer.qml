@@ -13,6 +13,10 @@ Item {
 
     property string label:       ""
     property real   percent:     0.0       // 0.0 – 100.0
+    property real   _animatedPercent: percent
+    Behavior on _animatedPercent {
+        NumberAnimation { duration: 450; easing.type: Easing.OutCubic }
+    }
     property string centerText:  "0%"
     property string bottomText:  ""
     property bool   active:      true
@@ -69,7 +73,7 @@ Item {
             ctx.stroke()
 
             // Fill
-            var fillPct = root.active ? Math.max(0, Math.min(1, root.percent / 100)) : 0
+            var fillPct = root.active ? Math.max(0, Math.min(1, root._animatedPercent / 100)) : 0
             if (fillPct > 0) {
                 ctx.beginPath()
                 ctx.arc(arc.cx, arc.cy, arc.radius, sa, sa + sw * fillPct, false)
@@ -84,7 +88,7 @@ Item {
 
         Connections {
             target: root
-            function onPercentChanged()      { arc.requestPaint() }
+            function on_AnimatedPercentChanged() { arc.requestPaint() }
             function onActiveChanged()       { arc.requestPaint() }
             function onAccentColorChanged()  { arc.requestPaint() }
             function onSizeChanged()         { arc.requestPaint() }

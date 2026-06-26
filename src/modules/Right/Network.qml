@@ -73,15 +73,35 @@ Item {
             onRead: function(l) { var v = l.trim().toLowerCase(); if (v !== "") root._connectivity = v }
         }
     }
+    Process {
+        id: btPowerPoll
+        command: ["bash", "-c", "bluetoothctl show 2>/dev/null | grep '^\\s*Powered:' | awk '{print $2}'"]
+        running: false
+        stdout: SplitParser { onRead: function(l) { ShellState.btPowered = (l.trim() === "yes") } }
+    }
+    Process {
+        id: btDevPoll
+        command: ["bash", "-c", "bluetoothctl devices Connected 2>/dev/null | head -1 | cut -d' ' -f3-"]
+        running: false
+        stdout: SplitParser { onRead: function(l) { ShellState.btConnected = (l.trim() !== "") } }
+    }
     Timer {
         interval: 5000; running: true; repeat: true
         onTriggered: {
-            wifiPoll.running = false; wifiPoll.running = true
-            ethPoll.running  = false; ethPoll.running  = true
-            connPoll.running = false; connPoll.running = true
+            wifiPoll.running    = false; wifiPoll.running    = true
+            ethPoll.running     = false; ethPoll.running     = true
+            connPoll.running    = false; connPoll.running    = true
+            btPowerPoll.running = false; btPowerPoll.running = true
+            btDevPoll.running   = false; btDevPoll.running   = true
         }
     }
-    Component.onCompleted: { wifiPoll.running = true; ethPoll.running = true; connPoll.running = true }
+    Component.onCompleted: {
+        wifiPoll.running    = true
+        ethPoll.running     = true
+        connPoll.running    = true
+        btPowerPoll.running = true
+        btDevPoll.running   = true
+    }
 
     HoverHandler { id: hov; onHoveredChanged: Popups.networkTriggerHovered = hovered }
 

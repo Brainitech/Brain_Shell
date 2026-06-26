@@ -95,12 +95,18 @@ StatCard {
         command: ["bash", "-c",
             "bluetoothctl show 2>/dev/null | grep '^\\s*Powered:' | awk '{print $2}'"]
         running: false
-        stdout: SplitParser { onRead: function(l) { root.btOn = l.trim() === "yes" } } }
+        stdout: SplitParser { onRead: function(l) {
+            root.btOn = l.trim() === "yes"
+            ShellState.btPowered = root.btOn
+        } } }
     Process { id: btDeviceRead
         command: ["bash", "-c",
             "bluetoothctl devices Connected 2>/dev/null | head -1 | cut -d' ' -f3-"]
         running: false
-        stdout: SplitParser { onRead: function(l) { root.btDevice = l.trim() } } }
+        stdout: SplitParser { onRead: function(l) {
+            root.btDevice = l.trim()
+            ShellState.btConnected = (root.btDevice !== "")
+        } } }
     Process { id: btToggleProc; command: []; running: false
         onRunningChanged: if (!running) {
             _btPoll()
@@ -582,7 +588,7 @@ StatCard {
     //  Polling timer
     // ─────────────────────────────────────────────────────────────────────────
     Timer {
-        interval: 5000; running: true; repeat: true
+        interval: 5000; running: Popups.dashboardOpen; repeat: true
         onTriggered: {
             _wifiPoll(); _btPoll()
             hsActiveCheckProc.running = false; hsActiveCheckProc.running = true

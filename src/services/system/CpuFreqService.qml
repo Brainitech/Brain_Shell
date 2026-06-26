@@ -120,9 +120,10 @@ QtObject {
     }
 
     // ── Poll timer ────────────────────────────────────────────────────────────
+    property bool active: true
     property var _pollTimer: Timer {
         interval: 2000
-        running:  true
+        running:  root.active
         repeat:   true
         onTriggered: root._poll()
     }

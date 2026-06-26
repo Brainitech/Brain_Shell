@@ -15,7 +15,7 @@ Item {
     FanControl         { id: fan }
     DiskService        { id: disk;    active: root.visible }
     EnvyControlService { id: envy }
-    CpuFreqService     { id: cpuFreq }
+    CpuFreqService     { id: cpuFreq; active: root.visible }
     GpuService {
         id:       gpu
         active:   root.visible

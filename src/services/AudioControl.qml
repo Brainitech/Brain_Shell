@@ -257,14 +257,14 @@ Item {
                 Text {
                     visible:        root.sinkNodes.length === 0
                     text:           "No output devices"
-                    color:          Qt.rgba(1,1,1,0.2)
+                    color:          Theme.subtext
                     font.pixelSize: Math.round(11 * localScale)
                     leftPadding:    Math.round(10 * localScale)
                 }
 
                 Rectangle {
                     width: parent.width; height: 1
-                    color: Qt.rgba(1, 1, 1, 0.06)
+                    color: Theme.border
                 }
 
                 SectionLabel { localScale: root.localScale; text: "Input Devices" }
@@ -283,7 +283,7 @@ Item {
                 Text {
                     visible:        root.sourceNodes.length === 0
                     text:           "No input devices"
-                    color:          Qt.rgba(1,1,1,0.2)
+                    color:          Theme.subtext
                     font.pixelSize: Math.round(11 * localScale)
                     leftPadding:    Math.round(10 * localScale)
                 }
@@ -293,7 +293,7 @@ Item {
         // Divider
         Rectangle {
             width: 1; height: parent.height
-            color: Qt.rgba(1, 1, 1, 0.1)
+            color: Theme.border
         }
 
         // Tab switcher — right side
@@ -346,7 +346,7 @@ Item {
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           col.pctText
-                color:          col.muted ? Qt.rgba(1,1,1,0.25) : Theme.text
+                color:          col.muted ? Theme.subtext : Theme.text
                 font.pixelSize: Math.round(13 * localScale)
                 font.bold:      true
                 Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
@@ -361,14 +361,14 @@ Item {
                     id: track
                     anchors.fill: parent
                     radius: width / 2
-                    color:  Qt.rgba(1,1,1,0.08)
+                    color:  Theme.border
 
                     // Fill bar
                     Rectangle {
                         anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
                         height: Math.max(parent.radius * 2, parent.height * col.value)
                         radius: parent.radius
-                        color:  col.muted ? Qt.rgba(1,1,1,0.15) : Theme.active
+                        color:  col.muted ? Theme.subtext : Theme.active
                         Behavior on color  { ColorAnimation  { duration: Anim.mediumFast} }
                         Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
                     }
@@ -380,7 +380,7 @@ Item {
                         width:  col.thumbD
                         height: width
                         radius: width / 2
-                        color:  col.muted ? Qt.rgba(1,1,1,0.3) : "#ffffff"
+                        color:  col.muted ? Theme.subtext : Theme.text
                         y: {
                             var travel = track.height - height
                             return Math.max(0, Math.min(travel, (1.0 - col.value) * travel))
@@ -421,7 +421,7 @@ Item {
                 radius: Math.round(Theme.cornerRadius * localScale)
                 color:  col.muted
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2)
-                            : Qt.rgba(1,1,1,0.06)
+                            : Theme.border
                 Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
 
                 Row {
@@ -430,21 +430,21 @@ Item {
                     Text {
                         text:           col.icon
                         font.pixelSize: Math.round(13 * localScale)
-                        color:          col.muted ? Theme.active : Qt.rgba(1,1,1,0.55)
+                        color:          col.muted ? Theme.active : Theme.icon
                         anchors.verticalCenter: parent.verticalCenter
                         Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
                     Text {
                         text:           col.muted ? "Muted" : "Mute"
                         font.pixelSize: Math.round(11 * localScale)
-                        color:          col.muted ? Theme.active : Qt.rgba(1,1,1,0.4)
+                        color:          col.muted ? Theme.active : Theme.subtext
                         anchors.verticalCenter: parent.verticalCenter
                         Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
                 }
                 Rectangle {
                     anchors.fill: parent; radius: parent.radius
-                    color: muteHov.hovered ? Qt.rgba(1,1,1,0.05) : "transparent"
+                    color: muteHov.hovered ? Theme.border : "transparent"
                     Behavior on color { ColorAnimation { duration: Anim.fast} }
                 }
                 HoverHandler { id: muteHov; cursorShape: Qt.PointingHandCursor }
@@ -455,7 +455,7 @@ Item {
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:            col.label
-                color:           Qt.rgba(1,1,1,0.3)
+                color:           Theme.subtext
                 font.pixelSize:  Math.round(10 * localScale)
                 font.capitalization: Font.AllUppercase
                 font.letterSpacing: 1
@@ -469,7 +469,7 @@ Item {
     // ── SectionLabel ──────────────────────────────────────────────────────────
     component SectionLabel: Text {
         property real localScale: 1.0
-        color:           Qt.rgba(1, 1, 1, 0.35)
+        color:           Theme.subtext
         font.pixelSize:  Math.round(10 * localScale)
         font.capitalization: Font.AllUppercase
         font.letterSpacing: 0.8
@@ -492,7 +492,7 @@ Item {
             radius: Math.round((Theme.cornerRadius - 4) * localScale)
             color:  row.isDefault
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.12)
-                        : (rowHov.hovered ? Qt.rgba(1,1,1,0.05) : "transparent")
+                        : (rowHov.hovered ? Theme.border : "transparent")
             Behavior on color { ColorAnimation { duration: Anim.color} }
         }
 
@@ -503,13 +503,13 @@ Item {
             Rectangle {
                 width: Math.round(6 * localScale); height: Math.round(6 * localScale); radius: width / 2
                 anchors.verticalCenter: parent.verticalCenter
-                color: row.isDefault ? Theme.active : Qt.rgba(1,1,1,0.2)
+                color: row.isDefault ? Theme.active : Theme.subtext
                 Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
             }
 
             Text {
                 text:           row.label
-                color:          row.isDefault ? Theme.text : Qt.rgba(1,1,1,0.5)
+                color:          row.isDefault ? Theme.text : Theme.subtext
                 font.pixelSize: Math.round(11 * localScale)
                 elide:          Text.ElideRight
                 width:          parent.width - Math.round(14 * localScale) - parent.spacing

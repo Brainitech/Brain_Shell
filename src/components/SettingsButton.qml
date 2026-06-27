@@ -20,6 +20,7 @@ Item {
     property string validateAs: ""
     property bool _isInvalid: false
     
+    property string swatchColor: ""
     property var defaultValue: undefined
     readonly property bool _hasDefault: defaultValue !== undefined
     readonly property bool _isDefault: _hasDefault && 
@@ -72,7 +73,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: Math.round(8 * localScale)
-        color: btnMouse.hovered ? Qt.rgba(1, 1, 1, 0.04) : "transparent"
+        color: rowMouse.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05) : "transparent"
         Behavior on color { ColorAnimation { duration: Anim.fast; easing.type: Anim.linear } }
     }
 
@@ -80,6 +81,22 @@ Item {
         id: baseRow
         width: parent.width
         height: Math.round(root.description !== "" ? (52 * root.localScale) : (40 * root.localScale))
+
+        HoverHandler { id: rowMouse; cursorShape: Qt.PointingHandCursor }
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                if (root._hasExpandable) {
+                    root.expanded = !root.expanded
+                    if (root.expanded && root.inputType === "text") {
+                        _txtInput.text = root.inputText
+                        _txtInput.forceActiveFocus()
+                    }
+                } else {
+                    root.clicked()
+                }
+            }
+        }
 
         Column {
             anchors {
@@ -100,7 +117,7 @@ Item {
             Text {
                 visible: root.description !== ""
                 text: root.description
-                color: Qt.rgba(1, 1, 1, 0.4)
+                color: Theme.subtext
                 font.pixelSize: Math.round(11 * localScale)
                 wrapMode: Text.WordWrap
                 width: parent.width
@@ -117,14 +134,14 @@ Item {
             height: Math.round(22 * localScale)
             radius: Math.round(6 * localScale)
             anchors { right: actionBtn.left; rightMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
-            color: rstH.hovered ? Qt.rgba(1, 1, 1, 0.09) : "transparent"
+            color: rstH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.09) : "transparent"
             Behavior on color { ColorAnimation { duration: Anim.fast } }
             
             Text { 
                 anchors.centerIn: parent
                 text: "↺"
                 font.pixelSize: Math.round(13 * localScale)
-                color: rstH.hovered ? Theme.active : Qt.rgba(1, 1, 1, 0.4) 
+                color: rstH.hovered ? Theme.active : Theme.subtext 
             }
             
             HoverHandler { id: rstH; cursorShape: Qt.PointingHandCursor }
@@ -150,43 +167,25 @@ Item {
                 rightMargin: Math.round(8 * localScale)
                 verticalCenter: parent.verticalCenter
             }
-            width: btnLabel.implicitWidth + Math.round(24 * localScale)
+            width: root.swatchColor !== "" ? Math.round(40 * localScale) : (btnLabel.implicitWidth + Math.round(24 * localScale))
             height: Math.round(24 * localScale)
-            radius: Math.round(4 * localScale)
-            color: root.expanded ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15) 
-                 : (btnMouse.pressed ? Qt.rgba(1, 1, 1, 0.15) : (btnMouse.hovered ? Qt.rgba(1, 1, 1, 0.1) : Qt.rgba(1, 1, 1, 0.05)))
+            radius: Math.round(6 * localScale)
+            color: root.swatchColor !== "" ? root.swatchColor : (root.expanded ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15) 
+                 : (rowMouse.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)))
             Behavior on color { ColorAnimation { duration: Anim.fast; easing.type: Anim.linear } }
             
-            border.color: root.expanded ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
-                        : (root.destructive ? Qt.rgba(248/255, 113/255, 113/255, 0.3) : Qt.rgba(1, 1, 1, 0.1))
+            border.color: root.swatchColor !== "" ? Theme.border : (root.expanded ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
+                        : (root.destructive ? Qt.rgba(248/255, 113/255, 113/255, 0.3) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)))
             border.width: 1
 
             Text {
                 id: btnLabel
+                visible: root.swatchColor === ""
                 anchors.centerIn: parent
                 text: root._hasExpandable ? (root.expanded ? "Close" : root.buttonText) : root.buttonText
                 color: root.expanded ? Theme.active : (root.destructive ? "#fca5a5" : Theme.text)
                 font.pixelSize: Math.round(11 * localScale)
                 font.weight: Font.Medium
-            }
-        }
-
-        HoverHandler {
-            id: btnMouse
-            cursorShape: Qt.PointingHandCursor
-        }
-        MouseArea {
-            anchors.fill: actionBtn
-            onClicked: {
-                if (root._hasExpandable) {
-                    root.expanded = !root.expanded
-                    if (root.expanded && root.inputType === "text") {
-                        _txtInput.text = root.inputText
-                        _txtInput.forceActiveFocus()
-                    }
-                } else {
-                    root.clicked()
-                }
             }
         }
     }
@@ -230,8 +229,8 @@ Item {
                         property bool isSelected: root.selectedOption === modelData
                         
                         color: isSelected ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15) 
-                                          : (_pHov.hovered ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.04))
-                        border.color: isSelected ? Theme.active : Qt.rgba(1, 1, 1, 0.1)
+                                          : (_pHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04))
+                        border.color: isSelected ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
                         border.width: 1
                         Behavior on color { ColorAnimation { duration: Anim.fast } }
 
@@ -260,9 +259,9 @@ Item {
         Rectangle {
             visible: root.inputType === "text"
             anchors { left: parent.left; leftMargin: Math.round(20 * localScale); right: parent.right; rightMargin: Math.round(12 * localScale); top: parent.top; bottom: parent.bottom; bottomMargin: Math.round(12 * localScale) }
-            color: root._isInvalid ? Qt.rgba(248/255, 113/255, 113/255, 0.08) : Qt.rgba(1, 1, 1, 0.04)
+            color: root._isInvalid ? Qt.rgba(248/255, 113/255, 113/255, 0.08) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
             border.color: root._isInvalid ? Qt.rgba(248/255, 113/255, 113/255, 0.5) 
-                        : (_txtInput.activeFocus ? Theme.active : Qt.rgba(1, 1, 1, 0.1))
+                        : (_txtInput.activeFocus ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1))
             border.width: 1
             radius: Math.round(8 * localScale)
             Behavior on border.color { ColorAnimation { duration: Anim.fast } }

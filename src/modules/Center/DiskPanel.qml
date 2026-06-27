@@ -28,7 +28,7 @@ Item {
             text:           "Disks"
             font.pixelSize: Math.round(11 * localScale)
             font.weight:    Font.Medium
-            color:          Qt.rgba(1, 1, 1, 0.4)
+            color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
         }
 
         Text {
@@ -41,7 +41,7 @@ Item {
             text:           root.service.disks.length
             font.pixelSize: Math.round(9 * localScale)
             font.weight:    Font.Medium
-            color:          Qt.rgba(1, 1, 1, 0.25)
+            color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
         }
     }
 
@@ -65,7 +65,7 @@ Item {
             implicitWidth:  Math.round(2 * localScale)
             implicitHeight: Math.round(20 * localScale)
             radius:         width / 2
-            color:          Qt.rgba(1, 1, 1, 0.5)
+            color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.5)
             opacity:        vScroll.active ? 1.0 : 0.0
             Behavior on opacity {
                 NumberAnimation { duration: Anim.slower; easing.type: Anim.inOutQuad}
@@ -75,7 +75,7 @@ Item {
         background: Rectangle {
             implicitWidth: Math.round(2 * localScale)
             radius:        width / 2
-            color:         Qt.rgba(1, 1, 1, 0.08)
+            color:         Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
         }
     }
 

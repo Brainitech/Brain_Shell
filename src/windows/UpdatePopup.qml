@@ -71,7 +71,7 @@ PanelWindow {
         width:  Math.round(380 * localScale)
         radius: Math.round(Theme.notchRadius * localScale)
         color:  Theme.background
-        border.color: Qt.rgba(1, 1, 1, 0.08)
+        border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
         border.width: 1
 
         // Size to content
@@ -103,13 +103,13 @@ PanelWindow {
         
             Rectangle {
                 anchors.fill: parent; radius: Math.round(6 * localScale)
-                color: xHov.hovered ? Qt.rgba(1,1,1,0.10) : "transparent"
+                color: xHov.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.10) : "transparent"
                 Behavior on color { ColorAnimation { duration: Anim.fast} }
             }
             Text {
                 anchors.centerIn: parent
                 text: "✕"; font.pixelSize: Math.round(11 * localScale)
-                color: Qt.rgba(1,1,1,0.35)
+                color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.35)
             }
             HoverHandler { id: xHov; cursorShape: Qt.PointingHandCursor }
             MouseArea { anchors.fill: parent; onClicked: UpdateService.dismiss() }
@@ -171,7 +171,7 @@ PanelWindow {
 
             Rectangle {
                 width: parent.width; height: 1
-                color: Qt.rgba(1, 1, 1, 0.07)
+                color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
             }
 
             // ── AVAILABLE ─────────────────────────────────────────────────────
@@ -239,10 +239,10 @@ PanelWindow {
                     // Skip (dismiss this check)
                     Rectangle {
                         width: Math.round(58 * localScale); height: Math.round(30 * localScale); radius: Math.round(8 * localScale)
-                        color:        skH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
-                        border.color: Qt.rgba(1,1,1,0.09); border.width: 1
+                        color:        skH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
+                        border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09); border.width: 1
                         Behavior on color { ColorAnimation { duration: Anim.color} }
-                        Text { anchors.centerIn: parent; text: "Skip"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(1,1,1,0.52) }
+                        Text { anchors.centerIn: parent; text: "Skip"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.52) }
                         HoverHandler { id: skH; cursorShape: Qt.PointingHandCursor }
                         MouseArea { anchors.fill: parent; onClicked: UpdateService.dismiss() }
                     }
@@ -250,10 +250,10 @@ PanelWindow {
                     // Disable auto-update
                     Rectangle {
                         width: Math.round(82 * localScale); height: Math.round(30 * localScale); radius: Math.round(8 * localScale)
-                        color:        disH.hovered ? Qt.rgba(1,1,1,0.06) : "transparent"
-                        border.color: Qt.rgba(1,1,1,0.07); border.width: 1
+                        color:        disH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06) : "transparent"
+                        border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.07); border.width: 1
                         Behavior on color { ColorAnimation { duration: Anim.color} }
-                        Text { anchors.centerIn: parent; text: "Disable"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(1,1,1,0.28) }
+                        Text { anchors.centerIn: parent; text: "Disable"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.28) }
                         HoverHandler { id: disH; cursorShape: Qt.PointingHandCursor }
                         MouseArea { anchors.fill: parent; onClicked: UpdateService.disableAutoUpdate() }
                     }
@@ -276,7 +276,7 @@ PanelWindow {
                 Text {
                     text:           "Do not close the shell."
                     font.pixelSize: Math.round(10 * localScale)
-                    color:          Qt.rgba(1, 1, 1, 0.25)
+                    color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
                 }
             }
 
@@ -320,10 +320,10 @@ PanelWindow {
                     // Cancel
                     Rectangle {
                         width: Math.round(72 * localScale); height: Math.round(30 * localScale); radius: Math.round(8 * localScale)
-                        color:        cxH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
-                        border.color: Qt.rgba(1,1,1,0.09); border.width: 1
+                        color:        cxH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
+                        border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09); border.width: 1
                         Behavior on color { ColorAnimation { duration: Anim.color} }
-                        Text { anchors.centerIn: parent; text: "Cancel"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(1,1,1,0.52) }
+                        Text { anchors.centerIn: parent; text: "Cancel"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.52) }
                         HoverHandler { id: cxH; cursorShape: Qt.PointingHandCursor }
                         MouseArea { anchors.fill: parent; onClicked: UpdateService.dismiss() }
                     }
@@ -348,10 +348,10 @@ PanelWindow {
                 // Dismiss
                 Rectangle {
                     width: Math.round(72 * localScale); height: Math.round(30 * localScale); radius: Math.round(8 * localScale)
-                    color:        dmH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
-                    border.color: Qt.rgba(1,1,1,0.09); border.width: 1
+                    color:        dmH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
+                    border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09); border.width: 1
                     Behavior on color { ColorAnimation { duration: Anim.color} }
-                    Text { anchors.centerIn: parent; text: "Dismiss"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(1,1,1,0.52) }
+                    Text { anchors.centerIn: parent; text: "Dismiss"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.52) }
                     HoverHandler { id: dmH; cursorShape: Qt.PointingHandCursor }
                     MouseArea { anchors.fill: parent; onClicked: UpdateService.dismiss() }
                 }
@@ -360,7 +360,7 @@ PanelWindow {
                 Text {
                     text:           "Auto-dismissing in a few seconds…"
                     font.pixelSize: Math.round(10 * localScale)
-                    color:          Qt.rgba(1, 1, 1, 0.22)
+                    color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.22)
                 }
             }
 
@@ -400,10 +400,10 @@ PanelWindow {
                     // Close
                     Rectangle {
                         width: Math.round(72 * localScale); height: Math.round(30 * localScale); radius: Math.round(8 * localScale)
-                        color:        clH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
-                        border.color: Qt.rgba(1,1,1,0.09); border.width: 1
+                        color:        clH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
+                        border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09); border.width: 1
                         Behavior on color { ColorAnimation { duration: Anim.color} }
-                        Text { anchors.centerIn: parent; text: "Close"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(1,1,1,0.52) }
+                        Text { anchors.centerIn: parent; text: "Close"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.52) }
                         HoverHandler { id: clH; cursorShape: Qt.PointingHandCursor }
                         MouseArea { anchors.fill: parent; onClicked: UpdateService.dismiss() }
                     }

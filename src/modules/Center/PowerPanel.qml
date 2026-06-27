@@ -25,14 +25,14 @@ Item {
                 Text {
                     text:           "󰌾"
                     font.pixelSize: Math.round(11 * localScale)
-                    color:          Qt.rgba(1, 1, 1, 0.25)
+                    color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Text {
                     text:           "Power Profile"
                     font.pixelSize: Math.round(11 * localScale)
                     font.weight:    Font.Medium
-                    color:          Qt.rgba(1, 1, 1, 0.4)
+                    color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
@@ -54,7 +54,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             width:  Math.round(200 * localScale)
             height: 1
-            color:  Qt.rgba(1, 1, 1, 0.07)
+            color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
         }
 
         Column {
@@ -66,7 +66,7 @@ Item {
                 text:           "GPU Mode"
                 font.pixelSize: Math.round(11 * localScale)
                 font.weight:    Font.Medium
-                color:          Qt.rgba(1, 1, 1, 0.4)
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
             }
 
             Row {
@@ -93,7 +93,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           "GPU mode switch requires a reboot"
                 font.pixelSize: Math.round(10 * localScale)
-                color:          Qt.rgba(1, 1, 1, 0.25)
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
             }
         }
     }

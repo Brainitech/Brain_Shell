@@ -41,7 +41,7 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius:       13
-                color:        clearHover.containsMouse ? Qt.rgba(1,1,1,0.10) : "transparent"
+                color:        clearHover.containsMouse ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.10) : "transparent"
                 Behavior on color { ColorAnimation { duration: Anim.color} }
             }
             Text {
@@ -61,7 +61,7 @@ Item {
         id: divider
         anchors { top: header.bottom; left: parent.left; right: parent.right }
         height:  1
-        color:   Qt.rgba(1, 1, 1, 0.06)
+        color:   Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.06)
         visible: NotificationService.count > 0
     }
 
@@ -117,7 +117,7 @@ Item {
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           "󰂚"
-                color:          Qt.rgba(1, 1, 1, 0.15)
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.15)
                 font.pixelSize: Math.round(28 * root.localScale)
                 font.family:    Theme.iconFont
             }
@@ -142,7 +142,7 @@ Item {
             if (!notification) return Theme.active
             switch (notification.urgency) {
                 case NotificationUrgency.Critical: return "#e06c75"
-                case NotificationUrgency.Low:      return Qt.rgba(1, 1, 1, 0.25)
+                case NotificationUrgency.Low:      return Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
                 default:                           return Theme.active
             }
         }
@@ -152,7 +152,7 @@ Item {
         // Hover background
         Rectangle {
             anchors.fill: parent
-            color:        cardHover.containsMouse ? Qt.rgba(1, 1, 1, 0.05) : "transparent"
+            color:        cardHover.containsMouse ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05) : "transparent"
             Behavior on color { ColorAnimation { duration: Anim.color} }
         }
 
@@ -201,7 +201,7 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius:       width / 2
-                    color:        Qt.rgba(1, 1, 1, 0.08)
+                    color:        Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
                     visible:      iconImg.status !== Image.Ready
 
                     Text {
@@ -273,8 +273,8 @@ Item {
                                 anchors.fill: parent
                                 radius:       Math.round(3 * root.localScale)
                                 color:        actHover.containsMouse
-                                              ? Qt.rgba(1,1,1,0.15)
-                                              : Qt.rgba(1,1,1,0.07)
+                                              ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.15)
+                                              : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.07)
                                 Behavior on color { ColorAnimation { duration: Anim.fast} }
                             }
                             Text {
@@ -300,7 +300,7 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius:       width / 2
-                    color:        xHover.containsMouse ? Qt.rgba(1,1,1,0.12) : "transparent"
+                    color:        xHover.containsMouse ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.12) : "transparent"
                     Behavior on color { ColorAnimation { duration: Anim.fast} }
                 }
                 Text {

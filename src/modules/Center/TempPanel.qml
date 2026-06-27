@@ -51,7 +51,7 @@ Item {
             width:  1
             height: parent.height * 0.7
             anchors.verticalCenter: parent.verticalCenter
-            color:  Qt.rgba(1, 1, 1, 0.08)
+            color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
         }
 
         Speedometer {

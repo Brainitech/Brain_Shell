@@ -22,7 +22,7 @@ Item {
         anchors.fill: parent
         anchors.margins: 0
         radius: Math.round(8 * localScale)
-        color: toggleMouse.hovered ? Qt.rgba(1, 1, 1, 0.04) : "transparent"
+        color: toggleMouse.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04) : "transparent"
         Behavior on color { ColorAnimation { duration: Anim.fast; easing.type: Anim.linear } }
     }
 
@@ -45,7 +45,7 @@ Item {
         Text {
             visible: root.description !== ""
             text: root.description
-            color: Qt.rgba(1, 1, 1, 0.4)
+            color: Theme.subtext
             font.pixelSize: Math.round(11 * localScale)
             wrapMode: Text.WordWrap
             width: parent.width
@@ -64,10 +64,10 @@ Item {
         height: Math.round(22 * localScale)
         radius: height / 2
         
-        color: root.checked ? Theme.active : Qt.rgba(1, 1, 1, 0.1)
+        color: root.checked ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
         Behavior on color { ColorAnimation { duration: Anim.fast; easing.type: Anim.linear } }
         
-        border.color: root.checked ? Qt.darker(Theme.active, 1.2) : Qt.rgba(1, 1, 1, 0.2)
+        border.color: root.checked ? Qt.darker(Theme.active, 1.2) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.2)
         border.width: Math.max(1, Math.round(1 * localScale))
 
         // Switch Handle
@@ -93,14 +93,14 @@ Item {
         height: Math.round(22 * localScale)
         radius: Math.round(6 * localScale)
         anchors { right: switchRect.left; rightMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
-        color: rstH.hovered ? Qt.rgba(1, 1, 1, 0.09) : "transparent"
+        color: rstH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.09) : "transparent"
         Behavior on color { ColorAnimation { duration: Anim.fast } }
         
         Text { 
             anchors.centerIn: parent
             text: "↺"
             font.pixelSize: Math.round(13 * localScale)
-            color: rstH.hovered ? Theme.active : Qt.rgba(1, 1, 1, 0.4) 
+            color: rstH.hovered ? Theme.active : Theme.subtext 
         }
         
         HoverHandler { id: rstH; cursorShape: Qt.PointingHandCursor }

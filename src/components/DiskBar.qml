@@ -32,7 +32,7 @@ Item {
         anchors.verticalCenter: barTrack.verticalCenter
         text:           root.mount
         font.pixelSize: Math.round(10 * localScale)
-        color:          Qt.rgba(1, 1, 1, 0.5)
+        color:          Theme.subtext
         width:          Math.round(32 * localScale)
         elide:          Text.ElideRight
     }
@@ -51,8 +51,8 @@ Item {
         Rectangle {
             anchors.fill: parent
             radius:       height / 2
-            color:        Qt.rgba(1, 1, 1, 0.07)
-            border.color: Qt.rgba(1, 1, 1, 0.06)
+            color:        Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
+            border.color: Theme.border
             border.width: 1
         }
 
@@ -89,6 +89,6 @@ Item {
         anchors.topMargin: Math.round(4 * localScale)
         text:           root.usedStr + " / " + root.totalStr + "  ·  " + root.source
         font.pixelSize: Math.round(9 * localScale)
-        color:          Qt.rgba(1, 1, 1, 0.45)
+        color:          Theme.subtext
     }
 }

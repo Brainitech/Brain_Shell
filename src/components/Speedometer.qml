@@ -34,7 +34,7 @@ Item {
         text:           root.label
         font.pixelSize: Math.max(7, Math.round(11 * root.size))
         font.weight:    Font.Medium
-        color:          root.active ? Qt.rgba(1,1,1,0.55) : Qt.rgba(1,1,1,0.2)
+        color:          root.active ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.55) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.2)
         Behavior on color { ColorAnimation { duration: Anim.normal} }
     }
 
@@ -67,7 +67,7 @@ Item {
             // Track
             ctx.beginPath()
             ctx.arc(arc.cx, arc.cy, arc.radius, sa, sa + sw, false)
-            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.08)
+            ctx.strokeStyle = Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
             ctx.lineWidth   = arc.thickness
             ctx.lineCap     = "round"
             ctx.stroke()
@@ -79,7 +79,7 @@ Item {
                 ctx.arc(arc.cx, arc.cy, arc.radius, sa, sa + sw * fillPct, false)
                 ctx.strokeStyle = root.active
                     ? Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 1)
-                    : Qt.rgba(1, 1, 1, 0.15)
+                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.15)
                 ctx.lineWidth   = arc.thickness
                 ctx.lineCap     = "round"
                 ctx.stroke()
@@ -121,7 +121,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           root.bottomText
                 font.pixelSize: Math.max(6, Math.round(9 * root.size))
-                color:          Qt.rgba(1, 1, 1, 0.4)
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
                 visible:        root.bottomText !== ""
             }
         }
@@ -133,7 +133,7 @@ Item {
             text:           "Off"
             font.pixelSize: Math.max(8, Math.round(13 * root.size))
             font.weight:    Font.Medium
-            color:          Qt.rgba(1, 1, 1, 0.25)
+            color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
             opacity:        root.active ? 0 : 1
             Behavior on opacity { NumberAnimation { duration: Anim.normal} }
         }

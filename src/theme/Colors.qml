@@ -24,9 +24,9 @@ QtObject {
 
     // --- Workspace Visuals ---
     property color wsBackground: "#20000000"
-    property color wsActive:     "#FFFFFF"
-    property color wsOccupied:   "#80FFFFFF"
-    property color wsEmpty:      "#30FFFFFF"
-    property color wsOverlay:    "#CC1e1e2e"
-    property color wsUrgent:     "#fa6b94"
+    property color wsActive:     text
+    property color wsOccupied:   Qt.rgba(text.r, text.g, text.b, 0.7)
+    property color wsEmpty:      Qt.rgba(text.r, text.g, text.b, 0.25)
+    property color wsOverlay:    Qt.rgba(background.r, background.g, background.b, 0.85)
+    property color wsUrgent:     active //"#fa6b94"
 }

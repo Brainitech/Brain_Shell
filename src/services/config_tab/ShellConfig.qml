@@ -29,8 +29,8 @@ Item {
             width:  Math.floor((parent.width - parent.spacing) * 0.30)
             height: parent.height
             radius: Math.round(Theme.cornerRadius * localScale)
-            color:  Qt.rgba(1, 1, 1, 0.04)
-            border.color: Qt.rgba(1, 1, 1, 0.07)
+            color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+            border.color: Theme.border
             border.width: 1
 
             TabSwitcher {

@@ -120,7 +120,7 @@ PopupWindow {
             radius:       Math.round(5 * root.localScale)
             color: row._selected
                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
-                   : rH.hovered ? Qt.rgba(1, 1, 1, 0.07) : "transparent"
+                   : rH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
             Behavior on color { ColorAnimation { duration: Anim.fast} }
         }
 
@@ -131,7 +131,7 @@ PopupWindow {
             Text {
                 text:           row._icon
                 font.pixelSize: Math.round(13 * root.localScale)
-                color:          row._selected ? Theme.active : Qt.rgba(1, 1, 1, 0.45)
+                color:          row._selected ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
                 anchors.verticalCenter: parent.verticalCenter
                 Behavior on color { ColorAnimation { duration: Anim.fast} }
             }
@@ -139,7 +139,7 @@ PopupWindow {
                 id:             _lbl
                 text:           row._label
                 font.pixelSize: Math.round(12 * root.localScale)
-                color:          row._selected ? Theme.active : Qt.rgba(1, 1, 1, 0.70)
+                color:          row._selected ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.70)
                 anchors.verticalCenter: parent.verticalCenter
                 Behavior on color { ColorAnimation { duration: Anim.fast} }
             }

@@ -33,7 +33,7 @@ RowLayout {
                 width: Math.round(26 * localScale)
                 height: Math.round(26 * localScale)
                 radius: Math.round(6 * localScale)
-                color: trayMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.1) : "transparent" // Subtle hover effect
+                color: trayMouse.containsMouse ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1) : "transparent" // Subtle hover effect
                 
                 Image {
                     width: Math.round(16 * localScale)

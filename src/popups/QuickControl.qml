@@ -216,7 +216,7 @@ PopupWindow {
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           col.pctText
-                color:          col.muted ? Qt.rgba(1,1,1,0.25) : Theme.text
+                color:          col.muted ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25) : Theme.text
                 font.pixelSize: Math.round(13 * root.localScale)
                 font.bold:      true
                 Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
@@ -231,14 +231,14 @@ PopupWindow {
                     id: track
                     anchors.fill: parent
                     radius: width / 2
-                    color:  Qt.rgba(1,1,1,0.08)
+                    color:  Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08)
 
                     // Fill bar
                     Rectangle {
                         anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
                         height: Math.max(radius * 2, parent.height * col.value)
                         radius: parent.radius
-                        color:  col.muted ? Qt.rgba(1,1,1,0.15) : Theme.active
+                        color:  col.muted ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.15) : Theme.active
                         Behavior on color  { ColorAnimation  { duration: Anim.mediumFast} }
                         Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
                     }
@@ -250,7 +250,7 @@ PopupWindow {
                         width:  col.thumbD
                         height: width
                         radius: width / 2
-                        color:  col.muted ? Qt.rgba(1,1,1,0.3) : "#ffffff"
+                        color:  col.muted ? Theme.subtext : Theme.text
                         y: {
                             var travel = track.height - height
                             return Math.max(0, Math.min(travel, (1.0 - col.value) * travel))
@@ -290,20 +290,20 @@ PopupWindow {
                 radius: Math.round(Theme.cornerRadius * root.localScale)
                 color:  col.muted
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2)
-                            : Qt.rgba(1,1,1,0.06)
+                            : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06)
                 Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
 
                 Text {
                     anchors.centerIn: parent
                     text:           col.icon
                     font.pixelSize: Math.round(14 * root.localScale)
-                    color:          col.muted ? Theme.active : Qt.rgba(1,1,1,0.55)
+                    color:          col.muted ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.55)
                     Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                 }
 
                 Rectangle {
                     anchors.fill: parent; radius: parent.radius
-                    color: muteHov.hovered ? Qt.rgba(1,1,1,0.05) : "transparent"
+                    color: muteHov.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05) : "transparent"
                     Behavior on color { ColorAnimation { duration: Anim.fast} }
                 }
                 HoverHandler { id: muteHov; cursorShape: Qt.PointingHandCursor }
@@ -314,7 +314,7 @@ PopupWindow {
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:            col.label
-                color:           Qt.rgba(1,1,1,0.3)
+                color:           Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.3)
                 font.pixelSize:  Math.round(10 * root.localScale)
                 font.capitalization: Font.AllUppercase
                 font.letterSpacing: 1

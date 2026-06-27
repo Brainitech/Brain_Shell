@@ -18,7 +18,7 @@ Item {
             text:           "Network"
             font.pixelSize: Math.round(11 * localScale)
             font.weight:    Font.Medium
-            color:          Qt.rgba(1, 1, 1, 0.4)
+            color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
         }
 
         Column {

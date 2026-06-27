@@ -191,7 +191,7 @@ Rectangle {
         Text {
             anchors.centerIn: parent
             text: "" 
-            color: "#FFFFFF"
+            color: Theme.text
             font.pixelSize: Math.round(14 * localScale)
         }
         

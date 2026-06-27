@@ -219,7 +219,7 @@ Item {
                 id: titleText
                 text: root.title
                 font.pixelSize: Math.round(18 * localScale); font.weight: Font.Bold
-                color: "#ffffff"
+                color: Theme.text
                 anchors.horizontalCenter: titleMetrics.width <= parent.width ? parent.horizontalCenter : undefined
                 NumberAnimation on x {
                     id: marqueeAnim
@@ -237,7 +237,7 @@ Item {
             text:    root.artist
             visible: root.artist !== ""
             font.pixelSize: Math.round(13 * localScale)
-            color: Qt.rgba(1,1,1,0.55) 
+            color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.55) 
             
             maximumLineCount: 1
             elide: Text.ElideRight
@@ -274,7 +274,7 @@ Item {
                     radius: height / 2
                     color: isPlay
                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
-                           : cH.hovered ? Qt.rgba(1,1,1,0.14) : Qt.rgba(1,1,1,0.06)
+                           : cH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.14) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06)
                     border.color: isPlay ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.3) : "transparent"
                     border.width: 1
                     Behavior on color { ColorAnimation { duration: Anim.fast} }
@@ -282,7 +282,7 @@ Item {
                         anchors.centerIn: parent
                         text: parent.dispIcon
                         font.pixelSize: isPlay ? Math.round(18 * localScale) : Math.round(14 * localScale)
-                        color: isPlay ? Theme.active : Qt.rgba(1,1,1,0.7)
+                        color: isPlay ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.7)
                     }
                     HoverHandler { id: cH; cursorShape: Qt.PointingHandCursor }
                     MouseArea {
@@ -314,7 +314,7 @@ Item {
                 width: parent.width; height: Math.round(6 * localScale)
                 Rectangle {
                     anchors.fill: parent; radius: height / 2
-                    color: Qt.rgba(1,1,1,0.2)
+                    color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.2)
                     MouseArea {
                         anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                         onClicked: function(mouse) {
@@ -340,14 +340,14 @@ Item {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                     text: root._fmt(root._pos)
                     font.pixelSize: Math.round(9 * localScale); font.family: "JetBrains Mono"
-                    color: Qt.rgba(1,1,1,0.4)
+                    color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.4)
                 }
 
                 Text {
                     anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                     text: root._fmt(root.length)
                     font.pixelSize: Math.round(9 * localScale); font.family: "JetBrains Mono"
-                    color: Qt.rgba(1,1,1,0.4)
+                    color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.4)
                 }
             }
         }
@@ -420,7 +420,7 @@ Item {
                             text:           root.player ? root._playerLabel(root.player) : "Player"
                             font.pixelSize: Math.round(11 * localScale)
                             font.weight:    Font.Medium
-                            color:          Qt.rgba(1,1,1,0.92)
+                            color:          Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.92)
                             // Cap width so crazy browser identities don't stretch the pill
                             width:          Math.min(implicitWidth, Math.round(120 * localScale)) 
                             elide:          Text.ElideRight
@@ -458,14 +458,14 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text:           root._playerIcon(modelData)
                                 font.pixelSize: Math.round(11 * localScale)
-                                color:          rowH.hovered ? Qt.rgba(1,1,1,0.90) : Qt.rgba(1,1,1,0.55)
+                                color:          rowH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.90) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.55)
                                 Behavior on color { ColorAnimation { duration: Anim.fast} }
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text:           root._playerLabel(modelData)
                                 font.pixelSize: Math.round(11 * localScale)
-                                color:          rowH.hovered ? Qt.rgba(1,1,1,0.90) : Qt.rgba(1,1,1,0.55)
+                                color:          rowH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.90) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.55)
                                 width:          Math.min(implicitWidth, Math.round(120 * localScale))
                                 elide:          Text.ElideRight
                                 Behavior on color { ColorAnimation { duration: Anim.fast} }
@@ -519,7 +519,7 @@ Item {
         anchors.fill: parent
         radius:       Theme.cornerRadius
         color:        "transparent"
-        border.color: Qt.rgba(1,1,1,0.08)
+        border.color: Theme.border
         border.width: 1
     }
 

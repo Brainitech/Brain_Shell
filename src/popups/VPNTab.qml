@@ -370,10 +370,10 @@ Item {
                     width: ksRow.implicitWidth + Math.round(18 * localScale)
                     color: root._killSwitch
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
-                        : ksH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
+                        : ksH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
                     border.color: root._killSwitch
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.40)
-                        : Qt.rgba(1,1,1,0.10)
+                        : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.10)
                     border.width: Math.max(1, Math.round(1 * localScale))
                     Behavior on color        { ColorAnimation { duration: Anim.color} }
                     Behavior on border.color { ColorAnimation { duration: Anim.color} }
@@ -384,13 +384,13 @@ Item {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: "󰒃"; font.pixelSize: Math.round(13 * localScale)
-                            color: root._killSwitch ? Theme.active : Qt.rgba(1,1,1,0.40)
+                            color: root._killSwitch ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.40)
                             Behavior on color { ColorAnimation { duration: Anim.color} }
                         }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: "Kill Switch"; font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium
-                            color: root._killSwitch ? Theme.active : Qt.rgba(1,1,1,0.45)
+                            color: root._killSwitch ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.45)
                             Behavior on color { ColorAnimation { duration: Anim.color} }
                         }
                     }
@@ -402,7 +402,7 @@ Item {
                 // Refresh
                 Rectangle {
                     width: Math.round(32 * localScale); height: Math.round(32 * localScale); radius: Math.round(8 * localScale)
-                    color: rfH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15) : Qt.rgba(1,1,1,0.05)
+                    color: rfH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05)
                     border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.28)
                     border.width: Math.max(1, Math.round(1 * localScale))
                     Behavior on color { ColorAnimation { duration: Anim.color} }
@@ -425,7 +425,7 @@ Item {
             }
         }
 
-        Rectangle { width: parent.width; height: 1; color: Qt.rgba(1,1,1,0.07) }
+        Rectangle { width: parent.width; height: 1; color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.07) }
         Item      { width: parent.width; height: Math.round(8 * localScale) }
 
         // Connection list
@@ -469,7 +469,7 @@ Item {
                     Text {
                         id: iLbl; text: "AVAILABLE"
                         font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold; font.letterSpacing: 1.2
-                        color: Qt.rgba(1,1,1,0.25)
+                        color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25)
                     }
                 }
 
@@ -487,13 +487,13 @@ Item {
                     visible: !root._loading && root._connections.length === 0
                     Column {
                         anchors.centerIn: parent; spacing: Math.round(12 * localScale)
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "󰦝"; font.pixelSize: Math.round(36 * localScale); color: Qt.rgba(1,1,1,0.08) }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "No WireGuard connections"; font.pixelSize: Math.round(13 * localScale); color: Qt.rgba(1,1,1,0.2) }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Import a config to get started:"; font.pixelSize: Math.round(10 * localScale); color: Qt.rgba(1,1,1,0.14); horizontalAlignment: Text.AlignHCenter }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "󰦝"; font.pixelSize: Math.round(36 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08) }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "No WireGuard connections"; font.pixelSize: Math.round(13 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.2) }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Import a config to get started:"; font.pixelSize: Math.round(10 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.14); horizontalAlignment: Text.AlignHCenter }
                         Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: codeText.implicitWidth + Math.round(24 * localScale); height: Math.round(26 * localScale); radius: Math.round(6 * localScale)
-                            color: Qt.rgba(1,1,1,0.05); border.color: Qt.rgba(1,1,1,0.10); border.width: Math.max(1, Math.round(1 * localScale))
+                            color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05); border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.10); border.width: Math.max(1, Math.round(1 * localScale))
                             Text {
                                 id: codeText; anchors.centerIn: parent
                                 text: "nmcli con import type wireguard file <conf>"
@@ -520,7 +520,7 @@ Item {
                                 NumberAnimation { to: 1.0;  duration: Anim.verySlow}
                             }
                         }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Loading…"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(1,1,1,0.25) }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Loading…"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25) }
                     }
                 }
 
@@ -546,10 +546,10 @@ Item {
             id: card; anchors.fill: parent; radius: Math.round(Theme.cornerRadius * localScale)
             color: vRow.con.active
                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08)
-                : vHov.hovered ? Qt.rgba(1,1,1,0.04) : "transparent"
+                : vHov.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04) : "transparent"
             border.color: vRow.con.active
                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
-                : Qt.rgba(1,1,1,0.07)
+                : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.07)
             border.width: Math.max(1, Math.round(1 * localScale))
             Behavior on color        { ColorAnimation { duration: Anim.normal} }
             Behavior on border.color { ColorAnimation { duration: Anim.normal} }
@@ -573,7 +573,7 @@ Item {
                     ? Theme.active
                     : vRow.con.busy
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5)
-                        : Qt.rgba(1,1,1,0.28)
+                        : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.28)
                 Behavior on color { ColorAnimation { duration: Anim.normal} }
             }
 
@@ -583,7 +583,7 @@ Item {
                 Text {
                     text: vRow.con.name; font.pixelSize: Math.round(13 * localScale)
                     font.weight: vRow.con.active ? Font.Medium : Font.Normal
-                    color: vRow.con.active ? Theme.text : Qt.rgba(1,1,1,0.65)
+                    color: vRow.con.active ? Theme.text : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.65)
                     width: Math.round(160 * localScale); elide: Text.ElideRight
                 }
                 Text {
@@ -593,7 +593,7 @@ Item {
                         : vRow.con.active ? "Connected" : "Disconnected"
                     color: vRow.con.busy
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.60)
-                        : vRow.con.active ? Theme.active : Qt.rgba(1,1,1,0.32)
+                        : vRow.con.active ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.32)
                     Behavior on color { ColorAnimation { duration: Anim.normal} }
                 }
             }
@@ -619,7 +619,7 @@ Item {
                 width: Math.round(10 * localScale); height: Math.round(10 * localScale); radius: Math.round(5 * localScale)
                 color: vRow.con.active
                     ? Theme.active
-                    : vHov.hovered ? Qt.rgba(1,1,1,0.35) : Qt.rgba(1,1,1,0.18)
+                    : vHov.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.35) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.18)
                 Behavior on color { ColorAnimation { duration: Anim.normal} }
             }
         }

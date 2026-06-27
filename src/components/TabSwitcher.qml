@@ -131,7 +131,7 @@ Item {
 						width: hTab.bgWidth
 						height: parent.height - Math.round(8 * localScale)
 						radius: height / 2
-						color: !hTab.isActive && hHov.hovered ? Qt.rgba(1, 1, 1, 0.07) : "transparent"
+						color: !hTab.isActive && hHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
 						Behavior on color { ColorAnimation { duration: Anim.color} }
 					}
 
@@ -147,7 +147,7 @@ Item {
 							anchors.verticalCenter: parent.verticalCenter
 							color: hTab.isActive
 							? Theme.background
-							: (hHov.hovered ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.4))
+							: (hHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.75) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4))
 							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 
@@ -160,7 +160,7 @@ Item {
 							anchors.verticalCenter: parent.verticalCenter
 							color: hTab.isActive
 							? Theme.background
-							: (hHov.hovered ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.4))
+							: (hHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.75) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4))
 							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 					}
@@ -182,7 +182,7 @@ Item {
 		anchors.left:   parent.left
 		anchors.right:  parent.right
 		height:         1
-		color:          Qt.rgba(1, 1, 1, 0.07)
+		color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
 	}
 
 	// ── VERTICAL layout — Column ──────────────────────────────────────────────
@@ -248,7 +248,7 @@ Item {
 						Rectangle {
 							anchors.fill: parent
 							radius: Math.round(Theme.cornerRadius * 2 * localScale)
-							color: !vTab.isActive && vHov.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
+							color: !vTab.isActive && vHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : "transparent"
 							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 		
@@ -278,7 +278,7 @@ Item {
 								anchors.verticalCenter: parent.verticalCenter
 								color: vTab.isActive
 									? Theme.background
-									: (vHov.hovered ? Qt.rgba(1, 1, 1, 0.80) : Qt.rgba(1, 1, 1, 0.42))
+									: (vHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.80) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.42))
 								Behavior on color { ColorAnimation { duration: Anim.color} }
 							}
 		
@@ -289,7 +289,7 @@ Item {
 								anchors.verticalCenter: parent.verticalCenter
 								color: vTab.isActive
 									? Theme.background
-									: (vHov.hovered ? Qt.rgba(1, 1, 1, 0.80) : Qt.rgba(1, 1, 1, 0.42))
+									: (vHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.80) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.42))
 								Behavior on color { ColorAnimation { duration: Anim.color} }
 							}
 						}

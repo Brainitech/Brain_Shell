@@ -33,7 +33,7 @@ Item {
                         text: "More Options Coming Soon..."
                         font.pixelSize: Math.round(13 * root.localScale)
                         font.italic: true
-                        color: Qt.rgba(1, 1, 1, 0.4)
+                        color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
                     }
                 }
             }

@@ -385,7 +385,7 @@ StatCard {
                     anchors.fill: parent; radius: Math.round(7 * localScale)
                     color: _addTimerHov.hovered
                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
-                           : Qt.rgba(1,1,1,0.06)
+                           : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06)
                     border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2); border.width: 1
                     Behavior on color { ColorAnimation { duration: Anim.fast} }
                     Text {
@@ -418,7 +418,7 @@ StatCard {
                             ctx.clearRect(0, 0, width, height)
                             var cx = width/2, cy = height/2, r = Math.round(44 * localScale)
                             ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2)
-                            ctx.strokeStyle = Qt.rgba(1,1,1,0.08)
+                            ctx.strokeStyle = Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08)
                             ctx.lineWidth = Math.round(5 * localScale); ctx.stroke()
                             var p = root._timerProgress()
                             if (p > 0) {
@@ -446,7 +446,7 @@ StatCard {
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "remaining"; font.pixelSize: Math.round(8 * localScale)
-                            color: Qt.rgba(1,1,1,0.25)
+                            color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25)
                         }
                     }
                 }
@@ -462,14 +462,14 @@ StatCard {
                             required property int modelData
                             required property int index
                             width: Math.round(36 * localScale); height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
-                            color: _pH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1) : Qt.rgba(1,1,1,0.05)
-                            border.color: Qt.rgba(1,1,1,0.1); border.width: 1
+                            color: _pH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05)
+                            border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1); border.width: 1
                             Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData < 60 ? modelData+"m" : "1h"
                                 font.pixelSize: Math.round(9 * localScale); font.family: "JetBrains Mono"; font.weight: Font.Bold
-                                color: Qt.rgba(1,1,1,0.45)
+                                color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.45)
                             }
                             HoverHandler { id: _pH; cursorShape: Qt.PointingHandCursor }
                             MouseArea {
@@ -576,14 +576,14 @@ StatCard {
                     Rectangle {
                         width: Math.round(58 * localScale); height: Math.round(26 * localScale); radius: Math.round(8 * localScale)
                         color: _resetHov.hovered
-                               ? Qt.rgba(1,1,1,0.1)
-                               : Qt.rgba(1,1,1,0.05)
-                        border.color: Qt.rgba(1,1,1,0.1); border.width: 1
+                               ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1)
+                               : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05)
+                        border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1); border.width: 1
                         Behavior on color { ColorAnimation { duration: Anim.fast} }
                         Text {
                             anchors.centerIn: parent; text: "Reset"
                             font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium
-                            color: Qt.rgba(1,1,1,0.4)
+                            color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.4)
                         }
                         HoverHandler { id: _resetHov; cursorShape: Qt.PointingHandCursor }
                         MouseArea {
@@ -656,7 +656,7 @@ StatCard {
                             anchors.fill: parent; radius: Math.round(7 * localScale)
                             color: _addHov.hovered
                                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.15)
-                                   : Qt.rgba(1,1,1,0.06)
+                                   : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06)
                             border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.2); border.width: 1
                             Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text {
@@ -753,10 +753,10 @@ StatCard {
                         required property var modelData
                         required property int index
                         width: alarmList.width; height: Math.round(36 * localScale); radius: Math.round(8 * localScale)
-                        color: Qt.rgba(1,1,1,0.04)
+                        color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
                         border.color: modelData.enabled
                                       ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.15)
-                                      : Qt.rgba(1,1,1,0.07)
+                                      : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.07)
                         border.width: 1
 
                         // Time label
@@ -766,7 +766,7 @@ StatCard {
                             font.pixelSize: Math.round(15 * localScale); font.weight: Font.Bold; font.family: "JetBrains Mono"
                             color: modelData.enabled
                                    ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.9)
-                                   : Qt.rgba(1,1,1,0.3)
+                                   : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.3)
                         }
 
                         // Toggle
@@ -776,13 +776,13 @@ StatCard {
                             width: Math.round(28 * localScale); height: Math.round(18 * localScale); radius: Math.round(9 * localScale)
                             color: modelData.enabled
                                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.25)
-                                   : Qt.rgba(1,1,1,0.1)
+                                   : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1)
                             Behavior on color { ColorAnimation { duration: Anim.color} }
                             Rectangle {
                                 width: Math.round(12 * localScale); height: Math.round(12 * localScale); radius: Math.round(6 * localScale)
                                 anchors.verticalCenter: parent.verticalCenter
                                 x: modelData.enabled ? parent.width - width - Math.round(3 * localScale) : Math.round(3 * localScale)
-                                color: modelData.enabled ? Theme.active : Qt.rgba(1,1,1,0.3)
+                                color: modelData.enabled ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.3)
                                 Behavior on x     { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
                                 Behavior on color { ColorAnimation  { duration: Anim.color} }
                             }
@@ -810,7 +810,7 @@ StatCard {
                         visible: root._alarms.length === 0 && !root._addOpen
                         text: "No alarms set\nTap + to add one"
                         horizontalAlignment: Text.AlignHCenter
-                        font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(1,1,1,0.2)
+                        font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.2)
                         lineHeight: 1.5
                     }
                 }
@@ -886,14 +886,14 @@ StatCard {
                     Rectangle {
                         width: Math.round(58 * localScale); height: Math.round(26 * localScale); radius: Math.round(8 * localScale)
                         color: _swResetHov.hovered
-                               ? Qt.rgba(1,1,1,0.1)
-                               : Qt.rgba(1,1,1,0.05)
-                        border.color: Qt.rgba(1,1,1,0.1); border.width: 1
+                               ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1)
+                               : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05)
+                        border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1); border.width: 1
                         Behavior on color { ColorAnimation { duration: Anim.fast} }
                         Text {
                             anchors.centerIn: parent; text: "Reset"
                             font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium
-                            color: Qt.rgba(1,1,1,0.4)
+                            color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.4)
                         }
                         HoverHandler { id: _swResetHov; cursorShape: Qt.PointingHandCursor }
                         MouseArea {

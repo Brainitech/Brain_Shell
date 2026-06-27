@@ -133,7 +133,7 @@ Item {
         id: bg
         anchors.fill: parent
         radius: Math.round(6 * localScale)
-        color: mouseArea.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
+        color: mouseArea.containsMouse ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : "transparent"
 
         Behavior on color {
             ColorAnimation { duration: Anim.color}

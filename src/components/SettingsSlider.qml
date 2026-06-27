@@ -45,7 +45,7 @@ Item {
         Text {
             visible: root.description !== ""
             text: root.description
-            color: Qt.rgba(1, 1, 1, 0.4)
+            color: Theme.subtext
             font.pixelSize: Math.round(11 * localScale)
             wrapMode: Text.WordWrap
             width: parent.width
@@ -69,7 +69,7 @@ Item {
             width: root.showValue ? (parent.width - Math.round(50 * localScale)) : parent.width
             height: Math.round(6 * localScale)
             radius: height / 2
-            color: Qt.rgba(1, 1, 1, 0.1)
+            color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
 
             // Fill
             Rectangle {
@@ -147,14 +147,14 @@ Item {
             height: Math.round(20 * localScale)
             radius: Math.round(6 * localScale)
             anchors { right: sliderArea.left; rightMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
-            color: rstH.hovered ? Qt.rgba(1, 1, 1, 0.09) : "transparent"
+            color: rstH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.09) : "transparent"
             Behavior on color { ColorAnimation { duration: Anim.fast } }
             
             Text { 
                 anchors.centerIn: parent
                 text: "↺"
                 font.pixelSize: Math.round(13 * localScale)
-                color: rstH.hovered ? Theme.active : Qt.rgba(1, 1, 1, 0.4) 
+                color: rstH.hovered ? Theme.active : Theme.subtext 
             }
             
             HoverHandler { id: rstH; cursorShape: Qt.PointingHandCursor }
@@ -170,7 +170,7 @@ Item {
             visible: root.showValue
             anchors { right: parent.right; verticalCenter: parent.verticalCenter }
             text: root.formatValue(root.value)
-            color: Qt.rgba(1, 1, 1, 0.6)
+            color: Theme.subtext
             font.pixelSize: Math.round(12 * localScale)
             horizontalAlignment: Text.AlignRight
             width: Math.round(45 * localScale)

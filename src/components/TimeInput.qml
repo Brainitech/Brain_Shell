@@ -1,4 +1,5 @@
 import QtQuick
+import "../"
 
 // TimeInput — reusable HH:MM input
 // Props : hours (int, readonly), minutes (int, readonly), minuteStep (int, default 1)
@@ -40,15 +41,15 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "HH"; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Medium
                 font.family: "JetBrains Mono"
-                color: Qt.rgba(1,1,1,0.3)
+                color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.3)
             }
 
             Rectangle {
                 width: parent.width; height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
-                color: hUpH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
-                border.color: Qt.rgba(1,1,1,0.08); border.width: 1
+                color: hUpH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+                border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08); border.width: 1
                 Behavior on color { ColorAnimation { duration: Anim.superFast} }
-                Text { anchors.centerIn: parent; text: "▲"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(1,1,1,0.4) }
+                Text { anchors.centerIn: parent; text: "▲"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4) }
                 HoverHandler { id: hUpH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root.incH() }
             }
@@ -61,7 +62,7 @@ Item {
                     text: root.zp(root.hVal)
                     font.pixelSize: Math.round(20 * localScale); font.weight: Font.Bold
                     font.family: "JetBrains Mono"
-                    color: Qt.rgba(235/255, 240/255, 255/255, 0.9)
+                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.9)
                 }
 
                 WheelHandler {
@@ -76,10 +77,10 @@ Item {
 
             Rectangle {
                 width: parent.width; height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
-                color: hDnH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
-                border.color: Qt.rgba(1,1,1,0.08); border.width: 1
+                color: hDnH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+                border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08); border.width: 1
                 Behavior on color { ColorAnimation { duration: Anim.superFast} }
-                Text { anchors.centerIn: parent; text: "▼"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(1,1,1,0.4) }
+                Text { anchors.centerIn: parent; text: "▼"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4) }
                 HoverHandler { id: hDnH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root.decH() }
             }
@@ -92,7 +93,7 @@ Item {
             text: ":"
             font.pixelSize: Math.round(22 * localScale); font.weight: Font.Bold
             font.family: "JetBrains Mono"
-            color: Qt.rgba(1,1,1,0.3)
+            color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.3)
         }
 
         // ══ MINUTES ═══════════════════════════════════════════════════════════
@@ -104,15 +105,15 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "MM"; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Medium
                 font.family: "JetBrains Mono"
-                color: Qt.rgba(1,1,1,0.3)
+                color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.3)
             }
 
             Rectangle {
                 width: parent.width; height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
-                color: mUpH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
-                border.color: Qt.rgba(1,1,1,0.08); border.width: 1
+                color: mUpH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+                border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08); border.width: 1
                 Behavior on color { ColorAnimation { duration: Anim.superFast} }
-                Text { anchors.centerIn: parent; text: "▲"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(1,1,1,0.4) }
+                Text { anchors.centerIn: parent; text: "▲"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4) }
                 HoverHandler { id: mUpH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root.incM() }
             }
@@ -125,7 +126,7 @@ Item {
                     text: root.zp(root.mVal)
                     font.pixelSize: Math.round(20 * localScale); font.weight: Font.Bold
                     font.family: "JetBrains Mono"
-                    color: Qt.rgba(235/255, 240/255, 255/255, 0.9)
+                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.9)
                 }
 
                 WheelHandler {
@@ -140,10 +141,10 @@ Item {
 
             Rectangle {
                 width: parent.width; height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
-                color: mDnH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
-                border.color: Qt.rgba(1,1,1,0.08); border.width: 1
+                color: mDnH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+                border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08); border.width: 1
                 Behavior on color { ColorAnimation { duration: Anim.superFast} }
-                Text { anchors.centerIn: parent; text: "▼"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(1,1,1,0.4) }
+                Text { anchors.centerIn: parent; text: "▼"; font.pixelSize: Math.round(9 * localScale); color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4) }
                 HoverHandler { id: mDnH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root.decM() }
             }

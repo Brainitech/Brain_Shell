@@ -44,7 +44,7 @@ Column {
 
         Text {
             text:                "Power Profile"
-            color:               Qt.rgba(1, 1, 1, 0.4)
+            color:               Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
             font.pixelSize:      Math.round(10 * localScale)
             font.capitalization: Font.AllUppercase
             leftPadding:         Math.round(2 * localScale)
@@ -54,7 +54,7 @@ Column {
             width:  parent.width
             height: Math.round(40 * localScale)
             radius: Math.round(Theme.cornerRadius * localScale)
-            color:  Qt.rgba(1, 1, 1, 0.05)
+            color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
 
             Row {
                 anchors { left: parent.left; leftMargin: Math.round(12 * localScale); verticalCenter: parent.verticalCenter }
@@ -80,7 +80,7 @@ Column {
         }
     }
 
-    Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.08) }
+    Rectangle { width: parent.width; height: 1; color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) }
 
     // ── dGPU toggle row ───────────────────────────────────────────────────────
     Column {
@@ -89,7 +89,7 @@ Column {
 
         Text {
             text:                "Graphics"
-            color:               Qt.rgba(1, 1, 1, 0.4)
+            color:               Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
             font.pixelSize:      Math.round(10 * localScale)
             font.capitalization: Font.AllUppercase
             leftPadding:         Math.round(2 * localScale)
@@ -99,7 +99,7 @@ Column {
             width:  parent.width
             height: Math.round(48 * localScale)
             radius: Math.round(Theme.cornerRadius * localScale)
-            color:  Qt.rgba(1, 1, 1, 0.05)
+            color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
 
             Row {
                 anchors { left: parent.left; leftMargin: 12; verticalCenter: parent.verticalCenter }
@@ -124,7 +124,7 @@ Column {
 
                     Text {
                         text:           root.dgpuEnabled ? "dGPU active" : "dGPU inactive"
-                        color:          Qt.rgba(1, 1, 1, 0.45)
+                        color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
                         font.pixelSize: 10
                     }
                 }
@@ -137,7 +137,7 @@ Column {
                 width:  44
                 height: 24
                 radius: 12
-                color:  root.dgpuEnabled ? Theme.active : Qt.rgba(1, 1, 1, 0.15)
+                color:  root.dgpuEnabled ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.15)
                 Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
 
                 Rectangle {

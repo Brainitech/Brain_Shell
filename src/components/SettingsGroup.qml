@@ -27,7 +27,7 @@ Item {
         Text {
             visible: root.description !== ""
             text: root.description
-            color: Qt.rgba(1, 1, 1, 0.4)
+            color: Theme.subtext
             font.pixelSize: Math.round(11 * localScale)
             leftPadding: Math.round(4 * localScale)
             wrapMode: Text.WordWrap
@@ -45,8 +45,8 @@ Item {
         }
         height: innerCol.height + Math.round(16 * localScale)
         radius: Math.round(Theme.cornerRadius * localScale)
-        color: Qt.rgba(1, 1, 1, 0.04)
-        border.color: Qt.rgba(1, 1, 1, 0.08)
+        color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+        border.color: Theme.border
         border.width: 1
 
         Column {

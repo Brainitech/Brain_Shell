@@ -170,7 +170,7 @@ PanelWindow {
             Text {
                 width:          parent.width
                 text:           Popups.confirmMessage
-                color:          Qt.rgba(1, 1, 1, 0.65)
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.65)
                 font.pixelSize: Math.round(12 * localScale)
                 wrapMode:       Text.WordWrap
                 textFormat:     Text.RichText
@@ -185,7 +185,7 @@ PanelWindow {
                     width:  Math.round(130 * localScale)
                     height: Math.round(38 * localScale)
                     radius: Math.round(Theme.cornerRadius * localScale)
-                    color:  cancelHov.hovered ? Qt.rgba(1, 1, 1, 0.1) : Qt.rgba(1, 1, 1, 0.05)
+                    color:  cancelHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
                     Behavior on color { ColorAnimation { duration: Anim.color} }
 
                     Text {
@@ -267,12 +267,12 @@ PanelWindow {
                     var cx = width / 2, cy = height / 2, r = Math.round(16 * localScale)
                     ctx.beginPath()
                     ctx.arc(cx, cy, r, 0, 2 * Math.PI)
-                    ctx.strokeStyle = "rgba(255,255,255,0.1)"
+                    ctx.strokeStyle = Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
                     ctx.lineWidth   = Math.round(3 * localScale)
                     ctx.stroke()
                     ctx.beginPath()
                     ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI)
-                    ctx.strokeStyle = "white"
+                    ctx.strokeStyle = Theme.text
                     ctx.lineWidth   = Math.round(3 * localScale)
                     ctx.lineCap     = "round"
                     ctx.stroke()
@@ -294,7 +294,7 @@ PanelWindow {
                 width:          parent.width
                 text:           "Switching to <b>" + Popups.confirmGfxMode + "</b> graphics mode.<br>"
                                 + "Your system will reboot when finished."
-                color:          Qt.rgba(1, 1, 1, 0.55)
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.55)
                 font.pixelSize: Math.round(12 * localScale)
                 wrapMode:       Text.WordWrap
                 textFormat:     Text.RichText
@@ -306,13 +306,13 @@ PanelWindow {
                 anchors.horizontalCenter: parent.horizontalCenter
                 width:  parent.width
                 height: 1
-                color:  Qt.rgba(1, 1, 1, 0.07)
+                color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
             }
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           "Do not turn off your computer."
-                color:          Qt.rgba(1, 1, 1, 0.3)
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.3)
                 font.pixelSize: Math.round(11 * localScale)
                 horizontalAlignment: Text.AlignHCenter
             }

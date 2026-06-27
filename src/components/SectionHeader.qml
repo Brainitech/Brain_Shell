@@ -24,7 +24,7 @@ Item {
         Text {
             visible: root.description !== ""
             text: root.description
-            color: Qt.rgba(1, 1, 1, 0.4)
+            color: Theme.subtext
             font.pixelSize: Math.round(11 * localScale)
         }
     }
@@ -34,6 +34,6 @@ Item {
         anchors.bottom: parent.bottom
         width: parent.width
         height: Math.max(1, Math.round(1 * localScale))
-        color: Qt.rgba(1, 1, 1, 0.05)
+        color: Theme.border
     }
 }

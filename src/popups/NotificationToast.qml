@@ -141,7 +141,7 @@ PopupWindow {
 				if (!root.current) return "#ABB2BF"
 				switch (root.current.urgency) {
 					case NotificationUrgency.Critical: return "#e06c75"
-					case NotificationUrgency.Low:      return Qt.rgba(1,1,1,0.25)
+					case NotificationUrgency.Low:      return Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25)
 					default:                           return "#ABB2BF"
 				}
 			}
@@ -233,7 +233,7 @@ PopupWindow {
 						Rectangle {
 							anchors.fill: parent
 							radius:       width / 2
-							color:        Qt.rgba(1,1,1,0.1)
+							color:        Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1)
 							visible:      toastIcon.status !== Image.Ready
 							Text {
 								anchors.centerIn: parent
@@ -261,7 +261,7 @@ PopupWindow {
 						Rectangle {
 							anchors.fill: parent
 							radius:       width / 2
-							color:        xHover.containsMouse ? Qt.rgba(1,1,1,0.12) : "transparent"
+							color:        xHover.containsMouse ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.12) : "transparent"
 							Behavior on color { ColorAnimation { duration: Anim.fast} }
 						}
 						Text {
@@ -314,8 +314,8 @@ PopupWindow {
 								anchors.fill: parent
 								radius:       Math.round(4 * root.localScale)
 								color:        actHover.containsMouse
-								? Qt.rgba(1,1,1,0.18)
-								: Qt.rgba(1,1,1,0.08)
+								? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.18)
+								: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08)
 								Behavior on color { ColorAnimation { duration: Anim.fast} }
 							}
 							Text {

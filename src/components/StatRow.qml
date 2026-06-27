@@ -20,7 +20,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         text:           root.label
         font.pixelSize: Math.round(11 * localScale)
-        color:          Qt.rgba(1, 1, 1, 0.4)
+        color:          Theme.subtext
     }
 
     Text {

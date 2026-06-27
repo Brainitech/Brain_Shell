@@ -17,7 +17,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             text:           "Fan Control"
             font.pixelSize: Math.round(14 * localScale)
-            color:          Qt.rgba(1, 1, 1, 0.35)
+            color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.35)
         }
 
         Row {

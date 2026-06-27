@@ -74,10 +74,10 @@ StatCard {
                 anchors.fill: parent
                 radius: width / 2
                 gradient: Gradient {
-                    GradientStop { position: 0.0; color: Qt.rgba(166/255,208/255,247/255,0.22) }
-                    GradientStop { position: 1.0; color: Qt.rgba(80/255,130/255,190/255,0.14) }
+                    GradientStop { position: 0.0; color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22) }
+                    GradientStop { position: 1.0; color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.10) }
                 }
-                border.color: Qt.rgba(166/255,208/255,247/255,0.22)
+                border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
                 border.width: 1
             }
 
@@ -132,7 +132,7 @@ StatCard {
                 }
                 Text {
                     text: root._wm; font.pixelSize: Math.round(12 * localScale)
-                    color: Qt.rgba(205/255,214/255,244/255,0.55)
+                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.55)
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
@@ -146,7 +146,7 @@ StatCard {
                 Text {
                     text: root._uptime; font.pixelSize: Math.round(12 * localScale)
                     font.family: "JetBrains Mono"
-                    color: Qt.rgba(205/255,214/255,244/255,0.55)
+                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.55)
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }

@@ -87,7 +87,7 @@ Item {
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text:           "Initializing..."
-                    color:          Qt.rgba(1,1,1,0.25)
+                    color:          Theme.subtext
                     font.pixelSize: Math.round(13 * localScale)
                 }
             }
@@ -102,12 +102,12 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text:           root.query !== "" ? "󰩄" : "󱗃"
                     font.pixelSize: Math.round(28 * localScale)
-                    color:          Qt.rgba(1,1,1,0.18)
+                    color:          Theme.subtext
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text:           root.query !== "" ? "No results" : "No apps found"
-                    color:          Qt.rgba(1,1,1,0.25)
+                    color:          Theme.subtext
                     font.pixelSize: Math.round(13 * localScale)
                 }
             }
@@ -131,7 +131,7 @@ Item {
                         implicitWidth:  Math.round(3 * localScale)
                         implicitHeight: Math.round(40 * localScale)
                         radius:         width / 2
-                        color:          Qt.rgba(1, 1, 1, 0.22)
+                        color:          Theme.border
                     }
                     background: Item {}
                 }
@@ -148,10 +148,10 @@ Item {
 
                     color: isSel
                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
-                           : rowH.hovered ? Qt.rgba(1,1,1,0.06) : "transparent"
+                           : rowH.hovered ? Theme.border : "transparent"
                     border.color: isSel
                                   ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.28)
-                                  : rowH.hovered ? Qt.rgba(1,1,1,0.08) : "transparent"
+                                  : rowH.hovered ? Theme.border : "transparent"
                     border.width: 1
 
                     Behavior on color        { ColorAnimation { duration: Anim.fast} }
@@ -241,10 +241,10 @@ Item {
         Rectangle {
             id: searchBar
             width: parent.width; height: Math.round(44 * localScale); radius: Math.round(12 * localScale)
-            color: Qt.rgba(1,1,1,0.06)
+            color: Theme.background
             border.color: searchInput.activeFocus
                           ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.50)
-                          : Qt.rgba(1,1,1,0.12)
+                          : Theme.border
             border.width: 1
             Behavior on border.color { ColorAnimation { duration: Anim.color} }
 
@@ -257,7 +257,7 @@ Item {
                     text: "󰍉"; font.pixelSize: Math.round(16 * localScale)
                     color: searchInput.activeFocus
                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.7)
-                           : Qt.rgba(1,1,1,0.35)
+                           : Theme.subtext
                     Behavior on color { ColorAnimation { duration: Anim.color} }
                 }
 
@@ -269,7 +269,7 @@ Item {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text:    "Search apps…"
-                        color:   Qt.rgba(1,1,1,0.22)
+                        color:   Theme.subtext
                         font.pixelSize: Math.round(13 * localScale)
                         visible: searchInput.text === ""
                     }

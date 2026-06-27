@@ -14,7 +14,7 @@ QtObject {
     }
 
     // ── Colors — bound to loader, update automatically when matugen runs ──────
-    property color background: internalLoader.background
+    property color background: Qt.rgba(internalLoader.background.r, internalLoader.background.g, internalLoader.background.b, PrefsService.bgOpacity)
     property color active:     internalLoader.active
     property color text:       internalLoader.text
     property color subtext:    internalLoader.subtext

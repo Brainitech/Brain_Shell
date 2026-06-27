@@ -319,6 +319,18 @@ Item {
                 property bool dropdownExpanded: false
                 Component.onCompleted: dropdownExpanded = PrefsService.dynamicThemeOverride
 
+                SettingsSlider {
+                    localScale: root.localScale
+                    text: "Background Opacity"
+                    description: "Transparency level of main window and popup backgrounds."
+                    from: 0.1; to: 1.0; stepSize: 0.05; value: PrefsService.bgOpacity
+                    defaultValue: 1.0
+                    onValueChanged: { if (Math.abs(value - PrefsService.bgOpacity) > 0.001) { PrefsService.bgOpacity = value; PrefsService.saveConfig() } }
+                    valueSuffix: ""
+                    formatValue: function(v) { return Math.round(v * 100) + "%" }
+                }
+                SettingsDivider { localScale: root.localScale }
+
                 Item {
                     width: parent.width
                     height: dynamicThemeToggle.height

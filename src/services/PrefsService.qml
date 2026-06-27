@@ -36,6 +36,7 @@ QtObject {
 
     property bool dynamicThemeOverride: false
     property bool darkMode: true
+    property real bgOpacity: 1.0
 
     // Custom Theme Override Groups
     property string overrideBg: "#1a282a"
@@ -86,6 +87,7 @@ QtObject {
             if (o.dynamicThemeOverride !== undefined) root.dynamicThemeOverride = o.dynamicThemeOverride
             if (o.overrideSecondary !== undefined) root.overrideSecondary = o.overrideSecondary
             if (o.darkMode !== undefined) root.darkMode = o.darkMode
+            if (o.bgOpacity !== undefined) root.bgOpacity = o.bgOpacity
             if (o.overrideBg !== undefined) root.overrideBg = o.overrideBg
             if (o.overrideBorder !== undefined) root.overrideBorder = o.overrideBorder
             if (o.overrideActive !== undefined) root.overrideActive = o.overrideActive
@@ -123,6 +125,7 @@ QtObject {
             dynamicThemeOverride: root.dynamicThemeOverride,
             overrideSecondary: root.overrideSecondary,
             darkMode: root.darkMode,
+            bgOpacity: root.bgOpacity,
             overrideBg: root.overrideBg,
             overrideBorder: root.overrideBorder,
             overrideActive: root.overrideActive,

@@ -36,6 +36,8 @@ QtObject {
     property bool notificationToastOpen:    false
     property bool quickOpen: false
     property bool clipboardOpen:     false
+    property bool colorPickerActive: false
+    property string pickerFormat: "HEX"
 
     // ── Per-popup pinned state (ignores hover-leave) ──────────────────────────
     property bool audioPinned:         false

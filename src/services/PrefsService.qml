@@ -35,6 +35,16 @@ QtObject {
     property int hoverCloseDelay: 300
 
     property bool dynamicThemeOverride: false
+    property bool darkMode: true
+
+    // Custom Theme Override Groups
+    property string overrideBg: "#1a282a"
+    property string overrideBorder: "#ffffff"
+    property string overrideActive: "#a6d0f7"
+    property string overrideIconFont: "#2f8d97"
+    property string overrideText: "#cdd6f4"
+    property string overrideSubtext: "#94e2d5"
+    property string overrideIcon: "#cdd6f4"
 
     property string _cfgBuf: ""
     
@@ -74,6 +84,15 @@ QtObject {
             if (o.hoverCloseDelay !== undefined) root.hoverCloseDelay = o.hoverCloseDelay
 
             if (o.dynamicThemeOverride !== undefined) root.dynamicThemeOverride = o.dynamicThemeOverride
+            if (o.overrideSecondary !== undefined) root.overrideSecondary = o.overrideSecondary
+            if (o.darkMode !== undefined) root.darkMode = o.darkMode
+            if (o.overrideBg !== undefined) root.overrideBg = o.overrideBg
+            if (o.overrideBorder !== undefined) root.overrideBorder = o.overrideBorder
+            if (o.overrideActive !== undefined) root.overrideActive = o.overrideActive
+            if (o.overrideIconFont !== undefined) root.overrideIconFont = o.overrideIconFont
+            if (o.overrideText !== undefined) root.overrideText = o.overrideText
+            if (o.overrideSubtext !== undefined) root.overrideSubtext = o.overrideSubtext
+            if (o.overrideIcon !== undefined) root.overrideIcon = o.overrideIcon
         } catch(e) {}
         root.loaded()
     }
@@ -101,7 +120,16 @@ QtObject {
             hoverWallpaper: root.hoverWallpaper,
             hoverOpenDelay: root.hoverOpenDelay,
             hoverCloseDelay: root.hoverCloseDelay,
-            dynamicThemeOverride: root.dynamicThemeOverride
+            dynamicThemeOverride: root.dynamicThemeOverride,
+            overrideSecondary: root.overrideSecondary,
+            darkMode: root.darkMode,
+            overrideBg: root.overrideBg,
+            overrideBorder: root.overrideBorder,
+            overrideActive: root.overrideActive,
+            overrideIconFont: root.overrideIconFont,
+            overrideText: root.overrideText,
+            overrideSubtext: root.overrideSubtext,
+            overrideIcon: root.overrideIcon
         })
         _saveProc.command = ["bash", "-c", "mkdir -p \"$(dirname '" + path + "')\" && printf '%s' '" + data.replace(/'/g, "'\\''") + "' > '" + path + "'"]
         _saveProc.running = false

@@ -63,14 +63,23 @@ QtObject {
 
     property var _themeConn: Connections {
         target: Theme
-        function onActiveChanged() {
-            if (Theme.active && String(Theme.active).trim() !== "") {
-                root.updateBorders()
+        function onActiveChanged() { root.updateBorders(); }
+        function onBorderChanged() { root.updateBorders(); }
+    }
+
+    property var _prefsConn: Connections {
+        target: PrefsService
+        function onDarkModeChanged() {
+            if (root.currentWall !== "") {
+                root.apply(root.currentWall);
             }
+        }
+        function onDynamicThemeOverrideChanged() {
+            root.updateBorders();
         }
     }
 
-    // ── Config read — runs on startup, then calls refresh() ──────────────────
+    // ── Config read — runs on startup, then calls refresh() ────────────ww──────
     property string _cfgBuf: ""
     property var readConfigProc: Process {
         command: ["bash", "-c", "cat '" + root.configPath + "' 2>/dev/null"]
@@ -125,8 +134,9 @@ QtObject {
             "&& (if [[ \"" + path + "\" == *.gif ]]; then " +
             "rm -f ~/.curr_wall_static.jpg; magick \"" + path + "[0]\" ~/.curr_wall_static.jpg || true; " +
             "else ln -sf \"" + path + "\" ~/.curr_wall_static.jpg; fi) " +
-            "&& matugen image \"$(readlink -f ~/.curr_wall_static.jpg)\" -c \"" + Quickshell.shellDir + "/src/config/matugen.toml\" --source-color-index 0 --type scheme-" + root.scheme + " " +
-            "&& matugen image \"$(readlink -f ~/.curr_wall_static.jpg)\" --source-color-index 0 --type scheme-" + root.scheme + " || true"
+            (PrefsService.dynamicThemeOverride ? "" :
+            "&& matugen image \"$(readlink -f ~/.curr_wall_static.jpg)\" -c \"" + Quickshell.shellDir + "/src/config/matugen.toml\" -m " + (PrefsService.darkMode ? "dark" : "light") + " --source-color-index 0 --type scheme-" + root.scheme + " " +
+            "&& matugen image \"$(readlink -f ~/.curr_wall_static.jpg)\" -m " + (PrefsService.darkMode ? "dark" : "light") + " --source-color-index 0 --type scheme-" + root.scheme) + " || true"
         ]
         applyProc.running = true
     }
@@ -146,22 +156,21 @@ QtObject {
 
     // New function to update borders based on config provider
     function updateBorders() {
-        // Strip '#' from the colors (assuming QML hex format #RRGGBB)
-        let primary = String(Theme.active).replace('#', '')
-        
+        let colStr = PrefsService.dynamicThemeOverride ? String(Theme.border) : String(Theme.active)
+        let cleanCol = colStr.replace('#', '')
 
         // Build command based on config provider
         if (ShellState.configProvider === "lua") {
             // Using hl.config with RGB strings in Lua
             borderUpdateProc.command = [
                 "bash", "-c",
-                "hyprctl eval 'hl.config({ general = { [\"col.active_border\"] = { colors = { \"rgb(" + primary + ")\" } } } })'"
+                "hyprctl eval 'hl.config({ general = { [\"col.active_border\"] = { colors = { \"rgb(" + cleanCol + ")\" } } } })'"
             ]
         } else {
             // Using hyprctl keyword for .conf
             borderUpdateProc.command = [
                 "bash", "-c",
-                "hyprctl keyword general:col.active_border \"rgb(" + primary + ")\""
+                "hyprctl keyword general:col.active_border \"rgb(" + cleanCol + ")\""
             ]
         }
         

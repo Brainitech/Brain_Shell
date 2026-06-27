@@ -105,7 +105,7 @@ PanelWindow {
 
     onSelfHoveredChanged: {
         if (root.allowHover) {
-            if (!selfHovered && !Popups.dashboardTriggerHovered) hoverCloseTimer.restart()
+            if (!selfHovered && !Popups.dashboardTriggerHovered && !Popups.colorPickerActive) hoverCloseTimer.restart()
             else                                                 hoverCloseTimer.stop()
         }
     }
@@ -127,7 +127,7 @@ PanelWindow {
         id: hoverCloseTimer
         interval: Popups.hoverCloseDelay
         onTriggered: {
-            if (root.allowHover && !Popups.dashboardTriggerHovered && !root.selfHovered) {
+            if (root.allowHover && !Popups.dashboardTriggerHovered && !root.selfHovered && !Popups.colorPickerActive) {
                 if (!root.pinned) {
                     Popups.dashboardOpen = false
                 }
@@ -146,7 +146,7 @@ PanelWindow {
     // ── Backdrop — closes popup when clicking outside the sizer ──────────────
     MouseArea {
         anchors.fill: parent
-        onClicked:    Popups.dashboardOpen = false
+        onClicked:    if (!Popups.colorPickerActive) Popups.dashboardOpen = false
     }
 
 
@@ -348,8 +348,8 @@ PanelWindow {
                             localScale:   root.localScale
                         }
                     }
-                    
-                    Keys.onEscapePressed: Popups.dashboardOpen = false
+
+                    Keys.onEscapePressed: if (!Popups.colorPickerActive) Popups.dashboardOpen = false
                 }
             }
         }

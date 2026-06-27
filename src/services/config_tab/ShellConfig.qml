@@ -53,37 +53,49 @@ Item {
         }
 
         // ── Right: content area (70%) ─────────────────────────────────────────
-        Item {
+        Rectangle {
             width:  parent.width - Math.floor((parent.width - parent.spacing) * 0.30) - parent.spacing
             height: parent.height
+            radius: Math.round(Theme.cornerRadius * localScale)
+            color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+            border.color: Theme.border
+            border.width: 1
+            clip:   true
 
             Item {
-                anchors.fill: parent
-                visible: root._page === "general"
-                GeneralPage { anchors.fill: parent; localScale: root.localScale }
-            }
-            Item {
-                anchors.fill: parent
-                visible: root._page === "visuals"
-                VisualsBehaviorPage { anchors.fill: parent; localScale: root.localScale }
-            }
-            Item {
-                anchors.fill: parent
-                visible: root._page === "keybinds"
-                KeybindsPage { 
-                    anchors.fill: parent 
-                    // localScale: root.localScale // If KeybindsPage is updated later
+                anchors {
+                    fill: parent
+                    margins: Math.round(12 * localScale)
                 }
-            }
-            Item {
-                anchors.fill: parent
-                visible: root._page === "data"
-                DataPage { anchors.fill: parent; localScale: root.localScale }
-            }
-            Item {
-                anchors.fill: parent
-                visible: root._page === "misc"
-                MiscPage { anchors.fill: parent; localScale: root.localScale }
+
+                Item {
+                    anchors.fill: parent
+                    visible: root._page === "general"
+                    GeneralPage { anchors.fill: parent; localScale: root.localScale }
+                }
+                Item {
+                    anchors.fill: parent
+                    visible: root._page === "visuals"
+                    VisualsBehaviorPage { anchors.fill: parent; localScale: root.localScale }
+                }
+                Item {
+                    anchors.fill: parent
+                    visible: root._page === "keybinds"
+                    KeybindsPage { 
+                        anchors.fill: parent 
+                        // localScale: root.localScale // If KeybindsPage is updated later
+                    }
+                }
+                Item {
+                    anchors.fill: parent
+                    visible: root._page === "data"
+                    DataPage { anchors.fill: parent; localScale: root.localScale }
+                }
+                Item {
+                    anchors.fill: parent
+                    visible: root._page === "misc"
+                    MiscPage { anchors.fill: parent; localScale: root.localScale }
+                }
             }
         }
     }

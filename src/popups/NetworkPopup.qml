@@ -173,7 +173,7 @@ PanelWindow {
                 id: contentArea
                 anchors {
                     fill:         parent
-                    topMargin:    Math.round(Theme.notchHeight * root.localScale)
+                    topMargin:    root.fh + Math.round(8 * root.localScale) //Math.round(Theme.notchHeight * root.localScale)
                     leftMargin:   root.fw
                     rightMargin:  root.fw/2
                     bottomMargin: root.fh + Math.round(Theme.cornerRadius * root.localScale)
@@ -188,19 +188,34 @@ PanelWindow {
                     }
                 }
     
-                // ── Tab page area ─────────────────────────────────────────────────
-                Item {
-                    id: tabContent
-                    clip: true
-                    
-                    property int pageIdx: Math.max(0, ["wifi", "bluetooth", "vpn", "hotspot"].indexOf(root.page))
-    
-                    anchors {
-                        top:    parent.top
-                        left:   parent.left
-                        right:  parent.right
-                        bottom: tabBar.top
+                Column {
+                    anchors.fill: parent
+                    spacing: 0
+
+                    // ── Tab bar ───────────────────────────────────────────────────────
+                    TabSwitcher {
+                        id: tabBar
+                        localScale: root.localScale || 1.0
+                        width: parent.width
+                        orientation: "horizontal"
+                        currentPage: root.page
+                        model: [
+                            { key: "wifi",      icon: "󰤨", label: "Wi-Fi"     },
+                            { key: "bluetooth", icon: "󰂯", label: "Bluetooth" },
+                            { key: "vpn",       icon: "󰦝", label: "VPN"       },
+                            { key: "hotspot",   icon: "󰀃", label: "Hotspot"   },
+                        ]
+                        onPageChanged: function(key) { Popups.networkPage = key }
                     }
+
+                    // ── Tab page area ─────────────────────────────────────────────────
+                    Item {
+                        id: tabContent
+                        clip: true
+                        width: parent.width
+                        height: parent.height - tabBar.height
+                        
+                        property int pageIdx: Math.max(0, ["wifi", "bluetooth", "vpn", "hotspot"].indexOf(root.page))
     
                     Loader {
                         id: tabWifi
@@ -396,29 +411,8 @@ PanelWindow {
                         onLoaded:     item.localScale = root.localScale
                     }
                 }
-    
-                // ── Tab bar — lifted by cornerRadius from the popup bottom ────────
-                TabSwitcher {
-                    id: tabBar
-                    localScale: root.localScale || 1.0
-                    anchors {
-                        left:         parent.left
-                        right:        parent.right
-                        bottom:       parent.bottom
-                        bottomMargin: Math.round(-16 * root.localScale)
-                    }
-                    orientation: "horizontal"
-                    width:        parent.width
-                    currentPage:  root.page
-                    model: [
-                        { key: "wifi",      icon: "󰤨", label: "Wi-Fi"     },
-                        { key: "bluetooth", icon: "󰂯", label: "Bluetooth" },
-                        { key: "vpn",       icon: "󰦝", label: "VPN"       },
-                        { key: "hotspot",   icon: "󰀃", label: "Hotspot"   },
-                    ]
-                    onPageChanged: function(key) { Popups.networkPage = key }
-                }
             }
         }
     }
+}
 }

@@ -56,6 +56,16 @@ Item {
     }
     
     property bool expanded: false
+    onExpandedChanged: {
+        if (expanded) {
+            if (Popups.activeExpandedButton && Popups.activeExpandedButton !== root) {
+                Popups.activeExpandedButton.expanded = false
+            }
+            Popups.activeExpandedButton = root
+        } else if (Popups.activeExpandedButton === root) {
+            Popups.activeExpandedButton = null
+        }
+    }
 
     signal clicked()
     signal optionSelected(string opt)

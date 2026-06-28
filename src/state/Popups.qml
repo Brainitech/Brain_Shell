@@ -4,6 +4,7 @@ import "../"
 
 QtObject {
     property bool _ignoreDefaultTab: false
+    property var activeExpandedButton: null
 
     // ── Per-popup open state ───────────────────────────────────────────────────
     property bool audioOpen:         false
@@ -22,6 +23,10 @@ QtObject {
     property bool archMenuOpen:      false
     property bool dashboardOpen:     false
     onDashboardOpenChanged: {
+        if (!dashboardOpen && activeExpandedButton) {
+            activeExpandedButton.expanded = false
+            activeExpandedButton = null
+        }
         if (dashboardOpen && !_ignoreDefaultTab) {
             let opt = PrefsService.defaultDashboardTab
             if (opt === "System") dashboardPage = "stats"

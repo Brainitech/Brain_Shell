@@ -33,6 +33,13 @@ PanelWindow {
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
+    Region {
+        id: confirmBlurReg
+        item: confirmBox
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? confirmBlurReg : null
+
     // ── Processes ─────────────────────────────────────────────────────────────
     Process {
         id: proc
@@ -124,6 +131,7 @@ PanelWindow {
 
     // ── Confirm dialog ────────────────────────────────────────────────────────
     Rectangle {
+        id: confirmBox
         anchors.centerIn: parent
         width:  Math.round(360 * localScale)
         height: col.implicitHeight + Math.round(48 * localScale)

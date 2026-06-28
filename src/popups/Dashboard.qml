@@ -64,6 +64,13 @@ PanelWindow {
     property bool wantsFocus: false
     WlrLayershell.keyboardFocus: wantsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
+    Region {
+        id: dashBlurReg
+        item: sizer
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? dashBlurReg : null
+
     Timer {
         id: focusGrabTimer
         interval: 15

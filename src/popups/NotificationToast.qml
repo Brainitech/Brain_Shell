@@ -33,6 +33,13 @@ PopupWindow {
 	color:   "transparent"
 	visible: windowVisible
 
+	Region {
+		id: toastBlurReg
+		item: card
+	}
+
+	BackgroundEffect.blurRegion: PrefsService.bgBlur ? toastBlurReg : null
+
 	property bool windowVisible: false
 	property bool showing:       false
 	property var  current:       null

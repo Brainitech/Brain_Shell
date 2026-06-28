@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import "../shapes"
 import "../components"
 import "../services"
@@ -30,10 +31,17 @@ PopupWindow {
 	visible: slide.windowVisible
 	mask: Region { item: maskProxy }
 
+	Region {
+		id: audioBlurReg
+		item: sizer
+	}
+
+	BackgroundEffect.blurRegion: PrefsService.bgBlur ? audioBlurReg : null
+
 	anchor.window:  anchorWindow
 	anchor.rect: Qt.rect(
 		Math.round(Theme.cornerRadius * root.localScale),
-		anchorWindow.height/2,
+		anchorWindow ? anchorWindow.height/2 : 0,
 		0,
 		popupHeight
 	)

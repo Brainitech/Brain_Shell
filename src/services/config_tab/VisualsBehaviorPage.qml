@@ -329,6 +329,16 @@ Item {
                     valueSuffix: ""
                     formatValue: function(v) { return Math.round(v * 100) + "%" }
                 }
+
+                ToggleButton {
+                    width: parent.width
+                    localScale: root.localScale
+                    text: "Background Blur"
+                    description: "Enable blur effect behind transparent backgrounds."
+                    checked: PrefsService.bgBlur
+                    defaultValue: false
+                    onToggled: { PrefsService.bgBlur = checked; PrefsService.saveConfig() }
+                }
                 SettingsDivider { localScale: root.localScale }
 
                 Item {

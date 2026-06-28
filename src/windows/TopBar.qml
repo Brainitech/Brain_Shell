@@ -1,4 +1,5 @@
 import Quickshell
+import Quickshell.Wayland
 import QtQuick
 import "../components"
 import "../modules/Center/"
@@ -9,6 +10,13 @@ import "../shapes/"
 
 PanelWindow {
     id: root
+
+    Region {
+        id: topBarBlurReg
+        item: barShape
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? topBarBlurReg : null
 
     property string screenName: screen ? screen.name : ""
 

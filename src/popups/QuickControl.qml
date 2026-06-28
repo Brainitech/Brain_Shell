@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import Quickshell.Services.Pipewire
 import "../shapes"
 import "../components"
@@ -25,11 +26,18 @@ PopupWindow {
     visible: slide.windowVisible
     mask:    Region { item: maskProxy }
 
+    Region {
+        id: qcBlurReg
+        item: sizer
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? qcBlurReg : null
+
     // ── Position: Right Center ────────────────────────────────────────────────
     anchor.window:  anchorWindow
     anchor.rect: Qt.rect(
-        anchorWindow.width - root.fw,
-        anchorWindow.height/2,
+        anchorWindow ? anchorWindow.width - root.fw : 0,
+        anchorWindow ? anchorWindow.height/2 : 0,
         0,
         0
     )

@@ -25,7 +25,7 @@ PopupWindow {
 
     anchor.window: root.anchorWindow
     anchor.rect: Qt.rect(
-        Math.round(anchorWindow.width - (popupWidth / 2) - fw + 1),
+        Math.round((anchorWindow ? anchorWindow.width : 0) - (popupWidth / 2) - fw + 1),
         0,
         Math.round(Theme.notificationsWidth * root.localScale),
         Math.round(Theme.notchHeight * root.localScale)
@@ -43,6 +43,13 @@ PopupWindow {
     color:   "transparent"
     visible: windowVisible
     mask: Region { item: maskProxy }
+
+    Region {
+        id: notifBlurReg
+        item: hoverContainer
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? notifBlurReg : null
 
     // ── Visibility gate ───────────────────────────────────────
     // Window stays alive until the close animation finishes.

@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import "../shapes"
 import "../services"
 import "../components"
@@ -35,6 +36,13 @@ PopupWindow {
 	color:   "transparent"
 	visible: slide.windowVisible
 	mask: Region { item: maskProxy }
+
+	Region {
+		id: archBlurReg
+		item: bg
+	}
+
+	BackgroundEffect.blurRegion: PrefsService.bgBlur ? archBlurReg : null
 
 	implicitWidth:  (pageWidths["stats"]  ?? Math.round(220 * root.localScale)) + fw
 	implicitHeight: (pageHeights["stats"] ?? Math.round(220 * root.localScale)) + fh * 2

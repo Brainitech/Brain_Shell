@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../"
 
 QtObject {
     id: root
@@ -37,6 +38,9 @@ QtObject {
     property bool dynamicThemeOverride: false
     property bool darkMode: true
     property real bgOpacity: 1.0
+    property bool bgBlur: false
+    onBgBlurChanged: updateHyprlandBlur()
+    Component.onCompleted: updateHyprlandBlur()
 
     // Custom Theme Override Groups
     property string overrideBg: "#1a282a"
@@ -57,7 +61,11 @@ QtObject {
     }
 
     function _parse(raw) {
-        if (!raw || raw.trim() === "") return
+        if (!raw || raw.trim() === "") {
+            root.updateHyprlandBlur()
+            root.loaded()
+            return
+        }
         try {
             var o = JSON.parse(raw)
             if (o.customAvatarPath !== undefined) root.customAvatarPath = o.customAvatarPath
@@ -88,6 +96,7 @@ QtObject {
             if (o.overrideSecondary !== undefined) root.overrideSecondary = o.overrideSecondary
             if (o.darkMode !== undefined) root.darkMode = o.darkMode
             if (o.bgOpacity !== undefined) root.bgOpacity = o.bgOpacity
+            if (o.bgBlur !== undefined) root.bgBlur = o.bgBlur
             if (o.overrideBg !== undefined) root.overrideBg = o.overrideBg
             if (o.overrideBorder !== undefined) root.overrideBorder = o.overrideBorder
             if (o.overrideActive !== undefined) root.overrideActive = o.overrideActive
@@ -96,6 +105,7 @@ QtObject {
             if (o.overrideSubtext !== undefined) root.overrideSubtext = o.overrideSubtext
             if (o.overrideIcon !== undefined) root.overrideIcon = o.overrideIcon
         } catch(e) {}
+        root.updateHyprlandBlur()
         root.loaded()
     }
 
@@ -126,6 +136,7 @@ QtObject {
             overrideSecondary: root.overrideSecondary,
             darkMode: root.darkMode,
             bgOpacity: root.bgOpacity,
+            bgBlur: root.bgBlur,
             overrideBg: root.overrideBg,
             overrideBorder: root.overrideBorder,
             overrideActive: root.overrideActive,
@@ -139,5 +150,18 @@ QtObject {
         _saveProc.running = true
     }
 
+    function updateHyprlandBlur() {
+        var isLua = ShellState.configProvider === "lua"
+        var cmd = root.bgBlur
+            ? (isLua ? "hyprctl eval \"hl.layer_rule({ match = { namespace = 'quickshell' }, blur = true, ignore_alpha = 0.1 })\" && hyprctl keyword layerrule 'unset, quickshell' && hyprctl keyword layerrule 'blur, quickshell' && hyprctl keyword layerrule 'ignorealpha 0.1, quickshell'"
+                     : "hyprctl keyword layerrule 'unset, quickshell' && hyprctl keyword layerrule 'blur, quickshell' && hyprctl keyword layerrule 'ignorealpha 0.1, quickshell'")
+            : (isLua ? "hyprctl eval \"hl.layer_rule({ match = { namespace = 'quickshell' }, blur = false })\" && hyprctl keyword layerrule 'unset, quickshell'"
+                     : "hyprctl keyword layerrule 'unset, quickshell'")
+        _blurProc.command = ["bash", "-c", "if [ -n \"$HYPRLAND_INSTANCE_SIGNATURE\" ]; then " + cmd + "; fi"]
+        _blurProc.running = false
+        _blurProc.running = true
+    }
+
     property var _saveProc: Process { command: []; running: false }
+    property var _blurProc: Process { command: []; running: false }
 }

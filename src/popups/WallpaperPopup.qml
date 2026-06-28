@@ -28,6 +28,13 @@ PanelWindow {
     property bool wantsFocus: false
     WlrLayershell.keyboardFocus: wantsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
+    Region {
+        id: wallBlurReg
+        item: sizer
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? wallBlurReg : null
+
     Timer {
         id: focusGrabTimer
         interval: 15

@@ -26,6 +26,13 @@ PanelWindow {
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
+    Region {
+        id: updateBlurReg
+        item: card
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? updateBlurReg : null
+
     property bool windowVisible: false
     visible: windowVisible
     

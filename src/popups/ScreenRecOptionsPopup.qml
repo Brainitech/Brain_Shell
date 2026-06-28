@@ -34,6 +34,13 @@ PopupWindow {
     color:   "transparent"
     visible: ScreenRecService.openStrip !== ""
 
+    Region {
+        id: screenRecBlurReg
+        item: recBg
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? screenRecBlurReg : null
+
     HoverHandler {
         onHoveredChanged: {
             if (hovered) ScreenRecService.keepStripOpen()
@@ -42,6 +49,7 @@ PopupWindow {
     }
 
     Rectangle {
+        id: recBg
         anchors.fill: parent
         radius:       Math.round((Theme.cornerRadius - 6) * root.localScale)
         color:        Theme.background

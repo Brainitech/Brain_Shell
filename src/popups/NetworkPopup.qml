@@ -33,6 +33,13 @@ PanelWindow {
     // Mask tracks sizer — limits input region to visible content only
     mask: Region { item: maskProxy }
 
+    Region {
+        id: netBlurReg
+        item: sizer
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? netBlurReg : null
+
     Item {
         id: maskProxy
         x:      root.implicitWidth - (Popups.networkOpen ? root.popupWidth + root.fw : sizer.width)

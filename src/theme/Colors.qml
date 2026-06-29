@@ -8,8 +8,8 @@ QtObject {
 
     // ── Color loader — watches matugen output and updates live ────────────────
     // Use a unique ID to avoid namespace collision with the 'Colors' singleton
-    property var _loader: ColorLoader { 
-        id: internalLoader 
+    property var _loader: ColorLoader {
+        id: internalLoader
         overrideMode: PrefsService.dynamicThemeOverride
     }
 
@@ -28,5 +28,5 @@ QtObject {
     property color wsOccupied:   Qt.rgba(text.r, text.g, text.b, 0.7)
     property color wsEmpty:      Qt.rgba(text.r, text.g, text.b, 0.25)
     property color wsOverlay:    Qt.rgba(background.r, background.g, background.b, 0.85)
-    property color wsUrgent:     active //"#fa6b94"
+    property color wsUrgent:     "#fa6b94" //active
 }

@@ -41,6 +41,15 @@ Canvas {
         var centerEnd   = (w / 2) + (centerW / 2)
         var rightStart  = w - rightW
 
+        var maxR = (h - b) / 2;
+        var rSafe = Math.min(r, maxR);
+        var gap1 = centerStart - leftW;
+        if (gap1 > 0) rSafe = Math.min(rSafe, gap1 / 2);
+        var gap2 = rightStart - centerEnd;
+        if (gap2 > 0) rSafe = Math.min(rSafe, gap2 / 2);
+        rSafe = Math.max(0, rSafe);
+        r = rSafe;
+
         ctx.beginPath();
         ctx.fillStyle = root.color;
 

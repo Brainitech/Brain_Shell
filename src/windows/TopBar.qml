@@ -64,7 +64,7 @@ PanelWindow {
                      centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * root.localScale))
           )
     Behavior on cWidth {
-        NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
+        NumberAnimation { duration: Popups.slideDuration; easing.type: Anim.globalCurve}
     }
 
     // Width matches sizer open width: popupWidth + notchRadius (fw) in both popups
@@ -115,7 +115,7 @@ PanelWindow {
     transitions: [
         Transition {
             // This animation ONLY runs when switching between popups (and toasts) and the base state.
-            NumberAnimation { property: "rWidth"; duration: Anim.transition; easing.type: Anim.inOutCubic}
+            NumberAnimation { property: "rWidth"; duration: Popups.slideDuration; easing.type: Anim.globalCurve}
         }
     ]
 
@@ -133,10 +133,9 @@ PanelWindow {
         Item {
             id:           leftNotch
             width:        root.lWidth
-            height:       Math.round((Theme.notchHeight - Theme.borderWidth) * root.localScale)
+            height:       Math.round(Theme.notchHeight * root.localScale)
             anchors.left: parent.left
             anchors.top:  parent.top
-            anchors.topMargin: Math.round(Theme.borderWidth * root.localScale)
 
             LeftContent {
                 id: leftContent
@@ -148,10 +147,9 @@ PanelWindow {
         Item {
             id:               centerNotch
             width:            root.cWidth
-            height:           Math.round((Theme.notchHeight - Theme.borderWidth) * root.localScale)
+            height:           Math.round(Theme.notchHeight * root.localScale)
             anchors.centerIn: parent
             anchors.top:      parent.top
-            anchors.topMargin: Math.round(Theme.borderWidth * root.localScale)
 
             CenterContent {
                 id: centerContent
@@ -163,10 +161,9 @@ PanelWindow {
         Item {
             id:            rightNotch
             width:         root.rWidth
-            height:        Math.round((Theme.notchHeight - Theme.borderWidth) * root.localScale)
+            height:        Math.round(Theme.notchHeight * root.localScale)
             anchors.right: parent.right
             anchors.top:   parent.top
-            anchors.topMargin: Math.round(Theme.borderWidth * root.localScale)
 
             clip: true
 

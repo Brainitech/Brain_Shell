@@ -22,8 +22,8 @@ PanelWindow {
     property int radius: Math.round(Theme.cornerRadius * root.localScale)        
     property color fillColor: Theme.background 
     
-    implicitWidth: (edge === "left" || edge === "right") ? radius : 0
-    implicitHeight: (edge === "bottom") ? radius : 0
+    implicitWidth: (edge === "left" || edge === "right") ? thickness + radius : 0
+    implicitHeight: (edge === "bottom") ? thickness + radius : 0
 
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
@@ -127,7 +127,7 @@ PanelWindow {
                     ctx.lineTo(t + r, h - t);
                 
                 // 4. Inner Left Corner (ROUNDED)
-                    ctx.arcTo(t + 4, h - t, t, 0, r);
+                    ctx.arcTo(t, h - t, t, 0, r);
                 
                 // 5. Close Loop
                     ctx.lineTo(t, 0);

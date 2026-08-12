@@ -54,6 +54,8 @@ PanelWindow {
             Connections {
                 target: root
                 function onFillColorChanged() { shape.requestPaint() }
+                function onThicknessChanged() { shape.requestPaint() }
+                function onRadiusChanged()    { shape.requestPaint() }
             }
 
             onPaint: {

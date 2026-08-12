@@ -4,21 +4,18 @@ import Quickshell.Wayland
 import "../services"
 import "../"
 
-// ScreenRecOptionsPopup — minimal dropdown under the center notch.
-//
-// No checkboxes, no radio dots. Selection shown by background highlight only.
-// Window sized exactly to content — no mask, no dead space.
-
 PopupWindow {
     id: root
 
     required property var anchorWindow
+
     readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
     readonly property int _padH: Math.round(5 * root.localScale)
     readonly property int _padV: Math.round(5 * root.localScale)
+    readonly property int _optionWidth: Math.round(112 * root.localScale)
 
-    implicitWidth:  optCol.implicitWidth + _padH * 2
+    implicitWidth:  _optionWidth + _padH * 2
     implicitHeight: optCol.implicitHeight + _padV * 2
 
     anchor.window:     root.anchorWindow
@@ -61,9 +58,9 @@ PopupWindow {
         id: optCol
         x:       _padH
         y:       _padV
+        width: _optionWidth
         spacing: Math.round(2 * root.localScale)
 
-        // Capture — radio (one active at a time)
         Repeater {
             model: ScreenRecService.openStrip === "capture"
                    ? ["screen", "window", "region"] : []
@@ -77,7 +74,6 @@ PopupWindow {
             }
         }
 
-        // Audio — checkboxes (independent)
         Repeater {
             model: ScreenRecService.openStrip === "audio"
                    ? ["mic", "system", "none"] : []
@@ -120,7 +116,7 @@ PopupWindow {
 
         signal clicked()
 
-        implicitWidth:  Math.round((8 + 14 + 6 + 12) * root.localScale) + _lbl.implicitWidth
+        implicitWidth:  root._optionWidth
         implicitHeight: Math.round(26 * root.localScale)
 
         Rectangle {
@@ -133,7 +129,7 @@ PopupWindow {
         }
 
         Row {
-            anchors { left: parent.left; leftMargin: Math.round(8 * root.localScale); verticalCenter: parent.verticalCenter }
+            anchors.centerIn: parent
             spacing: Math.round(6 * root.localScale)
 
             Text {

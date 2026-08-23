@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import "../"
 import "../../"
+import "../../components"
 
 Item {
     id: root
@@ -71,7 +72,7 @@ Item {
         border.width: root.hasPending ? 1 : 0
         radius: 8
 
-        Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on height { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
 
         Row {
             anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: 10 }
@@ -91,11 +92,11 @@ Item {
             // Discard
             Rectangle {
                 width: 62; height: 26; radius: 7
-                color: _discardH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
-                border.color: Qt.rgba(1,1,1,0.13); border.width: 1
-                Behavior on color { ColorAnimation { duration: 100 } }
+                color: _discardH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+                border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.13); border.width: 1
+                Behavior on color { ColorAnimation { duration: Anim.fast} }
                 Text { anchors.centerIn: parent; text: "Discard"; font.pixelSize: 10
-                    color: Qt.rgba(1,1,1,0.48) }
+                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.48) }
                 HoverHandler { id: _discardH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root._pending = {} }
             }
@@ -108,7 +109,7 @@ Item {
                     : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.16)
                 border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.42)
                 border.width: 1
-                Behavior on color { ColorAnimation { duration: 100 } }
+                Behavior on color { ColorAnimation { duration: Anim.fast} }
                 Text { anchors.centerIn: parent; text: "Save"; font.pixelSize: 10
                     font.weight: Font.Medium; color: Theme.active }
                 HoverHandler { id: _saveH; cursorShape: Qt.PointingHandCursor }
@@ -138,7 +139,7 @@ Item {
             policy: ScrollBar.AsNeeded
             contentItem: Rectangle {
                 implicitWidth: 3; implicitHeight: 40; radius: 1.5
-                color: Qt.rgba(1, 1, 1, 0.22)
+                color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.22)
             }
             background: Item {}
         }
@@ -146,42 +147,36 @@ Item {
         Column {
             id: _col
             width:   parent.width - 12
-            spacing: 2
+            spacing: 32
 
             Repeater {
                 model: root._groups
-                delegate: Column {
+                delegate: SettingsGroup {
                     required property var modelData
                     required property int index
                     width:   _col.width
-                    spacing: 2
-
-                    Item {
-                        width:  parent.width
-                        height: index > 0 ? 30 : 16
-                        Text {
-                            anchors.bottom:       parent.bottom
-                            anchors.bottomMargin: 4
-                            text:           modelData.name
-                            font.pixelSize: 9
-                            font.weight:    Font.Bold
-                            color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
-                        }
-                    }
+                    title:   modelData.name
 
                     Repeater {
                         model: modelData.actions
-                        delegate: BindRow {
-                            id: _br
-                            required property string modelData
-                            width:        _col.width
-                            action:       modelData
-                            isCapturing:  root._capturing === modelData
-                            pendingCombo: root._pending[modelData] || null
-                            onRequestCapture: root._capturing = modelData
-                            onReleaseCapture: root._capturing = ""
-                            onCaptureAccepted: function(newMods, newKey) {
-                                root._addPending(_br.action, newMods, newKey)
+                        delegate: Column {
+                            width: parent.width
+                            
+                            SettingsDivider {
+                                visible: index > 0
+                                width: parent.width
+                            }
+                            BindRow {
+                                id: _br
+                                width:        parent.width
+                                action:       modelData
+                                isCapturing:  root._capturing === modelData
+                                pendingCombo: root._pending[modelData] || null
+                                onRequestCapture: root._capturing = modelData
+                                onReleaseCapture: root._capturing = ""
+                                onCaptureAccepted: function(newMods, newKey) {
+                                    root._addPending(_br.action, newMods, newKey)
+                                }
                             }
                         }
                     }
@@ -256,7 +251,7 @@ Item {
 
         height: isCapturing ? 58 : 36
         clip: true
-        Behavior on height { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+        Behavior on height { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
 
         onIsCapturingChanged: {
             if (isCapturing) {
@@ -275,14 +270,14 @@ Item {
             radius: 8
             color: br.isCapturing
                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.07)
-                : _rH.hovered ? Qt.rgba(1, 1, 1, 0.04) : "transparent"
+                : _rH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04) : "transparent"
             border.color: br._savedDupe
                 ? Qt.rgba(248/255, 113/255, 113/255, 0.35)
                 : br.isCapturing
                     ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.20)
                     : "transparent"
             border.width: 1
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { ColorAnimation { duration: Anim.color} }
         }
 
         // ── Invisible focus target for key capture ────────────────────────────
@@ -355,8 +350,8 @@ Item {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                 text:           br._b ? br._b.label : br.action
                 font.pixelSize: 12
-                color:          br._savedDupe ? "#f87171" : (br._isUnbound ? Qt.rgba(1, 1, 1, 0.35) : Qt.rgba(1, 1, 1, 0.68))
-                Behavior on color { ColorAnimation { duration: 120 } }
+                color:          br._savedDupe ? "#f87171" : (br._isUnbound ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.35) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.68))
+                Behavior on color { ColorAnimation { duration: Anim.color} }
             }
 
             Row {
@@ -376,10 +371,10 @@ Item {
                 Rectangle {
                     visible: br._pillText !== "Unbound"
                     width: 22; height: 22; radius: 6
-                    color: _clrH.hovered ? Qt.rgba(1,1,1,0.09) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    color: _clrH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09) : "transparent"
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
                     Text { anchors.centerIn: parent; text: "󰩺"; font.pixelSize: 11
-                        color: _clrH.hovered ? "#ff4444" : Qt.rgba(1,1,1,0.28) }
+                        color: _clrH.hovered ? "#ff4444" : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.28) }
                     HoverHandler { id: _clrH; cursorShape: Qt.PointingHandCursor }
                     MouseArea {
                         anchors.fill: parent
@@ -394,10 +389,10 @@ Item {
                 Rectangle {
                     visible: !br._isDefault
                     width: 22; height: 22; radius: 6
-                    color: _rstH.hovered ? Qt.rgba(1,1,1,0.09) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    color: _rstH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09) : "transparent"
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
                     Text { anchors.centerIn: parent; text: "↺"; font.pixelSize: 11
-                        color: _rstH.hovered ? Theme.active : Qt.rgba(1,1,1,0.28) }
+                        color: _rstH.hovered ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.28) }
                     HoverHandler { id: _rstH; cursorShape: Qt.PointingHandCursor }
                     MouseArea {
                         anchors.fill: parent
@@ -424,13 +419,13 @@ Item {
                     width:  _pillT.implicitWidth + 18
                     
                     color: br._isUnbound
-                        ? Qt.rgba(1, 1, 1, 0.04)
+                        ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
                         : ((_pillH.hovered && br._interactive)
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.16)
                             : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08))
                             
                     border.color: br._isUnbound
-                        ? Qt.rgba(1, 1, 1, 0.1)
+                        ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
                         : (br._isPending
                             ? Qt.rgba(1.0, 0.74, 0.22, 0.55)
                             : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.24))
@@ -439,9 +434,9 @@ Item {
                     
                     opacity: br._interactive ? (br._isUnbound ? 0.7 : 1.0) : 0.4
                     
-                    Behavior on color        { ColorAnimation { duration: 100 } }
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
-                    Behavior on opacity      { NumberAnimation { duration: 120 } }
+                    Behavior on color        { ColorAnimation { duration: Anim.fast} }
+                    Behavior on border.color { ColorAnimation { duration: Anim.mediumFast} }
+                    Behavior on opacity      { NumberAnimation { duration: Anim.color} }
 
                     Text {
                         id: _pillT
@@ -451,10 +446,10 @@ Item {
                         font.italic:    br._isUnbound 
                         
                         color: br._isUnbound 
-                            ? Qt.rgba(1, 1, 1, 0.45) 
+                            ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45) 
                             : (br._isPending ? Qt.rgba(1.0, 0.74, 0.22, 1.0) : Theme.active)
                             
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
                     HoverHandler { id: _pillH; cursorShape: br._interactive ? Qt.PointingHandCursor : Qt.ArrowCursor }
                     MouseArea {
@@ -481,7 +476,7 @@ Item {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                     text:           br._b ? br._b.label : br.action
                     font.pixelSize: 12
-                    color:          Qt.rgba(1, 1, 1, 0.68)
+                    color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.68)
                 }
 
                 Row {
@@ -498,7 +493,7 @@ Item {
                             : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,
                                       br.capturedKey !== "" ? 0.40 : 0.18)
                         border.width: 1
-                        Behavior on border.color { ColorAnimation { duration: 120 } }
+                        Behavior on border.color { ColorAnimation { duration: Anim.color} }
 
                         Text {
                             id: _capT
@@ -522,10 +517,10 @@ Item {
                     // Cancel — Escape also cancels
                     Rectangle {
                         width: 28; height: 24; radius: 6
-                        color: _cnH.hovered ? Qt.rgba(1,1,1,0.09) : "transparent"
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                        color: _cnH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09) : "transparent"
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
                         Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: 10
-                            color: Qt.rgba(1,1,1,0.38) }
+                            color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.38) }
                         HoverHandler { id: _cnH; cursorShape: Qt.PointingHandCursor }
                         MouseArea { anchors.fill: parent; onClicked: br.releaseCapture() }
                     }
@@ -536,7 +531,7 @@ Item {
             Item {
                 width: parent.width; height: 22
                 opacity: (br.capturedKey !== "" && br._hasConflict) ? 1 : 0
-                Behavior on opacity { NumberAnimation { duration: 140 } }
+                Behavior on opacity { NumberAnimation { duration: Anim.color} }
 
                 Text {
                     anchors { left: parent.left; leftMargin: 2; verticalCenter: parent.verticalCenter }

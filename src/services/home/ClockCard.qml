@@ -9,6 +9,8 @@ StatCard {
     id: root
     padding: 0
 
+    property real localScale: 1.0
+
     // ── Mode ──────────────────────────────────────────────────────────────────
     property string _mode: "clock"
 
@@ -19,6 +21,7 @@ StatCard {
     property string _sec:      "00"
     property int    _currentH: 0
     property int    _currentM: 0
+    property string _amPm:     "AM"
 
     // ── Timer ─────────────────────────────────────────────────────────────────
     property int  _timerTotal:   10 * 60
@@ -86,10 +89,14 @@ StatCard {
         var d = new Date()
         var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds()
         _currentH = h; _currentM = m
-        _hm  = _zp(h) + ":" + _zp(m) + ":" + _zp(s)
-        _hStr = _zp(h)
+        
+        var displayH = PrefsService.use24HourTime ? h : (h % 12 || 12)
+        
+        _hm  = _zp(displayH) + ":" + _zp(m) + ":" + _zp(s)
+        _hStr = _zp(displayH)
         _mStr = _zp(m)
         _sec = _zp(s)
+        _amPm = h >= 12 ? "PM" : "AM"
     }
 
     function _timerDisplay() {
@@ -222,34 +229,85 @@ StatCard {
         }
     }
     
+    Connections {
+        target: PrefsService
+        function onUse24HourTimeChanged() { root._tick() }
+    }
+    
     // ── UI ────────────────────────────────────────────────────────────────────
     Item {
         anchors.fill: parent
 
-        // ── CLOCK ─────────────────────────────────────────────────────────────
         Item {
+            id: pagesContainer
             anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
-            visible: root._mode === "clock"
+            clip: true
+            
+            property int pageIdx: Math.max(0, ["clock", "timer", "alarm", "stopwatch"].indexOf(root._mode))
+
+            // ── CLOCK ─────────────────────────────────────────────────────────────
+            Item {
+                id: pageClock
+                readonly property int myIdx: 0
+                property bool isCurrent: root._mode === "clock"
+                property bool wasCurrent: false
+                property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                onIsCurrentChanged: { 
+                    if (isCurrent) wasCurrent = false;
+                    else if (Anim.style === "none") wasCurrent = false;
+                    else wasCurrent = true;
+                }
+                
+                width: parent.width; height: parent.height
+                
+                property real targetX: {
+                    if (Anim.style === "none") return 0;
+                    if (isCurrent) return 0;
+                    if (myIdx < pagesContainer.pageIdx) return -width * parallaxFactor;
+                    return width;
+                }
+                
+                x: targetX
+                Behavior on x {
+                    enabled: Anim.style !== "none"
+                    NumberAnimation { 
+                        duration: Anim.slow; easing.type: Anim.outExpo
+                        onRunningChanged: { if (!running && !pageClock.isCurrent) pageClock.wasCurrent = false; }
+                    }
+                }
+                
+                property real targetOpacity: {
+                    if (Anim.style !== "parallax") return 1.0;
+                    if (isCurrent) return 1.0;
+                    return 0.0;
+                }
+                opacity: targetOpacity
+                Behavior on opacity {
+                    enabled: Anim.style === "parallax"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                }
+                
+                visible: isCurrent || wasCurrent
 
             Row {
                 anchors.centerIn: parent
-                spacing: 10
+                spacing: Math.round(10 * localScale)
 
                 // HH stacked above MM with diagonal offset
                 Item {
                     anchors.verticalCenter: parent.verticalCenter
                     // Width fits both texts plus the one-char offset
-                    readonly property int charOffset: 40
+                    readonly property int charOffset: Math.round(40 * localScale)
                     width:  hhText.implicitWidth + charOffset
-                    height: hhText.implicitHeight + mmText.implicitHeight - 8
+                    height: hhText.implicitHeight + mmText.implicitHeight - Math.round(8 * localScale)
 
                     Text {
                         id: hhText
                         anchors.left: parent.left
                         anchors.top:  parent.top
                         text: root._hStr
-                        font.pixelSize: 72; font.weight: Font.Bold
-                        font.family: "JetBrains Mono"; font.letterSpacing: -4
+                        font.pixelSize: Math.round(72 * localScale); font.weight: Font.Bold
+                        font.family: "JetBrains Mono"; font.letterSpacing: Math.round(-4 * localScale)
                         color: Theme.text
                     }
                     Text {
@@ -257,47 +315,83 @@ StatCard {
                         anchors.left: parent.left
                         anchors.leftMargin: parent.charOffset
                         anchors.top:  hhText.bottom
-                        anchors.topMargin: -8
+                        anchors.topMargin: Math.round(-8 * localScale)
                         text: root._mStr
-                        font.pixelSize: 72; font.weight: Font.Bold
-                        font.family: "JetBrains Mono"; font.letterSpacing: -4
+                        font.pixelSize: Math.round(72 * localScale); font.weight: Font.Bold
+                        font.family: "JetBrains Mono"; font.letterSpacing: Math.round(-4 * localScale)
                         color: Theme.active
                     }
                 }
 
-                // Seconds — vertically centered beside the stack
-                Text {
+                // Seconds and AM/PM
+                Column {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: root._sec
-                    font.pixelSize: 22; font.weight: Font.Medium
-                    font.family: "JetBrains Mono"
-                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
+                    spacing: Math.round(4 * localScale)
+                    
+                    Text {
+                        text: root._sec
+                        font.pixelSize: Math.round(22 * localScale); font.weight: Font.Medium
+                        font.family: "JetBrains Mono"
+                        color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
+                    }
+                    
+                    Text {
+                        visible: !PrefsService.use24HourTime
+                        text: root._amPm
+                        font.pixelSize: Math.round(14 * localScale); font.weight: Font.Bold
+                        font.family: "JetBrains Mono"
+                        color: Theme.active
+                    }
                 }
             }
         }
 
         // ── TIMER ─────────────────────────────────────────────────────────────
         Item {
-            anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
-            visible: root._mode === "timer"
+            id: pageTimer
+            readonly property int myIdx: 1
+            property bool isCurrent: root._mode === "timer"
+            property bool wasCurrent: false
+            property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+            onIsCurrentChanged: { if (!isCurrent) wasCurrent = true; else wasCurrent = false; }
+            
+            width: parent.width; height: parent.height
+            
+            property real targetX: {
+                if (Anim.style === "none") return 0;
+                if (isCurrent) return 0;
+                if (myIdx < pagesContainer.pageIdx) return -width * parallaxFactor;
+                return width;
+            }
+            
+            x: targetX
+            Behavior on x {
+                enabled: Anim.style !== "none"
+                NumberAnimation { 
+                    duration: Anim.slow; easing.type: Anim.outExpo
+                    onRunningChanged: { if (!running && !pageTimer.isCurrent) pageTimer.wasCurrent = false; }
+                }
+            }
+            
+            visible: isCurrent || wasCurrent
 
             // "+" / "x" toggle — top-right corner
             Item {
                 id: addTimerBtn
-                anchors { top: parent.top; right: parent.right; topMargin: 8; rightMargin: 8 }
-                width: 24; height: 24
+                anchors { top: parent.top; right: parent.right; topMargin: Math.round(8 * localScale); rightMargin: Math.round(8 * localScale) }
+                width: Math.round(24 * localScale); height: Math.round(24 * localScale)
 
                 Rectangle {
-                    anchors.fill: parent; radius: 7
+                    anchors.fill: parent; radius: Math.round(7 * localScale)
                     color: _addTimerHov.hovered
                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
-                           : Qt.rgba(1,1,1,0.06)
+                           : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06)
                     border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2); border.width: 1
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
                     Text {
                         anchors.centerIn: parent
                         text: root._addTimerOpen ? "x" : "+"
-                        font.pixelSize: 14; color: Theme.active
+                        font.pixelSize: Math.round(14 * localScale); color: Theme.active
                     }
                 }
                 HoverHandler { id: _addTimerHov; cursorShape: Qt.PointingHandCursor }
@@ -308,12 +402,12 @@ StatCard {
             }
 
             Column {
-                anchors.centerIn: parent; spacing: 10
+                anchors.centerIn: parent; spacing: Math.round(10 * localScale)
 
                 // ── Ring — hidden while add-timer panel is open ────────────────
                 Item {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    width: 100; height: 100
+                    width: Math.round(100 * localScale); height: Math.round(100 * localScale)
                     visible: !root._addTimerOpen
 
                     Canvas {
@@ -322,16 +416,16 @@ StatCard {
                         onPaint: {
                             var ctx = getContext("2d")
                             ctx.clearRect(0, 0, width, height)
-                            var cx = width/2, cy = height/2, r = 44
+                            var cx = width/2, cy = height/2, r = Math.round(44 * localScale)
                             ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2)
-                            ctx.strokeStyle = Qt.rgba(1,1,1,0.08)
-                            ctx.lineWidth = 5; ctx.stroke()
+                            ctx.strokeStyle = Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08)
+                            ctx.lineWidth = Math.round(5 * localScale); ctx.stroke()
                             var p = root._timerProgress()
                             if (p > 0) {
                                 ctx.beginPath()
                                 ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*p)
                                 ctx.strokeStyle = Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.85)
-                                ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.stroke()
+                                ctx.lineWidth = Math.round(5 * localScale); ctx.lineCap = "round"; ctx.stroke()
                             }
                         }
                         Connections {
@@ -345,14 +439,14 @@ StatCard {
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: root._timerDisplay()
-                            font.pixelSize: root._timerLeft >= 3600 ? 16 : 22
+                            font.pixelSize: root._timerLeft >= 3600 ? Math.round(16 * localScale) : Math.round(22 * localScale)
                             font.weight: Font.Bold; font.family: "JetBrains Mono"
                             color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.9)
                         }
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: "remaining"; font.pixelSize: 8
-                            color: Qt.rgba(1,1,1,0.25)
+                            text: "remaining"; font.pixelSize: Math.round(8 * localScale)
+                            color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25)
                         }
                     }
                 }
@@ -360,22 +454,22 @@ StatCard {
                 // ── Presets — hidden while add-timer panel is open ─────────────
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 5
+                    spacing: Math.round(5 * localScale)
                     visible: !root._addTimerOpen && !root._timerRunning
                     Repeater {
                         model: [5, 10, 15, 30]
                         delegate: Rectangle {
                             required property int modelData
                             required property int index
-                            width: 36; height: 22; radius: 6
-                            color: _pH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1) : Qt.rgba(1,1,1,0.05)
-                            border.color: Qt.rgba(1,1,1,0.1); border.width: 1
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            width: Math.round(36 * localScale); height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
+                            color: _pH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05)
+                            border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1); border.width: 1
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text {
                                 anchors.centerIn: parent
                                 text: modelData < 60 ? modelData+"m" : "1h"
-                                font.pixelSize: 9; font.family: "JetBrains Mono"; font.weight: Font.Bold
-                                color: Qt.rgba(1,1,1,0.45)
+                                font.pixelSize: Math.round(9 * localScale); font.family: "JetBrains Mono"; font.weight: Font.Bold
+                                color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.45)
                             }
                             HoverHandler { id: _pH; cursorShape: Qt.PointingHandCursor }
                             MouseArea {
@@ -403,25 +497,26 @@ StatCard {
                     Column {
                         id: _timerInputCol
                         anchors.centerIn: parent
-                        spacing: 10
+                        spacing: Math.round(10 * localScale)
 
                         TimeInput {
                             id: timerTimeInput
+                            localScale: root.localScale
                             anchors.horizontalCenter: parent.horizontalCenter
                             minuteStep: 1
                         }
 
                         Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            width: 58; height: 26; radius: 8
+                            width: Math.round(58 * localScale); height: Math.round(26 * localScale); radius: Math.round(8 * localScale)
                             color: _setTimerHov.hovered
                                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.18)
                                    : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1)
                             border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.25); border.width: 1
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text {
                                 anchors.centerIn: parent; text: "Set Timer"
-                                font.pixelSize: 11; font.weight: Font.Medium
+                                font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium
                                 color: Theme.active
                             }
                             HoverHandler { id: _setTimerHov; cursorShape: Qt.PointingHandCursor }
@@ -448,21 +543,21 @@ StatCard {
                 // ── Start / Pause + Reset ─────────────────────
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 6
+                    spacing: Math.round(6 * localScale)
                     visible: !root._addTimerOpen
 
                     // Start / Pause
                     Rectangle {
-                        width: 58; height: 26; radius: 8
+                        width: Math.round(58 * localScale); height: Math.round(26 * localScale); radius: Math.round(8 * localScale)
                         color: _startHov.hovered
                                ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.2)
                                : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.12)
                         border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.22); border.width: 1
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
                         Text {
                             anchors.centerIn: parent
                             text: root._timerRunning ? "Pause" : "Start"
-                            font.pixelSize: 10; font.weight: Font.Medium
+                            font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium
                             color: Theme.active
                         }
                         HoverHandler { id: _startHov; cursorShape: Qt.PointingHandCursor }
@@ -479,16 +574,16 @@ StatCard {
 
                     // Reset
                     Rectangle {
-                        width: 58; height: 26; radius: 8
+                        width: Math.round(58 * localScale); height: Math.round(26 * localScale); radius: Math.round(8 * localScale)
                         color: _resetHov.hovered
-                               ? Qt.rgba(1,1,1,0.1)
-                               : Qt.rgba(1,1,1,0.05)
-                        border.color: Qt.rgba(1,1,1,0.1); border.width: 1
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                               ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1)
+                               : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05)
+                        border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1); border.width: 1
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
                         Text {
                             anchors.centerIn: parent; text: "Reset"
-                            font.pixelSize: 10; font.weight: Font.Medium
-                            color: Qt.rgba(1,1,1,0.4)
+                            font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium
+                            color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.4)
                         }
                         HoverHandler { id: _resetHov; cursorShape: Qt.PointingHandCursor }
                         MouseArea {
@@ -509,41 +604,65 @@ StatCard {
 
         // ── ALARM ─────────────────────────────────────────────────────────────
         Item {
-            anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
-            visible: root._mode === "alarm"
+            id: pageAlarm
+            readonly property int myIdx: 2
+            property bool isCurrent: root._mode === "alarm"
+            property bool wasCurrent: false
+            property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+            onIsCurrentChanged: { if (!isCurrent) wasCurrent = true; else wasCurrent = false; }
+            
+            width: parent.width; height: parent.height
+            
+            property real targetX: {
+                if (Anim.style === "none") return 0;
+                if (isCurrent) return 0;
+                if (myIdx < pagesContainer.pageIdx) return -width * parallaxFactor;
+                return width;
+            }
+            
+            x: targetX
+            Behavior on x {
+                enabled: Anim.style !== "none"
+                NumberAnimation { 
+                    duration: Anim.slow; easing.type: Anim.outExpo
+                    onRunningChanged: { if (!running && !pageAlarm.isCurrent) pageAlarm.wasCurrent = false; }
+                }
+            }
+            
+            visible: isCurrent || wasCurrent
             clip: true
 
             Item {
-                anchors { fill: parent; margins: 10 }
+                anchors { fill: parent; margins: Math.round(10 * localScale) }
 
                 // ── Header — Item, not Row, so right-anchor on + button works ──
                 Item {
                     id: alarmHeader
                     anchors { left: parent.left; right: parent.right; top: parent.top }
-                    height: 28
+                    height: Math.round(28 * localScale)
 
                     Text {
                         anchors { left: parent.left; verticalCenter: parent.verticalCenter }
-                        text: "Alarms"; font.pixelSize: 12; font.weight: Font.DemiBold
+                        text: "Alarms"; font.pixelSize: Math.round(12 * localScale); font.weight: Font.DemiBold
                         color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.7)
                     }
 
                     Item {
                         id: addAlarmBtn
                         anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                        width: 24; height: 24
+                        width: Math.round(24 * localScale); height: Math.round(24 * localScale)
 
                         Rectangle {
-                            anchors.fill: parent; radius: 7
+                            anchors.fill: parent; radius: Math.round(7 * localScale)
                             color: _addHov.hovered
                                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.15)
-                                   : Qt.rgba(1,1,1,0.06)
+                                   : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06)
                             border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.2); border.width: 1
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text {
                                 anchors.centerIn: parent
                                 text: root._addOpen ? "✕" : "+"
-                                font.pixelSize: 14; color: Theme.active
+                                font.pixelSize: Math.round(14 * localScale); color: Theme.active
                             }
                         }
                         HoverHandler { id: _addHov; cursorShape: Qt.PointingHandCursor }
@@ -571,37 +690,38 @@ StatCard {
                 // ── Add alarm panel ────────────────────────────────────────────
                 Rectangle {
                     id: addPanel
-                    anchors { left: parent.left; right: parent.right; top: alarmHeader.bottom; topMargin: 6 }
-                    height:  root._addOpen ? 140 : 0
+                    anchors { left: parent.left; right: parent.right; top: alarmHeader.bottom; topMargin: Math.round(6 * localScale) }
+                    height:  root._addOpen ? Math.round(140 * localScale) : 0
                     clip:    true
                     color:   Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.05)
-                    radius:  8
+                    radius:  Math.round(8 * localScale)
                     border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1); border.width: 1
                     opacity: root._addOpen ? 1 : 0
-                    Behavior on height  { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
+                    Behavior on height  { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
+                    Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 10
+                        spacing: Math.round(10 * localScale)
 
                         TimeInput {
                             id: alarmTimeInput
+                            localScale: root.localScale
                             anchors.horizontalCenter: parent.horizontalCenter
                             minuteStep: 1
                         }
 
                         Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            width: 58; height: 26; radius: 8
+                            width: Math.round(58 * localScale); height: Math.round(26 * localScale); radius: Math.round(8 * localScale)
                             color: _setAlarmHov.hovered
                                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.18)
                                    : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1)
                             border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.25); border.width: 1
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text {
                                 anchors.centerIn: parent; text: "Set Alarm"
-                                font.pixelSize: 11; font.weight: Font.Medium
+                                font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium
                                 color: Theme.active
                             }
                             HoverHandler { id: _setAlarmHov; cursorShape: Qt.PointingHandCursor }
@@ -622,49 +742,49 @@ StatCard {
                     id: alarmList
                     anchors {
                         left: parent.left; right: parent.right
-                        top: addPanel.bottom; topMargin: 6
+                        top: addPanel.bottom; topMargin: Math.round(6 * localScale)
                         bottom: parent.bottom
                     }
                     model: root._alarms
-                    clip: true; spacing: 4
+                    clip: true; spacing: Math.round(4 * localScale)
                     boundsBehavior: Flickable.StopAtBounds
 
                     delegate: Rectangle {
                         required property var modelData
                         required property int index
-                        width: alarmList.width; height: 36; radius: 8
-                        color: Qt.rgba(1,1,1,0.04)
+                        width: alarmList.width; height: Math.round(36 * localScale); radius: Math.round(8 * localScale)
+                        color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
                         border.color: modelData.enabled
                                       ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.15)
-                                      : Qt.rgba(1,1,1,0.07)
+                                      : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.07)
                         border.width: 1
 
                         // Time label
                         Text {
-                            anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
+                            anchors { left: parent.left; leftMargin: Math.round(10 * localScale); verticalCenter: parent.verticalCenter }
                             text: root._zp(modelData.hour) + ":" + root._zp(modelData.minute)
-                            font.pixelSize: 15; font.weight: Font.Bold; font.family: "JetBrains Mono"
+                            font.pixelSize: Math.round(15 * localScale); font.weight: Font.Bold; font.family: "JetBrains Mono"
                             color: modelData.enabled
                                    ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.9)
-                                   : Qt.rgba(1,1,1,0.3)
+                                   : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.3)
                         }
 
                         // Toggle
                         Rectangle {
                             id: toggleBtn
-                            anchors { right: deleteBtn.left; rightMargin: 6; verticalCenter: parent.verticalCenter }
-                            width: 28; height: 18; radius: 9
+                            anchors { right: deleteBtn.left; rightMargin: Math.round(6 * localScale); verticalCenter: parent.verticalCenter }
+                            width: Math.round(28 * localScale); height: Math.round(18 * localScale); radius: Math.round(9 * localScale)
                             color: modelData.enabled
                                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.25)
-                                   : Qt.rgba(1,1,1,0.1)
-                            Behavior on color { ColorAnimation { duration: 130 } }
+                                   : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1)
+                            Behavior on color { ColorAnimation { duration: Anim.color} }
                             Rectangle {
-                                width: 12; height: 12; radius: 6
+                                width: Math.round(12 * localScale); height: Math.round(12 * localScale); radius: Math.round(6 * localScale)
                                 anchors.verticalCenter: parent.verticalCenter
-                                x: modelData.enabled ? parent.width - width - 3 : 3
-                                color: modelData.enabled ? Theme.active : Qt.rgba(1,1,1,0.3)
-                                Behavior on x     { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
-                                Behavior on color { ColorAnimation  { duration: 130 } }
+                                x: modelData.enabled ? parent.width - width - Math.round(3 * localScale) : Math.round(3 * localScale)
+                                color: modelData.enabled ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.3)
+                                Behavior on x     { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+                                Behavior on color { ColorAnimation  { duration: Anim.color} }
                             }
                             MouseArea {
                                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
@@ -675,11 +795,11 @@ StatCard {
                         // Delete
                         Rectangle {
                             id: deleteBtn
-                            anchors { right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
-                            width: 22; height: 22; radius: 6
+                            anchors { right: parent.right; rightMargin: Math.round(10 * localScale); verticalCenter: parent.verticalCenter }
+                            width: Math.round(22 * localScale); height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
                             color: _delH.hovered ? Qt.rgba(248/255,113/255,113/255,0.18) : "transparent"
-                            Behavior on color { ColorAnimation { duration: 100 } }
-                            Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: 10; color: Qt.rgba(248/255,113/255,113/255,0.6) }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
+                            Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: Math.round(10 * localScale); color: Qt.rgba(248/255,113/255,113/255,0.6) }
                             HoverHandler { id: _delH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root._deleteAlarm(modelData.id) }
                         }
@@ -690,7 +810,7 @@ StatCard {
                         visible: root._alarms.length === 0 && !root._addOpen
                         text: "No alarms set\nTap + to add one"
                         horizontalAlignment: Text.AlignHCenter
-                        font.pixelSize: 11; color: Qt.rgba(1,1,1,0.2)
+                        font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.2)
                         lineHeight: 1.5
                     }
                 }
@@ -699,36 +819,60 @@ StatCard {
 
         // ── STOPWATCH ─────────────────────────────────────────────────────────
         Item {
-            anchors { left: parent.left; right: parent.right; top: parent.top; bottom: tabs.top }
-            visible: root._mode === "stopwatch"
+            id: pageStopwatch
+            readonly property int myIdx: 3
+            property bool isCurrent: root._mode === "stopwatch"
+            property bool wasCurrent: false
+            property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+            onIsCurrentChanged: { if (!isCurrent) wasCurrent = true; else wasCurrent = false; }
+            
+            width: parent.width; height: parent.height
+            
+            property real targetX: {
+                if (Anim.style === "none") return 0;
+                if (isCurrent) return 0;
+                if (myIdx < pagesContainer.pageIdx) return -width * parallaxFactor;
+                return width;
+            }
+            
+            x: targetX
+            Behavior on x {
+                enabled: Anim.style !== "none"
+                NumberAnimation { 
+                    duration: Anim.slow; easing.type: Anim.outExpo
+                    onRunningChanged: { if (!running && !pageStopwatch.isCurrent) pageStopwatch.wasCurrent = false; }
+                }
+            }
+            
+            visible: isCurrent || wasCurrent
 
             Column {
-                anchors.centerIn: parent; spacing: 12
+                anchors.centerIn: parent; spacing: Math.round(12 * localScale)
 
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: root._swDisplay()
-                    font.pixelSize: 52; font.weight: Font.Bold
-                    font.family: "JetBrains Mono"; font.letterSpacing: -1
+                    font.pixelSize: Math.round(52 * localScale); font.weight: Font.Bold
+                    font.family: "JetBrains Mono"; font.letterSpacing: Math.round(-1 * localScale)
                     color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.9)
                 }
 
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 6
+                    spacing: Math.round(6 * localScale)
 
                     // Start / Stop
                     Rectangle {
-                        width: 58; height: 26; radius: 8
+                        width: Math.round(58 * localScale); height: Math.round(26 * localScale); radius: Math.round(8 * localScale)
                         color: _swStartHov.hovered
                                ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.2)
                                : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.12)
                         border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.22); border.width: 1
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
                         Text {
                             anchors.centerIn: parent
                             text: root._swRunning ? "Stop" : "Start"
-                            font.pixelSize: 10; font.weight: Font.Medium
+                            font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium
                             color: Theme.active
                         }
                         HoverHandler { id: _swStartHov; cursorShape: Qt.PointingHandCursor }
@@ -740,16 +884,16 @@ StatCard {
                     }
                     // Reset
                     Rectangle {
-                        width: 58; height: 26; radius: 8
+                        width: Math.round(58 * localScale); height: Math.round(26 * localScale); radius: Math.round(8 * localScale)
                         color: _swResetHov.hovered
-                               ? Qt.rgba(1,1,1,0.1)
-                               : Qt.rgba(1,1,1,0.05)
-                        border.color: Qt.rgba(1,1,1,0.1); border.width: 1
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                               ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1)
+                               : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05)
+                        border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1); border.width: 1
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
                         Text {
                             anchors.centerIn: parent; text: "Reset"
-                            font.pixelSize: 10; font.weight: Font.Medium
-                            color: Qt.rgba(1,1,1,0.4)
+                            font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium
+                            color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.4)
                         }
                         HoverHandler { id: _swResetHov; cursorShape: Qt.PointingHandCursor }
                         MouseArea {
@@ -760,10 +904,12 @@ StatCard {
                 }
             }
         }
+        } // End of pagesContainer
 
         // ── Tab bar ───────────────────────────────────────────────────────────
         TabSwitcher {
             id: tabs
+            localScale: root.localScale
             anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
             orientation: "horizontal"; width: parent.width
             currentPage: root._mode

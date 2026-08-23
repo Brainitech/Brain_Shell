@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import "../shapes"
 import "../components"
 import "../services"
@@ -11,27 +12,36 @@ PopupWindow {
 
 	required property var anchorWindow
 
-	readonly property int fw: Theme.cornerRadius
-	readonly property int fh: Theme.cornerRadius
+	readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+
+	readonly property int fw: Math.round(Theme.cornerRadius * root.localScale)
+	readonly property int fh: Math.round(Theme.cornerRadius * root.localScale)
 
 	readonly property var pageWidths: ({
-		"output": 200,
-		"input":  200,
-		"mixer":  300
+		"output": Math.round(200 * root.localScale),
+		"input":  Math.round(200 * root.localScale),
+		"mixer":  Math.round(300 * root.localScale)
 	})
 
-	readonly property int popupHeight: 340
+	readonly property int popupHeight: Math.round(340 * root.localScale)
 
-	readonly property int maxWidth: 300
+	readonly property int maxWidth: Math.round(300 * root.localScale)
 
 	color:   "transparent"
 	visible: slide.windowVisible
 	mask: Region { item: maskProxy }
 
+	Region {
+		id: audioBlurReg
+		item: sizer
+	}
+
+	BackgroundEffect.blurRegion: PrefsService.bgBlur ? audioBlurReg : null
+
 	anchor.window:  anchorWindow
 	anchor.rect: Qt.rect(
-		Theme.cornerRadius,
-		anchorWindow.height / 2,
+		Math.round(Theme.cornerRadius * root.localScale),
+		anchorWindow ? anchorWindow.height/2 : 0,
 		0,
 		popupHeight
 	)
@@ -53,9 +63,14 @@ PopupWindow {
 		anchors.fill: parent
 		edge:             "right"
 		open:             Popups.audioOpen
-		hoverEnabled:     false
+		hoverEnabled:     Popups.audioAllowHover
 		triggerHovered:   Popups.audioTriggerHovered
+		pinned:           Popups.audioPinned
 		onCloseRequested: Popups.audioOpen = false
+		onPinRequested: {
+			Popups.audioOpen = true
+			Popups.audioPinned = true
+		}
 
 		Connections {
 			target: Popups
@@ -69,9 +84,21 @@ PopupWindow {
             }
 		}
 
+		Connections {
+			target: slide
+			function onWindowVisibleChanged() {
+				if (slide.windowVisible && !Popups.audioOpen) {
+					let opt = PrefsService.defaultAudioTab
+					if (opt === "Input") Popups.audioPage = "input"
+					else if (opt === "Mixers") Popups.audioPage = "mixer"
+					else Popups.audioPage = "output"
+				}
+			}
+		}
+
 		Timer {
 			id: audioResetTimer
-			interval: Theme.animDuration + 20
+			interval: Anim.transition + 20
 			onTriggered: audioControl.reset()
 		}
 
@@ -84,26 +111,28 @@ PopupWindow {
 			width:  (root.pageWidths[audioControl.page] ?? root.maxWidth)
 			height: root.popupHeight
 
-			Behavior on width { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+			Behavior on width { id: sizerWidthAnim; NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
 
 			PopupShape {
 				id: bg
 				anchors.fill: parent
 				attachedEdge: "right"
 				color:        Theme.background
-				radius:       Theme.cornerRadius
+				radius:       Math.round(Theme.cornerRadius * root.localScale)
 				flareWidth:   root.fw
 				flareHeight:  root.fh
 			}
 
 			AudioControl {
 				id: audioControl
+				localScale: root.localScale
+				fullyOpen: Popups.audioOpen && !slide.sliding && Math.round(sizer.width) === Math.round(root.pageWidths[audioControl.page] ?? root.maxWidth)
 				anchors {
 					fill:         parent
-					topMargin:    root.fh + 6
-					bottomMargin: root.fh + 6
-					leftMargin:   10
-					rightMargin:  root.fw - 4
+					topMargin:    root.fh + Math.round(6 * root.localScale)
+					bottomMargin: root.fh + Math.round(6 * root.localScale)
+					leftMargin:   Math.round(10 * root.localScale)
+					rightMargin:  root.fw - Math.round(4 * root.localScale)
 				}
 			}
 		}

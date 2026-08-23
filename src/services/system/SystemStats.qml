@@ -71,7 +71,7 @@ Item {
                     anchors.fill: parent
                     radius:       Theme.cornerRadius
                     color:        index % 2 === 0
-                                      ? Qt.rgba(1, 1, 1, 0.04)
+                                      ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
                                       : "transparent"
                 }
 
@@ -99,7 +99,7 @@ Item {
                         verticalCenter: parent.verticalCenter
                     }
                     text:  "·"
-                    color: Qt.rgba(1, 1, 1, 0.25)
+                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
                     font.pixelSize: 12
                 }
 

@@ -24,6 +24,7 @@ QtObject {
     property string captureTarget: "screen"
     property bool   audioMic:      false
     property bool   audioSystem:   false
+    property string saveDir:       Quickshell.env("HOME") + "/Videos/screen_recordings"
 
     // ── Display helpers ───────────────────────────────────────────────────────
     readonly property var _captureIcons:  ({ screen: "󰍹", window: "󱂬", region: "󰩭" })
@@ -106,6 +107,7 @@ QtObject {
             if (o.captureTarget) root.captureTarget = o.captureTarget
             if (typeof o.audioMic    === "boolean") root.audioMic    = o.audioMic
             if (typeof o.audioSystem === "boolean") root.audioSystem = o.audioSystem
+            if (o.saveDir) root.saveDir = o.saveDir
         } catch(e) {}
     }
 
@@ -114,7 +116,8 @@ QtObject {
         var data = JSON.stringify({
             captureTarget: root.captureTarget,
             audioMic:      root.audioMic,
-            audioSystem:   root.audioSystem
+            audioSystem:   root.audioSystem,
+            saveDir:       root.saveDir
         })
         _saveProc.command = ["bash", "-c",
             "printf '%s' '" + data.replace(/'/g, "'\\''") + "' > '" + path + "'"]
@@ -298,9 +301,9 @@ QtObject {
 
     function _buildCmd() {
     var ts  = Qt.formatDateTime(new Date(), "yyyyMMdd_HHmmss")
-    root._currentFile = "$HOME/Videos/screen_recordings/" + ts + ".mp4"
+    root._currentFile = root.saveDir + "/" + ts + ".mp4"
     
-    var cmd = "mkdir -p $HOME/Videos/screen_recordings && " +
+    var cmd = "mkdir -p '" + root.saveDir + "' && " +
               "wf-recorder -c libx264" +
               " -x yuv420p" +
               " -r 30" +                       // Limit FPS to 30

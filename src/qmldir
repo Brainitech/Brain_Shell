@@ -1,4 +1,5 @@
 singleton Theme      theme/Theme.qml
+singleton Anim       theme/Anim.qml
 singleton Popups     state/Popups.qml
 singleton IpcManager state/IpcManager.qml
 singleton ShellState state/ShellState.qml
@@ -8,3 +9,4 @@ singleton CavaService 1.0 services/CavaService.qml
 singleton ClipboardService 1.0 services/ClipboardService.qml
 singleton KeybindService 1.0 services/config_tab/KeybindService.qml
 singleton UpdateService 1.0 services/UpdateService.qml
+singleton PrefsService 1.0 services/PrefsService.qml

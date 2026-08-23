@@ -17,8 +17,15 @@ QtObject {
         var a = []; for (var i = 0; i < 32; i++) a.push(0); return a
     })()
 
+    property bool audioActive: false
+
+    property var _silenceTimer: Timer {
+        interval: 3000
+        repeat: false
+        onTriggered: root.audioActive = false
+    }
+
     // isPlaying is true if ANY MPRIS player is currently playing.
-    // This ensures bars flow regardless of which player index is active in PlayerCard.
     readonly property bool isPlaying: {
         var vals = Mpris.players.values
         for (var i = 0; i < vals.length; i++) {
@@ -47,8 +54,16 @@ QtObject {
                 var parts = t.split(";")
                 if (parts.length !== root.barCount) return
                 var arr = []
-                for (var i = 0; i < parts.length; i++)
-                    arr.push(parseInt(parts[i]) || 0)
+                var hasSound = false
+                for (var i = 0; i < parts.length; i++) {
+                    var v = parseInt(parts[i]) || 0
+                    if (v > 0) hasSound = true
+                    arr.push(v)
+                }
+                if (hasSound) {
+                    root.audioActive = true
+                    root._silenceTimer.restart()
+                }
                 root.bars = arr
             }
         }

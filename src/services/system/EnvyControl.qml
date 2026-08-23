@@ -7,7 +7,8 @@ import "../"
 
 Column {
     id: root
-    spacing: 12
+    property real localScale: 1.0
+    spacing: Math.round(12 * localScale)
     width: parent.width
 
     readonly property var  bat:      UPower.displayDevice
@@ -43,62 +44,62 @@ Column {
 
         Text {
             text:                "Power Profile"
-            color:               Qt.rgba(1, 1, 1, 0.4)
-            font.pixelSize:      10
+            color:               Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
+            font.pixelSize:      Math.round(10 * localScale)
             font.capitalization: Font.AllUppercase
-            leftPadding:         2
+            leftPadding:         Math.round(2 * localScale)
         }
 
         Rectangle {
             width:  parent.width
-            height: 40
-            radius: Theme.cornerRadius
-            color:  Qt.rgba(1, 1, 1, 0.05)
+            height: Math.round(40 * localScale)
+            radius: Math.round(Theme.cornerRadius * localScale)
+            color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
 
             Row {
-                anchors { left: parent.left; leftMargin: 12; verticalCenter: parent.verticalCenter }
-                spacing: 8
+                anchors { left: parent.left; leftMargin: Math.round(12 * localScale); verticalCenter: parent.verticalCenter }
+                spacing: Math.round(8 * localScale)
 
-                Text { text: "⚙️"; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: "⚙️"; font.pixelSize: Math.round(14 * localScale); anchors.verticalCenter: parent.verticalCenter }
 
                 Text {
                     text:           root.powerProfile.charAt(0).toUpperCase()
                                     + root.powerProfile.slice(1)
                     color:          Theme.text
-                    font.pixelSize: 13
+                    font.pixelSize: Math.round(13 * localScale)
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
 
             Text {
-                anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter }
+                anchors { right: parent.right; rightMargin: Math.round(12 * localScale); verticalCenter: parent.verticalCenter }
                 text:    "🔒"
-                font.pixelSize: 12
+                font.pixelSize: Math.round(12 * localScale)
                 opacity: 0.4
             }
         }
     }
 
-    Rectangle { width: parent.width; height: 1; color: Qt.rgba(1, 1, 1, 0.08) }
+    Rectangle { width: parent.width; height: 1; color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) }
 
     // ── dGPU toggle row ───────────────────────────────────────────────────────
     Column {
         width: parent.width
-        spacing: 4
+        spacing: Math.round(4 * localScale)
 
         Text {
             text:                "Graphics"
-            color:               Qt.rgba(1, 1, 1, 0.4)
-            font.pixelSize:      10
+            color:               Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
+            font.pixelSize:      Math.round(10 * localScale)
             font.capitalization: Font.AllUppercase
-            leftPadding:         2
+            leftPadding:         Math.round(2 * localScale)
         }
 
         Rectangle {
             width:  parent.width
-            height: 48
-            radius: Theme.cornerRadius
-            color:  Qt.rgba(1, 1, 1, 0.05)
+            height: Math.round(48 * localScale)
+            radius: Math.round(Theme.cornerRadius * localScale)
+            color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
 
             Row {
                 anchors { left: parent.left; leftMargin: 12; verticalCenter: parent.verticalCenter }
@@ -123,7 +124,7 @@ Column {
 
                     Text {
                         text:           root.dgpuEnabled ? "dGPU active" : "dGPU inactive"
-                        color:          Qt.rgba(1, 1, 1, 0.45)
+                        color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
                         font.pixelSize: 10
                     }
                 }
@@ -136,15 +137,15 @@ Column {
                 width:  44
                 height: 24
                 radius: 12
-                color:  root.dgpuEnabled ? Theme.active : Qt.rgba(1, 1, 1, 0.15)
-                Behavior on color { ColorAnimation { duration: 150 } }
+                color:  root.dgpuEnabled ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.15)
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
 
                 Rectangle {
                     width:  18; height: 18; radius: 9
                     color:  "white"
                     anchors.verticalCenter: parent.verticalCenter
                     x: root.dgpuEnabled ? parent.width - width - 3 : 3
-                    Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+                    Behavior on x { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
                 }
 
                 HoverHandler { cursorShape: Qt.PointingHandCursor }

@@ -6,6 +6,7 @@ import "../../"
 Rectangle {
     id: root
     
+    property real localScale: 1.0
     // ── Config Provider ────────────────────────────────────────────────
     property string configProvider: ShellState.configProvider
     
@@ -29,11 +30,11 @@ Rectangle {
 
     // --- 1. Capsule Container ---
     color: Theme.wsBackground
-    radius: Theme.wsRadius
+    radius: Math.round(Theme.wsRadius * localScale)
 
     // Auto-size
-    width: workspaceRow.width + (Theme.wsPadding * 2)
-    height: Theme.wsDotSize + (Theme.wsPadding * 2)
+    width: workspaceRow.width + Math.round(Theme.wsPadding * 2 * localScale)
+    height: Math.round(Theme.wsDotSize * localScale) + Math.round(Theme.wsPadding * 2 * localScale)
 
     // --- 2. LOGIC: Raw Event Listener ---
     property bool isScratchpad: false
@@ -102,15 +103,15 @@ Rectangle {
     Row {
         id: workspaceRow
         anchors.centerIn: parent
-        spacing: Theme.wsSpacing
+        spacing: Math.round(Theme.wsSpacing * localScale)
 
         // Logic: Fade out dots when Scratchpad is active
         opacity: root.isScratchpad ? 0 : 1
         scale:   root.isScratchpad ? 0.8 : 1
         visible: opacity > 0 
 
-        Behavior on opacity { NumberAnimation { duration: 200 } }
-        Behavior on scale   { NumberAnimation { duration: 200 } }
+        Behavior on opacity { NumberAnimation { duration: Anim.normal} }
+        Behavior on scale   { NumberAnimation { duration: Anim.normal} }
 
         Repeater {
             model: 10 
@@ -123,9 +124,9 @@ Rectangle {
                 property bool isUrgent:   ws !== undefined && ws.urgent
 
 
-                height: Theme.wsDotSize
+                height: Math.round(Theme.wsDotSize * localScale)
                 radius: height / 2
-                width: isActive ? Theme.wsActiveWidth : Theme.wsDotSize
+                width: isActive ? Math.round(Theme.wsActiveWidth * localScale) : Math.round(Theme.wsDotSize * localScale)
                 
                 color: {
                     if (isActive)   return Theme.wsActive
@@ -134,8 +135,8 @@ Rectangle {
                     return Theme.wsEmpty
                 }
 
-                Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
-                Behavior on color { ColorAnimation { duration: 200 } }
+                Behavior on width { NumberAnimation { duration: Anim.normal; easing.type: Anim.outBack} }
+                Behavior on color { ColorAnimation { duration: Anim.normal} }
 
                 // --- Urgent pulse ---
                 SequentialAnimation {
@@ -146,15 +147,15 @@ Rectangle {
                         target:   dot
                         property: "scale"
                         to:       1.35
-                        duration: 400
-                        easing.type: Easing.InOutSine
+                        duration: Anim.slower
+                        easing.type: Anim.inOutSine
                     }
                     NumberAnimation {
                         target:   dot
                         property: "scale"
                         to:       1.0
-                        duration: 400
-                        easing.type: Easing.InOutSine
+                        duration: Anim.slower
+                        easing.type: Anim.inOutSine
                     }
                 }
 
@@ -185,13 +186,13 @@ Rectangle {
         visible: opacity > 0
         opacity: root.isScratchpad ? 1 : 0
         
-        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on opacity { NumberAnimation { duration: Anim.normal} }
         
         Text {
             anchors.centerIn: parent
             text: "" 
-            color: "#FFFFFF"
-            font.pixelSize: 14
+            color: Theme.text
+            font.pixelSize: Math.round(14 * localScale)
         }
         
         MouseArea {

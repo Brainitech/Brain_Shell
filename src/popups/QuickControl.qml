@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import Quickshell.Services.Pipewire
 import "../shapes"
 import "../components"
@@ -12,26 +13,36 @@ PopupWindow {
 
     required property var anchorWindow
 
+    // ── Context-Aware Scaling ─────────────────────────────────────────────────
+    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+
     // ── Config ────────────────────────────────────────────────────────────────
-    readonly property int fw: Theme.cornerRadius
-    readonly property int fh: Theme.cornerRadius
-    readonly property int popupHeight: 340
-    readonly property int popupWidth:  180 // Thinner than the 300px AudioPopup
+    readonly property int fw: Math.round(Theme.cornerRadius * root.localScale)
+    readonly property int fh: Math.round(Theme.cornerRadius * root.localScale)
+    readonly property int popupHeight: Math.round(340 * root.localScale)
+    readonly property int popupWidth:  Math.round(180 * root.localScale) // Thinner than the 300px AudioPopup
 
     color:   "transparent"
     visible: slide.windowVisible
     mask:    Region { item: maskProxy }
 
+    Region {
+        id: qcBlurReg
+        item: sizer
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? qcBlurReg : null
+
     // ── Position: Right Center ────────────────────────────────────────────────
     anchor.window:  anchorWindow
     anchor.rect: Qt.rect(
-        anchorWindow.width - root.fw,
-        (root.screen.height + root.fh + 5)/2,
+        anchorWindow ? anchorWindow.width - root.fw : 0,
+        anchorWindow ? anchorWindow.height/2 : 0,
         0,
         0
     )
     anchor.gravity: Edges.Right
-    
+
     Item {
         id:      maskProxy
         x:       root.popupWidth - sizer.width
@@ -103,10 +114,15 @@ PopupWindow {
         id: slide
         anchors.fill:     parent
         edge:             "right"
-        open:             Popups.quickOpen 
-        hoverEnabled:     true
-        triggerHovered:   Popups.quickTriggerHovered 
+        open:             Popups.quickOpen
+        hoverEnabled:     !Popups.audioAllowHover && Popups.quickAllowHover
+        triggerHovered:   Popups.quickTriggerHovered
+        pinned:           Popups.quickPinned
         onCloseRequested: Popups.quickOpen = false
+        onPinRequested: {
+            Popups.quickOpen = true
+            Popups.quickPinned = true
+        }
 
         Item {
             id: sizer
@@ -117,7 +133,7 @@ PopupWindow {
             width:  root.popupWidth
             height: root.popupHeight
 
-            Behavior on width { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+            Behavior on width { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
 
             PopupShape {
                 id: bg
@@ -137,7 +153,7 @@ PopupWindow {
                     leftMargin:   8
                     rightMargin:  8
                 }
-                spacing: 8 
+                spacing: 8
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 // Audio Slider
@@ -152,7 +168,7 @@ PopupWindow {
                     value:  root.sink?.ready ? root.sink.audio.volume : 0
                     muted:  root.sink?.audio.muted ?? false
                     active: root.sink?.ready ?? false
-                    
+
                     onVolumeChanged: function(v) {
                         if (root.sink?.ready) root.sink.audio.volume = v
                     }
@@ -163,11 +179,12 @@ PopupWindow {
 
                 // Brightness Slider
                 ChannelColumn {
+                    localScale: root.localScale
                     icon:   "󰃠"
-                    value:  root._bVal 
+                    value:  root._bVal
                     muted:  false
                     active: true
-                    
+
                     onVolumeChanged: function(v) {
                         root.setBrightness(v)
                     }
@@ -180,15 +197,16 @@ PopupWindow {
     component ChannelColumn: Item {
         id: col
 
+        property real localScale: 1.0
         property string label:  ""
         property string icon:   ""
         property real   value:  0.0
         property bool   muted:  false
         property bool   active: false
 
-        readonly property int trackHeight: 180
-        readonly property int barW:        22
-        readonly property int thumbD:      barW - 6
+        readonly property int trackHeight: Math.round(180 * root.localScale)
+        readonly property int barW:        Math.round(22 * root.localScale)
+        readonly property int thumbD:      barW - Math.round(6 * root.localScale)
 
         signal volumeChanged(real value)
         signal muteToggled()
@@ -201,15 +219,15 @@ PopupWindow {
         Column {
             id: inner
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 12
+            spacing: Math.round(12 * root.localScale)
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           col.pctText
-                color:          col.muted ? Qt.rgba(1,1,1,0.25) : Theme.text
-                font.pixelSize: 13
+                color:          col.muted ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25) : Theme.text
+                font.pixelSize: Math.round(13 * root.localScale)
                 font.bold:      true
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
             }
 
             Item {
@@ -221,16 +239,16 @@ PopupWindow {
                     id: track
                     anchors.fill: parent
                     radius: width / 2
-                    color:  Qt.rgba(1,1,1,0.08)
+                    color:  Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08)
 
                     // Fill bar
                     Rectangle {
                         anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
                         height: Math.max(radius * 2, parent.height * col.value)
                         radius: parent.radius
-                        color:  col.muted ? Qt.rgba(1,1,1,0.15) : Theme.active
-                        Behavior on color  { ColorAnimation  { duration: 150 } }
-                        Behavior on height { NumberAnimation { duration: 80; easing.type: Easing.OutCubic } }
+                        color:  col.muted ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.15) : Theme.active
+                        Behavior on color  { ColorAnimation  { duration: Anim.mediumFast} }
+                        Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
                     }
 
                     // Thumb
@@ -240,12 +258,12 @@ PopupWindow {
                         width:  col.thumbD
                         height: width
                         radius: width / 2
-                        color:  col.muted ? Qt.rgba(1,1,1,0.3) : "#ffffff"
+                        color:  col.muted ? Theme.subtext : Theme.text
                         y: {
                             var travel = track.height - height
                             return Math.max(0, Math.min(travel, (1.0 - col.value) * travel))
                         }
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
 
                     // Drag to change value
@@ -275,26 +293,26 @@ PopupWindow {
             // Icon & Mute Toggle
             Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
-                width:  col.barW + 16
-                height: 28
-                radius: Theme.cornerRadius
+                width:  col.barW + Math.round(16 * root.localScale)
+                height: Math.round(28 * root.localScale)
+                radius: Math.round(Theme.cornerRadius * root.localScale)
                 color:  col.muted
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2)
-                            : Qt.rgba(1,1,1,0.06)
-                Behavior on color { ColorAnimation { duration: 150 } }
+                            : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06)
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
 
                 Text {
                     anchors.centerIn: parent
                     text:           col.icon
-                    font.pixelSize: 14
-                    color:          col.muted ? Theme.active : Qt.rgba(1,1,1,0.55)
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    font.pixelSize: Math.round(14 * root.localScale)
+                    color:          col.muted ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.55)
+                    Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                 }
 
                 Rectangle {
                     anchors.fill: parent; radius: parent.radius
-                    color: muteHov.hovered ? Qt.rgba(1,1,1,0.05) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    color: muteHov.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05) : "transparent"
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
                 }
                 HoverHandler { id: muteHov; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: col.muteToggled()}
@@ -304,12 +322,12 @@ PopupWindow {
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:            col.label
-                color:           Qt.rgba(1,1,1,0.3)
-                font.pixelSize:  10
+                color:           Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.3)
+                font.pixelSize:  Math.round(10 * root.localScale)
                 font.capitalization: Font.AllUppercase
                 font.letterSpacing: 1
                 elide:           Text.ElideRight
-                width:           col.barW + 50
+                width:           col.barW + Math.round(50 * root.localScale)
                 horizontalAlignment: Text.AlignHCenter
             }
         }

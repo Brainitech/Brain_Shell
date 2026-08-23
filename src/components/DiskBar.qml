@@ -9,9 +9,15 @@ Item {
     property int    usedPct:  0
     property string usedStr:  "—"
     property string totalStr: "—"
+    property real   localScale: 1.0
 
-    implicitWidth:  200
-    implicitHeight: 40
+    property real _animPct: 0
+    Behavior on _animPct { NumberAnimation { duration: 550; easing.type: Easing.OutCubic } }
+    Component.onCompleted: _animPct = root.usedPct
+    onUsedPctChanged: _animPct = root.usedPct
+
+    implicitWidth:  Math.round(200 * localScale)
+    implicitHeight: Math.round(40 * localScale)
 
     readonly property color barColor: {
         if (usedPct >= 90) return "#f38ba8"
@@ -25,9 +31,9 @@ Item {
         anchors.left:           parent.left
         anchors.verticalCenter: barTrack.verticalCenter
         text:           root.mount
-        font.pixelSize: 10
-        color:          Qt.rgba(1, 1, 1, 0.5)
-        width:          32
+        font.pixelSize: Math.round(10 * localScale)
+        color:          Theme.subtext
+        width:          Math.round(32 * localScale)
         elide:          Text.ElideRight
     }
 
@@ -37,16 +43,16 @@ Item {
         anchors.left:    mountLabel.right
         anchors.right:   pctLabel.left
         anchors.top:     parent.top
-        anchors.topMargin:   12
-        anchors.leftMargin:  6
-        anchors.rightMargin: 6
-        height: 6
+        anchors.topMargin:   Math.round(12 * localScale)
+        anchors.leftMargin:  Math.round(6 * localScale)
+        anchors.rightMargin: Math.round(6 * localScale)
+        height: Math.round(6 * localScale)
 
         Rectangle {
             anchors.fill: parent
             radius:       height / 2
-            color:        Qt.rgba(1, 1, 1, 0.07)
-            border.color: Qt.rgba(1, 1, 1, 0.06)
+            color:        Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
+            border.color: Theme.border
             border.width: 1
         }
 
@@ -54,12 +60,11 @@ Item {
             anchors.left:   parent.left
             anchors.top:    parent.top
             anchors.bottom: parent.bottom
-            width:          parent.width * Math.max(0, Math.min(1, root.usedPct / 100))
+            width:          parent.width * Math.max(0, Math.min(1, root._animPct / 100))
             radius:         height / 2
             color:          root.barColor
 
-            Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-            Behavior on color { ColorAnimation  { duration: 300 } }
+            Behavior on color { ColorAnimation { duration: 300 } }
         }
     }
 
@@ -69,21 +74,21 @@ Item {
         anchors.right:          parent.right
         anchors.verticalCenter: barTrack.verticalCenter
         text:           root.usedPct + "%"
-        font.pixelSize: 10
+        font.pixelSize: Math.round(10 * localScale)
         font.weight:    Font.Medium
         color:          root.barColor
-        width:          28
+        width:          Math.round(28 * localScale)
         horizontalAlignment: Text.AlignRight
-        Behavior on color { ColorAnimation { duration: 300 } }
+        Behavior on color { ColorAnimation { duration: Anim.mediumSlow} }
     }
 
     // Size info — below the bar, aligned with bar
     Text {
         anchors.horizontalCenter: barTrack.horizontalCenter
         anchors.top:     barTrack.bottom
-        anchors.topMargin: 4
+        anchors.topMargin: Math.round(4 * localScale)
         text:           root.usedStr + " / " + root.totalStr + "  ·  " + root.source
-        font.pixelSize: 9
-        color:          Qt.rgba(1, 1, 1, 0.45)
+        font.pixelSize: Math.round(9 * localScale)
+        color:          Theme.subtext
     }
 }

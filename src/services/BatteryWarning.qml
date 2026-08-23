@@ -85,7 +85,7 @@ FloatingWindow {
             anchors.right:       parent.right
             height:              3
             radius:              2
-            color:               Qt.rgba(1, 1, 1, 0.08)
+            color:               Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
 
             Rectangle {
                 id:       countdown

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
-#  Brain Shell — Main Installer
+#  Brain Shell — main Installer
 #  github.com/Brainitech/Brain_Shell  v0.1.0
 # ─────────────────────────────────────────────────────────────────────────────
 # Hesitation is Defeat — Isshin Ashina

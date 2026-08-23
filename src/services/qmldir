@@ -22,3 +22,7 @@ KanbanBoard KanbanBoard.qml
 AppLauncher AppLauncher.qml
 ShellConfig ./config_tab/ShellConfig.qml
 KeybindsPage ./config_tab/KeybindsPage.qml
+GeneralPage ./config_tab/GeneralPage.qml
+VisualsBehaviorPage ./config_tab/VisualsBehaviorPage.qml
+DataPage ./config_tab/DataPage.qml
+MiscPage ./config_tab/MiscPage.qml

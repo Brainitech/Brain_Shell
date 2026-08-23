@@ -1,4 +1,5 @@
 import Quickshell
+import Quickshell.Wayland
 import QtQuick
 import "../components"
 import "../modules/Center/"
@@ -10,7 +11,17 @@ import "../shapes/"
 PanelWindow {
     id: root
 
+    Region {
+        id: topBarBlurReg
+        item: barShape
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? topBarBlurReg : null
+
     property string screenName: screen ? screen.name : ""
+
+    // ── Context-Aware Scaling ─────────────────────────────────────────────────
+    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
     color: "transparent"
 
@@ -27,39 +38,39 @@ PanelWindow {
     // ── Height shrinks to a border strip in focus mode ───────────────────────
     // Safe to animate on PanelWindow (anchored, no position jank).
     // PopupWindow is the one that must never have animated implicitHeight.
-    implicitHeight: ShellState.focusMode ? Theme.borderWidth : Theme.notchHeight
+    implicitHeight: (ShellState.focusMode ? Math.round(Theme.borderWidth * root.localScale) : Math.round(Theme.notchHeight * root.localScale)) + 1
     Behavior on implicitHeight {
-        NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+        NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
     }
 
-    exclusiveZone: ShellState.focusMode ? 0 : Theme.exclusionGap
+    exclusiveZone: ShellState.focusMode ? 0 : Math.round(Theme.exclusionGap * root.localScale)
     Behavior on exclusiveZone {
-        NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+        NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
     }
 
     readonly property int lWidth: Math.max(
-        Theme.lNotchMinWidth,
-        Math.min(Theme.lNotchMaxWidth,
-                 leftContent.implicitWidth + Theme.notchPadding * 2)
+        Math.round(Theme.lNotchMinWidth * root.localScale),
+        Math.min(Math.round(Theme.lNotchMaxWidth * root.localScale),
+                 leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * root.localScale))
     )
 
     // cWidth uses Popups.dashboardPageWidth when the dashboard is open,
     // so the center notch tracks the active tab's declared width.
     property int cWidth: Popups.dashboardOpen
-        ? Popups.dashboardPageWidth
+        ? Math.min(Popups.dashboardPageWidth * root.localScale, (screen ? screen.width : 1920) * 0.95)
         : Math.max(
-            Theme.cNotchMinWidth,
-            Math.min(Theme.cNotchMaxWidth,
-                     centerContent.implicitWidth + Theme.notchPadding * 2)
+            Math.round(Theme.cNotchMinWidth * root.localScale),
+            Math.min(Math.round(Theme.cNotchMaxWidth * root.localScale),
+                     centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * root.localScale))
           )
     Behavior on cWidth {
-        NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+        NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
     }
 
     // Width matches sizer open width: popupWidth + notchRadius (fw) in both popups
     property int rWidth: Math.max(
-        Theme.rNotchMinWidth,
-        Math.min(Theme.rNotchMaxWidth, rightContent.implicitWidth + Theme.notchPadding * 2)
+        Math.round(Theme.rNotchMinWidth * root.localScale),
+        Math.min(Math.round(Theme.rNotchMaxWidth * root.localScale), rightContent.implicitWidth + Math.round(Theme.notchPadding * 2 * root.localScale))
     )
 
     // ── Border strip (focus mode) ────────────────────────────────────────────
@@ -71,7 +82,7 @@ PanelWindow {
         color: Theme.background
         opacity: ShellState.focusMode ? 1 : 0
         Behavior on opacity {
-            NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+            NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
         }
     }
 
@@ -80,31 +91,31 @@ PanelWindow {
         anchors.fill: parent
         opacity: ShellState.focusMode ? 0 : 1
         Behavior on opacity {
-            NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+            NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
         }
-        
+
         states: [
         State {
             name: "notifications"
             when: Popups.notificationsOpen
-            PropertyChanges { target: root; rWidth: Theme.notificationsWidth + Theme.notchRadius }
+            PropertyChanges { target: root; rWidth: Math.round(((Theme.notificationsWidth * root.localScale) + (Theme.notchRadius * root.localScale)*1.5 -2)) }
         },
         State {
             name: "network"
             when: Popups.networkOpen && !Popups.notificationsOpen
-            PropertyChanges { target: root; rWidth: Theme.networkPopupWidth + Theme.notchRadius }
+            PropertyChanges { target: root; rWidth: Math.round(Theme.networkPopupWidth * root.localScale) + Math.round(Theme.notchRadius * root.localScale) + Math.round(Theme.borderWidth * root.localScale) }
         },
         State {
             name: "toast"
             when: Popups.notificationToastOpen && !Popups.notificationsOpen && !Popups.networkOpen
-            PropertyChanges { target: root; rWidth: Theme.notificationToastWidth + Theme.notchRadius + Theme.notchPadding -3 }
+            PropertyChanges { target: root; rWidth: Math.round(Theme.notificationToastWidth * root.localScale) + Math.round(Theme.notchRadius * 2 * root.localScale) }
         }
     ]
 
     transitions: [
         Transition {
             // This animation ONLY runs when switching between popups (and toasts) and the base state.
-            NumberAnimation { property: "rWidth"; duration: Theme.animDuration; easing.type: Easing.InOutCubic }
+            NumberAnimation { property: "rWidth"; duration: Anim.transition; easing.type: Anim.inOutCubic}
         }
     ]
 
@@ -114,16 +125,22 @@ PanelWindow {
             leftWidth:   root.lWidth
             centerWidth: root.cWidth
             rightWidth:  root.rWidth
+            notchHeight:    Math.round(Theme.notchHeight * root.localScale)
+            radius:         Math.round(Theme.notchRadius * root.localScale)
+            topBorderWidth: Math.round(Theme.borderWidth * root.localScale)
         }
 
         Item {
             id:           leftNotch
             width:        root.lWidth
-            height:       Theme.notchHeight
+            height:       Math.round((Theme.notchHeight - Theme.borderWidth) * root.localScale)
             anchors.left: parent.left
+            anchors.top:  parent.top
+            anchors.topMargin: Math.round(Theme.borderWidth * root.localScale)
 
             LeftContent {
                 id: leftContent
+                localScale: root.localScale
                 anchors.centerIn: parent
             }
         }
@@ -131,11 +148,14 @@ PanelWindow {
         Item {
             id:               centerNotch
             width:            root.cWidth
-            height:           Theme.notchHeight
+            height:           Math.round((Theme.notchHeight - Theme.borderWidth) * root.localScale)
             anchors.centerIn: parent
+            anchors.top:      parent.top
+            anchors.topMargin: Math.round(Theme.borderWidth * root.localScale)
 
             CenterContent {
                 id: centerContent
+                localScale: root.localScale
                 anchors.centerIn: parent
             }
         }
@@ -143,16 +163,19 @@ PanelWindow {
         Item {
             id:            rightNotch
             width:         root.rWidth
-            height:        Theme.notchHeight
+            height:        Math.round((Theme.notchHeight - Theme.borderWidth) * root.localScale)
             anchors.right: parent.right
-            
+            anchors.top:   parent.top
+            anchors.topMargin: Math.round(Theme.borderWidth * root.localScale)
+
             clip: true
 
             RightContent {
                 id: rightContent
+                localScale: root.localScale
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                anchors.rightMargin: Theme.notchPadding
+                anchors.rightMargin: Math.round(Theme.notchPadding * root.localScale)
             }
         }
     }

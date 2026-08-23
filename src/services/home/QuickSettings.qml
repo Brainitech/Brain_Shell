@@ -13,6 +13,8 @@ StatCard {
     padding: 0
     focus: true
 
+    property real localScale: 1.0
+
     // ─────────────────────────────────────────────────────────────────────────
     //  Brightness
     // ─────────────────────────────────────────────────────────────────────────
@@ -93,12 +95,18 @@ StatCard {
         command: ["bash", "-c",
             "bluetoothctl show 2>/dev/null | grep '^\\s*Powered:' | awk '{print $2}'"]
         running: false
-        stdout: SplitParser { onRead: function(l) { root.btOn = l.trim() === "yes" } } }
+        stdout: SplitParser { onRead: function(l) {
+            root.btOn = l.trim() === "yes"
+            ShellState.btPowered = root.btOn
+        } } }
     Process { id: btDeviceRead
         command: ["bash", "-c",
             "bluetoothctl devices Connected 2>/dev/null | head -1 | cut -d' ' -f3-"]
         running: false
-        stdout: SplitParser { onRead: function(l) { root.btDevice = l.trim() } } }
+        stdout: SplitParser { onRead: function(l) {
+            root.btDevice = l.trim()
+            ShellState.btConnected = (root.btDevice !== "")
+        } } }
     Process { id: btToggleProc; command: []; running: false
         onRunningChanged: if (!running) {
             _btPoll()
@@ -576,11 +584,48 @@ StatCard {
         root.filterPickerOpen  = true
     }
 
+    property string pickerFormat: "HEX"
+    property var sysThemeProc: Process {}
+
+    function _pickerLaunch() {
+        Popups.colorPickerActive = true;
+        var fmt = root.pickerFormat;
+        
+        pickerProc.command = ["bash", "-c",
+            "geom=$(slurp -p -b 00000000 -c 00000000 2>/dev/null) || exit 0; " +
+            "rgb=$(grim -g \"$geom\" -t ppm - 2>/dev/null | tail -c 3 | od -An -t u1) || exit 0; " +
+            "res=$(echo \"$rgb\" | awk -v fmt=\"" + fmt + "\" '{" +
+            "  r=$1+0; g=$2+0; b=$3+0; " +
+            "  if(fmt==\"RGB\") printf \"rgb(%d, %d, %d)\",r,g,b; " +
+            "  else if(fmt==\"HSL\"){ " +
+            "    rf=r/255;gf=g/255;bf=b/255; mx=rf;mn=rf; " +
+            "    if(gf>mx)mx=gf; if(bf>mx)mx=bf; if(gf<mn)mn=gf; if(bf<mn)mn=bf; " +
+            "    l=(mx+mn)/2; if(mx==mn){h=0;sv=0} else { d=mx-mn; " +
+            "    sv=(l>0.5)?d/(2-mx-mn):d/(mx+mn); " +
+            "    if(mx==rf)h=(gf-bf)/d+(gf<bf?6:0); else if(mx==gf)h=(bf-rf)/d+2; else h=(rf-gf)/d+4; h=h/6; } " +
+            "    printf \"hsl(%d, %d%%, %d%%)\",int(h*360+0.5),int(sv*100+0.5),int(l*100+0.5); " +
+            "  } else { " +
+            "    printf \"#%02x%02x%02x\",r,g,b; " +
+            "  } " +
+            "}'); " +
+            "if [ -n \"$res\" ]; then " +
+            "  printf '%s' \"$res\" | { if command -v wl-copy >/dev/null 2>&1; then setsid -f wl-copy; else wl-copy; fi; }; " +
+            "  echo \"$res\"; " +
+            "fi"
+        ];
+        
+        pickerProc.running = false;
+        pickerProc.running = true;
+    }
+    property var pickerProc: Process {
+        onExited: Popups.colorPickerActive = false
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     //  Polling timer
     // ─────────────────────────────────────────────────────────────────────────
     Timer {
-        interval: 5000; running: true; repeat: true
+        interval: 5000; running: Popups.dashboardOpen; repeat: true
         onTriggered: {
             _wifiPoll(); _btPoll()
             hsActiveCheckProc.running = false; hsActiveCheckProc.running = true
@@ -609,54 +654,54 @@ StatCard {
     //  UI
     // ─────────────────────────────────────────────────────────────────────────
     Column {
-        anchors { fill: parent; margins: 12 }
+        anchors { fill: parent; margins: Math.round(12 * localScale) }
         spacing: 0
 
         // ── Brightness ────────────────────────────────────────────────────────
         Item {
             width: parent.width
-            height: 52
+            height: Math.round(52 * localScale)
 
             Text {
                 id: brightLbl
                 anchors { left: parent.left; top: parent.top }
-                text: "BRIGHTNESS"; font.pixelSize: 9; font.weight: Font.Bold
+                text: "BRIGHTNESS"; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold
                 color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
             }
             Text {
                 anchors { right: parent.right; top: parent.top }
                 text: Math.round(root._brightVal * 100) + "%"
-                font.pixelSize: 9; font.family: "JetBrains Mono"; font.weight: Font.Bold
+                font.pixelSize: Math.round(9 * localScale); font.family: "JetBrains Mono"; font.weight: Font.Bold
                 color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.7)
             }
 
             Row {
-                anchors { left: parent.left; right: parent.right; top: brightLbl.bottom; topMargin: 8 }
-                spacing: 8
+                anchors { left: parent.left; right: parent.right; top: brightLbl.bottom; topMargin: Math.round(8 * localScale) }
+                spacing: Math.round(8 * localScale)
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "󰃞"; font.pixelSize: 13
+                    text: "󰃞"; font.pixelSize: Math.round(13 * localScale)
                     color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.35)
                 }
 
                 Item {
                     id: btw
-                    width: parent.width - 13 - 13 - parent.spacing * 2
-                    height: 30; anchors.verticalCenter: parent.verticalCenter
-                    anchors.bottomMargin: 30
-                    readonly property int thumbD: 14
+                    width: parent.width - Math.round(13 * localScale) - Math.round(13 * localScale) - parent.spacing * 2
+                    height: Math.round(30 * localScale); anchors.verticalCenter: parent.verticalCenter
+                    anchors.bottomMargin: Math.round(30 * localScale)
+                    readonly property int thumbD: Math.round(14 * localScale)
 
                     Rectangle {
                         id: btrack
                         anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width; height: 5; radius: height / 2
+                        width: parent.width; height: Math.round(5 * localScale); radius: height / 2
                         color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
                         Rectangle {
                             anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
                             width: Math.max(parent.radius * 2, parent.width * root._brightVal)
                             radius: parent.radius; color: Theme.active
-                            Behavior on width { NumberAnimation { duration: 80; easing.type: Easing.OutCubic } }
+                            Behavior on width { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
                         }
                         MouseArea {
                             anchors.fill: parent; cursorShape: Qt.PointingHandCursor
@@ -677,15 +722,15 @@ StatCard {
                     }
                     Rectangle {
                         width: btw.thumbD; height: btw.thumbD; radius: btw.thumbD / 2
-                        color: "#ffffff"; anchors.verticalCenter: parent.verticalCenter
+                        color: Theme.text; anchors.verticalCenter: parent.verticalCenter
                         x: Math.max(0, Math.min(btw.width - width, root._brightVal * (btw.width - width)))
-                        Behavior on x { NumberAnimation { duration: 80; easing.type: Easing.OutCubic } }
+                        Behavior on x { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
                     }
                 }
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "󰃠"; font.pixelSize: 13
+                    text: "󰃠"; font.pixelSize: Math.round(13 * localScale)
                     color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.75)
                 }
             }
@@ -695,25 +740,25 @@ StatCard {
             width: parent.width; height: 1
             color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
         }
-        Item { width: parent.width; height: 8 }
+        Item { width: parent.width; height: Math.round(8 * localScale) }
 
         Text {
             id: qsLbl; width: parent.width
-            text: "QUICK SETTINGS"; font.pixelSize: 9; font.weight: Font.Bold
+            text: "QUICK SETTINGS"; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold
             color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
         }
-        Item { width: parent.width; height: 8 }
+        Item { width: parent.width; height: Math.round(8 * localScale) }
 
         // ── Tile grid ─────────────────────────────────────────────────────────
         Item {
             width:  parent.width
-            height: root.height - 12 - 52 - 1 - 8 - qsLbl.height - 8
+            height: root.height - Math.round(12 * localScale) - Math.round(52 * localScale) - 1 - Math.round(8 * localScale) - qsLbl.height - Math.round(8 * localScale)
 
             Flickable {
                 id: flick
                 anchors.fill:   parent
                 contentWidth:   width
-                contentHeight:  tileGrid.implicitHeight + 8
+                contentHeight:  tileGrid.implicitHeight + Math.round(8 * localScale)
                 clip:           true
                 boundsBehavior: Flickable.StopAtBounds
 
@@ -724,8 +769,9 @@ StatCard {
                     required property string label
                     property  string sublabel: ""
                     signal toggled()
+                    signal rightToggled()
 
-                    radius: 10
+                    radius: Math.round(10 * localScale)
                     color: on
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
                         : bH.hovered
@@ -735,45 +781,52 @@ StatCard {
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30)
                         : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.10)
                     border.width: 1
-                    Behavior on color        { ColorAnimation { duration: 130 } }
-                    Behavior on border.color { ColorAnimation { duration: 130 } }
+                    Behavior on color        { ColorAnimation { duration: Anim.color} }
+                    Behavior on border.color { ColorAnimation { duration: Anim.color} }
 
                     Rectangle {
-                        anchors { top: parent.top; right: parent.right; margins: 8 }
-                        width: 6; height: 6; radius: 3
+                        anchors { top: parent.top; right: parent.right; margins: Math.round(8 * localScale) }
+                        width: Math.round(6 * localScale); height: Math.round(6 * localScale); radius: width / 2
                         color: btn.on ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.18)
-                        Behavior on color { ColorAnimation { duration: 130 } }
+                        Behavior on color { ColorAnimation { duration: Anim.color} }
                     }
 
                     Column {
-                        anchors { left: parent.left; bottom: parent.bottom; margins: 9 }
-                        spacing: 2
+                        anchors { left: parent.left; bottom: parent.bottom; margins: Math.round(9 * localScale) }
+                        spacing: Math.round(2 * localScale)
                         Text {
-                            text: btn.icon; font.pixelSize: 17
+                            text: btn.icon; font.pixelSize: Math.round(17 * localScale)
                             color: btn.on ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.40)
-                            Behavior on color { ColorAnimation { duration: 130 } }
+                            Behavior on color { ColorAnimation { duration: Anim.color} }
                         }
                         Text {
-                            text: btn.label; font.pixelSize: 9; font.weight: Font.Medium
+                            text: btn.label; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Medium
                             color: btn.on ? Theme.text : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
-                            Behavior on color { ColorAnimation { duration: 130 } }
+                            Behavior on color { ColorAnimation { duration: Anim.color} }
                         }
                         Text {
                             visible: btn.sublabel !== ""
                             text:    btn.sublabel
-                            font.pixelSize: 8; font.family: "JetBrains Mono"
+                            font.pixelSize: Math.round(8 * localScale); font.family: "JetBrains Mono"
                             color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.65)
-                            width: btn.width - 18; elide: Text.ElideRight
+                            width: btn.width - Math.round(18 * localScale); elide: Text.ElideRight
                         }
                     }
                     HoverHandler { id: bH; cursorShape: Qt.PointingHandCursor }
-                    MouseArea    { anchors.fill: parent; onClicked: btn.toggled() }
+                    MouseArea { 
+                        anchors.fill: parent
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        onClicked: (mouse) => {
+                            if (mouse.button === Qt.RightButton) btn.rightToggled()
+                            else btn.toggled()
+                        }
+                    }
                 }
 
                 Grid {
                     id: tileGrid
                     width: flick.width
-                    columns: 2; spacing: 6
+                    columns: 2; spacing: Math.round(6 * localScale)
 
                     readonly property real btnW: (width - spacing) / 2
                     readonly property real btnH: btnW * 0.85
@@ -851,6 +904,37 @@ StatCard {
                         sublabel: root.currentFilter !== "" ? root.currentFilter : ""
                         onToggled: root._filterOpen()
                     }
+                    // Picker tile — opens Wayland portal color picker dialog (right-click cycles format)
+                    TglBtn {
+                        width: tileGrid.btnW; height: tileGrid.btnH
+                        on: false
+                        icon: "󰈊"
+                        label: "Picker"
+                        sublabel: root.pickerFormat
+                        onToggled: root._pickerLaunch()
+                        onRightToggled: {
+                            if (root.pickerFormat === "HEX") root.pickerFormat = "RGB";
+                            else if (root.pickerFormat === "RGB") root.pickerFormat = "HSL";
+                            else root.pickerFormat = "HEX";
+                        }
+                    }
+                    // Theme Mode tile — system wide dark/light scheme toggle
+                    TglBtn {
+                        width: tileGrid.btnW; height: tileGrid.btnH
+                        on: PrefsService.darkMode
+                        icon: PrefsService.darkMode ? "󰔎" : "󰖨"
+                        label: "Theme Mode"
+                        sublabel: PrefsService.darkMode ? "Dark Scheme" : "Light Scheme"
+                        onToggled: {
+                            PrefsService.darkMode = !PrefsService.darkMode
+                            PrefsService.saveConfig()
+                            sysThemeProc.command = ["bash", "-c", "gsettings set org.gnome.desktop.interface color-scheme " + (PrefsService.darkMode ? "'prefer-dark'" : "'prefer-light'")]
+                            sysThemeProc.running = false; sysThemeProc.running = true
+                            if (WallpaperService.currentWall !== "") {
+                                WallpaperService.apply(WallpaperService.currentWall)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -880,14 +964,14 @@ StatCard {
         anchors {
             right:        parent.right
             bottom:       parent.bottom
-            rightMargin:  12
-            bottomMargin: 12
+            rightMargin:  Math.round(12 * localScale)
+            bottomMargin: Math.round(12 * localScale)
         }
 
-        width:  180
+        width:  Math.round(180 * localScale)
         // Height fits "Off" row + all shader rows, capped at 280
-        height: Math.min(280, pickerCol.implicitHeight + 16)
-        radius: Theme.cornerRadius
+        height: Math.min(Math.round(280 * localScale), pickerCol.implicitHeight + Math.round(16 * localScale))
+        radius: Math.round(Theme.cornerRadius * localScale)
 
         color: Qt.rgba(
             Math.min(1, Theme.background.r + 0.05),
@@ -900,8 +984,8 @@ StatCard {
         // Subtle entrance scale + fade
         opacity: root.filterPickerOpen ? 1 : 0
         scale:   root.filterPickerOpen ? 1 : 0.95
-        Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-        Behavior on scale   { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+        Behavior on scale   { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
         transformOrigin: Item.BottomRight
 
         // Dismiss when clicking outside the picker
@@ -912,7 +996,7 @@ StatCard {
         }
 
         Flickable {
-            anchors { fill: parent; margins: 8 }
+            anchors { fill: parent; margins: Math.round(8 * localScale) }
             contentWidth:   width
             contentHeight:  pickerCol.implicitHeight
             clip:           true
@@ -921,45 +1005,45 @@ StatCard {
             Column {
                 id: pickerCol
                 width: parent.width
-                spacing: 2
+                spacing: Math.round(2 * localScale)
 
                 // Header label
                 Text {
                     width: parent.width
                     text: "SHADER"
-                    font.pixelSize: 9; font.weight: Font.Bold
+                    font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold
                     color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
-                    leftPadding: 4
-                    bottomPadding: 4
+                    leftPadding: Math.round(4 * localScale)
+                    bottomPadding: Math.round(4 * localScale)
                 }
 
                 // "Off" row — always first
                 Rectangle {
                     width:  parent.width
-                    height: 28
-                    radius: 6
+                    height: Math.round(28 * localScale)
+                    radius: Math.round(6 * localScale)
                     property bool isActive: root.currentFilter === ""
                     color: isActive
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
                         : offH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
 
                     Row {
-                        anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
-                        spacing: 8
+                        anchors { left: parent.left; leftMargin: Math.round(10 * localScale); verticalCenter: parent.verticalCenter }
+                        spacing: Math.round(8 * localScale)
                         Text {
                             text:           parent.parent.isActive ? "●" : "○"
-                            font.pixelSize: 9
+                            font.pixelSize: Math.round(9 * localScale)
                             color: parent.parent.isActive ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.30)
                             anchors.verticalCenter: parent.verticalCenter
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                         }
                         Text {
                             text:           "Off"
-                            font.pixelSize: 12
+                            font.pixelSize: Math.round(12 * localScale)
                             color: parent.parent.isActive ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.65)
                             anchors.verticalCenter: parent.verticalCenter
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                         }
                     }
                     HoverHandler { id: offH; cursorShape: Qt.PointingHandCursor }
@@ -980,31 +1064,31 @@ StatCard {
                         property bool isActive: root.currentFilter === modelData
 
                         width:  pickerCol.width
-                        height: 28
-                        radius: 6
+                        height: Math.round(28 * localScale)
+                        radius: Math.round(6 * localScale)
                         color: isActive
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
                             : itemH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
 
                         Row {
-                            anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
-                            spacing: 8
+                            anchors { left: parent.left; leftMargin: Math.round(10 * localScale); verticalCenter: parent.verticalCenter }
+                            spacing: Math.round(8 * localScale)
                             Text {
                                 text:           parent.parent.isActive ? "●" : "○"
-                                font.pixelSize: 9
+                                font.pixelSize: Math.round(9 * localScale)
                                 color: parent.parent.isActive ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.30)
                                 anchors.verticalCenter: parent.verticalCenter
-                                Behavior on color { ColorAnimation { duration: 100 } }
+                                Behavior on color { ColorAnimation { duration: Anim.fast} }
                             }
                             Text {
                                 text:           modelData
-                                font.pixelSize: 12
+                                font.pixelSize: Math.round(12 * localScale)
                                 color: parent.parent.isActive ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.65)
                                 anchors.verticalCenter: parent.verticalCenter
                                 elide: Text.ElideRight
-                                width: pickerCol.width - 38
-                                Behavior on color { ColorAnimation { duration: 100 } }
+                                width: pickerCol.width - Math.round(38 * localScale)
+                                Behavior on color { ColorAnimation { duration: Anim.fast} }
                             }
                         }
                         HoverHandler { id: itemH; cursorShape: Qt.PointingHandCursor }
@@ -1017,10 +1101,10 @@ StatCard {
                     width:   parent.width
                     visible: root.filterList.length === 0
                     text:    "Loading…"
-                    font.pixelSize: 11
+                    font.pixelSize: Math.round(11 * localScale)
                     color:   Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
                     horizontalAlignment: Text.AlignHCenter
-                    topPadding: 4
+                    topPadding: Math.round(4 * localScale)
                 }
             }
         }

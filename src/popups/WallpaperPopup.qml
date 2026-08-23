@@ -13,6 +13,8 @@ import "../"
 PanelWindow {
     id: root
 
+    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+
     anchors.top:    true
     anchors.left:   true
     anchors.right:  true
@@ -26,6 +28,13 @@ PanelWindow {
     property bool wantsFocus: false
     WlrLayershell.keyboardFocus: wantsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
+    Region {
+        id: wallBlurReg
+        item: sizer
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? wallBlurReg : null
+
     Timer {
         id: focusGrabTimer
         interval: 15
@@ -34,18 +43,18 @@ PanelWindow {
         }
     }
     
-    readonly property int panelWidth:  980
-    readonly property int panelHeight: 420
-    readonly property int fw:          Theme.notchRadius
-    readonly property int fh:          Theme.notchRadius
+    readonly property int panelWidth:  Math.round(980 * root.localScale)
+    readonly property int panelHeight: Math.round(420 * root.localScale)
+    readonly property int fw:          Math.round(Theme.notchRadius * root.localScale)
+    readonly property int fh:          Math.round(Theme.notchRadius * root.localScale)
 
     property bool windowVisible: false
     visible: windowVisible
 
     // ── Self-hover tracking ───────────────────────────────────────────────────
     property bool selfHovered: true
-    
-    property bool allowHover: false
+    property bool allowHover: Popups.wallpaperAllowHover
+    property bool pinned:     Popups.wallpaperPinned
 
     // ── Hover close timer ─────────────────────────────────────────────────────
     // Fires when both the trigger region and the popup itself are no longer hovered.
@@ -53,8 +62,11 @@ PanelWindow {
         id: hoverCloseTimer
         interval: Popups.hoverCloseDelay
         onTriggered: {
-            if (root.allowHover && !Popups.wallpaperTriggerHovered && !root.selfHovered)
-                Popups.wallpaperOpen = false
+            if (root.allowHover && !Popups.wallpaperTriggerHovered && !root.selfHovered) {
+                if (!root.pinned) {
+                    Popups.wallpaperOpen = false
+                }
+            }
         }
     }
 
@@ -77,22 +89,10 @@ PanelWindow {
             if (Popups.wallpaperTriggerHovered) {
                 if (root.allowHover) {
                     hoverCloseTimer.stop()
-                    if (!Popups.wallpaperOpen) {
-                        closeTimer.stop()
-                        root.windowVisible           = true
-                        Popups.wallpaperOpen         = true
-                        WallpaperService.refresh()
-                        WallpaperService.previewWall = ""
-                        content.schemePopupOpen      = false
-                        content.folderMode           = false
-                        content.appliedScheme        = WallpaperService.scheme
-                        searchInput.text             = ""
-                        focusGrabTimer.restart()
-                        searchInput.forceActiveFocus()
-                        focusTimer.restart()
-                    }
+                    hoverOpenTimer.restart()
                 }
             } else {
+                hoverOpenTimer.stop()
                 if (root.allowHover && !root.selfHovered) hoverCloseTimer.restart()
             }
         }
@@ -120,8 +120,31 @@ PanelWindow {
     }
 
     Timer {
+        id: hoverOpenTimer
+        interval: Popups.hoverOpenDelay
+        onTriggered: {
+            if (root.allowHover && Popups.wallpaperTriggerHovered) {
+                if (!Popups.wallpaperOpen) {
+                    closeTimer.stop()
+                    root.windowVisible           = true
+                    Popups.wallpaperOpen         = true
+                    WallpaperService.refresh()
+                    WallpaperService.previewWall = ""
+                    content.schemePopupOpen      = false
+                    content.folderMode           = false
+                    content.appliedScheme        = WallpaperService.scheme
+                    searchInput.text             = ""
+                    focusGrabTimer.restart()
+                    searchInput.forceActiveFocus()
+                    focusTimer.restart()
+                }
+            }
+        }
+    }
+
+    Timer {
         id: closeTimer
-        interval: Theme.animDuration + 20
+        interval: Anim.transition + 20
         onTriggered: { if (!Popups.wallpaperOpen) root.windowVisible = false }
     }
 
@@ -147,7 +170,7 @@ PanelWindow {
 
     Timer {
         id: centerLockTimer
-        interval: Theme.animDuration
+        interval: Anim.transition
         onTriggered: wallGrid.targetCenterIndex = -1
     }
 
@@ -157,46 +180,56 @@ PanelWindow {
     }
 
     Item {
-        id: sizer
+        id: hoverContainer
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom:           parent.bottom
-        anchors.bottomMargin:     Theme.borderWidth
-        clip: true
-
-        width:  Popups.wallpaperOpen ? root.panelWidth + 2 * root.fw : Theme.cNotchMinWidth + 2 * root.fw
-        height: Popups.wallpaperOpen ? root.panelHeight : 0
-
-        Behavior on width  { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
-        Behavior on height { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
+        width:  sizer.width
+        height: sizer.height + Math.round(Theme.borderWidth * root.localScale)
 
         HoverHandler {
             onHoveredChanged: root.selfHovered = hovered
         }
 
-        MouseArea {
-            anchors.fill: parent
-            onClicked:    {}
-        }
-
-        PopupShape {
-            anchors.fill: parent
-            attachedEdge: "bottom"
-            color:        Theme.background
-            radius:       Theme.cornerRadius
-            flareWidth:   root.fw
-            flareHeight:  root.fh
-        }
-
         Item {
-            id: content
-            focus: true
-            anchors {
-                fill:         parent
-                topMargin:    16
-                bottomMargin: root.fh + 8
-                leftMargin:   root.fw + 16
-                rightMargin:  root.fw + 16
+            id: sizer
+            anchors.top:              parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+            clip: true
+
+            width:  Popups.wallpaperOpen ? root.panelWidth + 2 * root.fw : Math.round(Theme.cNotchMinWidth * root.localScale) + 2 * root.fw
+            height: Popups.wallpaperOpen ? root.panelHeight : 0
+
+            Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+            Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
+
+
+
+            TapHandler {
+                onTapped: {
+                    Popups.wallpaperOpen = true
+                    Popups.wallpaperPinned = true
+                }
             }
+
+            PopupShape {
+                anchors.fill: parent
+                attachedEdge: "bottom"
+                color:        Theme.background
+                radius:       Math.round(Theme.cornerRadius * root.localScale)
+                flareWidth:   root.fw
+                flareHeight:  root.fh
+            }
+
+            Item {
+                id: content
+                focus: true
+                anchors {
+                    bottom:           parent.bottom
+                    bottomMargin:     root.fh + Math.round(8 * root.localScale)
+                    horizontalCenter: parent.horizontalCenter
+                }
+                width:  root.panelWidth - Math.round(32 * root.localScale)
+                height: root.panelHeight - root.fh - Math.round(24 * root.localScale)
 
             property string searchQuery:     ""
             property bool   schemePopupOpen: false
@@ -218,12 +251,12 @@ PanelWindow {
 
             opacity: Popups.wallpaperOpen ? 1 : 0
             transform: Translate {
-                y: Popups.wallpaperOpen ? 0 : 40
-                Behavior on y { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.OutExpo } }
+                y: Popups.wallpaperOpen ? 0 : Math.round(40 * root.localScale)
+                Behavior on y { NumberAnimation { duration: Anim.transition; easing.type: Anim.outExpo} }
             }
             Behavior on opacity {
                 NumberAnimation {
-                    duration: Popups.wallpaperOpen ? Theme.animDuration * 0.5 : Theme.animDuration * 0.15
+                    duration: Popups.wallpaperOpen ? Anim.transition * 0.5 : Anim.transition * 0.15
                 }
             }
 
@@ -239,16 +272,16 @@ PanelWindow {
                 anchors.left:         parent.left
                 anchors.right:        parent.right
                 anchors.bottom:       divider.top
-                anchors.bottomMargin: 8
+                anchors.bottomMargin: Math.round(8 * localScale)
 
                 orientation:    ListView.Horizontal
-                spacing:        14
+                spacing:        Math.round(14 * localScale)
                 clip:           true
                 boundsBehavior: Flickable.StopAtBounds
                 interactive:    false
                 ScrollBar.horizontal: ScrollBar { 
                     policy: ScrollBar.AsNeeded
-                    height: 6 
+                    height: Math.round(6 * localScale) 
                 }
                 model: content.filteredWallpapers
 
@@ -256,8 +289,8 @@ PanelWindow {
                     anchors.centerIn: parent
                     visible:          wallGrid.count === 0
                     text:             "No wallpapers found in " + WallpaperService.wallpaperDir
-                    color:            Qt.rgba(1,1,1,0.25)
-                    font.pixelSize:   13
+                    color:            Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25)
+                    font.pixelSize:   Math.round(13 * localScale)
                 }
 
                 delegate: Item {
@@ -266,11 +299,11 @@ PanelWindow {
                     required property int    index
                     property bool isPreview: WallpaperService.previewWall === modelData
                     property bool isCurrent: WallpaperService.currentWall === modelData
-                    readonly property int labelH: 30
+                    readonly property int labelH: Math.round(30 * localScale)
 
-                    width:  isPreview ? (130 * 1.2) : 130
-                    height: isPreview ? wallGrid.height : wallGrid.height - 14
-                    Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.InOutCubic } }
+                    width:  isPreview ? Math.round(130 * 1.2 * localScale) : Math.round(130 * localScale)
+                    height: isPreview ? wallGrid.height : wallGrid.height - Math.round(14 * localScale)
+                    Behavior on width { NumberAnimation { duration: Anim.color; easing.type: Anim.inOutCubic} }
 
                     Item {
                         id:           cardContent
@@ -295,14 +328,14 @@ PanelWindow {
                             height: cardDelegate.labelH
                             color: isPreview
                                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
-                                : Qt.rgba(1,1,1,0.09)
+                                : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09)
 
                             Text {
                                 anchors.centerIn: parent
-                                width:               parent.width - 10
+                                width:               parent.width - Math.round(10 * localScale)
                                 text:                modelData.split("/").pop().replace(/\.[^/.]+$/, "")
-                                color:               isPreview ? Theme.active : Qt.rgba(1,1,1,0.65)
-                                font.pixelSize:      10
+                                color:               isPreview ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.65)
+                                font.pixelSize:      Math.round(10 * localScale)
                                 font.weight:         isPreview ? Font.Medium : Font.Normal
                                 elide:               Text.ElideRight
                                 horizontalAlignment: Text.AlignHCenter
@@ -313,7 +346,7 @@ PanelWindow {
                     Rectangle {
                         id: cardMask
                         anchors.fill: parent
-                        radius: 10
+                        radius: Math.round(10 * localScale)
                         visible: false
                         layer.enabled: true
                     }
@@ -329,14 +362,14 @@ PanelWindow {
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: 10
+                        radius: Math.round(10 * localScale)
                         color: "transparent"
-                        border.width: isPreview ? 2 : 1
+                        border.width: isPreview ? Math.round(2 * localScale) : Math.round(1 * localScale)
                         border.color: isPreview ? Theme.active
                             : isCurrent ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.45)
-                            : Qt.rgba(1,1,1,0.15)
-                        Behavior on border.color { ColorAnimation { duration: 120 } }
-                        Behavior on border.width { NumberAnimation  { duration: 120 } }
+                            : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.15)
+                        Behavior on border.color { ColorAnimation { duration: Anim.color} }
+                        Behavior on border.width { NumberAnimation  { duration: Anim.color} }
                     }
 
                     MouseArea {
@@ -361,7 +394,7 @@ PanelWindow {
                 anchors.left:         parent.left
                 anchors.right:        parent.right
                 anchors.bottom:       divider.top
-                anchors.bottomMargin: 8
+                anchors.bottomMargin: Math.round(8 * root.localScale)
                 z:                    wallGrid.z + 1
                 acceptedButtons:      Qt.NoButton
                 onWheel: function(wheel) {
@@ -374,43 +407,44 @@ PanelWindow {
             Rectangle {
                 id: divider
                 anchors.bottom:       utilBar.top
-                anchors.bottomMargin: 8
+                anchors.bottomMargin: Math.round(8 * root.localScale)
                 anchors.left:         parent.left
                 anchors.right:        parent.right
                 height: 1
-                color: Qt.rgba(1,1,1,0.07)
+                color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.07)
             }
 
             Item {
                 id: utilBar
                 anchors.bottom:       parent.bottom
-                anchors.bottomMargin: -20
+                anchors.bottomMargin: Math.round((Theme.notchRadius - 12) * root.localScale)
                 anchors.left:         parent.left
                 anchors.right:        parent.right
-                height: 32
+                height: Math.round(32 * localScale)
 
                 Row {
-                    anchors.centerIn: parent
-                    spacing: 8
+                    anchors.verticalCenter:   parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: Math.round(8 * localScale)
 
                     Rectangle {
                         id:                 folderBtn
-                        width:              32
-                        height:             32
-                        radius:             8
+                        width:              Math.round(32 * root.localScale)
+                        height:             Math.round(32 * root.localScale)
+                        radius:             Math.round(8 * root.localScale)
                         color: folderBtnMA.containsMouse 
                                ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14) 
-                               : (content.folderMode ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18) : Qt.rgba(1,1,1,0.04))
+                               : (content.folderMode ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04))
                         border.color: (content.folderMode || folderBtnMA.containsMouse)
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
-                            : Qt.rgba(1,1,1,0.09)
+                            : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09)
                         border.width: 1
-                        Behavior on color        { ColorAnimation { duration: 100 } }
-                        Behavior on border.color { ColorAnimation { duration: 100 } }
+                        Behavior on color        { ColorAnimation { duration: Anim.fast} }
+                        Behavior on border.color { ColorAnimation { duration: Anim.fast} }
                         Text {
-                            anchors.centerIn: parent; text: "󰉋"; font.pixelSize: 15
-                            color: (content.folderMode || folderBtnMA.containsMouse) ? Theme.active : Qt.rgba(1,1,1,0.5)
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            anchors.centerIn: parent; text: "󰉋"; font.pixelSize: Math.round(15 * root.localScale)
+                            color: (content.folderMode || folderBtnMA.containsMouse) ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.5)
+                            Behavior on color { ColorAnimation { duration: Anim.fast} }
                         }
                         MouseArea {
                             id:                 folderBtnMA
@@ -433,16 +467,16 @@ PanelWindow {
 
                     Rectangle {
                         id:                 filterBox
-                        width:              300
-                        height:             32
-                        radius:             8
-                        color: filterBoxMA.containsMouse ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.06)
+                        width:              Math.round(300 * root.localScale)
+                        height:             Math.round(32 * root.localScale)
+                        radius:             Math.round(8 * root.localScale)
+                        color: filterBoxMA.containsMouse ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06)
                         border.color: (searchInput.activeFocus || dirInput.activeFocus)
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5)
-                            : (filterBoxMA.containsMouse ? Qt.rgba(1,1,1,0.15) : Qt.rgba(1,1,1,0.1))
+                            : (filterBoxMA.containsMouse ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.15) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1))
                         border.width: 1
-                        Behavior on color { ColorAnimation { duration: 100 } }
-                        Behavior on border.color { ColorAnimation { duration: 100 } }
+                        Behavior on color { ColorAnimation { duration: Anim.fast} }
+                        Behavior on border.color { ColorAnimation { duration: Anim.fast} }
                         
                         MouseArea {
                             id:                 filterBoxMA
@@ -453,15 +487,15 @@ PanelWindow {
 
                         Item {
                             anchors.fill:        parent
-                            anchors.leftMargin:  10
-                            anchors.rightMargin: 10
+                            anchors.leftMargin:  Math.round(10 * root.localScale)
+                            anchors.rightMargin: Math.round(10 * root.localScale)
                             visible: !content.folderMode
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: "Search wallpapers…"
-                                color: (searchInput.activeFocus || filterBoxMA.containsMouse) ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.7) : Qt.rgba(1,1,1,0.28)
-                                font.pixelSize: 12; visible: searchInput.text === ""
+                                color: (searchInput.activeFocus || filterBoxMA.containsMouse) ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.7) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.28)
+                                font.pixelSize: Math.round(12 * root.localScale); visible: searchInput.text === ""
                             }
 
                             TextInput {
@@ -469,7 +503,7 @@ PanelWindow {
                                 anchors.fill:      parent
                                 verticalAlignment: TextInput.AlignVCenter
                                 color:             Theme.text
-                                font.pixelSize:    12
+                                font.pixelSize:    Math.round(12 * root.localScale)
                                 selectionColor:    Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)
                                 clip:              true
                                 onTextChanged:     content.searchQuery = text
@@ -520,8 +554,8 @@ PanelWindow {
 
                         Item {
                             anchors.fill:        parent
-                            anchors.leftMargin:  10
-                            anchors.rightMargin: 10
+                            anchors.leftMargin:  Math.round(10 * root.localScale)
+                            anchors.rightMargin: Math.round(10 * root.localScale)
                             visible:             content.folderMode
 
                             Text {
@@ -530,7 +564,7 @@ PanelWindow {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text:                   "Path: "
                                 color:                  (dirInput.activeFocus || filterBoxMA.containsMouse) ? Theme.active : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.7)
-                                font.pixelSize:         11
+                                font.pixelSize:         Math.round(11 * root.localScale)
                             }
 
                             TextInput {
@@ -541,7 +575,7 @@ PanelWindow {
                                 anchors.bottom:    parent.bottom
                                 verticalAlignment: TextInput.AlignVCenter
                                 color:             Theme.text
-                                font.pixelSize:    12
+                                font.pixelSize:    Math.round(12 * root.localScale)
                                 font.family:       "JetBrains Mono"
                                 selectionColor:    Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)
                                 clip:              true
@@ -562,38 +596,38 @@ PanelWindow {
                     Rectangle {
                         id:                 schemeBtn
                         width:              schemeBtnRow.implicitWidth + 20
-                        height:             32
-                        radius:             8
+                        height:             Math.round(32 * root.localScale)
+                        radius:             Math.round(8 * root.localScale)
                         color: schemeBtnMA.containsMouse 
                                ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14) 
-                               : (content.schemePopupOpen ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18) : Qt.rgba(1,1,1,0.04))
+                               : (content.schemePopupOpen ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04))
                         border.color: (content.schemePopupOpen || schemeBtnMA.containsMouse)
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
-                            : Qt.rgba(1,1,1,0.09)
+                            : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09)
                         border.width: 1
-                        Behavior on color        { ColorAnimation { duration: 100 } }
-                        Behavior on border.color { ColorAnimation { duration: 100 } }
+                        Behavior on color        { ColorAnimation { duration: Anim.fast} }
+                        Behavior on border.color { ColorAnimation { duration: Anim.fast} }
 
                         Row {
-                            id:                 schemeBtnRow; anchors.centerIn: parent; spacing: 7
+                            id:                 schemeBtnRow; anchors.centerIn: parent; spacing: Math.round(7 * localScale)
                             Text {
                                 text:                   "󰏘"
-                                font.pixelSize:         14
-                                color:                  (content.schemePopupOpen || schemeBtnMA.containsMouse) ? Theme.active : Qt.rgba(1,1,1,0.55)
+                                font.pixelSize:         Math.round(14 * localScale)
+                                color:                  (content.schemePopupOpen || schemeBtnMA.containsMouse) ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.55)
                                 anchors.verticalCenter: parent.verticalCenter
-                                Behavior on color       { ColorAnimation { duration: 100 } }
+                                Behavior on color       { ColorAnimation { duration: Anim.fast} }
                             }
                             Text {
                                 text:                   WallpaperService.scheme
-                                font.pixelSize:         12
-                                color:                  (content.schemePopupOpen || schemeBtnMA.containsMouse) ? Theme.active : Qt.rgba(1,1,1,0.7)
+                                font.pixelSize:         Math.round(12 * localScale)
+                                color:                  (content.schemePopupOpen || schemeBtnMA.containsMouse) ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.7)
                                 anchors.verticalCenter: parent.verticalCenter
-                                Behavior on color       { ColorAnimation { duration: 100 } }
+                                Behavior on color       { ColorAnimation { duration: Anim.fast} }
                             }
                             Text {
                                 text:                   content.schemePopupOpen ? "▴" : "▾"
-                                font.pixelSize:         8
-                                color:                  (content.schemePopupOpen || schemeBtnMA.containsMouse) ? Theme.active : Qt.rgba(1,1,1,0.35)
+                                font.pixelSize:         Math.round(8 * localScale)
+                                color:                  (content.schemePopupOpen || schemeBtnMA.containsMouse) ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.35)
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                         }
@@ -613,9 +647,9 @@ PanelWindow {
                     anchors.right:          parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     property bool active:   content.applyActive
-                    width:                  active ? 90 : 0
-                    height:                 32
-                    radius:                 8
+                    width:                  active ? Math.round(90 * localScale) : 0
+                    height:                 Math.round(32 * localScale)
+                    radius:                 Math.round(8 * localScale)
                     opacity:                active ? 1 : 0
                     clip:                   true
                     color: applyBtnMA.containsMouse
@@ -625,18 +659,18 @@ PanelWindow {
                         ? Theme.active
                         : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
                     border.width: 1
-                    Behavior on width        { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                    Behavior on opacity      { NumberAnimation { duration: 160 } }
-                    Behavior on color        { ColorAnimation { duration: 100 } }
-                    Behavior on border.color { ColorAnimation { duration: 100 } }
+                    Behavior on width        { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic} }
+                    Behavior on opacity      { NumberAnimation { duration: Anim.mediumFast} }
+                    Behavior on color        { ColorAnimation { duration: Anim.fast} }
+                    Behavior on border.color { ColorAnimation { duration: Anim.fast} }
                     Text {
                         anchors.centerIn: parent
                         text:             WallpaperService.applying ? "…" : "Apply"
-                        font.pixelSize:   12
+                        font.pixelSize:   Math.round(12 * localScale)
                         font.weight:      Font.Medium 
                         color:            Theme.active
                         opacity:          applyBtn.active ? 1 : 0
-                        Behavior on opacity { NumberAnimation { duration: 100 } }
+                        Behavior on opacity { NumberAnimation { duration: Anim.fast} }
                     }
                     MouseArea {
                         id:           applyBtnMA
@@ -667,22 +701,22 @@ PanelWindow {
             visible: content.schemePopupOpen
             clip:    false
 
-            width:  schemeDropdownCol.implicitWidth + 32
-            height: schemeDropdownCol.implicitHeight + 16
-            radius: Theme.cornerRadius
+            width:  schemeDropdownCol.implicitWidth + Math.round(32 * root.localScale)
+            height: schemeDropdownCol.implicitHeight + Math.round(16 * root.localScale)
+            radius: Math.round(Theme.cornerRadius * root.localScale)
 
             color:        Theme.background
             border.color: Theme.active
             border.width: 1
 
             opacity:            content.schemePopupOpen ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 140 } }
+            Behavior on opacity { NumberAnimation { duration: Anim.color} }
 
             onVisibleChanged: {
                 if (visible) {
                     var pos = schemeBtn.mapToItem(sizer, 0, 0)
-                    x = Math.min(pos.x, sizer.width - width - 4)
-                    y = pos.y - height - 6
+                    x = Math.min(pos.x, sizer.width - width - Math.round(4 * root.localScale))
+                    y = pos.y - height - Math.round(6 * root.localScale)
                 }
             }
 
@@ -694,7 +728,7 @@ PanelWindow {
             ColumnLayout {
                 id:               schemeDropdownCol
                 anchors.centerIn: parent
-                spacing:          4
+                spacing:          Math.round(4 * root.localScale)
 
                 Repeater {
                     model: WallpaperService.schemes
@@ -705,10 +739,10 @@ PanelWindow {
 
                         Layout.fillWidth: true
                         // Pad minimumWidth to ensure space between text and rectangle edges
-                        Layout.minimumWidth: schemeItemText.implicitWidth + 40 
-                        Layout.preferredHeight: 32
+                        Layout.minimumWidth: schemeItemText.implicitWidth + Math.round(40 * root.localScale) 
+                        Layout.preferredHeight: Math.round(32 * root.localScale)
                         
-                        radius: 8
+                        radius: Math.round(8 * root.localScale)
                         color: schemeItemMA.containsMouse 
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14) 
                             : (sel ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22) : "transparent")
@@ -718,26 +752,26 @@ PanelWindow {
                             : "transparent"
                         border.width: 1
 
-                        Behavior on color        { ColorAnimation { duration: 100 } }
-                        Behavior on border.color { ColorAnimation { duration: 100 } }
+                        Behavior on color        { ColorAnimation { duration: Anim.fast} }
+                        Behavior on border.color { ColorAnimation { duration: Anim.fast} }
 
                         Row {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            anchors.leftMargin: 12
-                            spacing: 10
+                            anchors.leftMargin: Math.round(12 * root.localScale)
+                            spacing: Math.round(10 * root.localScale)
                             
                             Text {
                                 text:                   sel ? "●" : "○"
-                                font.pixelSize:         10
-                                color:                  (sel || schemeItemMA.containsMouse) ? Theme.active : Qt.rgba(1,1,1,0.3)
+                                font.pixelSize:         Math.round(10 * root.localScale)
+                                color:                  (sel || schemeItemMA.containsMouse) ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.3)
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                             Text {
                                 id:                     schemeItemText
                                 text:                   modelData
-                                font.pixelSize:         13
-                                color:                  (sel || schemeItemMA.containsMouse) ? Theme.text : Qt.rgba(1,1,1,0.65)
+                                font.pixelSize:         Math.round(13 * root.localScale)
+                                color:                  (sel || schemeItemMA.containsMouse) ? Theme.text : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.65)
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                         }
@@ -758,3 +792,6 @@ PanelWindow {
         }
     }
 }
+}
+
+

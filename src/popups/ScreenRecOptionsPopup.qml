@@ -13,9 +13,10 @@ PopupWindow {
     id: root
 
     required property var anchorWindow
+    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
-    readonly property int _padH: 5
-    readonly property int _padV: 5
+    readonly property int _padH: Math.round(5 * root.localScale)
+    readonly property int _padV: Math.round(5 * root.localScale)
 
     implicitWidth:  optCol.implicitWidth + _padH * 2
     implicitHeight: optCol.implicitHeight + _padV * 2
@@ -25,13 +26,20 @@ PopupWindow {
     anchor.adjustment: PopupAdjustment.None
     anchor.rect: Qt.rect(
        ScreenRecService.popupTargetX + (ScreenRecService.popupTargetWidth / 2),
-        25,
+        Math.round(25 * root.localScale),
         root.implicitWidth,
-        Theme.notchHeight
+        Math.round(Theme.notchHeight * root.localScale)
     )
 
     color:   "transparent"
     visible: ScreenRecService.openStrip !== ""
+
+    Region {
+        id: screenRecBlurReg
+        item: recBg
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? screenRecBlurReg : null
 
     HoverHandler {
         onHoveredChanged: {
@@ -41,8 +49,9 @@ PopupWindow {
     }
 
     Rectangle {
+        id: recBg
         anchors.fill: parent
-        radius:       Theme.cornerRadius - 6
+        radius:       Math.round((Theme.cornerRadius - 6) * root.localScale)
         color:        Theme.background
         border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
         border.width: 1
@@ -52,7 +61,7 @@ PopupWindow {
         id: optCol
         x:       _padH
         y:       _padV
-        spacing: 2
+        spacing: Math.round(2 * root.localScale)
 
         // Capture — radio (one active at a time)
         Repeater {
@@ -111,36 +120,36 @@ PopupWindow {
 
         signal clicked()
 
-        implicitWidth:  8 + 14 + 6 + _lbl.implicitWidth + 12
-        implicitHeight: 26
+        implicitWidth:  Math.round((8 + 14 + 6 + 12) * root.localScale) + _lbl.implicitWidth
+        implicitHeight: Math.round(26 * root.localScale)
 
         Rectangle {
             anchors.fill: parent
-            radius:       5
+            radius:       Math.round(5 * root.localScale)
             color: row._selected
                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
-                   : rH.hovered ? Qt.rgba(1, 1, 1, 0.07) : "transparent"
-            Behavior on color { ColorAnimation { duration: 100 } }
+                   : rH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
+            Behavior on color { ColorAnimation { duration: Anim.fast} }
         }
 
         Row {
-            anchors { left: parent.left; leftMargin: 8; verticalCenter: parent.verticalCenter }
-            spacing: 6
+            anchors { left: parent.left; leftMargin: Math.round(8 * root.localScale); verticalCenter: parent.verticalCenter }
+            spacing: Math.round(6 * root.localScale)
 
             Text {
                 text:           row._icon
-                font.pixelSize: 13
-                color:          row._selected ? Theme.active : Qt.rgba(1, 1, 1, 0.45)
+                font.pixelSize: Math.round(13 * root.localScale)
+                color:          row._selected ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
                 anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 100 } }
+                Behavior on color { ColorAnimation { duration: Anim.fast} }
             }
             Text {
                 id:             _lbl
                 text:           row._label
-                font.pixelSize: 12
-                color:          row._selected ? Theme.active : Qt.rgba(1, 1, 1, 0.70)
+                font.pixelSize: Math.round(12 * root.localScale)
+                color:          row._selected ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.70)
                 anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 100 } }
+                Behavior on color { ColorAnimation { duration: Anim.fast} }
             }
         }
 

@@ -1,14 +1,15 @@
 pragma Singleton
 import QtQuick
+import "../"
 
 QtObject {
     // --Bar Toggle--
-    property bool barEnabled: false
+    property bool barEnabled: PrefsService.barEnabled
 
     // -- Bar Sizes --
-    property int borderWidth:   6
-    property int cornerRadius:  17
-    property int notchRadius:   15
+    property int borderWidth:   PrefsService.borderWidth
+    property int cornerRadius:  PrefsService.cornerRadius
+    property int notchRadius:   PrefsService.notchRadius
     property int notchHeight:   40
     property int exclusionGap:  34
     property int spacing:       10
@@ -38,7 +39,7 @@ QtObject {
 
     // -- Notifications Popup Width --
     property int notificationsWidth: 400
-    property int notificationToastWidth: notificationsWidth / 1.2
+    property int notificationToastWidth: notificationsWidth /1.2
     property int networkPopupWidth:  480
 
     // -- Popup Size Constraints --
@@ -55,6 +56,4 @@ QtObject {
     property int wsPadding:     8
     property int wsRadius:      16
 
-    // -- Animations --
-    property int animDuration: 320
 }

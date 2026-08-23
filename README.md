@@ -1,5 +1,5 @@
   <h1 align=center>Brain_Shell</h1>
-  
+
   <h3 align="center">
   A dynamic, highly modular Wayland desktop shell built with Quickshell and QML, tailored for Hyprland.
   </h3>
@@ -55,7 +55,7 @@
 
 ---
 
-<h2>
+<h2 align="center">
   Installation
 </h2>
 
@@ -65,6 +65,63 @@
 curl -fsSL https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh | bash
 ```
 
+---
+
+### NixOS
+
+### 1. Create or edit `/etc/nixos/flake.nix`
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    brain-shell = {
+      url = "github:Brainitech/Brain_Shell?ref=main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = { nixpkgs, brain-shell, ... }: {
+    # Replace "hostname" with whatever your actual hostname is
+    nixosConfigurations.hostname = nixpkgs.lib.nixosSystem {
+      modules = [
+        brain-shell.nixosModules.default
+        ./configuration.nix
+      ];
+    };
+  };
+}
+
+```
+
+### 2. Enable it in `/etc/nixos/configuration.nix`
+
+```nix
+programs.brain-shell.enable = true;
+
+# Note: If this is a fresh install, ensure flakes are enabled:
+nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+```
+
+### 3. Rebuild the system
+
+Run the rebuild command targeting the flake.
+
+```bash
+sudo nixos-rebuild switch --flake# /etc/nixos/#hostname
+
+```
+
+### 4. Run the user installer
+
+Once the system rebuild is finished, run the setup script to initialize your local ~/.config files and Hyprland autostarts.
+```bash
+bash <(curl -s https://raw.githubusercontent.com/Brainitech/Brain_Shell/main/install.sh)
+```
+
+---
+
 ### Manual installation
 
 ```bash
@@ -73,6 +130,8 @@ cd Brain_Shell
 chmod +x install.sh
 ./install.sh
 ```
+
+Restart Hyprland, and that's the complete end-to-end user experience.
 
 The installer automatically:
 
@@ -175,7 +234,7 @@ The installer automatically:
 
 ---
 
-<h2>
+<h2 align="center">
   Roadmap
 </h2>
 
@@ -208,7 +267,7 @@ The installer automatically:
 
 ---
 
-<h2>
+<h2 align="center">
 Known Issues
 </h2>
 
@@ -218,12 +277,9 @@ Known Issues
 
 - **Shutdown Menu (Hyprshutdown) State:** Canceling a shutdown or logout action can sometimes leave the Hyprland session in an empty state with most applications unintentionally closed. It may also occasionally struggle to terminate all running apps smoothly.
 
-> [!WARNING]  
-> **NixOS & Flakes Support:** The current NixOS installation pipeline and Flake implementation are highly experimental and currently known to be broken. This is actively under testing and will be properly addressed in an upcoming patch. If you are on NixOS, manual configuration is currently required.
-
 ---
 
-<h2>
+<h2 align="center">
   Contributing
 </h2>
 
@@ -236,7 +292,7 @@ Brain Shell is actively developed and welcomes contributions!
 
 ---
 
-<h2>
+<h2 align="center">
   Special Thanks
 </h2>
 
@@ -250,7 +306,7 @@ Brain Shell is actively developed and welcomes contributions!
 
 ---
 
-<h2>
+<h2 align="center">
   Brain Cells Collected
 </h2>
 
@@ -266,7 +322,7 @@ Brain Shell is actively developed and welcomes contributions!
 
 ---
 
-<h2>
+<h2 align="center">
   License
 </h2>
 

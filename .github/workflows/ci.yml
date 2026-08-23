@@ -102,11 +102,6 @@ jobs:
           bash -n src/scripts/PowerControl.sh
           echo "✓ src/scripts/ passed ShellCheck"
 
-      - name: Check Python list_apps.py syntax
-        run: |
-          python -m py_compile src/scripts/list_apps.py
-          echo "✓ list_apps.py syntax OK"
-
       - name: Validate QML files exist and are non-empty
         run: |
           FAILED=()

@@ -500,7 +500,7 @@ for action, info in conflicts.items():
     print(f"    {'':24}  already used by: {info['used_by']}\n")
     unbound[action] = {"mods": "", "key": ""}
 
-config_path = os.path.expanduser("$HOME/.config/Brain_Shell/src/user_data/keybinds.json")
+config_path = os.path.expanduser("~/.config/Brain_Shell/src/user_data/keybinds.json")
 with open(config_path, "w") as f:
     json.dump(unbound, f, indent=2)
 

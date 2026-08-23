@@ -7,7 +7,7 @@ import "../"
 // ─────────────────────────────────────────────────────────────
 // IpcManager — centralized entry point for all external IPC signals.
 //
-// Moving handlers here ensures that on multi-monitor setups (where 
+// Moving handlers here ensures that on multi-monitor setups (where
 // TopBar/PopupLayer are duplicated) only ONE handler reacts to a signal.
 // ─────────────────────────────────────────────────────────────
 
@@ -15,151 +15,83 @@ QtObject {
     id: root
 
     // ── Dashboard Toggles ────────────────────────────────────
-    
+
+    function _openDashboard(page) {
+        Popups._ignoreDefaultTab = true
+        if(Popups.anyOpen && !Popups.dashboardOpen){
+            Popups.closeAll()
+            Popups.dashboardOpen = true
+            Popups.dashboardPage = page
+            Popups.dashboardPinned = true
+        } else if(Popups.dashboardOpen && Popups.dashboardPage != page) {
+            Popups.dashboardPage = page
+        } else {
+            var next = !Popups.dashboardOpen
+            Popups.closeAll()
+            Popups.dashboardOpen = next
+            if (next) { Popups.dashboardPage = page; Popups.dashboardPinned = true; }
+        }
+        Popups._ignoreDefaultTab = false
+    }
+
     property var dashboardHome: IpcHandler {
         target: "dashboard-home"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "home"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "home") {
-                Popups.dashboardPage = "home"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) Popups.dashboardPage = "home"
-            }
-        }
+        function toggle() { _openDashboard("home") }
     }
 
     property var dashboardStats: IpcHandler {
         target: "dashboard-stats"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "stats"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "stats") {
-                Popups.dashboardPage = "stats"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) Popups.dashboardPage = "stats"
-            }
-        }
+        function toggle() { _openDashboard("stats") }
     }
 
     property var dashboardKanban: IpcHandler {
         target: "dashboard-kanban"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "kanban"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "kanban") {
-                Popups.dashboardPage = "kanban"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) Popups.dashboardPage = "kanban"
-            }
-        }
+        function toggle() { _openDashboard("kanban") }
     }
 
     property var dashboardLauncher: IpcHandler {
         target: "dashboard-launcher"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "launcher"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "launcher") {
-                Popups.dashboardPage = "launcher"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) Popups.dashboardPage = "launcher"
-            }
-        }
+        function toggle() { _openDashboard("launcher") }
     }
 
     property var dashboardConfig: IpcHandler {
         target: "dashboard-config"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "config"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "config") {
-                Popups.dashboardPage = "config"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) Popups.dashboardPage = "config"
-            }
-        }
+        function toggle() { _openDashboard("config") }
     }
 
     // ── Audio Toggles ────────────────────────────────────────
 
+    function _openAudio(page) {
+        Popups._ignoreDefaultTab = true
+        if(Popups.anyOpen && !Popups.audioOpen) {
+            Popups.closeAll()
+            Popups.audioOpen = true
+            Popups.audioPage = page
+            Popups.audioPinned = true
+        } else if (Popups.audioOpen && Popups.audioPage != page) {
+            Popups.audioPage = page
+        } else {
+            var next = !Popups.audioOpen
+            Popups.closeAll()
+            Popups.audioOpen = next
+            if (next) { Popups.audioPage = page; Popups.audioPinned = true; }
+        }
+        Popups._ignoreDefaultTab = false
+    }
+
     property var audioOut: IpcHandler {
         target: "audioOut-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.audioOpen) {
-                Popups.closeAll()
-                Popups.audioPage = "output"
-                Popups.audioOpen = true
-            } else if (Popups.audioOpen && Popups.audioPage != "output") {
-                Popups.audioPage = "output"
-            } else {
-                var next = !Popups.audioOpen
-                Popups.closeAll()
-                Popups.audioOpen = next
-                if (next) Popups.audioPage = "output"
-            }
-        }
+        function toggle() { _openAudio("output") }
     }
 
     property var audioMix: IpcHandler {
         target: "audioMix-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.audioOpen) {
-                Popups.closeAll()
-                Popups.audioPage = "mixer"
-                Popups.audioOpen = true
-            } else if (Popups.audioOpen && Popups.audioPage != "mixer") {
-                Popups.audioPage = "mixer"
-            } else {
-                var next = !Popups.audioOpen
-                Popups.closeAll()
-                Popups.audioOpen = next
-                if (next) Popups.audioPage = "mixer"
-            }
-        }
+        function toggle() { _openAudio("mixer") }
     }
 
     property var audioIn: IpcHandler {
         target: "audioIn-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.audioOpen) {
-                Popups.closeAll()
-                Popups.audioPage = "input"
-                Popups.audioOpen = true
-            } else if (Popups.audioOpen && Popups.audioPage != "input") {
-                Popups.audioPage = "input"
-            } else {
-                var next = !Popups.audioOpen
-                Popups.closeAll()
-                Popups.audioOpen = next
-                if (next) Popups.audioPage = "input"
-            }
-        }
+        function toggle() { _openAudio("input") }
     }
 
     // ── Network Toggles ──────────────────────────────────────
@@ -171,13 +103,14 @@ QtObject {
                 Popups.closeAll()
                 Popups.networkPage = "wifi"
                 Popups.networkOpen = true
+                Popups.networkPinned = true
             } else if (Popups.networkOpen && Popups.networkPage != "wifi") {
                 Popups.networkPage = "wifi"
             } else {
                 var next = !Popups.networkOpen
                 Popups.closeAll()
                 Popups.networkOpen = next
-                if (next) Popups.networkPage = "wifi"
+                if (next) { Popups.networkPage = "wifi"; Popups.networkPinned = true; }
             }
         }
     }
@@ -189,13 +122,14 @@ QtObject {
                 Popups.closeAll()
                 Popups.networkPage = "bluetooth"
                 Popups.networkOpen = true
+                Popups.networkPinned = true
             } else if (Popups.networkOpen && Popups.networkPage != "bluetooth") {
                 Popups.networkPage = "bluetooth"
             } else {
                 var next = !Popups.networkOpen
                 Popups.closeAll()
                 Popups.networkOpen = next
-                if (next) Popups.networkPage = "bluetooth"
+                if (next) { Popups.networkPage = "bluetooth"; Popups.networkPinned = true; }
             }
         }
     }
@@ -207,13 +141,14 @@ QtObject {
                 Popups.closeAll()
                 Popups.networkPage = "vpn"
                 Popups.networkOpen = true
+                Popups.networkPinned = true
             } else if (Popups.networkOpen && Popups.networkPage != "vpn") {
                 Popups.networkPage = "vpn"
             } else {
                 var next = !Popups.networkOpen
                 Popups.closeAll()
                 Popups.networkOpen = next
-                if (next) Popups.networkPage = "vpn"
+                if (next) { Popups.networkPage = "vpn"; Popups.networkPinned = true; }
             }
         }
     }
@@ -225,13 +160,14 @@ QtObject {
                 Popups.closeAll()
                 Popups.networkPage = "hotspot"
                 Popups.networkOpen = true
+                Popups.networkPinned = true
             } else if (Popups.networkOpen && Popups.networkPage != "hotspot") {
                 Popups.networkPage = "hotspot"
             } else {
                 var next = !Popups.networkOpen
                 Popups.closeAll()
                 Popups.networkOpen = next
-                if (next) Popups.networkPage = "hotspot"
+                if (next) { Popups.networkPage = "hotspot"; Popups.networkPinned = true; }
             }
         }
     }
@@ -244,6 +180,7 @@ QtObject {
             var next = !Popups.notificationsOpen
             Popups.closeAll()
             Popups.notificationsOpen = next
+            if (next) Popups.notificationsPinned = true
         }
     }
 
@@ -253,6 +190,7 @@ QtObject {
             var next = !Popups.clipboardOpen
             Popups.closeAll()
             Popups.clipboardOpen = next
+            if (next) Popups.clipboardPinned = true
         }
     }
 
@@ -262,6 +200,7 @@ QtObject {
             var next = !Popups.wallpaperOpen
             Popups.closeAll()
             Popups.wallpaperOpen = next
+            if (next) Popups.wallpaperPinned = true
         }
     }
 
@@ -271,6 +210,7 @@ QtObject {
             var next = !Popups.archMenuOpen
             Popups.closeAll()
             Popups.archMenuOpen = next
+            if (next) Popups.archMenuPinned = true
         }
     }
 
@@ -294,6 +234,6 @@ QtObject {
             root.focusToggleRequested()
         }
     }
-    
+
     signal focusToggleRequested()
 }

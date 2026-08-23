@@ -6,6 +6,9 @@ import "../"
 Item {
     id: root
 
+    property real localScale: 1.0
+    property bool fullyOpen: true
+
     readonly property var sink:   Pipewire.defaultAudioSink
     readonly property var source: Pipewire.defaultAudioSource
     
@@ -57,16 +60,59 @@ Item {
 
         // ── Page content ──────────────────────────────────────────────────────
         Item {
+            id: contentArea
             width:  parent.width - switcher.implicitWidth - parent.spacing - 1 - parent.spacing
             height: parent.height
             clip:   true
 
+            property int pageIdx: Math.max(0, ["output", "input", "mixer"].indexOf(root.page))
+
             // Output
             PopupPage {
-                anchors.fill: parent
-                visible:      root.page === "output"
+                id: pageOutput
+                readonly property int myIdx: 0
+                property bool isCurrent: root.page === "output"
+                property bool wasCurrent: false
+                property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                onIsCurrentChanged: { 
+                    if (isCurrent) wasCurrent = false;
+                    else if (Anim.style === "none") wasCurrent = false;
+                    else wasCurrent = true;
+                }
+                
+                width: parent.width; height: parent.height
+                
+                property real targetY: {
+                    if (Anim.style === "none") return 0;
+                    if (isCurrent) return 0;
+                    if (myIdx < contentArea.pageIdx) return -height * parallaxFactor;
+                    return height;
+                }
+                
+                y: targetY
+                Behavior on y {
+                    enabled: Anim.style !== "none" && Popups.audioOpen && root.fullyOpen
+                    NumberAnimation { 
+                        duration: Anim.slow; easing.type: Anim.outExpo
+                        onRunningChanged: { if (!running && !pageOutput.isCurrent) pageOutput.wasCurrent = false; }
+                    }
+                }
+                
+                property real targetOpacity: {
+                    if (Anim.style !== "parallax") return 1.0;
+                    if (isCurrent) return 1.0;
+                    return 0.0;
+                }
+                opacity: targetOpacity
+                Behavior on opacity {
+                    enabled: Anim.style === "parallax"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                }
+                
+                visible: isCurrent || wasCurrent
 
                 ChannelColumn {
+                    localScale: root.localScale
                     width:  parent.width
                     label:  (root.sink && root.sink.ready) ? root.deviceName(root.sink) : "Output"
                     icon: {
@@ -91,10 +137,50 @@ Item {
 
             // Input
             PopupPage {
-                anchors.fill: parent
-                visible:      root.page === "input"
+                id: pageInput
+                readonly property int myIdx: 1
+                property bool isCurrent: root.page === "input"
+                property bool wasCurrent: false
+                property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                onIsCurrentChanged: { 
+                    if (isCurrent) wasCurrent = false;
+                    else if (Anim.style === "none") wasCurrent = false;
+                    else wasCurrent = true;
+                }
+                
+                width: parent.width; height: parent.height
+                
+                property real targetY: {
+                    if (Anim.style === "none") return 0;
+                    if (isCurrent) return 0;
+                    if (myIdx < contentArea.pageIdx) return -height * parallaxFactor;
+                    return height;
+                }
+                
+                y: targetY
+                Behavior on y {
+                    enabled: Anim.style !== "none" && Popups.audioOpen && root.fullyOpen
+                    NumberAnimation { 
+                        duration: Anim.slow; easing.type: Anim.outExpo
+                        onRunningChanged: { if (!running && !pageInput.isCurrent) pageInput.wasCurrent = false; }
+                    }
+                }
+                
+                property real targetOpacity: {
+                    if (Anim.style !== "parallax") return 1.0;
+                    if (isCurrent) return 1.0;
+                    return 0.0;
+                }
+                opacity: targetOpacity
+                Behavior on opacity {
+                    enabled: Anim.style === "parallax"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                }
+                
+                visible: isCurrent || wasCurrent
 
                 ChannelColumn {
+                    localScale: root.localScale
                     width:  parent.width
                     label:  (root.source && root.source.ready) ? root.deviceName(root.source) : "Input"
                     icon:   (root.source && root.source.audio && root.source.audio.muted) ? "󰍭" : "󰍬"
@@ -113,14 +199,54 @@ Item {
 
             // Mixer
             PopupPage {
-                anchors.fill: parent
-                visible:      root.page === "mixer"
+                id: pageMixer
+                readonly property int myIdx: 2
+                property bool isCurrent: root.page === "mixer"
+                property bool wasCurrent: false
+                property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                onIsCurrentChanged: { 
+                    if (isCurrent) wasCurrent = false;
+                    else if (Anim.style === "none") wasCurrent = false;
+                    else wasCurrent = true;
+                }
+                
+                width: parent.width; height: parent.height
+                
+                property real targetY: {
+                    if (Anim.style === "none") return 0;
+                    if (isCurrent) return 0;
+                    if (myIdx < contentArea.pageIdx) return -height * parallaxFactor;
+                    return height;
+                }
+                
+                y: targetY
+                Behavior on y {
+                    enabled: Anim.style !== "none" && Popups.audioOpen && root.fullyOpen
+                    NumberAnimation { 
+                        duration: Anim.slow; easing.type: Anim.outExpo
+                        onRunningChanged: { if (!running && !pageMixer.isCurrent) pageMixer.wasCurrent = false; }
+                    }
+                }
+                
+                property real targetOpacity: {
+                    if (Anim.style !== "parallax") return 1.0;
+                    if (isCurrent) return 1.0;
+                    return 0.0;
+                }
+                opacity: targetOpacity
+                Behavior on opacity {
+                    enabled: Anim.style === "parallax"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                }
+                
+                visible: isCurrent || wasCurrent
 
                 SectionLabel { text: "Output Devices" }
 
                 Repeater {
                     model: root.sinkNodes
                     delegate: DeviceRow {
+                        localScale: root.localScale
                         width:     parent.width
                         label:     root.deviceName(modelData)
                         isDefault: (root.sink && root.sink.ready && modelData.name === root.sink.name) || false
@@ -131,21 +257,22 @@ Item {
                 Text {
                     visible:        root.sinkNodes.length === 0
                     text:           "No output devices"
-                    color:          Qt.rgba(1,1,1,0.2)
-                    font.pixelSize: 11
-                    leftPadding:    10
+                    color:          Theme.subtext
+                    font.pixelSize: Math.round(11 * localScale)
+                    leftPadding:    Math.round(10 * localScale)
                 }
 
                 Rectangle {
                     width: parent.width; height: 1
-                    color: Qt.rgba(1, 1, 1, 0.06)
+                    color: Theme.border
                 }
 
-                SectionLabel { text: "Input Devices" }
+                SectionLabel { localScale: root.localScale; text: "Input Devices" }
 
                 Repeater {
                     model: root.sourceNodes
                     delegate: DeviceRow {
+                        localScale: root.localScale
                         width:     parent.width
                         label:     root.deviceName(modelData)
                         isDefault: (root.source && root.source.ready && modelData.name === root.source.name) || false
@@ -156,9 +283,9 @@ Item {
                 Text {
                     visible:        root.sourceNodes.length === 0
                     text:           "No input devices"
-                    color:          Qt.rgba(1,1,1,0.2)
-                    font.pixelSize: 11
-                    leftPadding:    10
+                    color:          Theme.subtext
+                    font.pixelSize: Math.round(11 * localScale)
+                    leftPadding:    Math.round(10 * localScale)
                 }
             }
         }
@@ -166,14 +293,15 @@ Item {
         // Divider
         Rectangle {
             width: 1; height: parent.height
-            color: Qt.rgba(1, 1, 1, 0.1)
+            color: Theme.border
         }
 
         // Tab switcher — right side
         TabSwitcher {
             id: switcher
+            localScale: root.localScale
             orientation: "vertical"
-            height: (parent.height - 17)
+            height: (parent.height - Math.round(17 * localScale))
             anchors.verticalCenter: parent.verticalCenter
             model: [
                 { key: "output", icon: "󰕾" },
@@ -189,15 +317,16 @@ Item {
     component ChannelColumn: Item {
         id: col
 
+        property real localScale: 1.0
         property string label:  ""
         property string icon:   ""
         property real   value:  0.0
         property bool   muted:  false
         property bool   active: false
 
-        readonly property int trackHeight: 160
-        readonly property int barW:        22
-        readonly property int thumbD:      barW - 6
+        readonly property int trackHeight: Math.round(160 * localScale)
+        readonly property int barW:        Math.round(22 * localScale)
+        readonly property int thumbD:      barW - Math.round(6 * localScale)
 
         signal volumeChanged(real value)
         signal muteToggled()
@@ -212,15 +341,15 @@ Item {
         Column {
             id: inner
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 8
+            spacing: Math.round(8 * localScale)
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           col.pctText
-                color:          col.muted ? Qt.rgba(1,1,1,0.25) : Theme.text
-                font.pixelSize: 13
+                color:          col.muted ? Theme.subtext : Theme.text
+                font.pixelSize: Math.round(13 * localScale)
                 font.bold:      true
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
             }
 
             Item {
@@ -232,16 +361,16 @@ Item {
                     id: track
                     anchors.fill: parent
                     radius: width / 2
-                    color:  Qt.rgba(1,1,1,0.08)
+                    color:  Theme.border
 
                     // Fill bar
                     Rectangle {
                         anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
                         height: Math.max(parent.radius * 2, parent.height * col.value)
                         radius: parent.radius
-                        color:  col.muted ? Qt.rgba(1,1,1,0.15) : Theme.active
-                        Behavior on color  { ColorAnimation  { duration: 150 } }
-                        Behavior on height { NumberAnimation { duration: 80; easing.type: Easing.OutCubic } }
+                        color:  col.muted ? Theme.subtext : Theme.active
+                        Behavior on color  { ColorAnimation  { duration: Anim.mediumFast} }
+                        Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
                     }
 
                     // Thumb
@@ -251,12 +380,12 @@ Item {
                         width:  col.thumbD
                         height: width
                         radius: width / 2
-                        color:  col.muted ? Qt.rgba(1,1,1,0.3) : "#ffffff"
+                        color:  col.muted ? Theme.subtext : Theme.text
                         y: {
                             var travel = track.height - height
                             return Math.max(0, Math.min(travel, (1.0 - col.value) * travel))
                         }
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
 
                     // Drag to change volume
@@ -287,36 +416,36 @@ Item {
             // Mute button
             Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
-                width:  col.barW + 32
-                height: 28
-                radius: Theme.cornerRadius
+                width:  col.barW + Math.round(32 * localScale)
+                height: Math.round(28 * localScale)
+                radius: Math.round(Theme.cornerRadius * localScale)
                 color:  col.muted
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2)
-                            : Qt.rgba(1,1,1,0.06)
-                Behavior on color { ColorAnimation { duration: 150 } }
+                            : Theme.border
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
 
                 Row {
                     anchors.centerIn: parent
-                    spacing: 5
+                    spacing: Math.round(5 * localScale)
                     Text {
                         text:           col.icon
-                        font.pixelSize: 13
-                        color:          col.muted ? Theme.active : Qt.rgba(1,1,1,0.55)
+                        font.pixelSize: Math.round(13 * localScale)
+                        color:          col.muted ? Theme.active : Theme.icon
                         anchors.verticalCenter: parent.verticalCenter
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
                     Text {
                         text:           col.muted ? "Muted" : "Mute"
-                        font.pixelSize: 11
-                        color:          col.muted ? Theme.active : Qt.rgba(1,1,1,0.4)
+                        font.pixelSize: Math.round(11 * localScale)
+                        color:          col.muted ? Theme.active : Theme.subtext
                         anchors.verticalCenter: parent.verticalCenter
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
                 }
                 Rectangle {
                     anchors.fill: parent; radius: parent.radius
-                    color: muteHov.hovered ? Qt.rgba(1,1,1,0.05) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 100 } }
+                    color: muteHov.hovered ? Theme.border : "transparent"
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
                 }
                 HoverHandler { id: muteHov; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: col.muteToggled() }
@@ -326,12 +455,12 @@ Item {
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:            col.label
-                color:           Qt.rgba(1,1,1,0.3)
-                font.pixelSize:  10
+                color:           Theme.subtext
+                font.pixelSize:  Math.round(10 * localScale)
                 font.capitalization: Font.AllUppercase
                 font.letterSpacing: 1
                 elide:           Text.ElideRight
-                width:           col.barW + 60
+                width:           col.barW + Math.round(60 * localScale)
                 horizontalAlignment: Text.AlignHCenter
             }
         }
@@ -339,18 +468,20 @@ Item {
 
     // ── SectionLabel ──────────────────────────────────────────────────────────
     component SectionLabel: Text {
-        color:           Qt.rgba(1, 1, 1, 0.35)
-        font.pixelSize:  10
+        property real localScale: 1.0
+        color:           Theme.subtext
+        font.pixelSize:  Math.round(10 * localScale)
         font.capitalization: Font.AllUppercase
         font.letterSpacing: 0.8
-        leftPadding: 4
-        topPadding:  2
+        leftPadding: Math.round(4 * localScale)
+        topPadding:  Math.round(2 * localScale)
     }
 
     // ── DeviceRow ─────────────────────────────────────────────────────────────
     component DeviceRow: Item {
         id: row
-        implicitHeight: 28
+        property real localScale: 1.0
+        implicitHeight: Math.round(28 * localScale)
 
         property string label:     ""
         property bool   isDefault: false
@@ -358,32 +489,32 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.cornerRadius - 4
+            radius: Math.round((Theme.cornerRadius - 4) * localScale)
             color:  row.isDefault
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.12)
-                        : (rowHov.hovered ? Qt.rgba(1,1,1,0.05) : "transparent")
-            Behavior on color { ColorAnimation { duration: 120 } }
+                        : (rowHov.hovered ? Theme.border : "transparent")
+            Behavior on color { ColorAnimation { duration: Anim.color} }
         }
 
         Row {
-            anchors { left: parent.left; leftMargin: 8; right: parent.right; rightMargin: 8; verticalCenter: parent.verticalCenter }
-            spacing: 6
+            anchors { left: parent.left; leftMargin: Math.round(8 * localScale); right: parent.right; rightMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
+            spacing: Math.round(6 * localScale)
 
             Rectangle {
-                width: 6; height: 6; radius: 3
+                width: Math.round(6 * localScale); height: Math.round(6 * localScale); radius: width / 2
                 anchors.verticalCenter: parent.verticalCenter
-                color: row.isDefault ? Theme.active : Qt.rgba(1,1,1,0.2)
-                Behavior on color { ColorAnimation { duration: 150 } }
+                color: row.isDefault ? Theme.active : Theme.subtext
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
             }
 
             Text {
                 text:           row.label
-                color:          row.isDefault ? Theme.text : Qt.rgba(1,1,1,0.5)
-                font.pixelSize: 11
+                color:          row.isDefault ? Theme.text : Theme.subtext
+                font.pixelSize: Math.round(11 * localScale)
                 elide:          Text.ElideRight
-                width:          parent.width - 14 - parent.spacing
+                width:          parent.width - Math.round(14 * localScale) - parent.spacing
                 anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
             }
         }
 

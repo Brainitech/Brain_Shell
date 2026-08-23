@@ -13,6 +13,10 @@ Item {
 
     property string label:       ""
     property real   percent:     0.0       // 0.0 – 100.0
+    property real   _animatedPercent: percent
+    Behavior on _animatedPercent {
+        NumberAnimation { duration: 450; easing.type: Easing.OutCubic }
+    }
     property string centerText:  "0%"
     property string bottomText:  ""
     property bool   active:      true
@@ -30,8 +34,8 @@ Item {
         text:           root.label
         font.pixelSize: Math.max(7, Math.round(11 * root.size))
         font.weight:    Font.Medium
-        color:          root.active ? Qt.rgba(1,1,1,0.55) : Qt.rgba(1,1,1,0.2)
-        Behavior on color { ColorAnimation { duration: 200 } }
+        color:          root.active ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.55) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.2)
+        Behavior on color { ColorAnimation { duration: Anim.normal} }
     }
 
     // ── Arc canvas ────────────────────────────────────────────────────────────
@@ -63,19 +67,19 @@ Item {
             // Track
             ctx.beginPath()
             ctx.arc(arc.cx, arc.cy, arc.radius, sa, sa + sw, false)
-            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.08)
+            ctx.strokeStyle = Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
             ctx.lineWidth   = arc.thickness
             ctx.lineCap     = "round"
             ctx.stroke()
 
             // Fill
-            var fillPct = root.active ? Math.max(0, Math.min(1, root.percent / 100)) : 0
+            var fillPct = root.active ? Math.max(0, Math.min(1, root._animatedPercent / 100)) : 0
             if (fillPct > 0) {
                 ctx.beginPath()
                 ctx.arc(arc.cx, arc.cy, arc.radius, sa, sa + sw * fillPct, false)
                 ctx.strokeStyle = root.active
                     ? Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 1)
-                    : Qt.rgba(1, 1, 1, 0.15)
+                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.15)
                 ctx.lineWidth   = arc.thickness
                 ctx.lineCap     = "round"
                 ctx.stroke()
@@ -84,7 +88,7 @@ Item {
 
         Connections {
             target: root
-            function onPercentChanged()      { arc.requestPaint() }
+            function on_AnimatedPercentChanged() { arc.requestPaint() }
             function onActiveChanged()       { arc.requestPaint() }
             function onAccentColorChanged()  { arc.requestPaint() }
             function onSizeChanged()         { arc.requestPaint() }
@@ -103,7 +107,7 @@ Item {
             anchors.verticalCenterOffset: Math.round(6 * root.size)
             spacing:  Math.round(2 * root.size)
             opacity:  root.active ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { NumberAnimation { duration: Anim.normal} }
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -117,7 +121,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           root.bottomText
                 font.pixelSize: Math.max(6, Math.round(9 * root.size))
-                color:          Qt.rgba(1, 1, 1, 0.4)
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
                 visible:        root.bottomText !== ""
             }
         }
@@ -129,9 +133,9 @@ Item {
             text:           "Off"
             font.pixelSize: Math.max(8, Math.round(13 * root.size))
             font.weight:    Font.Medium
-            color:          Qt.rgba(1, 1, 1, 0.25)
+            color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
             opacity:        root.active ? 0 : 1
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { NumberAnimation { duration: Anim.normal} }
         }
     }
 }

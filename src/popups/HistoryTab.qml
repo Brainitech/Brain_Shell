@@ -5,6 +5,7 @@ import "../"
 
 Item {
     id: root
+    property real localScale: 1.0
 
     readonly property var pinned:  ClipboardService.pinned  ?? []
     readonly property var history: ClipboardService.entries ?? []
@@ -56,40 +57,40 @@ Item {
         // ── Header ─────────────────────────────────────────────────────────────
         Item {
             width:  parent.width
-            height: 44
+            height: Math.round(44 * localScale)
 
             Text {
                 anchors.centerIn: parent
                 text:           "Clipboard"
-                font.pixelSize: 14
+                font.pixelSize: Math.round(14 * localScale)
                 font.weight:    Font.DemiBold
                 color:          Theme.text
             }
 
             // Clear unpinned history button
             Rectangle {
-                anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: 4 }
-                width:  clearRow.implicitWidth + 14
-                height: 26; radius: 8
+                anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: Math.round(4 * localScale) }
+                width:  clearRow.implicitWidth + Math.round(14 * localScale)
+                height: Math.round(26 * localScale); radius: Math.round(8 * localScale)
                 color: clearH.hovered
                     ? Qt.rgba(248/255, 113/255, 113/255, 0.18)
-                    : Qt.rgba(1, 1, 1, 0.04)
+                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
                 border.color: Qt.rgba(248/255, 113/255, 113/255, clearH.hovered ? 0.38 : 0.12)
                 border.width: 1
-                Behavior on color        { ColorAnimation { duration: 150 } }
-                Behavior on border.color { ColorAnimation { duration: 150 } }
+                Behavior on color        { ColorAnimation { duration: Anim.mediumFast} }
+                Behavior on border.color { ColorAnimation { duration: Anim.mediumFast} }
 
                 Row {
                     id: clearRow
                     anchors.centerIn: parent
-                    spacing: 5
+                    spacing: Math.round(5 * localScale)
                     Text {
-                        text: "󰩺"; font.pixelSize: 12
+                        text: "󰩺"; font.pixelSize: Math.round(12 * localScale)
                         color: Qt.rgba(248/255, 113/255, 113/255, 0.80)
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Text {
-                        text: "Clear"; font.pixelSize: 10
+                        text: "Clear"; font.pixelSize: Math.round(10 * localScale)
                         color: Qt.rgba(248/255, 113/255, 113/255, 0.80)
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -100,7 +101,7 @@ Item {
         }
 
         // Divider
-        Rectangle { width: parent.width; height: 1; color: Qt.rgba(1,1,1,0.07) }
+        Rectangle { width: parent.width; height: 1; color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.07) }
 
         // ── Content ────────────────────────────────────────────────────────────
         Item {
@@ -118,13 +119,13 @@ Item {
                     text: "○"; font.pixelSize: 22; color: Theme.active
                     SequentialAnimation on opacity {
                         running: parent.visible; loops: Animation.Infinite
-                        NumberAnimation { to: 0.15; duration: 500 }
-                        NumberAnimation { to: 1.0;  duration: 500 }
+                        NumberAnimation { to: 0.15; duration: Anim.verySlow}
+                        NumberAnimation { to: 1.0;  duration: Anim.verySlow}
                     }
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "Loading…"; font.pixelSize: 12; color: Qt.rgba(1,1,1,0.25)
+                    text: "Loading…"; font.pixelSize: 12; color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25)
                 }
             }
 
@@ -136,15 +137,15 @@ Item {
                          && root.pinned.length  === 0
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "󰅍"; font.pixelSize: 32; color: Qt.rgba(1,1,1,0.08)
+                    text: "󰅍"; font.pixelSize: 32; color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08)
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "Clipboard is empty"; font.pixelSize: 12; color: Qt.rgba(1,1,1,0.20)
+                    text: "Clipboard is empty"; font.pixelSize: 12; color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.20)
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "Copy something to get started"; font.pixelSize: 10; color: Qt.rgba(1,1,1,0.13)
+                    text: "Copy something to get started"; font.pixelSize: 10; color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.13)
                 }
             }
 
@@ -155,21 +156,48 @@ Item {
                     fill:         parent
                     topMargin:    6
                     leftMargin:   2
-                    rightMargin:  12 
+                    rightMargin:  12
                     bottomMargin: 4
                 }
-                clip:           true
-                spacing:        4
-                boundsBehavior: Flickable.StopAtBounds
-                visible:        root.flatModel.length > 0
-                model:          root.flatModel
+                clip:                true
+                spacing:             4
+                boundsBehavior:      Flickable.StopAtBounds
+                visible:             root.flatModel.length > 0
+                model:               root.flatModel
+                focus:               true
+                keyNavigationEnabled: true
+                keyNavigationWraps:  true
 
                 // Point to the detached scrollbar below
                 ScrollBar.vertical: vbar
 
                 // Smooth repositioning when items are removed
                 displaced: Transition {
-                    NumberAnimation { property: "y"; duration: 220; easing.type: Easing.OutCubic }
+                    NumberAnimation { property: "y"; duration: Anim.normal; easing.type: Anim.outCubic}
+                }
+
+                Keys.onPressed: (event) => {
+                    if (event.key === Qt.Key_Escape) {
+                        Popups.clipboardOpen = false
+                        event.accepted = true
+                        return
+                    }
+                    var item = root.flatModel[mainList.currentIndex]
+                    if (!item) return
+                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                        if (item.kind === "pinned")
+                            ClipboardService.copyText(item.text || item.preview)
+                        else
+                            ClipboardService.copyEntry(item.id)
+                        Popups.clipboardOpen = false
+                        event.accepted = true
+                    } else if (event.key === Qt.Key_Delete || event.key === Qt.Key_Backspace) {
+                        if (mainList.currentItem) mainList.currentItem.deleteRow()
+                        event.accepted = true
+                    } else if (event.key === Qt.Key_P) {
+                        if (mainList.currentItem && !item.isImage) mainList.currentItem.togglePin()
+                        event.accepted = true
+                    }
                 }
 
                 delegate: ClipRow {
@@ -177,6 +205,7 @@ Item {
                     required property int index
                     width: mainList.width - 4
 
+                    highlighted: index === mainList.currentIndex
                     isPinned:    modelData.kind === "pinned"
                     entryId:     modelData.kind === "pinned" ? (modelData.storedId ?? "") : (modelData.id ?? "")
                     previewText: modelData.preview ?? ""
@@ -201,7 +230,7 @@ Item {
                     implicitWidth:  4
                     implicitHeight: 10
                     radius:         2
-                    color:          Qt.rgba(1, 1, 1, 0.22)
+                    color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.22)
                 }
             }
         }
@@ -212,12 +241,27 @@ Item {
 component ClipRow: Item {
     id: row
 
+
     property bool   isPinned:    false
+    property bool   highlighted: false
     property string entryId:     ""   // cliphist row id (for history) or storedId (for pinned)
     property string previewText: ""   // cliphist list preview string
     property string fullText:    ""   // full decoded text (pinned items only)
     property bool   isImage:     false
     property int    pinnedIndex: -1
+
+    function deleteRow() {
+        row._removing = true
+        delayedAction.isPinned    = row.isPinned
+        delayedAction.pinnedIndex = row.pinnedIndex
+        delayedAction.entryId     = row.entryId
+        delayedAction.restart()
+    }
+
+    function togglePin() {
+        if (row.isPinned) ClipboardService.unpinAt(row.pinnedIndex)
+        else              ClipboardService.pinEntry(row.entryId, row.previewText)
+    }
 
     // Image preview: decoded to a temp file per entry id
     property string _imgPath: ""
@@ -245,8 +289,8 @@ component ClipRow: Item {
     opacity: _removing ? 0 : 1
     clip: true
 
-    Behavior on height  { NumberAnimation { duration: 210; easing.type: Easing.InCubic } }
-    Behavior on opacity { NumberAnimation { duration: 160 } }
+    Behavior on height  { NumberAnimation { duration: Anim.normal; easing.type: Anim.inCubic} }
+    Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
 
     // ── Card ──────────────────────────────────────────────────────────────────
     Rectangle {
@@ -257,16 +301,18 @@ component ClipRow: Item {
         radius: 9
 
         color: row.isPinned
-            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, rHov.hovered ? 0.10 : 0.055)
-            : rHov.hovered ? Qt.rgba(1, 1, 1, 0.065) : Qt.rgba(1, 1, 1, 0.024)
+            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, (rHov.hovered || row.highlighted) ? 0.10 : 0.055)
+            : (rHov.hovered || row.highlighted) ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.065) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.024)
 
         border.color: row.isPinned
-            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, rHov.hovered ? 0.30 : 0.18)
-            : rHov.hovered ? Qt.rgba(1, 1, 1, 0.13) : Qt.rgba(1, 1, 1, 0.065)
+            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, (rHov.hovered || row.highlighted) ? 0.30 : 0.18)
+            : row.highlighted
+                ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.50)
+                : rHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.13) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.065)
         border.width: 1
 
-        Behavior on color        { ColorAnimation { duration: 140 } }
-        Behavior on border.color { ColorAnimation { duration: 140 } }
+        Behavior on color        { ColorAnimation { duration: Anim.color} }
+        Behavior on border.color { ColorAnimation { duration: Anim.color} }
 
         // ── Inner layout ──────────────────────────────────────────────────────
         Row {
@@ -295,7 +341,7 @@ component ClipRow: Item {
                         rightMargin: 6
                     }
                     radius: 6
-                    color:  Qt.rgba(1, 1, 1, 0.05)
+                    color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
                     clip:   true
 
                     Image {
@@ -306,7 +352,7 @@ component ClipRow: Item {
                         smooth:   true
                         asynchronous: true
                         opacity: thumbImg.status === Image.Ready ? 1.0 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+                        Behavior on opacity { NumberAnimation { duration: Anim.mediumSlow; easing.type: Anim.outCubic} }
                     }
 
                     // Placeholder while loading / no path yet
@@ -316,7 +362,7 @@ component ClipRow: Item {
 
                         Rectangle {
                             anchors.fill: parent
-                            color: Qt.rgba(1,1,1,0.03)
+                            color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.03)
                         }
                         Text {
                             anchors.centerIn: parent
@@ -331,7 +377,7 @@ component ClipRow: Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text:           "󰅍"
                     font.pixelSize: 12
-                    color:          Qt.rgba(1, 1, 1, 0.22)
+                    color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.22)
                 }
             }
 
@@ -348,8 +394,8 @@ component ClipRow: Item {
                 text: row.isImage ? "Image" : row.previewText
                 font.pixelSize:   12
                 color: row.isImage
-                    ? Qt.rgba(1, 1, 1, 0.28)
-                    : Qt.rgba(1, 1, 1, 0.78)
+                    ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.28)
+                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.78)
                 font.italic:      row.isImage
                 elide:            Text.ElideRight
                 maximumLineCount: 2
@@ -361,8 +407,8 @@ component ClipRow: Item {
                 id: actionsRow
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2
-                opacity: rHov.hovered ? 1 : 0
-                Behavior on opacity { NumberAnimation { duration: 160 } }
+                opacity: rHov.hovered || row.highlighted ? 1 : 0
+                Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
 
                 // Copy
                 ActionBtn {
@@ -416,7 +462,7 @@ component ClipRow: Item {
             }
 
             scale: row.isPinned ? 1.0 : 0.0
-            Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
+            Behavior on scale { NumberAnimation { duration: Anim.normal; easing.type: Anim.outBack} }
         }
     }
 
@@ -466,17 +512,17 @@ component ActionBtn: Rectangle {
         ? (aH.hovered ? Qt.rgba(248/255, 113/255, 113/255, 0.20) : "transparent")
         : ab.active
             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
-            : (aH.hovered ? Qt.rgba(1, 1, 1, 0.11) : "transparent")
+            : (aH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.11) : "transparent")
 
-    Behavior on color { ColorAnimation { duration: 110 } }
+    Behavior on color { ColorAnimation { duration: Anim.color} }
 
     // Subtle scale-up on hover
     transform: Scale {
         origin.x: 13; origin.y: 13
         xScale: aH.hovered ? 1.10 : 1.0
         yScale: aH.hovered ? 1.10 : 1.0
-        Behavior on xScale { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
-        Behavior on yScale { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
+        Behavior on xScale { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+        Behavior on yScale { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
     }
 
     Text {
@@ -487,8 +533,8 @@ component ActionBtn: Rectangle {
             ? (aH.hovered ? "#f87171" : Qt.rgba(248/255, 113/255, 113/255, 0.50))
             : ab.active
                 ? Theme.active
-                : (aH.hovered ? Qt.rgba(1, 1, 1, 0.88) : Qt.rgba(1, 1, 1, 0.38))
-        Behavior on color { ColorAnimation { duration: 110 } }
+                : (aH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.88) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.38))
+        Behavior on color { ColorAnimation { duration: Anim.color} }
     }
 
     HoverHandler { id: aH; cursorShape: Qt.PointingHandCursor }

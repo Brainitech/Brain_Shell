@@ -6,6 +6,7 @@ import "../../"
 import "../../services/"
 
 IconBtn {
+    property real localScale: 1.0
     text: ShellState.dnd
           ? "󰂛"
           : NotificationService.count > 0 ? "󰂚" : "󰂜"
@@ -14,5 +15,10 @@ IconBtn {
         var next = !Popups.notificationsOpen
         Popups.closeAll()
         Popups.notificationsOpen = next
+        if (next) Popups.notificationsPinned = true
+    }
+
+    HoverHandler {
+        onHoveredChanged: Popups.notificationsTriggerHovered = hovered
     }
 }

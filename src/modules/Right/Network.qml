@@ -6,7 +6,9 @@ import "../../"
 Item {
     id: root
 
-    implicitWidth:  row.implicitWidth + 6
+    property real localScale: 1.0
+
+    implicitWidth:  row.implicitWidth + Math.round(6 * localScale)
     implicitHeight: row.implicitHeight
 
     property int    _signal:       0
@@ -30,7 +32,7 @@ Item {
     }
 
     readonly property color _netColor: {
-        if (!_ethernet && _signal <= 0) return Qt.rgba(1,1,1,0.28)
+        if (!_ethernet && _signal <= 0) return Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.28)
         if (_connectivity === "none")   return "#f87171"
         if (_limited)                   return "#f5c47a"
         return hov.hovered ? Theme.active : Theme.text
@@ -40,8 +42,8 @@ Item {
     property real _vpnOpacity: 1.0
     SequentialAnimation on _vpnOpacity {
         running: ShellState.vpnConnecting; loops: Animation.Infinite
-        NumberAnimation { to: 0.20; duration: 500; easing.type: Easing.InOutSine }
-        NumberAnimation { to: 1.0;  duration: 500; easing.type: Easing.InOutSine }
+        NumberAnimation { to: 0.20; duration: Anim.verySlow; easing.type: Anim.inOutSine}
+        NumberAnimation { to: 1.0;  duration: Anim.verySlow; easing.type: Anim.inOutSine}
     }
     Connections {
         target: ShellState
@@ -71,31 +73,57 @@ Item {
             onRead: function(l) { var v = l.trim().toLowerCase(); if (v !== "") root._connectivity = v }
         }
     }
+    Process {
+        id: btPowerPoll
+        command: ["bash", "-c", "bluetoothctl show 2>/dev/null | grep '^\\s*Powered:' | awk '{print $2}'"]
+        running: false
+        stdout: SplitParser { onRead: function(l) { ShellState.btPowered = (l.trim() === "yes") } }
+    }
+    Process {
+        id: btDevPoll
+        command: ["bash", "-c", "bluetoothctl devices Connected 2>/dev/null | head -1 | cut -d' ' -f3-"]
+        running: false
+        stdout: SplitParser { onRead: function(l) { ShellState.btConnected = (l.trim() !== "") } }
+    }
     Timer {
         interval: 5000; running: true; repeat: true
         onTriggered: {
-            wifiPoll.running = false; wifiPoll.running = true
-            ethPoll.running  = false; ethPoll.running  = true
-            connPoll.running = false; connPoll.running = true
+            wifiPoll.running    = false; wifiPoll.running    = true
+            ethPoll.running     = false; ethPoll.running     = true
+            connPoll.running    = false; connPoll.running    = true
+            btPowerPoll.running = false; btPowerPoll.running = true
+            btDevPoll.running   = false; btDevPoll.running   = true
         }
     }
-    Component.onCompleted: { wifiPoll.running = true; ethPoll.running = true; connPoll.running = true }
+    Component.onCompleted: {
+        wifiPoll.running    = true
+        ethPoll.running     = true
+        connPoll.running    = true
+        btPowerPoll.running = true
+        btDevPoll.running   = true
+    }
 
     HoverHandler { id: hov; onHoveredChanged: Popups.networkTriggerHovered = hovered }
 
     Row {
         id: row
         anchors.centerIn: parent
-        spacing: 4
+        spacing: Math.round(4 * localScale)
 
         // WiFi/ethernet icon — opens to wifi tab
         Text {
             id: netIcon
             text:           root._netIcon
-            color:          root._netColor
-            font.pixelSize: 16
+            color:          wifiHov.hovered ? Theme.active : root._netColor
+            font.pixelSize: Math.round(16 * localScale)
             anchors.verticalCenter: parent.verticalCenter
-            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on color { ColorAnimation { duration: Anim.normal} }
+            HoverHandler {
+                id: wifiHov
+                onHoveredChanged: {
+                    if (hovered && !Popups.networkPinned) Popups.networkPage = "wifi"
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -103,6 +131,7 @@ Item {
                     Popups.closeAll()
                     Popups.networkPage = "wifi"
                     Popups.networkOpen = true
+                    Popups.networkPinned = true
                 }
             }
         }
@@ -111,12 +140,18 @@ Item {
         Text {
             visible:        ShellState.vpnActive || ShellState.vpnConnecting
             text:           ShellState.vpnConnecting ? "󱦚" : "󰦝"
-            font.pixelSize: 14
+            font.pixelSize: Math.round(14 * localScale)
             anchors.verticalCenter: parent.verticalCenter
             opacity:        root._vpnOpacity
-            color: ShellState.vpnActive ? Theme.active : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.70)
-            Behavior on color   { ColorAnimation  { duration: 200 } }
-            Behavior on opacity { NumberAnimation { duration: 80  } }
+            color: ShellState.vpnActive ? Theme.active : (vpHov.hovered ? Theme.active : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.70))
+            Behavior on color   { ColorAnimation  { duration: Anim.normal} }
+            Behavior on opacity { NumberAnimation { duration: Anim.superFast} }
+            HoverHandler {
+                id: vpHov
+                onHoveredChanged: {
+                    if (hovered && !Popups.networkPinned) Popups.networkPage = "vpn"
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -124,6 +159,7 @@ Item {
                     Popups.closeAll()
                     Popups.networkPage = "vpn"
                     Popups.networkOpen = true
+                    Popups.networkPinned = true
                 }
             }
         }
@@ -132,10 +168,16 @@ Item {
         Text {
             visible:        ShellState.btPowered
             text:           ShellState.btConnected ? "󰂱" : "󰂯"
-            font.pixelSize: 14
+            font.pixelSize: Math.round(14 * localScale)
             anchors.verticalCenter: parent.verticalCenter
-            color: ShellState.btConnected ? (hov.hovered ? Theme.active : Theme.text) : Qt.rgba(1,1,1,0.32)
-            Behavior on color { ColorAnimation { duration: 200 } }
+            color: ShellState.btConnected ? (btHov.hovered ? Theme.active : Theme.text) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.32)
+            Behavior on color { ColorAnimation { duration: Anim.normal} }
+            HoverHandler {
+                id: btHov
+                onHoveredChanged: {
+                    if (hovered && !Popups.networkPinned) Popups.networkPage = "bluetooth"
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -143,6 +185,7 @@ Item {
                     Popups.closeAll()
                     Popups.networkPage = "bluetooth"
                     Popups.networkOpen = true
+                    Popups.networkPinned = true
                 }
             }
         }
@@ -151,10 +194,16 @@ Item {
         Text {
             visible:        ShellState.hotspot
             text:           "󰀂"
-            font.pixelSize: 14
+            font.pixelSize: Math.round(14 * localScale)
             anchors.verticalCenter: parent.verticalCenter
-            color:          Theme.active
-            Behavior on color { ColorAnimation { duration: 200 } }
+            color:          hotspotHov.hovered ? Theme.active : Theme.text
+            Behavior on color { ColorAnimation { duration: Anim.normal} }
+            HoverHandler {
+                id: hotspotHov
+                onHoveredChanged: {
+                    if (hovered && !Popups.networkPinned) Popups.networkPage = "hotspot"
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
@@ -162,6 +211,7 @@ Item {
                     Popups.closeAll()
                     Popups.networkPage = "hotspot"
                     Popups.networkOpen = true
+                    Popups.networkPinned = true
                 }
             }
         }

@@ -64,7 +64,9 @@ QtObject {
             })
         }
 
-        root.disks = result
+        if (JSON.stringify(root.disks) !== JSON.stringify(result)) {
+            root.disks = result
+        }
     }
 
     // Convert "180000M" → "175 GB" or keep as MB

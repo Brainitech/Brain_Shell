@@ -14,13 +14,14 @@ Item {
     id: root
 
     default property alias content: inner.data
-    property int padding: 12
+    property int  padding:    12
+    property real localScale: 1.0
 
     Rectangle {
         anchors.fill: parent
-        radius:       Theme.cornerRadius
-        color:        Qt.rgba(1, 1, 1, 0.04)
-        border.color: Qt.rgba(1, 1, 1, 0.07)
+        radius:       Math.round(Theme.cornerRadius * localScale)
+        color:        Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+        border.color: Theme.border
         border.width: 1
     }
 

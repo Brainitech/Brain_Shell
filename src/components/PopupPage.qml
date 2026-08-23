@@ -41,7 +41,7 @@ Item {
                 implicitWidth:  3
                 implicitHeight: 40
                 radius:         1.5
-                color:          Qt.rgba(1, 1, 1, 0.25)
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
             }
             background: Item {}
         }

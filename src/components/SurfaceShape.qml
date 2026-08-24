@@ -1,3 +1,4 @@
+import "../"
 import QtQuick
 import QtQuick.Shapes
 import "../theme"
@@ -16,14 +17,18 @@ Shape {
     property int flareRadius: Theme.notchRadius
     property color frameColor: Theme.background
     
-    property int leftNotchHeight: 40
-    property int leftNotchWidth: 180
+
     
-    property int centerNotchHeight: 40
-    property int centerNotchWidth: 300
+    // Closed (Base) Dimensions
+    property int baseNotchHeight: Theme.notchHeight
+    property int leftNotchWidth: SurfaceState.isLeftExpanded ? Theme.popupMaxWidth : Theme.lNotchMinWidth
+    property int leftNotchHeight: SurfaceState.isLeftExpanded ? Theme.popupMaxHeight : baseNotchHeight
     
-    property int rightNotchHeight: 40
-    property int rightNotchWidth: 180
+    property int centerNotchWidth: SurfaceState.isTopExpanded ? Theme.dashboardWidth : Theme.cNotchMinWidth
+    property int centerNotchHeight: SurfaceState.isTopExpanded ? Theme.dashboardHeight : baseNotchHeight
+    
+    property int rightNotchWidth: SurfaceState.isRightExpanded ? Theme.popupMaxWidth : Theme.rNotchMinWidth
+    property int rightNotchHeight: SurfaceState.isRightExpanded ? Theme.popupMaxHeight : baseNotchHeight
 
     readonly property real t: frameThickness
     readonly property real r: innerRadius

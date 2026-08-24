@@ -1,25 +1,21 @@
-import "../"
 import QtQuick
 import QtQuick.Shapes
 import "../theme"
+import "../"
 
 Shape {
     id: root
     
-    // Force ultra-smooth vector rendering
     antialiasing: true
     layer.enabled: true
     layer.samples: 8
     
-    // Bindings to existing setup
     property int frameThickness: Theme.borderWidth
     property int innerRadius: Theme.cornerRadius
     property int flareRadius: Theme.notchRadius
     property color frameColor: Theme.background
     
-
-    
-    // Closed (Base) Dimensions
+    // --- TOP NOTCHES (Always visible) ---
     property int baseNotchHeight: Theme.notchHeight
     property int leftNotchWidth: SurfaceState.isLeftExpanded ? Theme.popupMaxWidth : Theme.lNotchMinWidth
     property int leftNotchHeight: SurfaceState.isLeftExpanded ? Theme.popupMaxHeight : baseNotchHeight
@@ -30,11 +26,60 @@ Shape {
     property int rightNotchWidth: SurfaceState.isRightExpanded ? Theme.popupMaxWidth : Theme.rNotchMinWidth
     property int rightNotchHeight: SurfaceState.isRightExpanded ? Theme.popupMaxHeight : baseNotchHeight
 
+    // --- SIDE/BOTTOM NOTCHES (0px base, grow when opened) ---
+    property real lcnDepth: SurfaceState.isLeftCenterExpanded ? Theme.popupMaxWidth : 0.001
+    property real lcnHeight: SurfaceState.isLeftCenterExpanded ? Theme.popupMaxHeight : 0.001
+
+    property real rcnDepth: SurfaceState.isRightCenterExpanded ? Theme.popupMaxWidth : 0.001
+    property real rcnHeight: SurfaceState.isRightCenterExpanded ? Theme.popupMaxHeight : 0.001
+
+    property real bcnDepth: SurfaceState.isBottomCenterExpanded ? Theme.popupMaxHeight : 0.001
+    property real bcnWidth: SurfaceState.isBottomCenterExpanded ? Theme.dashboardWidth : 0.001
+
+    // Seamless Corner Morphing properties for Bottom-Right
+    property real brnDepth: SurfaceState.isBottomRightExpanded ? Theme.popupMaxHeight : 0.001
+    property real brnWidth: SurfaceState.isBottomRightExpanded ? Theme.popupMaxWidth : innerRadius
+
     readonly property real t: frameThickness
     readonly property real r: innerRadius
     readonly property real fr: flareRadius
     readonly property real w: width
     readonly property real h: height
+
+    // Dynamic radii for side notches (clamps to 0.001 to draw straight lines when closed)
+    readonly property real lcnFr: Math.min(fr, lcnDepth)
+    readonly property real lcnR:  Math.min(r, lcnDepth)
+    
+    readonly property real rcnFr: Math.min(fr, rcnDepth)
+    readonly property real rcnR:  Math.min(r, rcnDepth)
+    
+    readonly property real bcnFr: Math.min(fr, bcnDepth)
+    readonly property real bcnR:  Math.min(r, bcnDepth)
+    
+    // Bottom-Right Corner Interpolation
+    property real brnBottomFlareR: SurfaceState.isBottomRightExpanded ? fr : 0.001
+    property real brnInnerR:       SurfaceState.isBottomRightExpanded ? r : 0.001
+    property real brnTopFlareR:    SurfaceState.isBottomRightExpanded ? fr : r
+    
+    // --- ANIMATIONS ---
+    Behavior on brnBottomFlareR { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on brnInnerR       { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on brnTopFlareR    { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on centerNotchHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on centerNotchWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on leftNotchHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on leftNotchWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on rightNotchHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on rightNotchWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    
+    Behavior on lcnDepth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on lcnHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on rcnDepth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on rcnHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on bcnDepth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on bcnWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on brnDepth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on brnWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
 
     ShapePath {
         fillColor: frameColor
@@ -42,31 +87,60 @@ Shape {
         strokeWidth: 0
         fillRule: ShapePath.OddEvenFill
         
-        // --- OUTER BOUNDARY (Clockwise) ---
+        // --- OUTER BOUNDARY ---
         startX: 0; startY: 0
         PathLine { x: w; y: 0 }
         PathLine { x: w; y: h }
         PathLine { x: 0; y: h }
         PathLine { x: 0; y: 0 }
         
-        // --- CONNECT TO INNER ---
         PathLine { x: t; y: t + leftNotchHeight + fr }
         
         // --- INNER BOUNDARY (Counter-Clockwise) ---
         
-        // Left screen edge going down
+        // LEFT-CENTER NOTCH
+        PathLine { x: t; y: (h/2) - (lcnHeight/2) - lcnFr }
+        PathArc { x: t + lcnFr; y: (h/2) - (lcnHeight/2); radiusX: lcnFr; radiusY: lcnFr; direction: PathArc.Counterclockwise }
+        PathLine { x: t + lcnDepth - lcnR; y: (h/2) - (lcnHeight/2) }
+        PathArc { x: t + lcnDepth; y: (h/2) - (lcnHeight/2) + lcnR; radiusX: lcnR; radiusY: lcnR; direction: PathArc.Clockwise }
+        PathLine { x: t + lcnDepth; y: (h/2) + (lcnHeight/2) - lcnR }
+        PathArc { x: t + lcnDepth - lcnR; y: (h/2) + (lcnHeight/2); radiusX: lcnR; radiusY: lcnR; direction: PathArc.Clockwise }
+        PathLine { x: t + lcnFr; y: (h/2) + (lcnHeight/2) }
+        PathArc { x: t; y: (h/2) + (lcnHeight/2) + lcnFr; radiusX: lcnFr; radiusY: lcnFr; direction: PathArc.Counterclockwise }
+
+        // Left edge going down to corner
         PathLine { x: t; y: h-t-r }
-        
-        // Bottom-Left inner corner (Convex)
         PathArc { x: t+r; y: h-t; radiusX: r; radiusY: r; direction: PathArc.Counterclockwise }
         
-        // Bottom screen edge going right
-        PathLine { x: w-t-r; y: h-t }
-        
-        // Bottom-Right inner corner (Convex)
-        PathArc { x: w-t; y: h-t-r; radiusX: r; radiusY: r; direction: PathArc.Counterclockwise }
+        // BOTTOM-CENTER NOTCH
+        PathLine { x: (w/2) - (bcnWidth/2) - bcnFr; y: h-t }
+        PathArc { x: (w/2) - (bcnWidth/2); y: h-t - bcnFr; radiusX: bcnFr; radiusY: bcnFr; direction: PathArc.Counterclockwise }
+        PathLine { x: (w/2) - (bcnWidth/2); y: h-t - bcnDepth + bcnR }
+        PathArc { x: (w/2) - (bcnWidth/2) + bcnR; y: h-t - bcnDepth; radiusX: bcnR; radiusY: bcnR; direction: PathArc.Clockwise }
+        PathLine { x: (w/2) + (bcnWidth/2) - bcnR; y: h-t - bcnDepth }
+        PathArc { x: (w/2) + (bcnWidth/2); y: h-t - bcnDepth + bcnR; radiusX: bcnR; radiusY: bcnR; direction: PathArc.Clockwise }
+        PathLine { x: (w/2) + (bcnWidth/2); y: h-t - bcnFr }
+        PathArc { x: (w/2) + (bcnWidth/2) + bcnFr; y: h-t; radiusX: bcnFr; radiusY: bcnFr; direction: PathArc.Counterclockwise }
+
+        // BOTTOM-RIGHT NOTCH (Flush to corner, seamlessly morphs to standard r corner)
+        PathLine { x: (w-t) - brnWidth - brnBottomFlareR; y: h-t }
+        PathArc { x: (w-t) - brnWidth; y: h-t - brnBottomFlareR; radiusX: brnBottomFlareR; radiusY: brnBottomFlareR; direction: PathArc.Counterclockwise }
+        PathLine { x: (w-t) - brnWidth; y: h-t - brnDepth + brnInnerR }
+        PathArc { x: (w-t) - brnWidth + brnInnerR; y: h-t - brnDepth; radiusX: brnInnerR; radiusY: brnInnerR; direction: PathArc.Clockwise }
+        PathLine { x: (w-t) - brnTopFlareR; y: h-t - brnDepth }
+        PathArc { x: (w-t); y: h-t - brnDepth - brnTopFlareR; radiusX: brnTopFlareR; radiusY: brnTopFlareR; direction: PathArc.Counterclockwise }
         
         // Right screen edge going up, stopping below Right Notch melt
+        PathLine { x: w-t; y: (h/2) + (rcnHeight/2) + rcnFr }
+        PathArc { x: w-t - rcnFr; y: (h/2) + (rcnHeight/2); radiusX: rcnFr; radiusY: rcnFr; direction: PathArc.Counterclockwise }
+        PathLine { x: w-t - rcnDepth + rcnR; y: (h/2) + (rcnHeight/2) }
+        PathArc { x: w-t - rcnDepth; y: (h/2) + (rcnHeight/2) - rcnR; radiusX: rcnR; radiusY: rcnR; direction: PathArc.Clockwise }
+        PathLine { x: w-t - rcnDepth; y: (h/2) - (rcnHeight/2) + rcnR }
+        PathArc { x: w-t - rcnDepth + rcnR; y: (h/2) - (rcnHeight/2); radiusX: rcnR; radiusY: rcnR; direction: PathArc.Clockwise }
+        PathLine { x: w-t - rcnFr; y: (h/2) - (rcnHeight/2) }
+        PathArc { x: w-t; y: (h/2) - (rcnHeight/2) - rcnFr; radiusX: rcnFr; radiusY: rcnFr; direction: PathArc.Counterclockwise }
+        
+        // Right edge up to Right Top Notch
         PathLine { x: w-t; y: t + rightNotchHeight + fr }
         
         // RIGHT NOTCH (Flush to right edge)

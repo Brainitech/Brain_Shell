@@ -66,11 +66,43 @@ PanelWindow {
         }
     }
 
+    Item { 
+        id: leftCenterNotchMask
+        width: Math.max(100, surfaceShape.lcnDepth + (surfaceShape.flareRadius * 2))
+        height: Math.max(200, surfaceShape.lcnHeight + (surfaceShape.flareRadius * 2))
+        x: 0
+        anchors.verticalCenter: parent.verticalCenter
+        TapHandler { onTapped: if (!SurfaceState.isLeftCenterExpanded) SurfaceState.open("leftCenter", "archMenu") }
+    }
+    Item { 
+        id: rightCenterNotchMask
+        width: Math.max(100, surfaceShape.rcnDepth + (surfaceShape.flareRadius * 2))
+        height: Math.max(200, surfaceShape.rcnHeight + (surfaceShape.flareRadius * 2))
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        TapHandler { onTapped: if (!SurfaceState.isRightCenterExpanded) SurfaceState.open("rightCenter", "audio") }
+    }
+    Item { 
+        id: bottomCenterNotchMask
+        width: Math.max(300, surfaceShape.bcnWidth + (surfaceShape.flareRadius * 2))
+        height: Math.max(100, surfaceShape.bcnDepth + (surfaceShape.flareRadius * 2))
+        anchors.bottom: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+        TapHandler { onTapped: if (!SurfaceState.isBottomCenterExpanded) SurfaceState.open("bottomCenter", "wallpaper") }
+    }
+    Item { 
+        id: bottomRightNotchMask
+        width: Math.max(200, surfaceShape.brnWidth + (surfaceShape.flareRadius * 2))
+        height: Math.max(100, surfaceShape.brnDepth + (surfaceShape.flareRadius * 2))
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        TapHandler { onTapped: if (!SurfaceState.isBottomRightExpanded) SurfaceState.open("bottomRight", "clipboard") }
+    }
+
     // --- CLICK SHIELD ---
     ClickShield { id: clickShield }
 
     // Mask logic: Combine frame borders + active notches. 
-    // If a popup is open, we dynamically add the fullscreen clickShield to catch outside clicks.
     mask: Region { 
         Region { item: clickShield.isActive ? clickShield : null }
         Region { item: topMask }
@@ -80,6 +112,10 @@ PanelWindow {
         Region { item: leftNotchMask }
         Region { item: centerNotchMask }
         Region { item: rightNotchMask }
+        Region { item: leftCenterNotchMask }
+        Region { item: rightCenterNotchMask }
+        Region { item: bottomCenterNotchMask }
+        Region { item: bottomRightNotchMask }
     }
 
     // --- VECTOR GEOMETRY ---

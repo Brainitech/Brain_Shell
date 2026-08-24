@@ -32,4 +32,10 @@ QtObject {
     readonly property bool isLeftExpanded: activeSurface === "left"
     readonly property bool isRightExpanded: activeSurface === "right"
     readonly property bool isBottomExpanded: activeSurface === "bottom"
+
+    // Additional morphing borders
+    readonly property bool isLeftCenterExpanded: activeSurface === "leftCenter"
+    readonly property bool isRightCenterExpanded: activeSurface === "rightCenter"
+    readonly property bool isBottomCenterExpanded: activeSurface === "bottomCenter"
+    readonly property bool isBottomRightExpanded: activeSurface === "bottomRight"
 }

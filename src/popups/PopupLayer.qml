@@ -25,7 +25,7 @@ Item {
 
     // Left border → center
     ArchMenu {
-        anchorWindow: root.leftBorder
+        screen: root.leftBorder ? root.leftBorder.screen : undefined
     }
 
     // Bottom border → slides up

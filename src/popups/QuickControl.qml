@@ -8,59 +8,55 @@ import "../components"
 import "../services"
 import "../"
 
-PopupWindow {
+PanelWindow {
     id: root
 
     required property var anchorWindow
+    screen: anchorWindow ? anchorWindow.screen : undefined
 
-    // ── Context-Aware Scaling ─────────────────────────────────────────────────
     readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
-    // ── Config ────────────────────────────────────────────────────────────────
     readonly property int fw: Math.round(Theme.cornerRadius * root.localScale)
     readonly property int fh: Math.round(Theme.cornerRadius * root.localScale)
     readonly property int popupHeight: Math.round(340 * root.localScale)
-    readonly property int popupWidth:  Math.round(180 * root.localScale) // Thinner than the 300px AudioPopup
+    readonly property int popupWidth:  Math.round(180 * root.localScale)
 
+    anchors.right: true
+    anchors.top:   true
+    anchors.bottom: true
+    margins.top:   screen ? Math.round((screen.height - popupHeight) / 2) : 0
+    margins.bottom: screen ? Math.round((screen.height - popupHeight) / 2) : 0
+    margins.right: Math.round(Theme.borderWidth * root.localScale)
+
+    implicitWidth:  popupWidth
+    implicitHeight: popupHeight
+
+    exclusionMode: ExclusionMode.Ignore
     color:   "transparent"
+    WlrLayershell.layer: WlrLayer.Overlay
     visible: slide.windowVisible
     mask:    Region { item: maskProxy }
 
     Region {
         id: qcBlurReg
-        item: sizer
+        item: slide
     }
 
     BackgroundEffect.blurRegion: PrefsService.bgBlur ? qcBlurReg : null
 
-    // ── Position: Right Center ────────────────────────────────────────────────
-    anchor.window:  anchorWindow
-    anchor.rect: Qt.rect(
-        anchorWindow ? anchorWindow.width - root.fw : 0,
-        anchorWindow ? anchorWindow.height/2 : 0,
-        0,
-        0
-    )
-    anchor.gravity: Edges.Right
-
     Item {
         id:      maskProxy
-        x:       root.popupWidth - sizer.width
-        y:       ((root.popupHeight - sizer.height) / 2) - root.fh
-        width:   sizer.width
-        height:  sizer.height
+        x:       slide.x + slide.innerX
+        y:       slide.y + slide.innerY
+        width:   slide.innerWidth
+        height:  slide.innerHeight
     }
 
-    implicitWidth:  popupWidth
-    implicitHeight: popupHeight
-
-    // ── Audio State ───────────────────────────────────────────────────────────
     readonly property var sink: Pipewire.defaultAudioSink
     PwObjectTracker {
         objects: root.sink ? [root.sink] : []
     }
 
-    // ── Brightness State ──────────────────────────────────────────────────────
     property real _bVal:  0.72
     property int  _bMax:  100
     property bool _bBusy: false
@@ -109,10 +105,10 @@ PopupWindow {
         bDebounce.restart()
     }
 
-    // ── Layout ────────────────────────────────────────────────────────────────
     PopupSlide {
         id: slide
-        anchors.fill:     parent
+        anchors.fill: parent
+        
         edge:             "right"
         open:             Popups.quickOpen
         hoverEnabled:     !Popups.audioAllowHover && Popups.quickAllowHover
@@ -124,79 +120,61 @@ PopupWindow {
             Popups.quickPinned = true
         }
 
-        Item {
-            id: sizer
-            anchors.right:          parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            clip: true
+        PopupShape {
+            id: bg
+            anchors.fill: parent
+            attachedEdge: "right"
+            color:        Theme.background
+            radius:       Theme.cornerRadius
+            flareWidth:   root.fw
+            flareHeight:  root.fh
+        }
 
-            width:  root.popupWidth
-            height: root.popupHeight
-
-            Behavior on width { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-
-            PopupShape {
-                id: bg
-                anchors.fill: parent
-                attachedEdge: "right"
-                color:        Theme.background
-                radius:       Theme.cornerRadius
-                flareWidth:   root.fw
-                flareHeight:  root.fh
+        Row {
+            width: root.popupWidth - Math.round(16 * root.localScale) - root.fw
+            height: root.popupHeight - root.fh * 2 - 60
+            
+            anchors {
+                right:        parent.right
+                verticalCenter: parent.verticalCenter
+                rightMargin:  root.fw - Math.round(4 * root.localScale)
+            }
+            spacing: 8
+            
+            ChannelColumn {
+                icon: {
+                    if (!root.sink?.ready)            return "󰕾"
+                    if (root.sink.audio.muted)        return "󰖁"
+                    if (root.sink.audio.volume > 0.6) return "󰕾"
+                    if (root.sink.audio.volume > 0.2) return "󰖀"
+                    return "󰕿"
+                }
+                value:  root.sink?.ready ? root.sink.audio.volume : 0
+                muted:  root.sink?.audio.muted ?? false
+                active: root.sink?.ready ?? false
+                onVolumeChanged: function(v) {
+                    if (root.sink?.ready) root.sink.audio.volume = v
+                }
+                onMuteToggled: {
+                    if (root.sink?.ready) root.sink.audio.muted = !root.sink.audio.muted
+                }
             }
 
-            // ── Sliders Layout ────────────────────────────────────────────────
-            Row {
-                anchors {
-                    fill:         parent
-                    topMargin:    root.fh + 30
-                    leftMargin:   8
-                    rightMargin:  8
-                }
-                spacing: 8
-                anchors.horizontalCenter: parent.horizontalCenter
-
-                // Audio Slider
-                ChannelColumn {
-                    icon: {
-                        if (!root.sink?.ready)            return "󰕾"
-                        if (root.sink.audio.muted)        return "󰖁"
-                        if (root.sink.audio.volume > 0.6) return "󰕾"
-                        if (root.sink.audio.volume > 0.2) return "󰖀"
-                        return "󰕿"
-                    }
-                    value:  root.sink?.ready ? root.sink.audio.volume : 0
-                    muted:  root.sink?.audio.muted ?? false
-                    active: root.sink?.ready ?? false
-
-                    onVolumeChanged: function(v) {
-                        if (root.sink?.ready) root.sink.audio.volume = v
-                    }
-                    onMuteToggled: {
-                        if (root.sink?.ready) root.sink.audio.muted = !root.sink.audio.muted
-                    }
-                }
-
-                // Brightness Slider
-                ChannelColumn {
-                    localScale: root.localScale
-                    icon:   "󰃠"
-                    value:  root._bVal
-                    muted:  false
-                    active: true
-
-                    onVolumeChanged: function(v) {
-                        root.setBrightness(v)
-                    }
+            ChannelColumn {
+                localScale: root.localScale
+                icon:   "󰃠"
+                value:  root._bVal
+                muted:  false
+                active: true
+                onVolumeChanged: function(v) {
+                    root.setBrightness(v)
                 }
             }
         }
     }
 
-    // ── Reusable ChannelColumn Component ──────────────────────────────────────
     component ChannelColumn: Item {
         id: col
-
         property real localScale: 1.0
         property string label:  ""
         property string icon:   ""
@@ -241,7 +219,6 @@ PopupWindow {
                     radius: width / 2
                     color:  Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08)
 
-                    // Fill bar
                     Rectangle {
                         anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
                         height: Math.max(radius * 2, parent.height * col.value)
@@ -251,7 +228,6 @@ PopupWindow {
                         Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
                     }
 
-                    // Thumb
                     Rectangle {
                         id: thumb
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -266,7 +242,6 @@ PopupWindow {
                         Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                     }
 
-                    // Drag to change value
                     MouseArea {
                         anchors.fill: parent
                         cursorShape:  Qt.SizeVerCursor
@@ -278,7 +253,6 @@ PopupWindow {
                         onPositionChanged: if (pressed) col.volumeChanged(calc(mouseY))
                     }
 
-                    // Scroll wheel to change value
                     WheelHandler {
                         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
                         onWheel: function(event) {
@@ -290,7 +264,6 @@ PopupWindow {
                 }
             }
 
-            // Icon & Mute Toggle
             Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
                 width:  col.barW + Math.round(16 * root.localScale)
@@ -318,7 +291,6 @@ PopupWindow {
                 MouseArea { anchors.fill: parent; onClicked: col.muteToggled()}
             }
 
-            // Label
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:            col.label

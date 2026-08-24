@@ -71,9 +71,6 @@ Item {
                     id: sizingGroup
                     localScale: root.localScale
                     title: "Sizing & Borders"
-                    opacity: 0.3
-                    enabled: false
-
                     SettingsSlider {
                         localScale: root.localScale
                         text: "Border Width"
@@ -103,18 +100,6 @@ Item {
                         onValueChanged: { if (value !== PrefsService.notchRadius) { PrefsService.notchRadius = value; PrefsService.saveConfig() } }
                         valueSuffix: "px"
                     }
-                }
-
-                Text {
-                    anchors.centerIn: sizingGroup
-                    anchors.verticalCenterOffset: Math.round(12 * root.localScale)
-                    text: "WORK IN PROGRESS"
-                    color: Theme.text
-                    font.pixelSize: Math.round(20 * root.localScale)
-                    font.weight: Font.Bold
-                    font.letterSpacing: 2
-                    style: Text.Outline
-                    styleColor: Theme.background
                 }
             }
 

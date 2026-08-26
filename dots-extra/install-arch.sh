@@ -4,7 +4,6 @@
 #  Invoked by install.sh:  $1=HYPRLAND_CONF  $2=BACKUP_DIR  $3=CONFIG_TYPE
 # ─────────────────────────────────────────────────────────────────────────────
 
-
 set -eo pipefail
 
 # ── Arguments (validated up-front) ───────────────────────────────────────────
@@ -38,6 +37,25 @@ step() {
 declare -a FAILED_PKGS=()
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# PACKAGE HELPERS
+# ══════════════════════════════════════════════════════════════════════════════
+
+# pacman_install <pkg> [<pkg> ...]
+#
+# Strategy (three attempts, most to least aggressive):
+#
+#   1. Bulk install — fastest; skips already-installed packages via --needed.
+#
+#   2. Per-package retry — if the bulk transaction fails because ONE package
+#      has a conflict, the entire batch is rejected. Retrying individually
+#      isolates which package is actually broken so the rest can still install.
+#
+#   3. --overwrite='*' per package — resolves FILE-OWNERSHIP conflicts, where
+#      two packages both claim the same path. Safe in practice: the new package
+#      just wins the ownership. This does NOT help with hard PKGBUILD conflicts
+#      (ConflictsWith). Those need manual resolution (see summary output).
+#
 pacman_install() {
     local -a pkgs=("$@")
     local total=${#pkgs[@]}
@@ -140,7 +158,9 @@ aur_install() {
 }
 
 
-
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP 1 — AUR Helper
+# ══════════════════════════════════════════════════════════════════════════════
 step 1 "AUR Helper"
 
 AUR_HELPER=""
@@ -185,7 +205,9 @@ else
 fi
 
 
-
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP 2 — Pacman Packages
+# ══════════════════════════════════════════════════════════════════════════════
 step 2 "Pacman Packages"
 
 PACMAN_DEPS=(
@@ -233,7 +255,9 @@ sudo pacman -Syu --noconfirm 2>/dev/null || {
 pacman_install "${PACMAN_DEPS[@]}"
 
 
-
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP 3 — AUR Packages
+# ══════════════════════════════════════════════════════════════════════════════
 step 3 "AUR Packages"
 
 AUR_DEPS=(
@@ -264,7 +288,9 @@ if ! "$AUR_HELPER" -Q quickshell &>/dev/null 2>&1; then
 fi
 
 
-
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP 4 — Systemd Services
+# ══════════════════════════════════════════════════════════════════════════════
 step 4 "Systemd Services"
 
 _svc_system() {
@@ -286,6 +312,9 @@ _svc_user   pipewire-pulse
 _svc_user   wireplumber
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP 5 — Hyprland Config
+# ══════════════════════════════════════════════════════════════════════════════
 step 5 "Hyprland Config"
 
 STARTUP_CONF="$HOME/.config/hypr/brain-shell-startup.conf"
@@ -400,6 +429,9 @@ case "$CONFIG_TYPE" in
 esac
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP 6 — Brain Shell Config & Keybind Check
+# ══════════════════════════════════════════════════════════════════════════════
 step 6 "Brain Shell Config"
 
 USER_DATA="$HOME/.config/Brain_Shell/src/user_data"
@@ -500,7 +532,7 @@ for action, info in conflicts.items():
     print(f"    {'':24}  already used by: {info['used_by']}\n")
     unbound[action] = {"mods": "", "key": ""}
 
-config_path = os.path.expanduser("~/.config/Brain_Shell/src/user_data/keybinds.json")
+config_path = os.path.expanduser("$HOME/.config/Brain_Shell/src/user_data/keybinds.json")
 with open(config_path, "w") as f:
     json.dump(unbound, f, indent=2)
 
@@ -509,7 +541,9 @@ print("       Re-assign them: Dashboard  →  Config  →  Keybinds\n")
 PYEOF
 
 
-
+# ══════════════════════════════════════════════════════════════════════════════
+# SUMMARY
+# ══════════════════════════════════════════════════════════════════════════════
 echo ""
 echo -e "  ${DIM}$(printf '%.0s─' {1..50})${NC}"
 

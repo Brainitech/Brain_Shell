@@ -166,7 +166,7 @@ Item {
             id: content
             anchors {
                 fill:         parent
-                topMargin:    root.fh + Math.round(8 * localScale)
+                topMargin:    Math.round(8 * localScale)
                 leftMargin:   root.fw + Math.round(8 * localScale)
                 rightMargin:  root.fw + Math.round(8 * localScale)
                 bottomMargin: Math.round(8 * localScale)
@@ -228,15 +228,11 @@ Item {
                     }
                     
                     onPageIdxChanged: {
-                        if (!Popups.dashboardOpen || !root.windowVisible) {
-                            oldIdx = pageIdx;
-                            newIdx = pageIdx;
-                            progress = 1.0;
-                        } else {
-                            oldIdx = newIdx;
-                            newIdx = pageIdx;
-                            progressAnim.restart();
-                        }
+                        oldIdx = newIdx;
+                        newIdx = pageIdx;
+                        progress = 0.0;
+                        if (Anim.style !== "none") progressAnim.restart();
+                        else progress = 1.0;
                     }
 
                     component SlidePage: Item {

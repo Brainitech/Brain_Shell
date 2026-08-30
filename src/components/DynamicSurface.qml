@@ -125,6 +125,17 @@ PanelWindow {
         anchors.fill: parent
         localScale: root.localScale
         
+        brnWidth: {
+            if (!SurfaceState.isBottomRightExpanded) return innerRadius;
+            if (SurfaceState.activeContent === "clipboard") return clipboardPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale);
+            return Math.round(Theme.popupMaxWidth * root.localScale);
+        }
+        brnDepth: {
+            if (!SurfaceState.isBottomRightExpanded) return 0.001;
+            if (SurfaceState.activeContent === "clipboard") return clipboardPopupView.popupHeight + Math.round(Theme.notchRadius * root.localScale);
+            return Math.round(Theme.popupMaxHeight * root.localScale);
+        }
+        
         leftNotchWidth: SurfaceState.isLeftExpanded ? Math.round(Theme.popupMaxWidth * root.localScale) : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         centerNotchWidth: SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         rightNotchWidth: {
@@ -203,7 +214,6 @@ PanelWindow {
             screen: root.screen
             
             opacity: Popups.dashboardOpen ? 1 : 0
-            visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
     }
@@ -242,7 +252,6 @@ PanelWindow {
             screen: root.screen
             
             opacity: Popups.networkOpen ? 1 : 0
-            visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
 
@@ -255,7 +264,6 @@ PanelWindow {
             anchors.bottom: parent.bottom
             
             opacity: Popups.notificationsOpen ? 1 : 0
-            visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
 
@@ -268,9 +276,24 @@ PanelWindow {
             anchors.bottom: parent.bottom
             
             opacity: Popups.notificationToastOpen && !Popups.notificationsOpen ? 1 : 0
-            visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
     }
 
+    Item {
+        id: bottomRightNotchArea
+        width: surfaceShape.brnWidth
+        height: surfaceShape.brnDepth
+        anchors.right: parent.right
+        anchors.rightMargin: Math.round(Theme.borderWidth * root.localScale)
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: Math.round(Theme.borderWidth * root.localScale)
+
+        ClipboardPopup {
+            id: clipboardPopupView
+            localScale: root.localScale
+            anchors.fill: parent
+            
+        }
+    }
 }

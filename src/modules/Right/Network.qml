@@ -127,12 +127,7 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    Popups.closeAll()
-                    Popups.networkPage = "wifi"
-                    SurfaceState.open("right", "network")
-                    Popups.networkPinned = true
-                }
+                onClicked: IpcManager.wifiToggle.toggle()
             }
         }
 
@@ -155,12 +150,7 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    Popups.closeAll()
-                    Popups.networkPage = "vpn"
-                    SurfaceState.open("right", "network")
-                    Popups.networkPinned = true
-                }
+                onClicked: IpcManager.vpnToggle.toggle()
             }
         }
 
@@ -181,12 +171,7 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    Popups.closeAll()
-                    Popups.networkPage = "bluetooth"
-                    SurfaceState.open("right", "network")
-                    Popups.networkPinned = true
-                }
+                onClicked: IpcManager.btToggle.toggle()
             }
         }
 
@@ -207,12 +192,7 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    Popups.closeAll()
-                    Popups.networkPage = "hotspot"
-                    SurfaceState.open("right", "network")
-                    Popups.networkPinned = true
-                }
+                onClicked: IpcManager.hotspotToggle.toggle()
             }
         }
     }

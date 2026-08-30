@@ -99,80 +99,43 @@ QtObject {
 
     // ── Network Toggles ──────────────────────────────────────
 
-    property var wifiToggle: IpcHandler {
-        target: "wifi-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.networkOpen) {
+    function _openNetwork(page) {
+        if(Popups.anyOpen && !Popups.networkOpen) {
+            Popups.closeAll()
+            Popups.networkPage = page
+            SurfaceState.open("right", "network")
+            Popups.networkPinned = true
+        } else if (Popups.networkOpen && Popups.networkPage != page) {
+            Popups.networkPage = page
+        } else {
+            if (Popups.networkOpen) SurfaceState.close()
+            else { 
                 Popups.closeAll()
-                Popups.networkPage = "wifi"
+                Popups.networkPage = page
                 SurfaceState.open("right", "network")
                 Popups.networkPinned = true
-            } else if (Popups.networkOpen && Popups.networkPage != "wifi") {
-                Popups.networkPage = "wifi"
-            } else {
-                var next = !Popups.networkOpen
-                Popups.closeAll()
-                SurfaceState.toggle("right", "network")
-                if (next) { Popups.networkPage = "wifi"; Popups.networkPinned = true; }
             }
         }
+    }
+
+    property var wifiToggle: IpcHandler {
+        target: "wifi-toggle"
+        function toggle() { _openNetwork("wifi") }
     }
 
     property var btToggle: IpcHandler {
         target: "bluetooth-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.networkOpen) {
-                Popups.closeAll()
-                Popups.networkPage = "bluetooth"
-                SurfaceState.open("right", "network")
-                Popups.networkPinned = true
-            } else if (Popups.networkOpen && Popups.networkPage != "bluetooth") {
-                Popups.networkPage = "bluetooth"
-            } else {
-                var next = !Popups.networkOpen
-                Popups.closeAll()
-                SurfaceState.toggle("right", "network")
-                if (next) { Popups.networkPage = "bluetooth"; Popups.networkPinned = true; }
-            }
-        }
+        function toggle() { _openNetwork("bluetooth") }
     }
 
     property var vpnToggle: IpcHandler {
         target: "vpn-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.networkOpen) {
-                Popups.closeAll()
-                Popups.networkPage = "vpn"
-                SurfaceState.open("right", "network")
-                Popups.networkPinned = true
-            } else if (Popups.networkOpen && Popups.networkPage != "vpn") {
-                Popups.networkPage = "vpn"
-            } else {
-                var next = !Popups.networkOpen
-                Popups.closeAll()
-                SurfaceState.toggle("right", "network")
-                if (next) { Popups.networkPage = "vpn"; Popups.networkPinned = true; }
-            }
-        }
+        function toggle() { _openNetwork("vpn") }
     }
 
     property var hotspotToggle: IpcHandler {
         target: "hotspot-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.networkOpen) {
-                Popups.closeAll()
-                Popups.networkPage = "hotspot"
-                SurfaceState.open("right", "network")
-                Popups.networkPinned = true
-            } else if (Popups.networkOpen && Popups.networkPage != "hotspot") {
-                Popups.networkPage = "hotspot"
-            } else {
-                var next = !Popups.networkOpen
-                Popups.closeAll()
-                SurfaceState.toggle("right", "network")
-                if (next) { Popups.networkPage = "hotspot"; Popups.networkPinned = true; }
-            }
-        }
+        function toggle() { _openNetwork("hotspot") }
     }
 
     // ── Misc Toggles ─────────────────────────────────────────

@@ -8,7 +8,7 @@ import "../"
 
 Item {
     id: root
-    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+    property real localScale: 1.0
 
     readonly property int fw: Math.round(Theme.notchRadius * localScale)
     readonly property int fh: Math.round(Theme.notchRadius * localScale)

@@ -11,7 +11,7 @@ Item {
     
     // Physical state properties injected by DynamicSurface
     property var screen
-    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+    property real localScale: 1.0
 
     readonly property int popupWidth:  Math.round(Theme.networkPopupWidth * root.localScale)
     readonly property int popupHeight: Math.round(648 * root.localScale)

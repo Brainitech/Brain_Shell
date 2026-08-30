@@ -195,6 +195,7 @@ PanelWindow {
 
         Dashboard {
             id: dashboardView
+            localScale: root.localScale
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
@@ -233,6 +234,7 @@ PanelWindow {
 
         NetworkPopup {
             id: networkPopupView
+            localScale: root.localScale
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
@@ -246,6 +248,7 @@ PanelWindow {
 
         NotificationsPopup {
             id: notifsPopupView
+            localScale: root.localScale
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
@@ -258,6 +261,7 @@ PanelWindow {
 
         NotificationToast {
             id: notificationToastView
+            localScale: root.localScale
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right

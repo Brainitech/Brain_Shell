@@ -23,7 +23,7 @@ Item {
     // ── Context-Aware Scaling ─────────────────────────────────────────────────
     // Multiplier based on screen height relative to 1080p, clamped to prevent
     // extreme scaling on ultra-high or ultra-low resolution displays.
-    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+    property real localScale: 1.0
 
     readonly property int fw: Math.round(Theme.notchRadius * localScale)
     readonly property int fh: Math.round(Theme.notchRadius * localScale)

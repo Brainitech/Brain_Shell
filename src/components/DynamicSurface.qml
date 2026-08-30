@@ -26,10 +26,10 @@ PanelWindow {
     // Counteract the compositor's usable area squish (caused by our StrutWindows)
     // by pushing the bounds back out to the absolute screen edges.
     margins {
-        top: -40 -Theme.borderWidth *2
-        bottom: -Theme.borderWidth *2
-        left: -Theme.borderWidth *2
-        right: -Theme.borderWidth *2
+        top: Math.round(-40 * localScale) - Math.round(Theme.borderWidth * localScale) * 2
+        bottom: -Math.round(Theme.borderWidth * localScale) * 2
+        left: -Math.round(Theme.borderWidth * localScale) * 2
+        right: -Math.round(Theme.borderWidth * localScale) * 2
     }
     
     color: "transparent"
@@ -138,7 +138,7 @@ PanelWindow {
         width: surfaceShape.leftNotchWidth
         height: Math.round(Theme.notchHeight * root.localScale)
         anchors.left: parent.left
-        anchors.leftMargin: Theme.borderWidth
+        anchors.leftMargin: Math.round(Theme.borderWidth * root.localScale)
         anchors.top: parent.top
         
         LeftContent {
@@ -167,7 +167,7 @@ PanelWindow {
         width: surfaceShape.rightNotchWidth
         height: Math.round(Theme.notchHeight * root.localScale)
         anchors.right: parent.right
-        anchors.rightMargin: Theme.borderWidth
+        anchors.rightMargin: Math.round(Theme.borderWidth * root.localScale)
         anchors.top: parent.top
         clip: true
         
@@ -176,7 +176,7 @@ PanelWindow {
             id: rightContent
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            anchors.rightMargin: Theme.notchPadding
+            anchors.rightMargin: Math.round(Theme.notchPadding * root.localScale)
         }
     }
 

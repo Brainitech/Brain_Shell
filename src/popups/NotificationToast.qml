@@ -6,10 +6,8 @@ import "../shapes/"
 import "../services/"
 import "../"
 
-PopupWindow {
-	id: root
-
-	required property var anchorWindow
+Item {
+    id: root
     readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
     readonly property int fw: Math.round(Theme.notchRadius * localScale)
@@ -17,38 +15,31 @@ PopupWindow {
 
     readonly property int toastWidth: Math.round(Theme.notificationToastWidth * localScale) + Math.round(10 * localScale)
 
-    implicitWidth:  toastWidth + fw + Math.round(10 * localScale)
-    implicitHeight: Math.round(180 * localScale)
 
-    anchor.window: root.anchorWindow
-    anchor.rect: Qt.rect(
-        Math.round(root.anchorWindow.width - ((toastWidth + (fw*2)+ Theme.borderWidth)/2)),
-        Math.round((-Theme.notchHeight / 2) * localScale),
-        0,
-        0
-    )
-    anchor.gravity:    Edges.Bottom
-    anchor.adjustment: PopupAdjustment.None
-
-	color:   "transparent"
-	visible: windowVisible
-
-	Region {
-		id: toastBlurReg
-		item: card
-	}
-
-	BackgroundEffect.blurRegion: PrefsService.bgBlur ? toastBlurReg : null
-
-	property bool windowVisible: false
 	property bool showing:       false
 	property var  current:       null
 	property var  queue:         []
 
 	Connections {
+		target: Popups
+		function onNotificationsOpenChanged() {
+			if (Popups.notificationsOpen) {
+				root.queue = []
+				if (root.showing || root.current) {
+					autoTimer.stop()
+					root.showing = false
+					Popups.notificationToastOpen = false
+					root.current = null
+				}
+			}
+		}
+	}
+
+	Connections {
 		target: NotificationService
 		function onNotificationAdded(n) {
 			if (!n || !n.tracked) return
+			if (Popups.notificationsOpen) return
 			if (root.current === null) {
 				root.startShow(n)
 			} else {
@@ -60,7 +51,7 @@ PopupWindow {
 	function startShow(n) {
 		root.current       = n
 		root.showing       = false
-		root.windowVisible = true
+		
 		slideInTimer.restart()
 		Popups.notificationToastOpen = false
 	}
@@ -100,38 +91,18 @@ PopupWindow {
 				root.startShow(next)
 			} else {
 				root.current       = null
-				root.windowVisible = false
 			}
 		}
 	}
 
 	// ── Card ───────────────────────────────────────────────────
+	property int targetHeight: root.showing ? (cardCol.y + cardCol.implicitHeight + Math.round(24 * root.localScale) + root.fh) : root.fh
+
 	Item {
 		id:            card
-		anchors.right: parent.right
-		anchors.top:   parent.top
-		clip:           true
+		anchors.fill:  parent
+		clip:          true
 
-
-		width: root.showing
-		? root.toastWidth + root.fw
-		: root.fw
-
-		height: root.showing
-		? (cardCol.y + cardCol.implicitHeight + Math.round(24 * root.localScale) + root.fh)
-		: root.fh
-
-		Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-		Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-
-		PopupShape {
-			anchors.fill: parent
-			attachedEdge: "right"
-			color:        Theme.background
-			radius:       Math.round(Theme.cornerRadius * root.localScale)
-			flareWidth:   root.fw
-			flareHeight:  root.fh
-		}
 
 		Rectangle {
 			anchors {
@@ -177,7 +148,7 @@ PopupWindow {
 				width: running ? 0 : root.toastWidth - Math.round(10 * root.localScale)
 				Behavior on width {
 					enabled: progressBar.running
-					NumberAnimation { duration: Anim.megaSlow; easing.type: Anim.linear}
+					NumberAnimation { duration: autoTimer.interval; easing.type: Anim.linear}
 				}
 
 				Connections {
@@ -203,7 +174,7 @@ PopupWindow {
 				id: cardCol
 				anchors {
 					left:       parent.left;  leftMargin:  Math.round(14 * root.localScale)
-					right:      parent.right; rightMargin: root.fw + Math.round(6 * root.localScale)
+					right:      parent.right; rightMargin: Math.round(14 * root.localScale)
 
 				}
 				spacing: Math.round(2 * root.localScale)

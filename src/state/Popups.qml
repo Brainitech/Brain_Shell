@@ -38,7 +38,7 @@ QtObject {
     }
     
     readonly property bool wallpaperOpen: SurfaceState.activeContent === "wallpaper"
-    readonly property bool notificationToastOpen: SurfaceState.activeContent === "notificationToast"
+    property bool notificationToastOpen: false
     readonly property bool quickOpen: SurfaceState.activeContent === "quick"
     readonly property bool clipboardOpen: SurfaceState.activeContent === "clipboard"
     property bool colorPickerActive: false

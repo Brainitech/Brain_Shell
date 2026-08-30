@@ -143,40 +143,48 @@ QtObject {
     property var notification: IpcHandler {
         target: "notification-toggle"
         function toggle() {
-            var next = !Popups.notificationsOpen
-            Popups.closeAll()
-            SurfaceState.toggle("right", "notifications")
-            if (next) Popups.notificationsPinned = true
+            if (Popups.notificationsOpen) SurfaceState.close();
+            else {
+                Popups.closeAll();
+                SurfaceState.open("right", "notifications");
+                Popups.notificationsPinned = true;
+            }
         }
     }
 
     property var clipboard: IpcHandler {
         target: "clipboard-toggle"
         function toggle() {
-            var next = !Popups.clipboardOpen
-            Popups.closeAll()
-            SurfaceState.toggle("bottomRight", "clipboard")
-            if (next) Popups.clipboardPinned = true
+            if (Popups.clipboardOpen) SurfaceState.close();
+            else {
+                Popups.closeAll();
+                SurfaceState.open("bottomRight", "clipboard");
+                Popups.clipboardPinned = true;
+            }
         }
     }
 
     property var wallpaper: IpcHandler {
         target: "wallpaper-toggle"
         function toggle() {
-            var next = !Popups.wallpaperOpen
-            Popups.closeAll()
-            SurfaceState.toggle("bottomCenter", "wallpaper")
-            if (next) Popups.wallpaperPinned = true
+            if (Popups.wallpaperOpen) SurfaceState.close();
+            else {
+                Popups.closeAll();
+                SurfaceState.open("bottomCenter", "wallpaper");
+                Popups.wallpaperPinned = true;
+            }
         }
     }
 
     property var archMenu: IpcHandler {
         target: "PowerMenu-toggle"
         function toggle() {
-            var next = !Popups.archMenuOpen
-            Popups.closeAll()
-            SurfaceState.toggle("left", "archMenu")
-            if (next) Popups.archMenuPinned = true
+            if (Popups.archMenuOpen) SurfaceState.close();
+            else {
+                Popups.closeAll();
+                SurfaceState.open("left", "archMenu");
+                Popups.archMenuPinned = true;
+            }
         }
     }
 

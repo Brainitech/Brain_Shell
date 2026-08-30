@@ -128,13 +128,21 @@ PanelWindow {
         leftNotchWidth: SurfaceState.isLeftExpanded ? Math.round(Theme.popupMaxWidth * root.localScale) : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         centerNotchWidth: SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         rightNotchWidth: {
-            if (!SurfaceState.isRightExpanded) return Math.max(Math.round(Theme.rNotchMinWidth * localScale), Math.min(Math.round(Theme.rNotchMaxWidth * localScale), rightContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)));
+            if (!SurfaceState.isRightExpanded) {
+                if (Popups.notificationToastOpen) return notificationToastView.toastWidth + Math.round(Theme.notchRadius * root.localScale);
+                return Math.max(Math.round(Theme.rNotchMinWidth * localScale), Math.min(Math.round(Theme.rNotchMaxWidth * localScale), rightContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)));
+            }
             if (SurfaceState.activeContent === "network") return Math.round(Theme.networkPopupWidth * root.localScale) + Math.round(Theme.notchRadius * root.localScale);
+            if (SurfaceState.activeContent === "notifications") return notifsPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale);
             return Math.round(Theme.popupMaxWidth * root.localScale);
         }
         rightNotchHeight: {
-            if (!SurfaceState.isRightExpanded) return Math.round(Theme.notchHeight * root.localScale);
+            if (!SurfaceState.isRightExpanded) {
+                if (Popups.notificationToastOpen) return notificationToastView.targetHeight;
+                return Math.round(Theme.notchHeight * root.localScale);
+            }
             if (SurfaceState.activeContent === "network") return Math.round(648 * root.localScale);
+            if (SurfaceState.activeContent === "notifications") return notifsPopupView.targetHeight;
             return Math.round(Theme.popupMaxHeight * root.localScale);
         }
         
@@ -232,6 +240,30 @@ PanelWindow {
             screen: root.screen
             
             opacity: Popups.networkOpen ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+        }
+
+        NotificationsPopup {
+            id: notifsPopupView
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            
+            opacity: Popups.notificationsOpen ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+        }
+
+        NotificationToast {
+            id: notificationToastView
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            
+            opacity: Popups.notificationToastOpen && !Popups.notificationsOpen ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }

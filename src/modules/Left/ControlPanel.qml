@@ -8,7 +8,7 @@ IconBtn {
 		onClicked: {
         var next = !Popups.archMenuOpen
         Popups.closeAll()
-        Popups.archMenuOpen = next
+        SurfaceState.toggle("left", "archMenu")
         if (next) Popups.archMenuPinned = true
     }
 }

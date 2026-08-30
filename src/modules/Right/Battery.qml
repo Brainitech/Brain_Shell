@@ -25,7 +25,7 @@ Item {
         onClicked: {
             var next = !Popups.batteryOpen
             Popups.closeAll()
-            Popups.batteryOpen = next
+            SurfaceState.toggle("right", "battery")
         }
     }
 }

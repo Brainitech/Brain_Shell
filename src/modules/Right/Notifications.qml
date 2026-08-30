@@ -14,7 +14,7 @@ IconBtn {
     onClicked: {
         var next = !Popups.notificationsOpen
         Popups.closeAll()
-        Popups.notificationsOpen = next
+        SurfaceState.toggle("right", "notifications")
         if (next) Popups.notificationsPinned = true
     }
 

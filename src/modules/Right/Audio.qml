@@ -77,7 +77,7 @@ Item {
             } else {
                 var next = !Popups.audioOpen
                 Popups.closeAll()
-                Popups.audioOpen = next
+                SurfaceState.toggle("right", "audio")
                 if (next) Popups.audioPinned = true
             }
         }

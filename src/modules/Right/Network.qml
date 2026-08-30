@@ -130,7 +130,7 @@ Item {
                 onClicked: {
                     Popups.closeAll()
                     Popups.networkPage = "wifi"
-                    Popups.networkOpen = true
+                    SurfaceState.open("right", "network")
                     Popups.networkPinned = true
                 }
             }
@@ -158,7 +158,7 @@ Item {
                 onClicked: {
                     Popups.closeAll()
                     Popups.networkPage = "vpn"
-                    Popups.networkOpen = true
+                    SurfaceState.open("right", "network")
                     Popups.networkPinned = true
                 }
             }
@@ -184,7 +184,7 @@ Item {
                 onClicked: {
                     Popups.closeAll()
                     Popups.networkPage = "bluetooth"
-                    Popups.networkOpen = true
+                    SurfaceState.open("right", "network")
                     Popups.networkPinned = true
                 }
             }
@@ -210,7 +210,7 @@ Item {
                 onClicked: {
                     Popups.closeAll()
                     Popups.networkPage = "hotspot"
-                    Popups.networkOpen = true
+                    SurfaceState.open("right", "network")
                     Popups.networkPinned = true
                 }
             }

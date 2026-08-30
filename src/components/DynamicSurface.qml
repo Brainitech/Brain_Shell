@@ -3,11 +3,18 @@ import Quickshell
 import Quickshell.Wayland
 import "../"
 import "../theme"
+import "../modules/Center/"
+import "../modules/Right/"
+import "../modules/Left/"
 
 // A morphing Wayland window layer for the unified screen frame
 PanelWindow {
     id: root
+    property int leftContentWidth: leftContent.implicitWidth
+    property int centerContentWidth: centerContent.implicitWidth
+    property int rightContentWidth: rightContent.implicitWidth
     property var screen
+    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
     anchors {
         top: true
@@ -42,10 +49,6 @@ PanelWindow {
         width: surfaceShape.leftNotchWidth + (surfaceShape.flareRadius * 2)
         height: surfaceShape.leftNotchHeight + surfaceShape.flareRadius
         x: 0
-        TapHandler { 
-            // Toggle open, but don't close if clicking inside the open content
-            onTapped: if (!SurfaceState.isLeftExpanded) SurfaceState.open("left", "archMenu") 
-        }
     }
     Item { 
         id: centerNotchMask
@@ -61,9 +64,6 @@ PanelWindow {
         width: surfaceShape.rightNotchWidth + (surfaceShape.flareRadius * 2)
         height: surfaceShape.rightNotchHeight + surfaceShape.flareRadius
         anchors.right: parent.right
-        TapHandler { 
-            onTapped: if (!SurfaceState.isRightExpanded) SurfaceState.open("right", "audio") 
-        }
     }
 
     Item { 
@@ -122,15 +122,62 @@ PanelWindow {
     SurfaceShape {
         id: surfaceShape
         anchors.fill: parent
+        localScale: root.localScale
+        
+        leftNotchWidth: SurfaceState.isLeftExpanded ? Math.round(Theme.popupMaxWidth * root.localScale) : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
+        centerNotchWidth: SurfaceState.isTopExpanded ? Math.round(Theme.dashboardWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
+        rightNotchWidth: SurfaceState.isRightExpanded ? Math.round(Theme.popupMaxWidth * root.localScale) : Math.max(Math.round(Theme.rNotchMinWidth * localScale), Math.min(Math.round(Theme.rNotchMaxWidth * localScale), rightContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         
         // Geometry animates with smooth CUBIC curve (never detaches)
-        Behavior on centerNotchHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-        Behavior on centerNotchWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-        Behavior on leftNotchHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-        Behavior on leftNotchWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-        Behavior on rightNotchHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-        Behavior on rightNotchWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
     }
     
-    // Future content layers will be injected here
+    
+    // --- NOTCH CONTENT ---
+    Item {
+        id: leftNotchArea
+        width: surfaceShape.leftNotchWidth
+        height: Math.round(Theme.notchHeight * root.localScale)
+        anchors.left: parent.left
+        anchors.leftMargin: Theme.borderWidth
+        anchors.top: parent.top
+        
+        LeftContent {
+            localScale: root.localScale
+            id: leftContent
+            anchors.centerIn: parent
+        }
+    }
+
+    Item {
+        id: centerNotchArea
+        width: surfaceShape.centerNotchWidth
+        height: Math.round(Theme.notchHeight * root.localScale)
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        
+        CenterContent {
+            localScale: root.localScale
+            id: centerContent
+            anchors.centerIn: parent
+        }
+    }
+
+    Item {
+        id: rightNotchArea
+        width: surfaceShape.rightNotchWidth
+        height: Math.round(Theme.notchHeight * root.localScale)
+        anchors.right: parent.right
+        anchors.rightMargin: Theme.borderWidth
+        anchors.top: parent.top
+        clip: true
+        
+        RightContent {
+            localScale: root.localScale
+            id: rightContent
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.rightMargin: Theme.notchPadding
+        }
+    }
+
 }

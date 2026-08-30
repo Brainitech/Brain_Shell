@@ -18,18 +18,17 @@ QtObject {
 
     function _openDashboard(page) {
         Popups._ignoreDefaultTab = true
+        
         if(Popups.anyOpen && !Popups.dashboardOpen){
             Popups.closeAll()
-            Popups.dashboardOpen = true
+            SurfaceState.open("top", "dashboard")
             Popups.dashboardPage = page
             Popups.dashboardPinned = true
         } else if(Popups.dashboardOpen && Popups.dashboardPage != page) {
             Popups.dashboardPage = page
         } else {
-            var next = !Popups.dashboardOpen
-            Popups.closeAll()
-            Popups.dashboardOpen = next
-            if (next) { Popups.dashboardPage = page; Popups.dashboardPinned = true; }
+            if (Popups.dashboardOpen) SurfaceState.close()
+            else { Popups.closeAll(); SurfaceState.open("top", "dashboard") }
         }
         Popups._ignoreDefaultTab = false
     }
@@ -65,7 +64,7 @@ QtObject {
         Popups._ignoreDefaultTab = true
         if(Popups.anyOpen && !Popups.audioOpen) {
             Popups.closeAll()
-            Popups.audioOpen = true
+            SurfaceState.open("right", "audio")
             Popups.audioPage = page
             Popups.audioPinned = true
         } else if (Popups.audioOpen && Popups.audioPage != page) {
@@ -73,7 +72,7 @@ QtObject {
         } else {
             var next = !Popups.audioOpen
             Popups.closeAll()
-            Popups.audioOpen = next
+            SurfaceState.toggle("right", "audio")
             if (next) { Popups.audioPage = page; Popups.audioPinned = true; }
         }
         Popups._ignoreDefaultTab = false
@@ -102,14 +101,14 @@ QtObject {
             if(Popups.anyOpen && !Popups.networkOpen) {
                 Popups.closeAll()
                 Popups.networkPage = "wifi"
-                Popups.networkOpen = true
+                SurfaceState.open("right", "network")
                 Popups.networkPinned = true
             } else if (Popups.networkOpen && Popups.networkPage != "wifi") {
                 Popups.networkPage = "wifi"
             } else {
                 var next = !Popups.networkOpen
                 Popups.closeAll()
-                Popups.networkOpen = next
+                SurfaceState.toggle("right", "network")
                 if (next) { Popups.networkPage = "wifi"; Popups.networkPinned = true; }
             }
         }
@@ -121,14 +120,14 @@ QtObject {
             if(Popups.anyOpen && !Popups.networkOpen) {
                 Popups.closeAll()
                 Popups.networkPage = "bluetooth"
-                Popups.networkOpen = true
+                SurfaceState.open("right", "network")
                 Popups.networkPinned = true
             } else if (Popups.networkOpen && Popups.networkPage != "bluetooth") {
                 Popups.networkPage = "bluetooth"
             } else {
                 var next = !Popups.networkOpen
                 Popups.closeAll()
-                Popups.networkOpen = next
+                SurfaceState.toggle("right", "network")
                 if (next) { Popups.networkPage = "bluetooth"; Popups.networkPinned = true; }
             }
         }
@@ -140,14 +139,14 @@ QtObject {
             if(Popups.anyOpen && !Popups.networkOpen) {
                 Popups.closeAll()
                 Popups.networkPage = "vpn"
-                Popups.networkOpen = true
+                SurfaceState.open("right", "network")
                 Popups.networkPinned = true
             } else if (Popups.networkOpen && Popups.networkPage != "vpn") {
                 Popups.networkPage = "vpn"
             } else {
                 var next = !Popups.networkOpen
                 Popups.closeAll()
-                Popups.networkOpen = next
+                SurfaceState.toggle("right", "network")
                 if (next) { Popups.networkPage = "vpn"; Popups.networkPinned = true; }
             }
         }
@@ -159,14 +158,14 @@ QtObject {
             if(Popups.anyOpen && !Popups.networkOpen) {
                 Popups.closeAll()
                 Popups.networkPage = "hotspot"
-                Popups.networkOpen = true
+                SurfaceState.open("right", "network")
                 Popups.networkPinned = true
             } else if (Popups.networkOpen && Popups.networkPage != "hotspot") {
                 Popups.networkPage = "hotspot"
             } else {
                 var next = !Popups.networkOpen
                 Popups.closeAll()
-                Popups.networkOpen = next
+                SurfaceState.toggle("right", "network")
                 if (next) { Popups.networkPage = "hotspot"; Popups.networkPinned = true; }
             }
         }
@@ -179,7 +178,7 @@ QtObject {
         function toggle() {
             var next = !Popups.notificationsOpen
             Popups.closeAll()
-            Popups.notificationsOpen = next
+            SurfaceState.toggle("right", "notifications")
             if (next) Popups.notificationsPinned = true
         }
     }
@@ -189,7 +188,7 @@ QtObject {
         function toggle() {
             var next = !Popups.clipboardOpen
             Popups.closeAll()
-            Popups.clipboardOpen = next
+            SurfaceState.toggle("bottomRight", "clipboard")
             if (next) Popups.clipboardPinned = true
         }
     }
@@ -199,7 +198,7 @@ QtObject {
         function toggle() {
             var next = !Popups.wallpaperOpen
             Popups.closeAll()
-            Popups.wallpaperOpen = next
+            SurfaceState.toggle("bottomCenter", "wallpaper")
             if (next) Popups.wallpaperPinned = true
         }
     }
@@ -209,7 +208,7 @@ QtObject {
         function toggle() {
             var next = !Popups.archMenuOpen
             Popups.closeAll()
-            Popups.archMenuOpen = next
+            SurfaceState.toggle("left", "archMenu")
             if (next) Popups.archMenuPinned = true
         }
     }

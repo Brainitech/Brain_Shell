@@ -7,7 +7,7 @@ QtObject {
     property var activeExpandedButton: null
 
     // ── Per-popup open state ───────────────────────────────────────────────────
-    property bool audioOpen:         false
+    readonly property bool audioOpen: SurfaceState.activeContent === "audio"
     onAudioOpenChanged: {
         if (audioOpen && !_ignoreDefaultTab) {
             let opt = PrefsService.defaultAudioTab
@@ -17,11 +17,11 @@ QtObject {
         }
     }
     
-    property bool networkOpen:       false
-    property bool batteryOpen:       false
-    property bool notificationsOpen: false
-    property bool archMenuOpen:      false
-    property bool dashboardOpen:     false
+    readonly property bool networkOpen: SurfaceState.activeContent === "network"
+    readonly property bool batteryOpen: SurfaceState.activeContent === "battery"
+    readonly property bool notificationsOpen: SurfaceState.activeContent === "notifications"
+    readonly property bool archMenuOpen: SurfaceState.activeContent === "archMenu"
+    readonly property bool dashboardOpen: SurfaceState.activeContent === "dashboard"
     onDashboardOpenChanged: {
         if (!dashboardOpen && activeExpandedButton) {
             activeExpandedButton.expanded = false
@@ -37,10 +37,10 @@ QtObject {
         }
     }
     
-    property bool wallpaperOpen:     false
-    property bool notificationToastOpen:    false
-    property bool quickOpen: false
-    property bool clipboardOpen:     false
+    readonly property bool wallpaperOpen: SurfaceState.activeContent === "wallpaper"
+    readonly property bool notificationToastOpen: SurfaceState.activeContent === "notificationToast"
+    readonly property bool quickOpen: SurfaceState.activeContent === "quick"
+    readonly property bool clipboardOpen: SurfaceState.activeContent === "clipboard"
     property bool colorPickerActive: false
     property string pickerFormat: "HEX"
 
@@ -122,16 +122,7 @@ QtObject {
                                     || clipboardOpen
 
     function closeAll() {
-        audioOpen         = false
-        networkOpen       = false
-        batteryOpen       = false
-        notificationsOpen = false
-        archMenuOpen      = false
-        dashboardOpen     = false
-        wallpaperOpen     = false
-        quickOpen         = false
-        clipboardOpen     = false
-
+        SurfaceState.close()
         audioPinned         = false
         networkPinned       = false
         batteryPinned       = false

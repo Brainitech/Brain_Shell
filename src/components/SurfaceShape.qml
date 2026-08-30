@@ -10,35 +10,36 @@ Shape {
     layer.enabled: true
     layer.samples: 8
     
-    property int frameThickness: Theme.borderWidth
-    property int innerRadius: Theme.cornerRadius
-    property int flareRadius: Theme.notchRadius
+    property int frameThickness: Math.round(Theme.borderWidth * localScale)
+    property int innerRadius: Math.round(Theme.cornerRadius * localScale)
+    property int flareRadius: Math.round(Theme.notchRadius * localScale)
+    property real localScale: 1.0
     property color frameColor: Theme.background
     
     // --- TOP NOTCHES (Always visible) ---
-    property int baseNotchHeight: Theme.notchHeight
-    property int leftNotchWidth: SurfaceState.isLeftExpanded ? Theme.popupMaxWidth : Theme.lNotchMinWidth
-    property int leftNotchHeight: SurfaceState.isLeftExpanded ? Theme.popupMaxHeight : baseNotchHeight
+    property int baseNotchHeight: Math.round(Theme.notchHeight * localScale)
+    property int leftNotchWidth: 0
+    property int leftNotchHeight: SurfaceState.isLeftExpanded ? Math.round(Theme.popupMaxHeight * localScale) : baseNotchHeight
     
-    property int centerNotchWidth: SurfaceState.isTopExpanded ? Theme.dashboardWidth : Theme.cNotchMinWidth
-    property int centerNotchHeight: SurfaceState.isTopExpanded ? Theme.dashboardHeight : baseNotchHeight
+    property int centerNotchWidth: 0
+    property int centerNotchHeight: SurfaceState.isTopExpanded ? Math.round(Theme.dashboardHeight * localScale) : baseNotchHeight
     
-    property int rightNotchWidth: SurfaceState.isRightExpanded ? Theme.popupMaxWidth : Theme.rNotchMinWidth
-    property int rightNotchHeight: SurfaceState.isRightExpanded ? Theme.popupMaxHeight : baseNotchHeight
+    property int rightNotchWidth: 0
+    property int rightNotchHeight: SurfaceState.isRightExpanded ? Math.round(Theme.popupMaxHeight * localScale) : baseNotchHeight
 
     // --- SIDE/BOTTOM NOTCHES (0px base, grow when opened) ---
-    property real lcnDepth: SurfaceState.isLeftCenterExpanded ? Theme.popupMaxWidth : 0.001
-    property real lcnHeight: SurfaceState.isLeftCenterExpanded ? Theme.popupMaxHeight : 0.001
+    property real lcnDepth: SurfaceState.isLeftCenterExpanded ? Math.round(Theme.popupMaxWidth * localScale) : 0.001
+    property real lcnHeight: SurfaceState.isLeftCenterExpanded ? Math.round(Theme.popupMaxHeight * localScale) : 0.001
 
-    property real rcnDepth: SurfaceState.isRightCenterExpanded ? Theme.popupMaxWidth : 0.001
-    property real rcnHeight: SurfaceState.isRightCenterExpanded ? Theme.popupMaxHeight : 0.001
+    property real rcnDepth: SurfaceState.isRightCenterExpanded ? Math.round(Theme.popupMaxWidth * localScale) : 0.001
+    property real rcnHeight: SurfaceState.isRightCenterExpanded ? Math.round(Theme.popupMaxHeight * localScale) : 0.001
 
-    property real bcnDepth: SurfaceState.isBottomCenterExpanded ? Theme.popupMaxHeight : 0.001
-    property real bcnWidth: SurfaceState.isBottomCenterExpanded ? Theme.dashboardWidth : 0.001
+    property real bcnDepth: SurfaceState.isBottomCenterExpanded ? Math.round(Theme.popupMaxHeight * localScale) : 0.001
+    property real bcnWidth: SurfaceState.isBottomCenterExpanded ? Math.round(Theme.dashboardWidth * localScale) : 0.001
 
     // Seamless Corner Morphing properties for Bottom-Right
-    property real brnDepth: SurfaceState.isBottomRightExpanded ? Theme.popupMaxHeight : 0.001
-    property real brnWidth: SurfaceState.isBottomRightExpanded ? Theme.popupMaxWidth : innerRadius
+    property real brnDepth: SurfaceState.isBottomRightExpanded ? Math.round(Theme.popupMaxHeight * localScale) : 0.001
+    property real brnWidth: SurfaceState.isBottomRightExpanded ? Math.round(Theme.popupMaxWidth * localScale) : innerRadius
 
     readonly property real t: frameThickness
     readonly property real r: innerRadius
@@ -62,24 +63,24 @@ Shape {
     property real brnTopFlareR:    SurfaceState.isBottomRightExpanded ? fr : r
     
     // --- ANIMATIONS ---
-    Behavior on brnBottomFlareR { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on brnInnerR       { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on brnTopFlareR    { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on centerNotchHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on centerNotchWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on leftNotchHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on leftNotchWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on rightNotchHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on rightNotchWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on brnBottomFlareR { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on brnInnerR       { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on brnTopFlareR    { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on centerNotchHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on centerNotchWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on leftNotchHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on leftNotchWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on rightNotchHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on rightNotchWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
     
-    Behavior on lcnDepth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on lcnHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on rcnDepth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on rcnHeight { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on bcnDepth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on bcnWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on brnDepth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-    Behavior on brnWidth { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+    Behavior on lcnDepth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on lcnHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on rcnDepth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on rcnHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on bcnDepth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on bcnWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on brnDepth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on brnWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
 
     ShapePath {
         fillColor: frameColor

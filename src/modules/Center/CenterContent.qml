@@ -869,7 +869,7 @@ Item {
 					if (ShellState.screenRecord && !ScreenRecService.recording) return
 					var next = !Popups.dashboardOpen
 					Popups.closeAll()
-					Popups.dashboardOpen = next
+					SurfaceState.toggle("top", "dashboard")
 					if (next) Popups.dashboardPinned = true
 				}
 			}

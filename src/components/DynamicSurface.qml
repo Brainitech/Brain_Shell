@@ -6,6 +6,7 @@ import "../theme"
 import "../modules/Center/"
 import "../modules/Right/"
 import "../modules/Left/"
+import "../popups/"
 
 // A morphing Wayland window layer for the unified screen frame
 PanelWindow {
@@ -125,7 +126,7 @@ PanelWindow {
         localScale: root.localScale
         
         leftNotchWidth: SurfaceState.isLeftExpanded ? Math.round(Theme.popupMaxWidth * root.localScale) : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
-        centerNotchWidth: SurfaceState.isTopExpanded ? Math.round(Theme.dashboardWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
+        centerNotchWidth: SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         rightNotchWidth: SurfaceState.isRightExpanded ? Math.round(Theme.popupMaxWidth * root.localScale) : Math.max(Math.round(Theme.rNotchMinWidth * localScale), Math.min(Math.round(Theme.rNotchMaxWidth * localScale), rightContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         
         // Geometry animates with smooth CUBIC curve (never detaches)
@@ -136,47 +137,81 @@ PanelWindow {
     Item {
         id: leftNotchArea
         width: surfaceShape.leftNotchWidth
-        height: Math.round(Theme.notchHeight * root.localScale)
+        height: surfaceShape.leftNotchHeight
         anchors.left: parent.left
         anchors.leftMargin: Math.round(Theme.borderWidth * root.localScale)
         anchors.top: parent.top
         
-        LeftContent {
-            localScale: root.localScale
-            id: leftContent
-            anchors.centerIn: parent
+        Item {
+            id: leftNotchHead
+            width: parent.width
+            height: Math.round(Theme.notchHeight * root.localScale)
+            anchors.top: parent.top
+            
+            LeftContent {
+                localScale: root.localScale
+                id: leftContent
+                anchors.centerIn: parent
+            }
         }
     }
 
     Item {
         id: centerNotchArea
         width: surfaceShape.centerNotchWidth
-        height: Math.round(Theme.notchHeight * root.localScale)
+        height: surfaceShape.centerNotchHeight
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         
-        CenterContent {
-            localScale: root.localScale
-            id: centerContent
-            anchors.centerIn: parent
+        Item {
+            id: centerNotchHead
+            width: parent.width
+            height: Math.round(Theme.notchHeight * root.localScale)
+            anchors.top: parent.top
+            
+            CenterContent {
+                localScale: root.localScale
+                id: centerContent
+                anchors.centerIn: parent
+            }
+        }
+
+        Dashboard {
+            id: dashboardView
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            screen: root.screen
+            
+            opacity: Popups.dashboardOpen ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
     }
 
     Item {
         id: rightNotchArea
         width: surfaceShape.rightNotchWidth
-        height: Math.round(Theme.notchHeight * root.localScale)
+        height: surfaceShape.rightNotchHeight
         anchors.right: parent.right
         anchors.rightMargin: Math.round(Theme.borderWidth * root.localScale)
         anchors.top: parent.top
         clip: true
         
-        RightContent {
-            localScale: root.localScale
-            id: rightContent
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.rightMargin: Math.round(Theme.notchPadding * root.localScale)
+        Item {
+            id: rightNotchHead
+            width: parent.width
+            height: Math.round(Theme.notchHeight * root.localScale)
+            anchors.top: parent.top
+            
+            RightContent {
+                localScale: root.localScale
+                id: rightContent
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.rightMargin: Math.round(Theme.notchPadding * root.localScale)
+            }
         }
     }
 

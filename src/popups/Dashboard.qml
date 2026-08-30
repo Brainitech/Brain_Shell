@@ -15,11 +15,10 @@ import "../"
 // exactly at the notch-bar bottom (topMargin: Theme.notchHeight), so there is
 // no vertical offset compared to the PopupWindow version.
 
-PanelWindow {
+Item {
     id: root
 
-    // Kept so existing instantiation sites that pass anchorWindow: … still compile.
-    required property var anchorWindow
+    property var screen
 
     // ── Context-Aware Scaling ─────────────────────────────────────────────────
     // Multiplier based on screen height relative to 1080p, clamped to prevent
@@ -49,27 +48,7 @@ PanelWindow {
 
     readonly property real scaledPageWidth: Math.min(Popups.dashboardPageWidth * localScale, (screen ? screen.width : 1920) * 0.95)
 
-    color:   "transparent"
-    visible: windowVisible
-
-    anchors.top:   true
-    anchors.left:  true
-    anchors.right: true
-    anchors.bottom: true
-
-    exclusionMode: ExclusionMode.Ignore
-
-    WlrLayershell.layer:         WlrLayer.Overlay
-
     property bool wantsFocus: false
-    WlrLayershell.keyboardFocus: wantsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
-    Region {
-        id: dashBlurReg
-        item: sizer
-    }
-
-    BackgroundEffect.blurRegion: PrefsService.bgBlur ? dashBlurReg : null
 
     Timer {
         id: focusGrabTimer
@@ -164,10 +143,7 @@ PanelWindow {
     // was the source of the vertical offset in the text-working variant.
     Item {
         id: hoverContainer
-        anchors.top: parent.top
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: sizer.width
-        height: Math.max(sizer.height, Math.round(Theme.notchHeight * root.localScale))
+        anchors.fill: parent
 
         HoverHandler {
             onHoveredChanged: root.selfHovered = hovered
@@ -175,8 +151,7 @@ PanelWindow {
 
         Item {
             id: sizer
-            anchors.top:              parent.top
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.fill: parent
             clip: true
             
             TapHandler {
@@ -185,26 +160,6 @@ PanelWindow {
                     Popups.dashboardPinned = true
                 }
             }
-
-            width:  Popups.dashboardOpen ? root.scaledPageWidth + 2 * root.fw : Theme.cNotchMinWidth + 2 * root.fw
-        height: Popups.dashboardOpen 
-            ? Math.min(Theme.dashboardHeight * localScale, (screen ? screen.height : 1080) * 0.90) 
-            : Theme.notchHeight / 2
-
-        Behavior on width  { id: sizerWidthAnim; NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
-        Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
-
-        //The number of bugs I had to fix to get this to work properly is insane. I don't even want to think about it.
-
-        // ── Background ────────────────────────────────────────────────────────
-        PopupShape {
-            anchors.fill: parent
-            attachedEdge: "top"
-            color:        Theme.background
-            radius:       Math.round(Theme.cornerRadius * localScale)
-            flareWidth:   root.fw
-            flareHeight:  root.fh
-        }
 
         // ── Content ───────────────────────────────────────────────────────────
         Item {
@@ -268,12 +223,12 @@ PanelWindow {
                         property: "progress"
                         from: 0.0
                         to: 1.0
-                        duration: Anim.style === "none" ? 0 : Anim.slow
-                        easing.type: Anim.outExpo
+                        duration: Anim.style === "none" ? 0 : Anim.transition
+                        easing.type: Anim.outCubic
                     }
                     
                     onPageIdxChanged: {
-                        if (!Popups.dashboardOpen || !root.windowVisible || Math.round(sizer.width) !== Math.round(root.scaledPageWidth + 2 * root.fw)) {
+                        if (!Popups.dashboardOpen || !root.windowVisible) {
                             oldIdx = pageIdx;
                             newIdx = pageIdx;
                             progress = 1.0;

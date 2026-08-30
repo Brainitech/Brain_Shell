@@ -18,7 +18,6 @@ QtObject {
 
     function _openDashboard(page) {
         Popups._ignoreDefaultTab = true
-        
         if(Popups.anyOpen && !Popups.dashboardOpen){
             Popups.closeAll()
             SurfaceState.open("top", "dashboard")
@@ -28,7 +27,12 @@ QtObject {
             Popups.dashboardPage = page
         } else {
             if (Popups.dashboardOpen) SurfaceState.close()
-            else { Popups.closeAll(); SurfaceState.open("top", "dashboard") }
+            else { 
+                Popups.closeAll()
+                Popups.dashboardPage = page
+                SurfaceState.open("top", "dashboard")
+                Popups.dashboardPinned = true
+            }
         }
         Popups._ignoreDefaultTab = false
     }

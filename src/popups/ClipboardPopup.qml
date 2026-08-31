@@ -90,7 +90,7 @@ Item {
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic } }
             onOpacityChanged: {
-                if (opacity === 1) historyTab.forceActiveFocus()
+                if (opacity === 1) historyTab.grabFocus()
             }
 
             TapHandler {

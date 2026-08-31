@@ -5,6 +5,7 @@ import "../"
 
 Item {
     id: root
+    function grabFocus() { mainList.forceActiveFocus() }
     property real localScale: 1.0
 
     readonly property var pinned:  ClipboardService.pinned  ?? []

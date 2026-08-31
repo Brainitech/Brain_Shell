@@ -139,6 +139,16 @@ PanelWindow {
             if (SurfaceState.activeContent === "clipboard") return clipboardPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale);
             return Math.round(Theme.popupMaxWidth * root.localScale);
         }
+        bcnWidth: { 
+            if (!SurfaceState.isBottomCenterExpanded) return 0.001; 
+            if (SurfaceState.activeContent === "wallpaper") return wallpaperPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale * 2); 
+            return Math.round(Theme.popupMaxWidth * root.localScale); 
+        } 
+        bcnDepth: { 
+            if (!SurfaceState.isBottomCenterExpanded) return 0.001; 
+            if (SurfaceState.activeContent === "wallpaper") return wallpaperPopupView.popupHeight + Math.round(Theme.notchRadius * root.localScale); 
+            return Math.round(Theme.popupMaxHeight * root.localScale); 
+        }
         brnDepth: {
             if (!SurfaceState.isBottomRightExpanded) return 0.001;
             if (SurfaceState.activeContent === "clipboard") return clipboardPopupView.popupHeight + Math.round(Theme.notchRadius * root.localScale);
@@ -294,6 +304,24 @@ PanelWindow {
     }
 
     Item {
+        id: bottomCenterNotchArea
+        width: surfaceShape.bcnWidth
+        height: surfaceShape.bcnDepth
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: Math.round(Theme.borderWidth * root.localScale)
+
+        WallpaperPopup {
+            id: wallpaperPopupView
+            localScale: root.localScale
+            anchors.fill: parent
+            opacity: Popups.wallpaperOpen ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+        }
+    }
+
+    Item {
         id: bottomRightNotchArea
         width: surfaceShape.brnWidth
         height: surfaceShape.brnDepth
@@ -306,7 +334,6 @@ PanelWindow {
             id: clipboardPopupView
             localScale: root.localScale
             anchors.fill: parent
-            
         }
     }
 }

@@ -10,46 +10,20 @@ import "../components"
 import "../services"
 import "../"
 
-PanelWindow {
+Item {
     id: root
 
-    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+    property real localScale: 1.0
 
-    anchors.top:    true
-    anchors.left:   true
-    anchors.right:  true
-    anchors.bottom: true
-
-    exclusionMode: ExclusionMode.Ignore
-    color:         "transparent"
-
-    WlrLayershell.layer:         WlrLayer.Overlay
-
-    property bool wantsFocus: false
-    WlrLayershell.keyboardFocus: wantsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
-    Region {
-        id: wallBlurReg
-        item: sizer
-    }
-
-    BackgroundEffect.blurRegion: PrefsService.bgBlur ? wallBlurReg : null
-
-    Timer {
-        id: focusGrabTimer
-        interval: 15
-        onTriggered: {
-            if (windowVisible && Popups.wallpaperOpen) root.wantsFocus = true
-        }
-    }
-    
     readonly property int panelWidth:  Math.round(980 * root.localScale)
     readonly property int panelHeight: Math.round(420 * root.localScale)
+    readonly property int popupWidth:  panelWidth
+    readonly property int popupHeight: panelHeight
     readonly property int fw:          Math.round(Theme.notchRadius * root.localScale)
     readonly property int fh:          Math.round(Theme.notchRadius * root.localScale)
 
-    property bool windowVisible: false
-    visible: windowVisible
+    onOpacityChanged: if (opacity === 1) searchInput.forceActiveFocus()
+    Keys.onEscapePressed: SurfaceState.close()
 
     // ── Self-hover tracking ───────────────────────────────────────────────────
     property bool selfHovered: true
@@ -64,7 +38,7 @@ PanelWindow {
         onTriggered: {
             if (root.allowHover && !Popups.wallpaperTriggerHovered && !root.selfHovered) {
                 if (!root.pinned) {
-                    Popups.wallpaperOpen = false
+                    SurfaceState.close()
                 }
             }
         }
@@ -77,11 +51,6 @@ PanelWindow {
         }
     }
 
-    Timer {
-        id: focusTimer
-        interval: 80
-        onTriggered: searchInput.forceActiveFocus()
-    }
 
     Connections {
         target: Popups
@@ -99,22 +68,13 @@ PanelWindow {
 
         function onWallpaperOpenChanged() {
             if (Popups.wallpaperOpen) {
-                closeTimer.stop()
                 hoverCloseTimer.stop()
-                root.windowVisible           = true
                 WallpaperService.refresh()
                 WallpaperService.previewWall = ""
                 content.schemePopupOpen      = false
                 content.folderMode           = false
                 content.appliedScheme        = WallpaperService.scheme
                 searchInput.text             = ""
-                focusGrabTimer.restart()
-                searchInput.forceActiveFocus()
-                focusTimer.restart()
-            } else {
-                root.wantsFocus = false
-                focusGrabTimer.stop()
-                closeTimer.restart()
             }
         }
     }
@@ -125,27 +85,11 @@ PanelWindow {
         onTriggered: {
             if (root.allowHover && Popups.wallpaperTriggerHovered) {
                 if (!Popups.wallpaperOpen) {
-                    closeTimer.stop()
-                    root.windowVisible           = true
-                    Popups.wallpaperOpen         = true
-                    WallpaperService.refresh()
-                    WallpaperService.previewWall = ""
-                    content.schemePopupOpen      = false
-                    content.folderMode           = false
-                    content.appliedScheme        = WallpaperService.scheme
-                    searchInput.text             = ""
-                    focusGrabTimer.restart()
-                    searchInput.forceActiveFocus()
-                    focusTimer.restart()
+                    Popups.closeAll()
+                    SurfaceState.open("bottomCenter", "wallpaper")
                 }
             }
         }
-    }
-
-    Timer {
-        id: closeTimer
-        interval: Anim.transition + 20
-        onTriggered: { if (!Popups.wallpaperOpen) root.windowVisible = false }
     }
 
     Connections {
@@ -176,15 +120,12 @@ PanelWindow {
 
     MouseArea {
         anchors.fill: parent
-        onClicked:    Popups.wallpaperOpen = false
+        onClicked: Popups.wallpaperPinned = true
     }
 
     Item {
         id: hoverContainer
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom:           parent.bottom
-        width:  sizer.width
-        height: sizer.height + Math.round(Theme.borderWidth * root.localScale)
+        anchors.fill: parent
 
         HoverHandler {
             onHoveredChanged: root.selfHovered = hovered
@@ -192,33 +133,8 @@ PanelWindow {
 
         Item {
             id: sizer
-            anchors.top:              parent.top
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.fill: parent
             clip: true
-
-            width:  Popups.wallpaperOpen ? root.panelWidth + 2 * root.fw : Math.round(Theme.cNotchMinWidth * root.localScale) + 2 * root.fw
-            height: Popups.wallpaperOpen ? root.panelHeight : 0
-
-            Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-            Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-
-
-
-            TapHandler {
-                onTapped: {
-                    Popups.wallpaperOpen = true
-                    Popups.wallpaperPinned = true
-                }
-            }
-
-            PopupShape {
-                anchors.fill: parent
-                attachedEdge: "bottom"
-                color:        Theme.background
-                radius:       Math.round(Theme.cornerRadius * root.localScale)
-                flareWidth:   root.fw
-                flareHeight:  root.fh
-            }
 
             Item {
                 id: content
@@ -380,7 +296,7 @@ PanelWindow {
                             if (cardDelegate.isPreview) {
                                 content.appliedScheme = WallpaperService.scheme
                                 WallpaperService.apply(cardDelegate.modelData)
-                                Popups.wallpaperOpen = false
+                                SurfaceState.close()
                             } else {
                                 WallpaperService.previewWall = cardDelegate.modelData
                             }
@@ -518,7 +434,7 @@ PanelWindow {
                                     var target = previewInSearch ? WallpaperService.previewWall : walls[0]
                                     content.appliedScheme = WallpaperService.scheme
                                     WallpaperService.apply(target)
-                                    Popups.wallpaperOpen = false
+                                    SurfaceState.close()
                                 }
                                 Keys.onLeftPressed: {
                                     var walls = content.filteredWallpapers
@@ -683,7 +599,7 @@ PanelWindow {
                                 ? WallpaperService.previewWall : WallpaperService.currentWall
                             content.appliedScheme = WallpaperService.scheme
                             WallpaperService.apply(target)
-                            Popups.wallpaperOpen = false
+                            SurfaceState.close()
                         }
                     }
                 }

@@ -8,6 +8,8 @@ import "../"
 
 Item {
     id: root
+    Keys.onEscapePressed: SurfaceState.close()
+    onOpacityChanged: if (opacity === 1) forceActiveFocus()
     
     // Physical state properties injected by DynamicSurface
     property var screen
@@ -29,6 +31,7 @@ Item {
 
     Item {
         id: hoverContainer
+        MouseArea { anchors.fill: parent }
         anchors.fill: parent
 
         Item {
@@ -36,7 +39,7 @@ Item {
             anchors.fill: parent
             clip: true
     
-            Keys.onEscapePressed: Popups.networkOpen = false
+            
     
             Item {
                 id: contentArea

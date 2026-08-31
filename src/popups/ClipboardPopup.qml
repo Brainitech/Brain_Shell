@@ -87,7 +87,11 @@ Item {
             anchors.fill: parent
 
             opacity: Popups.clipboardOpen ? 1 : 0
+            visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic } }
+            onOpacityChanged: {
+                if (opacity === 1) historyTab.forceActiveFocus()
+            }
 
             TapHandler {
                 onTapped: {
@@ -97,6 +101,7 @@ Item {
             }
 
             HistoryTab {
+                id: historyTab
                 anchors.fill: parent
                 anchors.margins: Math.round(8 * root.localScale)
                 localScale: root.localScale

@@ -17,6 +17,8 @@ import "../"
 
 Item {
     id: root
+    Keys.onEscapePressed: if (!Popups.colorPickerActive) SurfaceState.close()
+    onOpacityChanged: { if (opacity === 1 && Popups.dashboardPage !== "launcher") forceActiveFocus() }
 
     property var screen
 
@@ -103,7 +105,7 @@ Item {
             if (root.allowHover && Popups.dashboardTriggerHovered) {
                 if (!Popups.dashboardOpen) {
                     Popups.closeAll()
-                    Popups.dashboardOpen = true
+                    SurfaceState.open("top", "dashboard")
                 }
             }
         }
@@ -115,7 +117,7 @@ Item {
         onTriggered: {
             if (root.allowHover && !Popups.dashboardTriggerHovered && !root.selfHovered && !Popups.colorPickerActive) {
                 if (!root.pinned) {
-                    Popups.dashboardOpen = false
+                    SurfaceState.close()
                 }
             }
         }
@@ -129,11 +131,7 @@ Item {
         }
     }
 
-    // ── Backdrop — closes popup when clicking outside the sizer ──────────────
-    MouseArea {
-        anchors.fill: parent
-        onClicked:    if (!Popups.colorPickerActive) Popups.dashboardOpen = false
-    }
+
 
 
 
@@ -143,6 +141,7 @@ Item {
     // was the source of the vertical offset in the text-working variant.
     Item {
         id: hoverContainer
+        MouseArea { anchors.fill: parent }
         anchors.fill: parent
 
         HoverHandler {
@@ -154,12 +153,7 @@ Item {
             anchors.fill: parent
             clip: true
             
-            TapHandler {
-                onTapped: {
-                    Popups.dashboardOpen = true
-                    Popups.dashboardPinned = true
-                }
-            }
+
 
         // ── Content ───────────────────────────────────────────────────────────
         Item {
@@ -307,7 +301,7 @@ Item {
                         }
                     }
 
-                    Keys.onEscapePressed: if (!Popups.colorPickerActive) Popups.dashboardOpen = false
+                    Keys.onEscapePressed: if (!Popups.colorPickerActive) SurfaceState.close()
                 }
             }
         }

@@ -9,6 +9,8 @@ import "../"
 
 Item {
     id: root
+    onOpacityChanged: if (opacity === 1) forceActiveFocus()
+    Keys.onEscapePressed: SurfaceState.close()
 
     property real localScale: 1.0
 
@@ -94,6 +96,7 @@ Item {
         anchors.rightMargin: Math.round(8 * root.localScale)
         anchors.bottomMargin: Math.round(8 * root.localScale)
 
+        MouseArea { anchors.fill: parent }
         HoverHandler {
             onHoveredChanged: root.selfHovered = hovered
         }

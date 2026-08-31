@@ -13,6 +13,16 @@ Item {
     property int  selIndex: -1
     property string query:  ""
 
+    Connections {
+        target: Popups
+        function onDashboardPageChanged() {
+            if (Popups.dashboardOpen && Popups.dashboardPage === "launcher") searchInput.forceActiveFocus()
+        }
+        function onDashboardOpenChanged() {
+            if (Popups.dashboardOpen && Popups.dashboardPage === "launcher") searchInput.forceActiveFocus()
+        }
+    }
+
     readonly property var apps: DesktopEntries.applications.values
 
     readonly property var filtered: {
@@ -53,7 +63,7 @@ Item {
     // ── Launch ────────────────────────────────────────────────────────────────
     function launch(entry) {
         entry.execute()
-        Popups.dashboardOpen = false
+        SurfaceState.close()
     }
 
     // ── Layout ────────────────────────────────────────────────────────────────
@@ -314,7 +324,7 @@ Item {
                             if (text !== "") {
                                 text = ""
                             } else {
-                                Popups.dashboardOpen = false
+                                SurfaceState.close()
                             }
                         }
                     }

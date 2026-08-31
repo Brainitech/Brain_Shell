@@ -37,6 +37,7 @@ PanelWindow {
     
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "brain-shell-frame"
+    WlrLayershell.keyboardFocus: SurfaceState.activeSurface !== "none" ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     // --- MASK PROXIES ---
     // These track the exact boundaries so clicks pass through to Hyprland when empty
@@ -73,7 +74,9 @@ PanelWindow {
         height: Math.max(200, surfaceShape.lcnHeight + (surfaceShape.flareRadius * 2))
         x: 0
         anchors.verticalCenter: parent.verticalCenter
-        TapHandler { onTapped: if (!SurfaceState.isLeftCenterExpanded) SurfaceState.open("leftCenter", "archMenu") }
+        TapHandler { 
+            onTapped: if (!SurfaceState.isLeftCenterExpanded) SurfaceState.open("leftCenter", "archMenu") 
+        }
     }
     Item { 
         id: rightCenterNotchMask
@@ -81,7 +84,9 @@ PanelWindow {
         height: Math.max(200, surfaceShape.rcnHeight + (surfaceShape.flareRadius * 2))
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        TapHandler { onTapped: if (!SurfaceState.isRightCenterExpanded) SurfaceState.open("rightCenter", "audio") }
+        TapHandler { 
+            onTapped: if (!SurfaceState.isRightCenterExpanded) SurfaceState.open("rightCenter", "audio") 
+        }
     }
     Item { 
         id: bottomCenterNotchMask
@@ -89,7 +94,9 @@ PanelWindow {
         height: Math.max(100, surfaceShape.bcnDepth + (surfaceShape.flareRadius * 2))
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        TapHandler { onTapped: if (!SurfaceState.isBottomCenterExpanded) SurfaceState.open("bottomCenter", "wallpaper") }
+        TapHandler { 
+            onTapped: if (!SurfaceState.isBottomCenterExpanded) SurfaceState.open("bottomCenter", "wallpaper") 
+        }
     }
     Item { 
         id: bottomRightNotchMask
@@ -97,7 +104,9 @@ PanelWindow {
         height: Math.max(100, surfaceShape.brnDepth + (surfaceShape.flareRadius * 2))
         anchors.bottom: parent.bottom
         anchors.right: parent.right
-        TapHandler { onTapped: if (!SurfaceState.isBottomRightExpanded) SurfaceState.open("bottomRight", "clipboard") }
+        TapHandler { 
+            onTapped: if (!SurfaceState.isBottomRightExpanded) SurfaceState.open("bottomRight", "clipboard") 
+        }
     }
 
     // --- CLICK SHIELD ---
@@ -214,6 +223,7 @@ PanelWindow {
             screen: root.screen
             
             opacity: Popups.dashboardOpen ? 1 : 0
+            visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
     }
@@ -252,6 +262,7 @@ PanelWindow {
             screen: root.screen
             
             opacity: Popups.networkOpen ? 1 : 0
+            visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
 
@@ -264,6 +275,7 @@ PanelWindow {
             anchors.bottom: parent.bottom
             
             opacity: Popups.notificationsOpen ? 1 : 0
+            visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
 
@@ -276,6 +288,7 @@ PanelWindow {
             anchors.bottom: parent.bottom
             
             opacity: Popups.notificationToastOpen && !Popups.notificationsOpen ? 1 : 0
+            visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
     }

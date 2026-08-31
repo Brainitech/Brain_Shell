@@ -139,6 +139,16 @@ PanelWindow {
             if (SurfaceState.activeContent === "clipboard") return clipboardPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale);
             return Math.round(Theme.popupMaxWidth * root.localScale);
         }
+        lcnDepth: { 
+            if (!SurfaceState.isLeftCenterExpanded) return 0.001; 
+            if (SurfaceState.activeContent === "archMenu") return archMenuPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale); 
+            return Math.round(Theme.popupMaxWidth * root.localScale); 
+        } 
+        lcnHeight: { 
+            if (!SurfaceState.isLeftCenterExpanded) return 0.001; 
+            if (SurfaceState.activeContent === "archMenu") return archMenuPopupView.popupHeight + Math.round(Theme.notchRadius * root.localScale * 2); 
+            return Math.round(Theme.popupMaxHeight * root.localScale); 
+        }
         bcnWidth: { 
             if (!SurfaceState.isBottomCenterExpanded) return 0.001; 
             if (SurfaceState.activeContent === "wallpaper") return wallpaperPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale * 2); 
@@ -298,6 +308,24 @@ PanelWindow {
             anchors.bottom: parent.bottom
             
             opacity: Popups.notificationToastOpen && !Popups.notificationsOpen ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+        }
+    }
+
+    Item {
+        id: leftCenterNotchArea
+        width: surfaceShape.lcnDepth
+        height: surfaceShape.lcnHeight
+        anchors.left: parent.left
+        anchors.leftMargin: Math.round(Theme.borderWidth * root.localScale)
+        anchors.verticalCenter: parent.verticalCenter
+
+        ArchMenu {
+            id: archMenuPopupView
+            localScale: root.localScale
+            anchors.fill: parent
+            opacity: Popups.archMenuOpen ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }

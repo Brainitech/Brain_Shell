@@ -182,7 +182,7 @@ QtObject {
             if (Popups.archMenuOpen) SurfaceState.close();
             else {
                 Popups.closeAll();
-                SurfaceState.open("left", "archMenu");
+                SurfaceState.open("leftCenter", "archMenu");
                 Popups.archMenuPinned = true;
             }
         }

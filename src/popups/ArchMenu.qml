@@ -7,10 +7,10 @@ import "../services"
 import "../components"
 import "../"
 
-PanelWindow {
+Item {
     id: root
 
-    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+    property real localScale: 1.0
 
     readonly property int fw: Math.round(Theme.cornerRadius * root.localScale)
     readonly property int fh: Math.round(Theme.cornerRadius * root.localScale)
@@ -29,81 +29,90 @@ PanelWindow {
     readonly property int contentWidth:  pageWidths[page]  ?? Math.round(220 * root.localScale)
     readonly property int contentHeight: pageHeights[page] ?? Math.round(220 * root.localScale)
 
-    // Constant size for the panel window
-    readonly property int targetWidth: contentWidth + fw
-    readonly property int targetHeight: contentHeight + fh * 2
+    readonly property int targetWidth: contentWidth
+    readonly property int targetHeight: contentHeight
+    readonly property int popupWidth: targetWidth
+    readonly property int popupHeight: targetHeight
 
     property string page: "power"
+    property bool selfHovered: false
 
-    anchors.left:   true
-    anchors.top:    true
-    anchors.bottom: true
-    margins.top:    screen ? Math.round((screen.height - targetHeight) / 2) : 0
-    margins.bottom: screen ? Math.round((screen.height - targetHeight) / 2) : 0
-    margins.left:   Math.round(Theme.borderWidth * root.localScale)
-
-    implicitWidth:  targetWidth
-    implicitHeight: targetHeight
-
-    exclusionMode: ExclusionMode.Ignore
-    color:         "transparent"
-    WlrLayershell.layer: WlrLayer.Overlay
-
-    visible: slide.windowVisible
-    mask: Region { item: maskProxy }
-
-    Region {
-        id: archBlurReg
-        item: slide
+    onOpacityChanged: if (opacity === 1) forceActiveFocus()
+    Keys.onEscapePressed: SurfaceState.close()
+    MouseArea {
+        anchors.fill: parent
+        onClicked: Popups.archMenuPinned = true
     }
-
-    BackgroundEffect.blurRegion: PrefsService.bgBlur ? archBlurReg : null
 
     Item {
-        id:      maskProxy
-        x:       slide.x + slide.innerX
-        y:       slide.y + slide.innerY
-        width:   slide.innerWidth
-        height:  slide.innerHeight
-    }
-
-    PopupSlide {
         id: slide
         anchors.fill: parent
-        edge:             "left"
-        hoverEnabled:     Popups.archMenuAllowHover
-        triggerHovered:   Popups.archMenuTriggerHovered
-        pinned:           Popups.archMenuPinned
-        open:             Popups.archMenuOpen
-        onCloseRequested: Popups.archMenuOpen = false
-        onPinRequested: {
-            Popups.archMenuOpen = true
-            Popups.archMenuPinned = true
+
+        HoverHandler {
+            onHoveredChanged: {
+                root.selfHovered = hovered
+                if (Popups.archMenuAllowHover) {
+                    if (hovered) {
+                        hoverCloseTimer.stop()
+                    } else if (!Popups.archMenuTriggerHovered) {
+                        hoverCloseTimer.restart()
+                    }
+                }
+            }
         }
 
-        PopupShape {
-            id: bg
-            anchors.fill: parent
-            attachedEdge: "left"
-            color:        Theme.background
-            radius:       Math.round(Theme.cornerRadius * root.localScale)
-            flareWidth:   root.fw
-            flareHeight:  root.fh
+        Connections {
+            target: Popups
+            function onArchMenuTriggerHoveredChanged() {
+                if (Popups.archMenuTriggerHovered) {
+                    if (Popups.archMenuAllowHover) {
+                        hoverCloseTimer.stop()
+                        hoverOpenTimer.restart()
+                    }
+                } else {
+                    hoverOpenTimer.stop()
+                    if (Popups.archMenuAllowHover && !root.selfHovered) hoverCloseTimer.restart()
+                }
+            }
+        }
+
+        Timer {
+            id: hoverOpenTimer
+            interval: Popups.hoverOpenDelay
+            onTriggered: {
+                if (Popups.archMenuAllowHover && Popups.archMenuTriggerHovered) {
+                    if (!Popups.archMenuOpen) {
+                        Popups.closeAll()
+                        SurfaceState.open("leftCenter", "archMenu")
+                    }
+                }
+            }
+        }
+
+        Timer {
+            id: hoverCloseTimer
+            interval: Popups.hoverCloseDelay
+            onTriggered: {
+                if (Popups.archMenuAllowHover && !Popups.archMenuPinned) {
+                    SurfaceState.close()
+                }
+            }
         }
 
         Item {
             anchors {
                 fill:         parent
-                leftMargin:   root.fw - Math.round(4 * root.localScale)
+                leftMargin:   Math.round(8 * root.localScale)
                 rightMargin:  Math.round(8 * root.localScale)
-                topMargin:    root.fh + Math.round(6 * root.localScale)
-                bottomMargin: root.fh + Math.round(6 * root.localScale)
+                topMargin:    Math.round(8 * root.localScale)
+                bottomMargin: Math.round(8 * root.localScale)
             }
             
             //── Page content ──────────────────────────────────────────
             Item {
-                width:  root.contentWidth - Math.round(12 * root.localScale)
-                height: root.contentHeight - Math.round(12 * root.localScale)
+                anchors.centerIn: parent
+                width:  root.contentWidth - Math.round(16 * root.localScale)
+                height: root.contentHeight - Math.round(16 * root.localScale)
                 clip:   true
 
                 PopupPage {

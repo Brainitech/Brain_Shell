@@ -71,7 +71,7 @@ Column {
             case "suspend": runner.pendingCmd = ["systemctl", "suspend"];        break
         }
         runner.running = true
-        Popups.archMenuOpen = false
+        SurfaceState.close()
     }
 
     Repeater {

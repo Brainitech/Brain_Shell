@@ -12,13 +12,13 @@ Item {
 
     property real localScale: 1.0
 
-    readonly property int popupHeight: Math.round(340 * root.localScale) - Math.round(Theme.notchRadius * root.localScale * 2)
-    readonly property int maxWidth: Math.round(300 * root.localScale) - Math.round(Theme.notchRadius * root.localScale)
+    readonly property int popupHeight: Math.round(340 * root.localScale)
+    readonly property int maxWidth: Math.round(300 * root.localScale)
 
     readonly property var pageWidths: ({
-        "output": Math.round(200 * root.localScale) - Math.round(Theme.notchRadius * root.localScale),
-        "input":  Math.round(200 * root.localScale) - Math.round(Theme.notchRadius * root.localScale),
-        "mixer":  Math.round(300 * root.localScale) - Math.round(Theme.notchRadius * root.localScale)
+        "output": Math.round(200 * root.localScale),
+        "input":  Math.round(200 * root.localScale),
+        "mixer":  Math.round(300 * root.localScale)
     })
     
     // Animate target width slightly for tab changes

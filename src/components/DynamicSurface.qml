@@ -136,12 +136,12 @@ PanelWindow {
         
         rcnDepth: { 
             if (!SurfaceState.isRightCenterExpanded) return 0.001; 
-            if (SurfaceState.activeContent === "audio") return audioPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale); 
+            if (SurfaceState.activeContent === "audio") return audioPopupView.popupWidth; 
             return Math.round(Theme.popupMaxWidth * root.localScale); 
         } 
         rcnHeight: { 
             if (!SurfaceState.isRightCenterExpanded) return 0.001; 
-            if (SurfaceState.activeContent === "audio") return audioPopupView.popupHeight + Math.round(Theme.notchRadius * root.localScale * 2); 
+            if (SurfaceState.activeContent === "audio") return audioPopupView.popupHeight; 
             return Math.round(Theme.popupMaxHeight * root.localScale); 
         }
         brnWidth: {

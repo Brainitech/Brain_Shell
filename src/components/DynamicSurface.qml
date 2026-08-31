@@ -134,6 +134,16 @@ PanelWindow {
         anchors.fill: parent
         localScale: root.localScale
         
+        rcnDepth: { 
+            if (!SurfaceState.isRightCenterExpanded) return 0.001; 
+            if (SurfaceState.activeContent === "audio") return audioPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale); 
+            return Math.round(Theme.popupMaxWidth * root.localScale); 
+        } 
+        rcnHeight: { 
+            if (!SurfaceState.isRightCenterExpanded) return 0.001; 
+            if (SurfaceState.activeContent === "audio") return audioPopupView.popupHeight + Math.round(Theme.notchRadius * root.localScale * 2); 
+            return Math.round(Theme.popupMaxHeight * root.localScale); 
+        }
         brnWidth: {
             if (!SurfaceState.isBottomRightExpanded) return innerRadius;
             if (SurfaceState.activeContent === "clipboard") return clipboardPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale);
@@ -326,6 +336,24 @@ PanelWindow {
             localScale: root.localScale
             anchors.fill: parent
             opacity: Popups.archMenuOpen ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+        }
+    }
+
+    Item {
+        id: rightCenterNotchArea
+        width: surfaceShape.rcnDepth
+        height: surfaceShape.rcnHeight
+        anchors.right: parent.right
+        anchors.rightMargin: Math.round(Theme.borderWidth * root.localScale)
+        anchors.verticalCenter: parent.verticalCenter
+
+        AudioPopup {
+            id: audioPopupView
+            localScale: root.localScale
+            anchors.fill: parent
+            opacity: Popups.audioOpen ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }

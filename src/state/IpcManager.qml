@@ -66,18 +66,14 @@ QtObject {
 
     function _openAudio(page) {
         Popups._ignoreDefaultTab = true
-        if(Popups.anyOpen && !Popups.audioOpen) {
-            Popups.closeAll()
-            SurfaceState.open("right", "audio")
+        if (Popups.audioOpen && Popups.audioPage !== page) {
             Popups.audioPage = page
+        } else if (!Popups.audioOpen) {
+            Popups.audioPage = page
+            SurfaceState.open("rightCenter", "audio")
             Popups.audioPinned = true
-        } else if (Popups.audioOpen && Popups.audioPage != page) {
-            Popups.audioPage = page
         } else {
-            var next = !Popups.audioOpen
-            Popups.closeAll()
-            SurfaceState.toggle("right", "audio")
-            if (next) { Popups.audioPage = page; Popups.audioPinned = true; }
+            SurfaceState.close()
         }
         Popups._ignoreDefaultTab = false
     }

@@ -75,10 +75,12 @@ Item {
                 if (root.sink?.ready)
                     root.sink.audio.muted = !root.sink.audio.muted
             } else {
-                var next = !Popups.audioOpen
-                Popups.closeAll()
-                SurfaceState.toggle("right", "audio")
-                if (next) Popups.audioPinned = true
+                if (!Popups.audioOpen) {
+                    SurfaceState.open("rightCenter", "audio")
+                    Popups.audioPinned = true
+                } else {
+                    SurfaceState.close()
+                }
             }
         }
     }

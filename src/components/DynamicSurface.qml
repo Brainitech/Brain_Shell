@@ -300,7 +300,11 @@ PanelWindow {
             screen: root.screen
             
             opacity: Popups.networkOpen ? 1 : 0
+
+            
             visible: opacity > 0
+
+            
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
 
@@ -313,7 +317,11 @@ PanelWindow {
             anchors.bottom: parent.bottom
             
             opacity: Popups.notificationsOpen ? 1 : 0
+
+            
             visible: opacity > 0
+
+            
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
 
@@ -344,7 +352,9 @@ PanelWindow {
             localScale: root.localScale
             anchors.fill: parent
             opacity: Popups.archMenuOpen ? 1 : 0
+
             visible: opacity > 0
+
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
     }
@@ -362,7 +372,9 @@ PanelWindow {
             localScale: root.localScale
             anchors.fill: parent
             opacity: Popups.audioOpen ? 1 : 0
+
             visible: opacity > 0
+
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
 
@@ -371,7 +383,9 @@ PanelWindow {
             localScale: root.localScale
             anchors.fill: parent
             opacity: Popups.quickOpen ? 1 : 0
+
             visible: opacity > 0
+
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
     }
@@ -389,7 +403,9 @@ PanelWindow {
             localScale: root.localScale
             anchors.fill: parent
             opacity: Popups.wallpaperOpen ? 1 : 0
+
             visible: opacity > 0
+
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
     }

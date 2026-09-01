@@ -74,8 +74,8 @@ Item {
 
     // ── Content ────────────────────────────────────────────
     Item {
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.left: parent.left
         width: root.popupWidth
         height: root.popupHeight
 

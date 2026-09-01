@@ -39,6 +39,7 @@ Item {
     Item {
         id: slide
         anchors.fill: parent
+        clip: true
 
         HoverHandler {
             onHoveredChanged: {

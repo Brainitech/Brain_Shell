@@ -8,48 +8,20 @@ import "../components"
 import "../services"
 import "../"
 
-PanelWindow {
+Item {
     id: root
 
-    required property var anchorWindow
-    screen: anchorWindow ? anchorWindow.screen : undefined
+    property real localScale: 1.0
 
-    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
-
-    readonly property int fw: Math.round(Theme.cornerRadius * root.localScale)
-    readonly property int fh: Math.round(Theme.cornerRadius * root.localScale)
     readonly property int popupHeight: Math.round(340 * root.localScale)
     readonly property int popupWidth:  Math.round(180 * root.localScale)
 
-    anchors.right: true
-    anchors.top:   true
-    anchors.bottom: true
-    margins.top:   screen ? Math.round((screen.height - popupHeight) / 2) : 0
-    margins.bottom: screen ? Math.round((screen.height - popupHeight) / 2) : 0
-    margins.right: Math.round(Theme.borderWidth * root.localScale)
+    onOpacityChanged: if (opacity === 1) forceActiveFocus()
+    Keys.onEscapePressed: SurfaceState.close()
 
-    implicitWidth:  popupWidth
-    implicitHeight: popupHeight
-
-    exclusionMode: ExclusionMode.Ignore
-    color:   "transparent"
-    WlrLayershell.layer: WlrLayer.Overlay
-    visible: slide.windowVisible
-    mask:    Region { item: maskProxy }
-
-    Region {
-        id: qcBlurReg
-        item: slide
-    }
-
-    BackgroundEffect.blurRegion: PrefsService.bgBlur ? qcBlurReg : null
-
-    Item {
-        id:      maskProxy
-        x:       slide.x + slide.innerX
-        y:       slide.y + slide.innerY
-        width:   slide.innerWidth
-        height:  slide.innerHeight
+    MouseArea {
+        anchors.fill: parent
+        onClicked: Popups.quickPinned = true
     }
 
     readonly property var sink: Pipewire.defaultAudioSink
@@ -105,41 +77,73 @@ PanelWindow {
         bDebounce.restart()
     }
 
-    PopupSlide {
+    property bool selfHovered: false
+
+    Item {
         id: slide
         anchors.fill: parent
         
-        edge:             "right"
-        open:             Popups.quickOpen
-        hoverEnabled:     !Popups.audioAllowHover && Popups.quickAllowHover
-        triggerHovered:   Popups.quickTriggerHovered
-        pinned:           Popups.quickPinned
-        onCloseRequested: Popups.quickOpen = false
-        onPinRequested: {
-            Popups.quickOpen = true
-            Popups.quickPinned = true
+        HoverHandler {
+            onHoveredChanged: {
+                if (!Popups.audioAllowHover && Popups.quickAllowHover) {
+                    root.selfHovered = hovered
+                    if (hovered) {
+                        hoverCloseTimer.stop()
+                    } else if (!Popups.quickTriggerHovered) {
+                        hoverCloseTimer.restart()
+                    }
+                }
+            }
         }
 
-        PopupShape {
-            id: bg
-            anchors.fill: parent
-            attachedEdge: "right"
-            color:        Theme.background
-            radius:       Theme.cornerRadius
-            flareWidth:   root.fw
-            flareHeight:  root.fh
+        Timer {
+            id: hoverCloseTimer
+            interval: Popups.hoverCloseDelay
+            onTriggered: {
+                if (!Popups.audioAllowHover && Popups.quickAllowHover && !Popups.quickPinned) {
+                    SurfaceState.close()
+                }
+            }
+        }
+
+        Connections {
+            target: Popups
+            function onQuickOpenChanged() {
+                if (!Popups.quickOpen) {
+                    hoverOpenTimer.stop()
+                    if (!Popups.audioAllowHover && Popups.quickAllowHover && !root.selfHovered) hoverCloseTimer.restart()
+                } else {
+                    hoverCloseTimer.stop()
+                }
+            }
+            function onQuickTriggerHoveredChanged() {
+                if (Popups.quickTriggerHovered) {
+                    if (!Popups.audioAllowHover && Popups.quickAllowHover) {
+                        hoverCloseTimer.stop()
+                        hoverOpenTimer.restart()
+                    }
+                } else {
+                    hoverOpenTimer.stop()
+                    if (!Popups.audioAllowHover && Popups.quickAllowHover && !root.selfHovered) hoverCloseTimer.restart()
+                }
+            }
+        }
+
+        Timer {
+            id: hoverOpenTimer
+            interval: Popups.hoverOpenDelay
+            onTriggered: {
+                if (!Popups.audioAllowHover && Popups.quickAllowHover && Popups.quickTriggerHovered) {
+                    if (!Popups.quickOpen && !Popups.audioOpen) {
+                        SurfaceState.open("rightCenter", "quick")
+                    }
+                }
+            }
         }
 
         Row {
-            width: root.popupWidth - Math.round(16 * root.localScale) - root.fw
-            height: root.popupHeight - root.fh * 2 - 60
-            
-            anchors {
-                right:        parent.right
-                verticalCenter: parent.verticalCenter
-                rightMargin:  root.fw - Math.round(4 * root.localScale)
-            }
-            spacing: 8
+            anchors.centerIn: parent
+            spacing: Math.round(8 * root.localScale)
             
             ChannelColumn {
                 icon: {

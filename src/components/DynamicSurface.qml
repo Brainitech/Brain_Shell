@@ -87,6 +87,12 @@ PanelWindow {
         TapHandler { 
             onTapped: if (!SurfaceState.isRightCenterExpanded) SurfaceState.open("rightCenter", "audio") 
         }
+        HoverHandler {
+            onHoveredChanged: {
+                Popups.quickTriggerHovered = Popups.audioOpen ? false : hovered  
+                Popups.audioTriggerHovered = hovered
+            }
+        }
     }
     Item { 
         id: bottomCenterNotchMask
@@ -137,11 +143,13 @@ PanelWindow {
         rcnDepth: { 
             if (!SurfaceState.isRightCenterExpanded) return 0.001; 
             if (SurfaceState.activeContent === "audio") return audioPopupView.popupWidth; 
+            if (SurfaceState.activeContent === "quick") return quickControlPopupView.popupWidth; 
             return Math.round(Theme.popupMaxWidth * root.localScale); 
         } 
         rcnHeight: { 
             if (!SurfaceState.isRightCenterExpanded) return 0.001; 
             if (SurfaceState.activeContent === "audio") return audioPopupView.popupHeight; 
+            if (SurfaceState.activeContent === "quick") return quickControlPopupView.popupHeight; 
             return Math.round(Theme.popupMaxHeight * root.localScale); 
         }
         brnWidth: {
@@ -354,6 +362,15 @@ PanelWindow {
             localScale: root.localScale
             anchors.fill: parent
             opacity: Popups.audioOpen ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+        }
+
+        QuickControl {
+            id: quickControlPopupView
+            localScale: root.localScale
+            anchors.fill: parent
+            opacity: Popups.quickOpen ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }

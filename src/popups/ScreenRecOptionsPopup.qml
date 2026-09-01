@@ -4,39 +4,24 @@ import Quickshell.Wayland
 import "../services"
 import "../"
 
-PopupWindow {
+Item {
     id: root
 
-    required property var anchorWindow
-
-    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+    property real localScale: 1.0
 
     readonly property int _padH: Math.round(5 * root.localScale)
     readonly property int _padV: Math.round(5 * root.localScale)
     readonly property int _optionWidth: Math.round(112 * root.localScale)
 
-    implicitWidth:  _optionWidth + _padH * 2
-    implicitHeight: optCol.implicitHeight + _padV * 2
+    width:  _optionWidth + _padH * 2
+    height: optCol.implicitHeight + _padV * 2
 
-    anchor.window:     root.anchorWindow
-    anchor.gravity:    Edges.Bottom
-    anchor.adjustment: PopupAdjustment.None
-    anchor.rect: Qt.rect(
-       ScreenRecService.popupTargetX + (ScreenRecService.popupTargetWidth / 2),
-        Math.round(25 * root.localScale),
-        root.implicitWidth,
-        Math.round(Theme.notchHeight * root.localScale)
-    )
-
-    color:   "transparent"
-    visible: ScreenRecService.openStrip !== ""
-
-    Region {
-        id: screenRecBlurReg
-        item: recBg
-    }
-
-    BackgroundEffect.blurRegion: PrefsService.bgBlur ? screenRecBlurReg : null
+    property bool isOpen: ScreenRecService.openStrip !== ""
+    property bool wasOpen: false
+    onIsOpenChanged: { if (isOpen) { wasOpen = true; closeTimer.stop() } else closeTimer.restart() }
+    Timer { id: closeTimer; interval: Anim.transition; onTriggered: parent.wasOpen = false }
+    visible: isOpen || wasOpen
+    opacity: 1
 
     HoverHandler {
         onHoveredChanged: {

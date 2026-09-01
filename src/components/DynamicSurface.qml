@@ -185,6 +185,11 @@ PanelWindow {
         
         leftNotchWidth: SurfaceState.isLeftExpanded ? Math.round(Theme.popupMaxWidth * root.localScale) : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         centerNotchWidth: SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
+        centerNotchHeight: {
+            if (SurfaceState.isTopExpanded) return Math.round(Popups.dashboardPageHeight * root.localScale);
+            if (ScreenRecService.openStrip !== "") return Math.round(Theme.notchHeight * root.localScale) + screenRecOptionsPopupView.height + Math.round(16 * root.localScale);
+            return Math.round(Theme.notchHeight * root.localScale);
+        }
         rightNotchWidth: {
             if (!SurfaceState.isRightExpanded) {
                 if (Popups.notificationToastOpen) return notificationToastView.toastWidth + Math.round(Theme.notchRadius * root.localScale);
@@ -424,5 +429,13 @@ PanelWindow {
             localScale: root.localScale
             anchors.fill: parent
         }
+    }
+
+    ScreenRecOptionsPopup {
+        id: screenRecOptionsPopupView
+        localScale: root.localScale
+        x: ScreenRecService.popupTargetX + (ScreenRecService.popupTargetWidth / 2) - (width / 2)
+        y: Math.round(25 * root.localScale) + Math.round(Theme.notchHeight * root.localScale)
+        z: 999
     }
 }

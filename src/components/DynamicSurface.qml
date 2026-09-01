@@ -186,7 +186,7 @@ PanelWindow {
         leftNotchWidth: SurfaceState.isLeftExpanded ? Math.round(Theme.popupMaxWidth * root.localScale) : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         centerNotchWidth: SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         centerNotchHeight: {
-            if (SurfaceState.isTopExpanded) return Math.round(Popups.dashboardPageHeight * root.localScale);
+            if (SurfaceState.isTopExpanded) return Math.round(Theme.dashboardHeight * root.localScale);
             if (ScreenRecService.openStrip !== "") return Math.round(Theme.notchHeight * root.localScale) + screenRecOptionsPopupView.height + Math.round(16 * root.localScale);
             return Math.round(Theme.notchHeight * root.localScale);
         }

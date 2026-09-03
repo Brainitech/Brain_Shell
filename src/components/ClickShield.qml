@@ -8,7 +8,7 @@ Item {
     anchors.fill: parent
     
     // Only active when a surface is expanded
-    property bool isActive: SurfaceState.activeSurface !== "none"
+    property bool isActive: SurfaceState.activeSurface !== "none" || (ShellState.screenRecord && !ScreenRecService.recording)
     
     TapHandler {
         enabled: root.isActive

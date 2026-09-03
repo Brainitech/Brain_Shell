@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import "../"
 import "../theme"
 import "../modules/Center/"
@@ -37,7 +38,10 @@ PanelWindow {
     
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "brain-shell-frame"
-    WlrLayershell.keyboardFocus: SurfaceState.activeSurface !== "none" ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: (SurfaceState.activeSurface !== "none" || (ShellState.screenRecord && !ScreenRecService.recording)) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+
+    // --- CLICK SHIELD ---
+    ClickShield { id: clickShield }
 
     // --- MASK PROXIES ---
     // These track the exact boundaries so clicks pass through to Hyprland when empty
@@ -58,7 +62,7 @@ PanelWindow {
         height: surfaceShape.centerNotchHeight + surfaceShape.flareRadius
         anchors.horizontalCenter: parent.horizontalCenter
         TapHandler { 
-            onTapped: if (!SurfaceState.isTopExpanded) SurfaceState.open("top", "dashboard") 
+            onTapped: SurfaceState.toggle("top", "dashboard") 
         }
     }
     Item { 
@@ -75,7 +79,10 @@ PanelWindow {
         x: 0
         anchors.verticalCenter: parent.verticalCenter
         TapHandler { 
-            onTapped: if (!SurfaceState.isLeftCenterExpanded) SurfaceState.open("leftCenter", "archMenu") 
+            onTapped: SurfaceState.toggle("leftCenter", "archMenu") 
+        }
+        HoverHandler {
+            onHoveredChanged: Popups.archMenuTriggerHovered = hovered
         }
     }
     Item { 
@@ -85,7 +92,7 @@ PanelWindow {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         TapHandler { 
-            onTapped: if (!SurfaceState.isRightCenterExpanded) SurfaceState.open("rightCenter", "audio") 
+            onTapped: SurfaceState.toggle("rightCenter", "audio") 
         }
         HoverHandler {
             onHoveredChanged: {
@@ -101,7 +108,10 @@ PanelWindow {
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         TapHandler { 
-            onTapped: if (!SurfaceState.isBottomCenterExpanded) SurfaceState.open("bottomCenter", "wallpaper") 
+            onTapped: SurfaceState.toggle("bottomCenter", "wallpaper") 
+        }
+        HoverHandler {
+            onHoveredChanged: Popups.wallpaperTriggerHovered = hovered
         }
     }
     Item { 
@@ -111,14 +121,63 @@ PanelWindow {
         anchors.bottom: parent.bottom
         anchors.right: parent.right
         TapHandler { 
-            onTapped: if (!SurfaceState.isBottomRightExpanded) SurfaceState.open("bottomRight", "clipboard") 
+            onTapped: SurfaceState.toggle("bottomRight", "clipboard") 
+        }
+        HoverHandler {
+            onHoveredChanged: Popups.clipboardTriggerHovered = hovered
         }
     }
 
-    // --- CLICK SHIELD ---
-    ClickShield { id: clickShield }
+    Region {
+        id: frameRegion
+        Region { item: topMask }
+        Region { item: bottomMask }
+        Region { item: leftMask }
+        Region { item: rightMask }
+        
+        // Top Notches (Always visible base)
+        Region {
+            x: 0; y: 0
+            width: surfaceShape.leftNotchWidth + (surfaceShape.flareRadius * 2)
+            height: surfaceShape.leftNotchHeight + surfaceShape.flareRadius
+        }
+        Region {
+            x: root.width / 2 - (surfaceShape.centerNotchWidth / 2) - surfaceShape.flareRadius; y: 0
+            width: surfaceShape.centerNotchWidth + (surfaceShape.flareRadius * 2)
+            height: surfaceShape.centerNotchHeight + surfaceShape.flareRadius
+        }
+        Region {
+            x: root.width - surfaceShape.rightNotchWidth - (surfaceShape.flareRadius * 2); y: 0
+            width: surfaceShape.rightNotchWidth + (surfaceShape.flareRadius * 2)
+            height: surfaceShape.rightNotchHeight + surfaceShape.flareRadius
+        }
+        
+        // Dynamic Side/Bottom Notches (Hidden when closed via > 1 check to avoid blurring edge artifacts)
+        Region {
+            x: 0; y: root.height / 2 - (surfaceShape.lcnHeight / 2) - surfaceShape.flareRadius
+            width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth + (surfaceShape.flareRadius * 2) : 0
+            height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight + (surfaceShape.flareRadius * 2) : 0
+        }
+        Region {
+            x: root.width - surfaceShape.rcnDepth - (surfaceShape.flareRadius * 2); y: root.height / 2 - (surfaceShape.rcnHeight / 2) - surfaceShape.flareRadius
+            width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth + (surfaceShape.flareRadius * 2) : 0
+            height: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight + (surfaceShape.flareRadius * 2) : 0
+        }
+        Region {
+            x: root.width / 2 - (surfaceShape.bcnWidth / 2) - surfaceShape.flareRadius; y: root.height - surfaceShape.bcnDepth - (surfaceShape.flareRadius * 2)
+            width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth + (surfaceShape.flareRadius * 2) : 0
+            height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth + (surfaceShape.flareRadius * 2) : 0
+        }
+        Region {
+            x: root.width - surfaceShape.brnWidth - (surfaceShape.flareRadius * 2); y: root.height - surfaceShape.brnDepth - (surfaceShape.flareRadius * 2)
+            width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth + (surfaceShape.flareRadius * 2) : 0
+            height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth + (surfaceShape.flareRadius * 2) : 0
+        }
+    }
 
-    // Mask logic: Combine frame borders + active notches. 
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? frameRegion : null
+
+    // Mask logic: Combine frame borders + active notches + click shield. 
     mask: Region { 
         Region { item: clickShield.isActive ? clickShield : null }
         Region { item: topMask }
@@ -438,4 +497,26 @@ PanelWindow {
         y: Math.round(25 * root.localScale) + Math.round(Theme.notchHeight * root.localScale)
         z: 999
     }
+
+    // --- GLOBAL ESCAPE HANDLER ---
+    Item {
+        anchors.fill: parent
+        focus: SurfaceState.activeSurface !== "none" || (ShellState.screenRecord && !ScreenRecService.recording)
+
+        Keys.onEscapePressed: {
+            SurfaceState.close()
+            ScreenRecService.cancelSetup()
+        }
+    }
+
+    // --- HYPRLAND EVENT DISMISS ---
+    Connections {
+        target: Hyprland
+        function onRawEvent(event) {
+            if (event.name === "workspace" || event.name === "activemonitor" || event.name === "activespecial" || event.name === "openwindow") {
+                SurfaceState.close()
+            }
+        }
+    }
 }
+// Will be modularized once everything works

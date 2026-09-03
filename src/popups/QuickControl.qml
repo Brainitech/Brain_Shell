@@ -102,7 +102,7 @@ Item {
             interval: Popups.hoverCloseDelay
             onTriggered: {
                 if (!Popups.audioAllowHover && Popups.quickAllowHover && !Popups.quickPinned) {
-                    SurfaceState.close()
+                    if (Popups.quickOpen) SurfaceState.close()
                 }
             }
         }

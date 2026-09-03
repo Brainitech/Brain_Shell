@@ -95,9 +95,16 @@ PanelWindow {
             onTapped: SurfaceState.toggle("rightCenter", "audio") 
         }
         HoverHandler {
+            id: rcHover
             onHoveredChanged: {
                 Popups.quickTriggerHovered = Popups.audioOpen ? false : hovered  
                 Popups.audioTriggerHovered = hovered
+            }
+        }
+        Connections {
+            target: Popups
+            function onAudioOpenChanged() {
+                Popups.quickTriggerHovered = Popups.audioOpen ? false : rcHover.hovered
             }
         }
     }

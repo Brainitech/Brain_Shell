@@ -59,7 +59,7 @@ Item {
             interval: Popups.hoverCloseDelay
             onTriggered: {
                 if (Popups.audioAllowHover && !Popups.audioPinned) {
-                    SurfaceState.close()
+                    if (Popups.audioOpen) SurfaceState.close()
                 }
             }
         }

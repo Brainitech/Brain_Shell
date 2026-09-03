@@ -22,8 +22,8 @@ Item {
 
 	Connections {
 		target: Popups
-		function onNotificationsOpenChanged() {
-			if (Popups.notificationsOpen) {
+		function _handleInterrupt() {
+			if (Popups.notificationsOpen || Popups.networkOpen) {
 				root.queue = []
 				if (root.showing || root.current) {
 					autoTimer.stop()
@@ -33,13 +33,15 @@ Item {
 				}
 			}
 		}
+		function onNotificationsOpenChanged() { _handleInterrupt() }
+		function onNetworkOpenChanged() { _handleInterrupt() }
 	}
 
 	Connections {
 		target: NotificationService
 		function onNotificationAdded(n) {
 			if (!n || !n.tracked) return
-			if (Popups.notificationsOpen) return
+			if (Popups.notificationsOpen || Popups.networkOpen) return
 			if (root.current === null) {
 				root.startShow(n)
 			} else {

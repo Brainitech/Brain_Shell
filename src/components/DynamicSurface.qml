@@ -78,8 +78,10 @@ PanelWindow {
         height: Math.max(200, surfaceShape.lcnHeight + (surfaceShape.flareRadius * 2))
         x: 0
         anchors.verticalCenter: parent.verticalCenter
-        TapHandler { 
-            onTapped: SurfaceState.toggle("leftCenter", "archMenu") 
+        MouseArea {
+            anchors.fill: parent
+            // Action will be added in the future
+            onClicked: {}
         }
         HoverHandler {
             onHoveredChanged: Popups.archMenuTriggerHovered = hovered
@@ -91,8 +93,10 @@ PanelWindow {
         height: Math.max(200, surfaceShape.rcnHeight + (surfaceShape.flareRadius * 2))
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        TapHandler { 
-            onTapped: SurfaceState.toggle("rightCenter", "audio") 
+        MouseArea {
+            anchors.fill: parent
+            // Action will be added in the future
+            onClicked: {}
         }
         HoverHandler {
             id: rcHover

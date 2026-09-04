@@ -81,6 +81,7 @@ QtObject {
     property bool notificationsAllowHover: PrefsService.globalHoverMode && PrefsService.hoverNotifications
     property bool quickAllowHover:         PrefsService.globalHoverMode && PrefsService.hoverQuick
     property bool dashboardAllowHover:     PrefsService.globalHoverMode && PrefsService.hoverDashboard
+    property bool networkAllowHover:     PrefsService.globalHoverMode && PrefsService.hoverNetwork
 
     // ── Universal popup behavior settings ─────────────────────────────────────
     property int  slideDuration:   Anim.transition

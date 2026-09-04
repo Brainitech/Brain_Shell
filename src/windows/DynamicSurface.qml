@@ -76,7 +76,7 @@ PanelWindow {
             if (Popups.dashboardTriggerHovered && Popups.dashboardAllowHover) { Popups.closeAll(); SurfaceState.open("top", "dashboard") }
             else if (Popups.archMenuTriggerHovered && Popups.archMenuAllowHover) { Popups.closeAll(); SurfaceState.open("leftCenter", "archMenu") }
             else if (Popups.audioTriggerHovered && Popups.audioAllowHover) { Popups.closeAll(); SurfaceState.open("rightCenter", "audio") }
-            else if (Popups.networkTriggerHovered && PrefsService.globalHoverMode) { Popups.closeAll(); SurfaceState.open("right", "network") } 
+            else if (Popups.networkTriggerHovered && Popups.networkAllowHover) { Popups.closeAll(); SurfaceState.open("right", "network") } 
             else if (Popups.notificationsTriggerHovered && Popups.notificationsAllowHover) { Popups.closeAll(); SurfaceState.open("right", "notifications") }
             else if (Popups.wallpaperTriggerHovered && Popups.wallpaperAllowHover) { Popups.closeAll(); SurfaceState.open("bottomCenter", "wallpaper") }
             else if (Popups.quickTriggerHovered && Popups.quickAllowHover) { Popups.closeAll(); SurfaceState.open("rightCenter", "quick") }

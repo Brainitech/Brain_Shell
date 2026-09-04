@@ -52,33 +52,30 @@ PanelWindow {
     
     Item { 
         id: leftNotchMask
-        width: surfaceShape.leftNotchWidth + (surfaceShape.flareRadius * 2)
-        height: surfaceShape.leftNotchHeight + surfaceShape.flareRadius
+        width: surfaceShape.leftNotchWidth
+        height: surfaceShape.leftNotchHeight
         x: 0
     }
     Item { 
         id: centerNotchMask
-        width: surfaceShape.centerNotchWidth + (surfaceShape.flareRadius * 2)
-        height: surfaceShape.centerNotchHeight + surfaceShape.flareRadius
+        width: surfaceShape.centerNotchWidth
+        height: surfaceShape.centerNotchHeight
         anchors.horizontalCenter: parent.horizontalCenter
-        TapHandler { 
-            onTapped: SurfaceState.toggle("top", "dashboard") 
-        }
     }
     Item { 
         id: rightNotchMask
-        width: surfaceShape.rightNotchWidth + (surfaceShape.flareRadius * 2)
-        height: surfaceShape.rightNotchHeight + surfaceShape.flareRadius
+        width: surfaceShape.rightNotchWidth
+        height: surfaceShape.rightNotchHeight
         anchors.right: parent.right
     }
 
     Item { 
         id: leftCenterNotchMask
-        width: Math.max(100, surfaceShape.lcnDepth + (surfaceShape.flareRadius * 2))
-        height: Math.max(200, surfaceShape.lcnHeight + (surfaceShape.flareRadius * 2))
+        width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : surfaceShape.frameThickness
+        height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * root.localScale)
         x: 0
         anchors.verticalCenter: parent.verticalCenter
-        MouseArea {
+        MouseArea { 
             anchors.fill: parent
             // Action will be added in the future
             onClicked: {}
@@ -89,11 +86,11 @@ PanelWindow {
     }
     Item { 
         id: rightCenterNotchMask
-        width: Math.max(100, surfaceShape.rcnDepth + (surfaceShape.flareRadius * 2))
-        height: Math.max(200, surfaceShape.rcnHeight + (surfaceShape.flareRadius * 2))
+        width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : surfaceShape.frameThickness
+        height: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * root.localScale)
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        MouseArea {
+        MouseArea { 
             anchors.fill: parent
             // Action will be added in the future
             onClicked: {}
@@ -114,8 +111,8 @@ PanelWindow {
     }
     Item { 
         id: bottomCenterNotchMask
-        width: Math.max(300, surfaceShape.bcnWidth + (surfaceShape.flareRadius * 2))
-        height: Math.max(100, surfaceShape.bcnDepth + (surfaceShape.flareRadius * 2))
+        width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * root.localScale)
+        height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : surfaceShape.frameThickness
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         TapHandler { 
@@ -127,8 +124,8 @@ PanelWindow {
     }
     Item { 
         id: bottomRightNotchMask
-        width: Math.max(200, surfaceShape.brnWidth + (surfaceShape.flareRadius * 2))
-        height: Math.max(100, surfaceShape.brnDepth + (surfaceShape.flareRadius * 2))
+        width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * root.localScale)
+        height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : surfaceShape.frameThickness
         anchors.bottom: parent.bottom
         anchors.right: parent.right
         TapHandler { 
@@ -149,40 +146,40 @@ PanelWindow {
         // Top Notches (Always visible base)
         Region {
             x: 0; y: 0
-            width: surfaceShape.leftNotchWidth + (surfaceShape.flareRadius * 2)
-            height: surfaceShape.leftNotchHeight + surfaceShape.flareRadius
+            width: surfaceShape.leftNotchWidth
+            height: surfaceShape.leftNotchHeight
         }
         Region {
-            x: root.width / 2 - (surfaceShape.centerNotchWidth / 2) - surfaceShape.flareRadius; y: 0
-            width: surfaceShape.centerNotchWidth + (surfaceShape.flareRadius * 2)
-            height: surfaceShape.centerNotchHeight + surfaceShape.flareRadius
+            x: root.width / 2 - (surfaceShape.centerNotchWidth / 2); y: 0
+            width: surfaceShape.centerNotchWidth
+            height: surfaceShape.centerNotchHeight
         }
         Region {
-            x: root.width - surfaceShape.rightNotchWidth - (surfaceShape.flareRadius * 2); y: 0
-            width: surfaceShape.rightNotchWidth + (surfaceShape.flareRadius * 2)
-            height: surfaceShape.rightNotchHeight + surfaceShape.flareRadius
+            x: root.width - surfaceShape.rightNotchWidth; y: 0
+            width: surfaceShape.rightNotchWidth
+            height: surfaceShape.rightNotchHeight
         }
         
         // Dynamic Side/Bottom Notches (Hidden when closed via > 1 check to avoid blurring edge artifacts)
         Region {
-            x: 0; y: root.height / 2 - (surfaceShape.lcnHeight / 2) - surfaceShape.flareRadius
-            width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth + (surfaceShape.flareRadius * 2) : 0
-            height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight + (surfaceShape.flareRadius * 2) : 0
+            x: 0; y: root.height / 2 - (surfaceShape.lcnHeight / 2)
+            width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : 0
+            height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : 0
         }
         Region {
-            x: root.width - surfaceShape.rcnDepth - (surfaceShape.flareRadius * 2); y: root.height / 2 - (surfaceShape.rcnHeight / 2) - surfaceShape.flareRadius
-            width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth + (surfaceShape.flareRadius * 2) : 0
-            height: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight + (surfaceShape.flareRadius * 2) : 0
+            x: root.width - surfaceShape.rcnDepth; y: root.height / 2 - (surfaceShape.rcnHeight / 2)
+            width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : 0
+            height: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : 0
         }
         Region {
-            x: root.width / 2 - (surfaceShape.bcnWidth / 2) - surfaceShape.flareRadius; y: root.height - surfaceShape.bcnDepth - (surfaceShape.flareRadius * 2)
-            width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth + (surfaceShape.flareRadius * 2) : 0
-            height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth + (surfaceShape.flareRadius * 2) : 0
+            x: root.width / 2 - (surfaceShape.bcnWidth / 2); y: root.height - surfaceShape.bcnDepth
+            width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : 0
+            height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : 0
         }
         Region {
-            x: root.width - surfaceShape.brnWidth - (surfaceShape.flareRadius * 2); y: root.height - surfaceShape.brnDepth - (surfaceShape.flareRadius * 2)
-            width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth + (surfaceShape.flareRadius * 2) : 0
-            height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth + (surfaceShape.flareRadius * 2) : 0
+            x: root.width - surfaceShape.brnWidth; y: root.height - surfaceShape.brnDepth
+            width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : 0
+            height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : 0
         }
     }
 

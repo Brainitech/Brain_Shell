@@ -25,7 +25,12 @@ ShellRoot {
                 // --- EXCLUSIVE ZONE STRUTS ---
                 // Using phantom windows to seamlessly push active Hyprland windows inward
                 // without requiring the user to manually edit hyprland.conf gaps.
-                StrutWindow { screen: modelData; edge: "top"; reserveSpace: Math.round(40 * localScale) + Math.round(Theme.borderWidth * localScale) * 2 }
+                StrutWindow { 
+                    screen: modelData; 
+                    edge: "top"; 
+                    reserveSpace: ShellState.focusMode ? Math.round(Theme.borderWidth * localScale) * 2 : Math.round(40 * localScale) + Math.round(Theme.borderWidth * localScale) * 2 
+                    Behavior on reserveSpace { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+                }
                 StrutWindow { screen: modelData; edge: "bottom"; reserveSpace: Math.round(Theme.borderWidth * localScale) * 2 }
                 StrutWindow { screen: modelData; edge: "left"; reserveSpace: Math.round(Theme.borderWidth * localScale) * 2 }
                 StrutWindow { screen: modelData; edge: "right"; reserveSpace: Math.round(Theme.borderWidth * localScale) * 2 }

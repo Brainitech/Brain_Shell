@@ -16,16 +16,16 @@ Shape {
     property real localScale: 1.0
     property color frameColor: Theme.background
     
-    // --- TOP NOTCHES (Always visible) ---
-    property int baseNotchHeight: Math.round(Theme.notchHeight * localScale)
-    property int leftNotchWidth: 0
-    property int leftNotchHeight: baseNotchHeight
+    // --- TOP NOTCHES ---
+    property real baseNotchHeight: Math.round(Theme.notchHeight * localScale)
+    property real leftNotchWidth: 0.001
+    property real leftNotchHeight: baseNotchHeight
     
-    property int centerNotchWidth: 0
-    property int centerNotchHeight: SurfaceState.isTopExpanded ? Math.round(Theme.dashboardHeight * localScale) : baseNotchHeight
+    property real centerNotchWidth: 0.001
+    property real centerNotchHeight: SurfaceState.isTopExpanded ? Math.round(Theme.dashboardHeight * localScale) : baseNotchHeight
     
-    property int rightNotchWidth: 0
-    property int rightNotchHeight: SurfaceState.isRightExpanded ? Math.round(Theme.popupMaxHeight * localScale) : baseNotchHeight
+    property real rightNotchWidth: 0.001
+    property real rightNotchHeight: SurfaceState.isRightExpanded ? Math.round(Theme.popupMaxHeight * localScale) : baseNotchHeight
 
     // --- SIDE/BOTTOM NOTCHES (0px base, grow when opened) ---
     property real lcnDepth: SurfaceState.isLeftCenterExpanded ? Math.round(Theme.popupMaxWidth * localScale) : 0.001
@@ -47,6 +47,21 @@ Shape {
     readonly property real w: width
     readonly property real h: height
 
+    // Dynamic radii for top notches
+    readonly property real cnFr: Math.min(fr, centerNotchHeight)
+    readonly property real cnR:  Math.min(r, centerNotchHeight)
+
+    property bool _lnCollapsed: ShellState.focusMode && leftNotchHeight <= r + 2
+    property bool _rnCollapsed: ShellState.focusMode && rightNotchHeight <= r + 2
+
+    property real lnRightFlare: _lnCollapsed ? r : Math.min(fr, leftNotchHeight)
+    property real lnLeftMelt:   _lnCollapsed ? 0.001 : Math.min(fr, leftNotchHeight)
+    property real lnInnerR:     _lnCollapsed ? 0.001 : Math.min(r, leftNotchHeight)
+
+    property real rnTopFlare:   _rnCollapsed ? r : Math.min(fr, rightNotchHeight)
+    property real rnBottomMelt: _rnCollapsed ? 0.001 : Math.min(fr, rightNotchHeight)
+    property real rnInnerR:     _rnCollapsed ? 0.001 : Math.min(r, rightNotchHeight)
+
     // Dynamic radii for side notches (clamps to 0.001 to draw straight lines when closed)
     readonly property real lcnFr: Math.min(fr, lcnDepth)
     readonly property real lcnR:  Math.min(r, lcnDepth)
@@ -63,6 +78,13 @@ Shape {
     property real brnTopFlareR:    SurfaceState.isBottomRightExpanded ? fr : r
     
     // --- ANIMATIONS ---
+    Behavior on lnRightFlare    { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on lnLeftMelt      { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on lnInnerR        { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on rnTopFlare      { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on rnBottomMelt    { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on rnInnerR        { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    
     Behavior on brnBottomFlareR { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
     Behavior on brnInnerR       { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
     Behavior on brnTopFlareR    { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
@@ -95,7 +117,7 @@ Shape {
         PathLine { x: 0; y: h }
         PathLine { x: 0; y: 0 }
         
-        PathLine { x: t; y: t + leftNotchHeight + fr }
+        PathLine { x: t; y: t + leftNotchHeight + lnLeftMelt }
         
         // --- INNER BOUNDARY (Counter-Clockwise) ---
         
@@ -142,69 +164,69 @@ Shape {
         PathArc { x: w-t; y: (h/2) - (rcnHeight/2) - rcnFr; radiusX: rcnFr; radiusY: rcnFr; direction: PathArc.Counterclockwise }
         
         // Right edge up to Right Top Notch
-        PathLine { x: w-t; y: t + rightNotchHeight + fr }
+        PathLine { x: w-t; y: t + rightNotchHeight + rnBottomMelt }
         
         // RIGHT NOTCH (Flush to right edge)
         // Right notch melt (Concave, curves up and left into the notch bottom)
-        PathArc { x: w-t-fr; y: t + rightNotchHeight; radiusX: fr; radiusY: fr; direction: PathArc.Counterclockwise }
+        PathArc { x: w-t-rnBottomMelt; y: t + rightNotchHeight; radiusX: rnBottomMelt; radiusY: rnBottomMelt; direction: PathArc.Counterclockwise }
         
         // Bottom edge of right notch
-        PathLine { x: w-t - rightNotchWidth + r; y: t + rightNotchHeight }
+        PathLine { x: w-t - rightNotchWidth + rnInnerR; y: t + rightNotchHeight }
         
         // Bottom-left curve of right notch (Convex)
-        PathArc { x: w-t - rightNotchWidth; y: t + rightNotchHeight - r; radiusX: r; radiusY: r; direction: PathArc.Clockwise }
+        PathArc { x: w-t - rightNotchWidth; y: t + rightNotchHeight - rnInnerR; radiusX: rnInnerR; radiusY: rnInnerR; direction: PathArc.Clockwise }
         
         // Left vertical edge of right notch going up to the top border flare
-        PathLine { x: w-t - rightNotchWidth; y: t + fr }
+        PathLine { x: w-t - rightNotchWidth; y: t + rnTopFlare }
         
         // Left flare of right notch (Concave)
-        PathArc { x: w-t - rightNotchWidth - fr; y: t; radiusX: fr; radiusY: fr; direction: PathArc.Counterclockwise }
+        PathArc { x: w-t - rightNotchWidth - rnTopFlare; y: t; radiusX: rnTopFlare; radiusY: rnTopFlare; direction: PathArc.Counterclockwise }
         
         // Top screen edge going left towards center notch
-        PathLine { x: (w/2) + (centerNotchWidth/2) + fr; y: t }
+        PathLine { x: (w/2) + (centerNotchWidth/2) + cnFr; y: t }
         
         // CENTER NOTCH
         // Right flare of center notch (Concave)
-        PathArc { x: (w/2) + (centerNotchWidth/2); y: t + fr; radiusX: fr; radiusY: fr; direction: PathArc.Counterclockwise }
+        PathArc { x: (w/2) + (centerNotchWidth/2); y: t + cnFr; radiusX: cnFr; radiusY: cnFr; direction: PathArc.Counterclockwise }
         
         // Right vertical edge of center notch
-        PathLine { x: (w/2) + (centerNotchWidth/2); y: t + centerNotchHeight - r }
+        PathLine { x: (w/2) + (centerNotchWidth/2); y: t + centerNotchHeight - cnR }
         
         // Bottom-right curve of center notch (Convex)
-        PathArc { x: (w/2) + (centerNotchWidth/2) - r; y: t + centerNotchHeight; radiusX: r; radiusY: r; direction: PathArc.Clockwise }
+        PathArc { x: (w/2) + (centerNotchWidth/2) - cnR; y: t + centerNotchHeight; radiusX: cnR; radiusY: cnR; direction: PathArc.Clockwise }
         
         // Bottom edge of center notch
-        PathLine { x: (w/2) - (centerNotchWidth/2) + r; y: t + centerNotchHeight }
+        PathLine { x: (w/2) - (centerNotchWidth/2) + cnR; y: t + centerNotchHeight }
         
         // Bottom-left curve of center notch (Convex)
-        PathArc { x: (w/2) - (centerNotchWidth/2); y: t + centerNotchHeight - r; radiusX: r; radiusY: r; direction: PathArc.Clockwise }
+        PathArc { x: (w/2) - (centerNotchWidth/2); y: t + centerNotchHeight - cnR; radiusX: cnR; radiusY: cnR; direction: PathArc.Clockwise }
         
         // Left vertical edge of center notch
-        PathLine { x: (w/2) - (centerNotchWidth/2); y: t + fr }
+        PathLine { x: (w/2) - (centerNotchWidth/2); y: t + cnFr }
         
         // Left flare of center notch (Concave)
-        PathArc { x: (w/2) - (centerNotchWidth/2) - fr; y: t; radiusX: fr; radiusY: fr; direction: PathArc.Counterclockwise }
+        PathArc { x: (w/2) - (centerNotchWidth/2) - cnFr; y: t; radiusX: cnFr; radiusY: cnFr; direction: PathArc.Counterclockwise }
         
         // Top screen edge going left towards left notch
-        PathLine { x: t + leftNotchWidth + fr; y: t }
+        PathLine { x: t + leftNotchWidth + lnRightFlare; y: t }
         
         // LEFT NOTCH (Flush to left edge)
         // Right flare of left notch (Concave)
-        PathArc { x: t + leftNotchWidth; y: t + fr; radiusX: fr; radiusY: fr; direction: PathArc.Counterclockwise }
+        PathArc { x: t + leftNotchWidth; y: t + lnRightFlare; radiusX: lnRightFlare; radiusY: lnRightFlare; direction: PathArc.Counterclockwise }
         
         // Right vertical edge of left notch
-        PathLine { x: t + leftNotchWidth; y: t + leftNotchHeight - r }
+        PathLine { x: t + leftNotchWidth; y: t + leftNotchHeight - lnInnerR }
         
         // Bottom-right curve of left notch (Convex)
-        PathArc { x: t + leftNotchWidth - r; y: t + leftNotchHeight; radiusX: r; radiusY: r; direction: PathArc.Clockwise }
+        PathArc { x: t + leftNotchWidth - lnInnerR; y: t + leftNotchHeight; radiusX: lnInnerR; radiusY: lnInnerR; direction: PathArc.Clockwise }
         
         // Bottom edge of left notch
-        PathLine { x: t + fr; y: t + leftNotchHeight }
+        PathLine { x: t + lnLeftMelt; y: t + leftNotchHeight }
         
         // Left melt (Concave, curves down and left into the left frame)
-        PathArc { x: t; y: t + leftNotchHeight + fr; radiusX: fr; radiusY: fr; direction: PathArc.Counterclockwise }
+        PathArc { x: t; y: t + leftNotchHeight + lnLeftMelt; radiusX: lnLeftMelt; radiusY: lnLeftMelt; direction: PathArc.Counterclockwise }
         
         // Close inner loop
-        PathLine { x: t; y: t + leftNotchHeight + fr }
+        PathLine { x: t; y: t + leftNotchHeight + lnLeftMelt }
     }
 }

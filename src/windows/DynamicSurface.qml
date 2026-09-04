@@ -27,14 +27,7 @@ PanelWindow {
         right: true
     }
     
-    // Counteract the compositor's usable area squish (caused by our StrutWindows)
-    // by pushing the bounds back out to the absolute screen edges.
-    margins {
-        top: Math.round(-40 * localScale) - Math.round(Theme.borderWidth * localScale) * 2
-        bottom: -Math.round(Theme.borderWidth * localScale) * 2
-        left: -Math.round(Theme.borderWidth * localScale) * 2
-        right: -Math.round(Theme.borderWidth * localScale) * 2
-    }
+    exclusionMode: ExclusionMode.Ignore
     
     color: "transparent"
 
@@ -325,14 +318,17 @@ PanelWindow {
             return Math.round(Theme.popupMaxHeight * root.localScale);
         }
         
-        leftNotchWidth: Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
-        centerNotchWidth: SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
+        leftNotchWidth: ShellState.focusMode ? 0.001 : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
+        leftNotchHeight: ShellState.focusMode ? surfaceShape.innerRadius : Math.round(Theme.notchHeight * root.localScale)
+        centerNotchWidth: (ShellState.focusMode && !SurfaceState.isTopExpanded) ? 0.001 : (SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale))))
         centerNotchHeight: {
+            if (ShellState.focusMode && !SurfaceState.isTopExpanded) return 0.001;
             if (SurfaceState.isTopExpanded) return Math.round(Theme.dashboardHeight * root.localScale);
             if (ScreenRecService.openStrip !== "") return Math.round(Theme.notchHeight * root.localScale) + screenRecOptionsPopupView.height + Math.round(16 * root.localScale);
             return Math.round(Theme.notchHeight * root.localScale);
         }
         rightNotchWidth: {
+            if (ShellState.focusMode && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) return 0.001;
             if (!SurfaceState.isRightExpanded) {
                 if (Popups.notificationToastOpen) return notificationToastView.toastWidth + Math.round(Theme.notchRadius * root.localScale);
                 return Math.max(Math.round(Theme.rNotchMinWidth * localScale), Math.min(Math.round(Theme.rNotchMaxWidth * localScale), rightContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)));
@@ -342,6 +338,7 @@ PanelWindow {
             return Math.round(Theme.popupMaxWidth * root.localScale);
         }
         rightNotchHeight: {
+            if (ShellState.focusMode && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) return surfaceShape.innerRadius;
             if (!SurfaceState.isRightExpanded) {
                 if (Popups.notificationToastOpen) return notificationToastView.targetHeight;
                 return Math.round(Theme.notchHeight * root.localScale);
@@ -364,6 +361,11 @@ PanelWindow {
         anchors.left: parent.left
         anchors.leftMargin: Math.round(Theme.borderWidth * root.localScale)
         anchors.top: parent.top
+        clip: true
+        
+        opacity: (ShellState.focusMode && !SurfaceState.isTopExpanded) ? 0 : 1
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         
         Item {
             id: leftNotchHead
@@ -386,6 +388,11 @@ PanelWindow {
         height: surfaceShape.centerNotchHeight
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
+        clip: true
+        
+        opacity: (ShellState.focusMode && !SurfaceState.isTopExpanded) ? 0 : 1
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         
         Item {
             id: centerNotchHead
@@ -416,6 +423,23 @@ PanelWindow {
     }
 
     Item {
+        id: hiddenCenterTrigger
+        width: Math.round(Theme.cNotchMinWidth * root.localScale)
+        height: Math.round(Theme.notchHeight * root.localScale)
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        visible: ShellState.focusMode && !SurfaceState.isTopExpanded
+
+        HoverHandler {
+            onHoveredChanged: Popups.dashboardTriggerHovered = hovered
+        }
+        MouseArea {
+            anchors.fill: parent
+            onClicked: SurfaceState.toggle("top", "dashboard")
+        }
+    }
+
+    Item {
         id: rightNotchArea
         HoverHandler { id: rightNotchHover }
         width: surfaceShape.rightNotchWidth
@@ -424,6 +448,10 @@ PanelWindow {
         anchors.rightMargin: Math.round(Theme.borderWidth * root.localScale)
         anchors.top: parent.top
         clip: true
+        
+        opacity: (ShellState.focusMode && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) ? 0 : 1
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         
         Item {
             id: rightNotchHead

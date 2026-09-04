@@ -1,8 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
-import "../shapes"
 import "../components"
 import "../services"
 import "../"
@@ -33,79 +30,14 @@ Item {
         anchors.fill: parent
         onClicked: Popups.audioPinned = true
     }
-    
-    property bool selfHovered: false
 
     Item {
         id: slide
         anchors.fill: parent
         clip: true
 
-        HoverHandler {
-            onHoveredChanged: {
-                if (Popups.audioAllowHover) {
-                    root.selfHovered = hovered
-                    if (hovered) {
-                        hoverCloseTimer.stop()
-                    } else if (!Popups.audioTriggerHovered) {
-                        hoverCloseTimer.restart()
-                    }
-                }
-            }
-        }
-
-        Timer {
-            id: hoverCloseTimer
-            interval: Popups.hoverCloseDelay
-            onTriggered: {
-                if (Popups.audioAllowHover && !Popups.audioPinned) {
-                    if (Popups.audioOpen) SurfaceState.close()
-                }
-            }
-        }
-
-        Connections {
-            target: Popups
-            function onAudioOpenChanged() {
-                if (!Popups.audioOpen) {
-                    audioResetTimer.restart()
-                    hoverOpenTimer.stop()
-                    if (Popups.audioAllowHover && !root.selfHovered) hoverCloseTimer.restart()
-                } else {
-                    audioControl.page = Popups.audioPage
-                    hoverCloseTimer.stop()
-                }
-            }
-            function onAudioPageChanged() {
-                audioControl.page = Popups.audioPage
-            }
-            function onAudioTriggerHoveredChanged() {
-                if (Popups.audioTriggerHovered) {
-                    if (Popups.audioAllowHover) {
-                        hoverCloseTimer.stop()
-                        hoverOpenTimer.restart()
-                    }
-                } else {
-                    hoverOpenTimer.stop()
-                    if (Popups.audioAllowHover && !root.selfHovered) hoverCloseTimer.restart()
-                }
-            }
-        }
-
-        Timer {
-            id: hoverOpenTimer
-            interval: Popups.hoverOpenDelay
-            onTriggered: {
-                if (Popups.audioAllowHover && Popups.audioTriggerHovered) {
-                    if (!Popups.audioOpen) {
-                        SurfaceState.open("rightCenter", "audio")
-                    }
-                }
-            }
-        }
-
         onOpacityChanged: {
-            if (opacity === 1 && !Popups.audioOpen) {
+            if (opacity === 1 && !(SurfaceState.activeContent === "audio")) {
                 let opt = PrefsService.defaultAudioTab
                 if (opt === "Input") Popups.audioPage = "input"
                 else if (opt === "Mixers") Popups.audioPage = "mixer"
@@ -113,16 +45,10 @@ Item {
             }
         }
 
-        Timer {
-            id: audioResetTimer
-            interval: Anim.transition + 20
-            onTriggered: audioControl.reset()
-        }
-
         AudioControl {
             id: audioControl
             localScale: root.localScale
-            fullyOpen: Popups.audioOpen && root.opacity === 1
+            fullyOpen: (SurfaceState.activeContent === "audio") && root.opacity === 1
 
             width: root.targetWidth - Math.round(16 * root.localScale)
             height: root.popupHeight - Math.round(16 * root.localScale)

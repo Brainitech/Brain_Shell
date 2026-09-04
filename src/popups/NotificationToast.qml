@@ -1,8 +1,6 @@
 import QtQuick
 import Quickshell
-import Quickshell.Wayland
 import Quickshell.Services.Notifications
-import "../shapes/"
 import "../services/"
 import "../"
 
@@ -10,9 +8,7 @@ Item {
     id: root
     property real localScale: 1.0
 
-    readonly property int fw: Math.round(Theme.notchRadius * localScale)
-    readonly property int fh: Math.round(Theme.notchRadius * localScale)
-
+        
     readonly property int toastWidth: Math.round(Theme.notificationToastWidth * localScale) + Math.round(10 * localScale)
 
 
@@ -21,9 +17,9 @@ Item {
 	property var  queue:         []
 
 	Connections {
-		target: Popups
+		target: SurfaceState
 		function _handleInterrupt() {
-			if (Popups.notificationsOpen || Popups.networkOpen) {
+			if ((SurfaceState.activeContent === "notifications") || (SurfaceState.activeContent === "network")) {
 				root.queue = []
 				if (root.showing || root.current) {
 					autoTimer.stop()
@@ -33,15 +29,18 @@ Item {
 				}
 			}
 		}
-		function onNotificationsOpenChanged() { _handleInterrupt() }
-		function onNetworkOpenChanged() { _handleInterrupt() }
+		function onActiveContentChanged() {
+			if (SurfaceState.activeContent === "notifications" || SurfaceState.activeContent === "network") {
+				_handleInterrupt()
+			}
+		}
 	}
 
 	Connections {
 		target: NotificationService
 		function onNotificationAdded(n) {
 			if (!n || !n.tracked) return
-			if (Popups.notificationsOpen || Popups.networkOpen) return
+			if ((SurfaceState.activeContent === "notifications") || (SurfaceState.activeContent === "network")) return
 			if (root.current === null) {
 				root.startShow(n)
 			} else {
@@ -98,7 +97,7 @@ Item {
 	}
 
 	// ── Card ───────────────────────────────────────────────────
-	property int targetHeight: root.showing ? (cardCol.y + cardCol.implicitHeight + Math.round(24 * root.localScale) + root.fh) : root.fh
+	property int targetHeight: root.showing ? (cardCol.y + cardCol.implicitHeight + Math.round(24 * root.localScale) ) : 0
 
 	Item {
 		id:            card
@@ -111,9 +110,9 @@ Item {
 				right:        parent.right
 				top:          parent.top
 				bottom:       parent.bottom
-				topMargin:    fh*1.2
-				bottomMargin: fh*1.2
-				rightMargin:  root.fw
+				topMargin:    0
+				bottomMargin: 0
+				rightMargin:  0
 			}
 			width:  Math.round(3 * root.localScale)
 			radius: Math.round(2 * root.localScale)
@@ -135,7 +134,7 @@ Item {
 				id: progressBar
 				anchors {
 					right:       parent.right
-					rightMargin: root.fw
+					rightMargin: 0
 					bottom:      cardCol.bottom
 					bottomMargin: Math.round(-10 * root.localScale)
 				}
@@ -181,7 +180,7 @@ Item {
 				}
 				spacing: Math.round(2 * root.localScale)
 				bottomPadding: Math.round(10 * root.localScale)
-				y: root.fh + Math.round(6 * root.localScale)
+				y: 0 + Math.round(6 * root.localScale)
 				// No fixed height — sizes to content
 
 				Row {

@@ -1,8 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
-import "../shapes"
 import "../services"
 import "../components"
 import "../"
@@ -12,9 +9,7 @@ Item {
 
     property real localScale: 1.0
 
-    readonly property int fw: Math.round(Theme.cornerRadius * root.localScale)
-    readonly property int fh: Math.round(Theme.cornerRadius * root.localScale)
-
+        
     readonly property var pageHeights: ({
         "power":       Math.round(270 * root.localScale),
         "performance": Math.round(190 * root.localScale),
@@ -35,7 +30,6 @@ Item {
     readonly property int popupHeight: targetHeight
 
     property string page: "power"
-    property bool selfHovered: false
 
     onOpacityChanged: if (opacity === 1) forceActiveFocus()
     Keys.onEscapePressed: SurfaceState.close()
@@ -48,57 +42,6 @@ Item {
         id: slide
         anchors.fill: parent
         clip: true
-
-        HoverHandler {
-            onHoveredChanged: {
-                root.selfHovered = hovered
-                if (Popups.archMenuAllowHover) {
-                    if (hovered) {
-                        hoverCloseTimer.stop()
-                    } else if (!Popups.archMenuTriggerHovered) {
-                        hoverCloseTimer.restart()
-                    }
-                }
-            }
-        }
-
-        Connections {
-            target: Popups
-            function onArchMenuTriggerHoveredChanged() {
-                if (Popups.archMenuTriggerHovered) {
-                    if (Popups.archMenuAllowHover) {
-                        hoverCloseTimer.stop()
-                        hoverOpenTimer.restart()
-                    }
-                } else {
-                    hoverOpenTimer.stop()
-                    if (Popups.archMenuAllowHover && !root.selfHovered) hoverCloseTimer.restart()
-                }
-            }
-        }
-
-        Timer {
-            id: hoverOpenTimer
-            interval: Popups.hoverOpenDelay
-            onTriggered: {
-                if (Popups.archMenuAllowHover && Popups.archMenuTriggerHovered) {
-                    if (!Popups.archMenuOpen) {
-                        Popups.closeAll()
-                        SurfaceState.open("leftCenter", "archMenu")
-                    }
-                }
-            }
-        }
-
-        Timer {
-            id: hoverCloseTimer
-            interval: Popups.hoverCloseDelay
-            onTriggered: {
-                if (Popups.archMenuAllowHover && !Popups.archMenuPinned) {
-                    SurfaceState.close()
-                }
-            }
-        }
 
         Item {
             anchors {

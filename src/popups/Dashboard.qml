@@ -1,10 +1,8 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
-import "../shapes"
 import "../components"
-import "../modules/Center/"
+import "dashboard_tabs"
+import "dashboard_tabs/stats"
 import '../services/'
 import "../"
 
@@ -27,9 +25,7 @@ Item {
     // extreme scaling on ultra-high or ultra-low resolution displays.
     property real localScale: 1.0
 
-    readonly property int fw: Math.round(Theme.notchRadius * localScale)
-    readonly property int fh: Math.round(Theme.notchRadius * localScale)
-    readonly property int animDuration: Anim.transition
+            readonly property int animDuration: Anim.transition
 
     property string page: Popups.dashboardPage
 
@@ -50,88 +46,9 @@ Item {
 
     readonly property real scaledPageWidth: Math.min(Popups.dashboardPageWidth * localScale, (screen ? screen.width : 1920) * 0.95)
 
-    property bool wantsFocus: false
+    
 
-    Timer {
-        id: focusGrabTimer
-        interval: 15
-        onTriggered: if (windowVisible && Popups.dashboardOpen) root.wantsFocus = true
-    }
-
-    property bool windowVisible: false
-
-    Connections {
-        target: Popups
-        function onDashboardOpenChanged() {
-            if (Popups.dashboardOpen) {
-                closeTimer.stop()
-                root.windowVisible = true
-                root._applyPageWidth(root.page)
-                focusGrabTimer.restart() // Delay the grab slightly
-            } else {
-                root.wantsFocus = false // Release instantly
-                focusGrabTimer.stop()
-                closeTimer.restart()
-            }
-        }
-        function onDashboardTriggerHoveredChanged() {
-            if (Popups.dashboardTriggerHovered) {
-                if (root.allowHover) {
-                    hoverCloseTimer.stop()
-                    hoverOpenTimer.restart()
-                }
-            } else {
-                hoverOpenTimer.stop()
-                if (root.allowHover && !root.selfHovered) hoverCloseTimer.restart()
-            }
-        }
-    }
-
-    property bool allowHover: Popups.dashboardAllowHover
-    property bool pinned:     Popups.dashboardPinned
-    property bool selfHovered: false
-
-    onSelfHoveredChanged: {
-        if (root.allowHover) {
-            if (!selfHovered && !Popups.dashboardTriggerHovered && !Popups.colorPickerActive) hoverCloseTimer.restart()
-            else                                                 hoverCloseTimer.stop()
-        }
-    }
-
-    Timer {
-        id: hoverOpenTimer
-        interval: Popups.hoverOpenDelay
-        onTriggered: {
-            if (root.allowHover && Popups.dashboardTriggerHovered) {
-                if (!Popups.dashboardOpen) {
-                    Popups.closeAll()
-                    SurfaceState.open("top", "dashboard")
-                }
-            }
-        }
-    }
-
-    Timer {
-        id: hoverCloseTimer
-        interval: Popups.hoverCloseDelay
-        onTriggered: {
-            if (root.allowHover && !Popups.dashboardTriggerHovered && !root.selfHovered && !Popups.colorPickerActive) {
-                if (!root.pinned) {
-                    SurfaceState.close()
-                }
-            }
-        }
-    }
-    Timer {
-        id: closeTimer
-        interval: root.animDuration + 20
-        onTriggered: {
-            root.windowVisible = false
-            tabBar.reset()
-        }
-    }
-
-
+    
 
 
 
@@ -144,16 +61,11 @@ Item {
         MouseArea { anchors.fill: parent }
         anchors.fill: parent
 
-        HoverHandler {
-            onHoveredChanged: root.selfHovered = hovered
-        }
-
         Item {
             id: sizer
             anchors.fill: parent
             clip: true
             
-
 
         // ── Content ───────────────────────────────────────────────────────────
         Item {
@@ -161,15 +73,15 @@ Item {
             anchors {
                 fill:         parent
                 topMargin:    Math.round(8 * localScale)
-                leftMargin:   root.fw + Math.round(8 * localScale)
-                rightMargin:  root.fw + Math.round(8 * localScale)
+                leftMargin:   Math.round(8 * localScale)
+                rightMargin:  Math.round(8 * localScale)
                 bottomMargin: Math.round(8 * localScale)
             }
 
-            opacity: Popups.dashboardOpen ? 1 : 0
+            opacity: (SurfaceState.activeContent === "dashboard") ? 1 : 0
             Behavior on opacity {
                 NumberAnimation {
-                    duration: Popups.dashboardOpen
+                    duration: (SurfaceState.activeContent === "dashboard")
                         ? root.animDuration * 0.5
                         : root.animDuration * 0.15
                 }

@@ -1,4 +1,9 @@
 import QtQuick
+import "../popups/"
+import "../modules/Right/"
+import "../modules/Center/"
+import "../modules/Left/"
+import "../components"
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
@@ -12,10 +17,7 @@ import "../popups/"
 // A morphing Wayland window layer for the unified screen frame
 PanelWindow {
     id: root
-    property int leftContentWidth: leftContent.implicitWidth
-    property int centerContentWidth: centerContent.implicitWidth
-    property int rightContentWidth: rightContent.implicitWidth
-    property var screen
+                property var screen
     readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
     anchors {
@@ -35,6 +37,71 @@ PanelWindow {
     }
     
     color: "transparent"
+
+    // --- GLOBAL HOVER MANAGER ---
+    property bool _anyTriggerHovered: Popups.dashboardTriggerHovered || Popups.archMenuTriggerHovered || Popups.audioTriggerHovered || Popups.networkTriggerHovered || Popups.notificationsTriggerHovered || Popups.wallpaperTriggerHovered || Popups.quickTriggerHovered || Popups.clipboardTriggerHovered
+    
+    property bool _activeSurfaceHovered: {
+        if (SurfaceState.activeSurface === "top") return centerNotchHover.hovered || leftNotchHover.hovered || rightNotchHover.hovered;
+        if (SurfaceState.activeSurface === "leftCenter") return leftCenterNotchHover.hovered;
+        if (SurfaceState.activeSurface === "right") return rightNotchHover.hovered;
+        if (SurfaceState.activeSurface === "rightCenter") return rightCenterNotchHover.hovered;
+        if (SurfaceState.activeSurface === "bottomCenter") return bottomCenterNotchHover.hovered;
+        if (SurfaceState.activeSurface === "bottomRight") return bottomRightNotchHover.hovered;
+        return false;
+    }
+
+    on_AnyTriggerHoveredChanged: {
+        if (_anyTriggerHovered) {
+            hoverCloseTimer.stop()
+            hoverOpenTimer.restart()
+        } else {
+            hoverOpenTimer.stop()
+            if (!_activeSurfaceHovered) hoverCloseTimer.restart()
+        }
+    }
+
+    on_ActiveSurfaceHoveredChanged: {
+        if (!_anyTriggerHovered && !_activeSurfaceHovered) {
+            hoverCloseTimer.restart()
+        } else {
+            hoverCloseTimer.stop()
+        }
+    }
+
+    Timer {
+        id: hoverOpenTimer
+        interval: Popups.hoverOpenDelay
+        onTriggered: {
+            if (Popups.dashboardTriggerHovered && Popups.dashboardAllowHover) { Popups.closeAll(); SurfaceState.open("top", "dashboard") }
+            else if (Popups.archMenuTriggerHovered && Popups.archMenuAllowHover) { Popups.closeAll(); SurfaceState.open("leftCenter", "archMenu") }
+            else if (Popups.audioTriggerHovered && Popups.audioAllowHover) { Popups.closeAll(); SurfaceState.open("rightCenter", "audio") }
+            else if (Popups.networkTriggerHovered && PrefsService.globalHoverMode) { Popups.closeAll(); SurfaceState.open("right", "network") } 
+            else if (Popups.notificationsTriggerHovered && Popups.notificationsAllowHover) { Popups.closeAll(); SurfaceState.open("right", "notifications") }
+            else if (Popups.wallpaperTriggerHovered && Popups.wallpaperAllowHover) { Popups.closeAll(); SurfaceState.open("bottomCenter", "wallpaper") }
+            else if (Popups.quickTriggerHovered && Popups.quickAllowHover) { Popups.closeAll(); SurfaceState.open("rightCenter", "quick") }
+            else if (Popups.clipboardTriggerHovered && Popups.clipboardAllowHover) { Popups.closeAll(); SurfaceState.open("bottomRight", "clipboard") }
+        }
+    }
+
+    Timer {
+        id: hoverCloseTimer
+        interval: Popups.hoverCloseDelay
+        onTriggered: {
+            if (!_anyTriggerHovered && !_activeSurfaceHovered && !Popups.colorPickerActive) {
+                if (SurfaceState.activeContent === "dashboard" && Popups.dashboardPinned) return;
+                if (SurfaceState.activeContent === "archMenu" && Popups.archMenuPinned) return;
+                if (SurfaceState.activeContent === "audio" && Popups.audioPinned) return;
+                if (SurfaceState.activeContent === "network" && Popups.networkPinned) return;
+                if (SurfaceState.activeContent === "notifications" && Popups.notificationsPinned) return;
+                if (SurfaceState.activeContent === "wallpaper" && Popups.wallpaperPinned) return;
+                if (SurfaceState.activeContent === "quick" && Popups.quickPinned) return;
+                if (SurfaceState.activeContent === "clipboard" && Popups.clipboardPinned) return;
+                SurfaceState.close();
+            }
+        }
+    }
+
     
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "brain-shell-frame"
@@ -258,7 +325,7 @@ PanelWindow {
             return Math.round(Theme.popupMaxHeight * root.localScale);
         }
         
-        leftNotchWidth: SurfaceState.isLeftExpanded ? Math.round(Theme.popupMaxWidth * root.localScale) : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
+        leftNotchWidth: Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         centerNotchWidth: SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         centerNotchHeight: {
             if (SurfaceState.isTopExpanded) return Math.round(Theme.dashboardHeight * root.localScale);
@@ -291,6 +358,7 @@ PanelWindow {
     // --- NOTCH CONTENT ---
     Item {
         id: leftNotchArea
+        HoverHandler { id: leftNotchHover }
         width: surfaceShape.leftNotchWidth
         height: surfaceShape.leftNotchHeight
         anchors.left: parent.left
@@ -313,6 +381,7 @@ PanelWindow {
 
     Item {
         id: centerNotchArea
+        HoverHandler { id: centerNotchHover }
         width: surfaceShape.centerNotchWidth
         height: surfaceShape.centerNotchHeight
         anchors.horizontalCenter: parent.horizontalCenter
@@ -340,7 +409,7 @@ PanelWindow {
             anchors.bottom: parent.bottom
             screen: root.screen
             
-            opacity: Popups.dashboardOpen ? 1 : 0
+            opacity: SurfaceState.activeContent === "dashboard" ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
@@ -348,6 +417,7 @@ PanelWindow {
 
     Item {
         id: rightNotchArea
+        HoverHandler { id: rightNotchHover }
         width: surfaceShape.rightNotchWidth
         height: surfaceShape.rightNotchHeight
         anchors.right: parent.right
@@ -379,7 +449,7 @@ PanelWindow {
             anchors.bottom: parent.bottom
             screen: root.screen
             
-            opacity: Popups.networkOpen ? 1 : 0
+            opacity: SurfaceState.activeContent === "network" ? 1 : 0
 
             
             visible: opacity > 0
@@ -396,7 +466,7 @@ PanelWindow {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             
-            opacity: Popups.notificationsOpen ? 1 : 0
+            opacity: SurfaceState.activeContent === "notifications" ? 1 : 0
 
             
             visible: opacity > 0
@@ -421,6 +491,7 @@ PanelWindow {
 
     Item {
         id: leftCenterNotchArea
+        HoverHandler { id: leftCenterNotchHover }
         width: surfaceShape.lcnDepth
         height: surfaceShape.lcnHeight
         anchors.left: parent.left
@@ -431,7 +502,7 @@ PanelWindow {
             id: archMenuPopupView
             localScale: root.localScale
             anchors.fill: parent
-            opacity: Popups.archMenuOpen ? 1 : 0
+            opacity: SurfaceState.activeContent === "archMenu" ? 1 : 0
 
             visible: opacity > 0
 
@@ -441,6 +512,7 @@ PanelWindow {
 
     Item {
         id: rightCenterNotchArea
+        HoverHandler { id: rightCenterNotchHover }
         width: surfaceShape.rcnDepth
         height: surfaceShape.rcnHeight
         anchors.right: parent.right
@@ -451,7 +523,7 @@ PanelWindow {
             id: audioPopupView
             localScale: root.localScale
             anchors.fill: parent
-            opacity: Popups.audioOpen ? 1 : 0
+            opacity: SurfaceState.activeContent === "audio" ? 1 : 0
 
             visible: opacity > 0
 
@@ -462,7 +534,7 @@ PanelWindow {
             id: quickControlPopupView
             localScale: root.localScale
             anchors.fill: parent
-            opacity: Popups.quickOpen ? 1 : 0
+            opacity: SurfaceState.activeContent === "quick" ? 1 : 0
 
             visible: opacity > 0
 
@@ -472,6 +544,7 @@ PanelWindow {
 
     Item {
         id: bottomCenterNotchArea
+        HoverHandler { id: bottomCenterNotchHover }
         width: surfaceShape.bcnWidth
         height: surfaceShape.bcnDepth
         anchors.horizontalCenter: parent.horizontalCenter
@@ -482,7 +555,7 @@ PanelWindow {
             id: wallpaperPopupView
             localScale: root.localScale
             anchors.fill: parent
-            opacity: Popups.wallpaperOpen ? 1 : 0
+            opacity: SurfaceState.activeContent === "wallpaper" ? 1 : 0
 
             visible: opacity > 0
 
@@ -492,6 +565,7 @@ PanelWindow {
 
     Item {
         id: bottomRightNotchArea
+        HoverHandler { id: bottomRightNotchHover }
         width: surfaceShape.brnWidth
         height: surfaceShape.brnDepth
         anchors.right: parent.right
@@ -503,6 +577,9 @@ PanelWindow {
             id: clipboardPopupView
             localScale: root.localScale
             anchors.fill: parent
+            opacity: SurfaceState.activeContent === "clipboard" ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
     }
 
@@ -535,4 +612,3 @@ PanelWindow {
         }
     }
 }
-// Will be modularized once everything works

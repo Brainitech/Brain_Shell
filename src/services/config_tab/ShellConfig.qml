@@ -83,7 +83,6 @@ Item {
                     visible: root._page === "keybinds"
                     KeybindsPage { 
                         anchors.fill: parent 
-                        // localScale: root.localScale // If KeybindsPage is updated later
                     }
                 }
                 Item {

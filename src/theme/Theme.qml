@@ -29,14 +29,9 @@ QtObject {
     property int cornerRadius:  Metrics.cornerRadius
     property int notchRadius:   Metrics.notchRadius
     property int notchHeight:   Metrics.notchHeight
-    property int exclusionGap:  Metrics.exclusionGap
-    property int spacing:       Metrics.spacing
-
+        
     property int notchPadding:           Metrics.notchPadding
-    property int notchHorizontalPadding: Metrics.notchHorizontalPadding
-    property int notchVerticalPadding:   Metrics.notchVerticalPadding
-    property int notchSideMargin:        Metrics.notchSideMargin
-
+            
     property int lNotchMinWidth: Metrics.lNotchMinWidth
     property int lNotchMaxWidth: Metrics.lNotchMaxWidth
     property int cNotchMinWidth: Metrics.cNotchMinWidth
@@ -51,9 +46,7 @@ QtObject {
     property int notificationToastWidth: Metrics.notificationToastWidth
     property int networkPopupWidth:  Metrics.networkPopupWidth
 
-    property int popupMinWidth:   Metrics.popupMinWidth
     property int popupMaxWidth:   Metrics.popupMaxWidth
-    property int popupMinHeight:   Metrics.popupMinHeight
     property int popupMaxHeight:  Metrics.popupMaxHeight
     property int popupPadding:     Metrics.popupPadding
 

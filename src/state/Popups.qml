@@ -42,12 +42,10 @@ QtObject {
     readonly property bool quickOpen: SurfaceState.activeContent === "quick"
     readonly property bool clipboardOpen: SurfaceState.activeContent === "clipboard"
     property bool colorPickerActive: false
-    property string pickerFormat: "HEX"
-
+    
     // ── Per-popup pinned state (ignores hover-leave) ──────────────────────────
     property bool audioPinned:         false
     property bool networkPinned:       false
-    property bool batteryPinned:       false
     property bool notificationsPinned: false
     property bool archMenuPinned:      false
     property bool dashboardPinned:     false
@@ -69,7 +67,6 @@ QtObject {
     property bool archMenuTriggerHovered:      false
     property bool audioTriggerHovered:         false
     property bool networkTriggerHovered:       false
-    property bool batteryTriggerHovered:       false
     property bool notificationsTriggerHovered: false
     property bool wallpaperTriggerHovered:     false
     property bool quickTriggerHovered:         false
@@ -78,7 +75,6 @@ QtObject {
 
     // ── Hover allowance settings ──────────────────────────────────────────────
     property bool audioAllowHover:         PrefsService.globalHoverMode && PrefsService.hoverAudio
-    property bool networkAllowHover:       PrefsService.globalHoverMode && PrefsService.hoverNetwork
     property bool archMenuAllowHover:      PrefsService.globalHoverMode && PrefsService.hoverArchMenu
     property bool wallpaperAllowHover:     PrefsService.globalHoverMode && PrefsService.hoverWallpaper
     property bool clipboardAllowHover:     PrefsService.globalHoverMode && PrefsService.hoverClipboard
@@ -125,7 +121,6 @@ QtObject {
         SurfaceState.close()
         audioPinned         = false
         networkPinned       = false
-        batteryPinned       = false
         notificationsPinned = false
         archMenuPinned      = false
         dashboardPinned     = false

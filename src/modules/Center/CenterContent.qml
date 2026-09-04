@@ -4,7 +4,6 @@ import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import Quickshell.Io
 import "../../"
-import "../../services/home/."
 
 // CenterContent — scrollable dynamic island carousel.
 //
@@ -33,7 +32,6 @@ Item {
 	// TopBar.cWidth reads this so the notch always matches what is visible,
 	// even if the user scrolls away from record_active while recording.
 	readonly property int fw: Math.round(Theme.notchRadius * localScale)
-	readonly property int requiredWidth: Math.round(Theme.cNotchMinWidth * localScale)
 	// ── MPRIS ─────────────────────────────────────────────────────────────────
 	readonly property var    player:    Mpris.players.values.length > 0
 	? Mpris.players.values[0] : null

@@ -1,7 +1,9 @@
 import QtQuick
 import Quickshell.Io
+import "../../"
+import Quickshell.Io
 import "../"
-import "../components"
+import "../../components"
 
 // KanbanBoard — three columns, JSON at $HOME/.config/Brain_Shell/src/user_data/tasks.json.
 //
@@ -106,15 +108,6 @@ Item {
     Process { id: wrProc; command: []; running: false }
 
     // ── Reset state when dashboard closes ─────────────────────────────────────
-    Connections {
-        target: Popups
-        function onDashboardOpenChanged() {
-            if (!Popups.dashboardOpen) {
-                root.delConfirmId = -1
-                root.pickerTaskId = -1
-            }
-        }
-    }
 
     // ── Mutations ─────────────────────────────────────────────────────────────
     function _addTask(col, title) {

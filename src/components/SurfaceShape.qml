@@ -19,7 +19,7 @@ Shape {
     // --- TOP NOTCHES (Always visible) ---
     property int baseNotchHeight: Math.round(Theme.notchHeight * localScale)
     property int leftNotchWidth: 0
-    property int leftNotchHeight: SurfaceState.isLeftExpanded ? Math.round(Theme.popupMaxHeight * localScale) : baseNotchHeight
+    property int leftNotchHeight: baseNotchHeight
     
     property int centerNotchWidth: 0
     property int centerNotchHeight: SurfaceState.isTopExpanded ? Math.round(Theme.dashboardHeight * localScale) : baseNotchHeight

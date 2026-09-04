@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Wayland
 import "../services"
 import "../"
 

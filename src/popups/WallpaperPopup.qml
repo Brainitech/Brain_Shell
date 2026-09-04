@@ -2,10 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
 import QtQuick.Layouts
-import "../shapes"
 import "../components"
 import "../services"
 import "../"
@@ -14,61 +11,18 @@ Item {
     id: root
 
     property real localScale: 1.0
-
     readonly property int panelWidth:  Math.round(980 * root.localScale)
     readonly property int panelHeight: Math.round(420 * root.localScale)
+
     readonly property int popupWidth:  panelWidth
     readonly property int popupHeight: panelHeight
-    readonly property int fw:          Math.round(Theme.notchRadius * root.localScale)
-    readonly property int fh:          Math.round(Theme.notchRadius * root.localScale)
-
+        
     onOpacityChanged: if (opacity === 1) searchInput.forceActiveFocus()
-    Keys.onEscapePressed: SurfaceState.close()
-
-    // ── Self-hover tracking ───────────────────────────────────────────────────
-    property bool selfHovered: true
-    property bool allowHover: Popups.wallpaperAllowHover
-    property bool pinned:     Popups.wallpaperPinned
-
-    // ── Hover close timer ─────────────────────────────────────────────────────
-    // Fires when both the trigger region and the popup itself are no longer hovered.
-    Timer {
-        id: hoverCloseTimer
-        interval: Popups.hoverCloseDelay
-        onTriggered: {
-            if (root.allowHover && !Popups.wallpaperTriggerHovered && !root.selfHovered) {
-                if (!root.pinned) {
-                    SurfaceState.close()
-                }
-            }
-        }
-    }
-
-    onSelfHoveredChanged: {
-        if (root.allowHover) {
-            if (!selfHovered && !Popups.wallpaperTriggerHovered) hoverCloseTimer.restart()
-            else                                                  hoverCloseTimer.stop()
-        }
-    }
-
 
     Connections {
-        target: Popups
-        function onWallpaperTriggerHoveredChanged() {
-            if (Popups.wallpaperTriggerHovered) {
-                if (root.allowHover) {
-                    hoverCloseTimer.stop()
-                    hoverOpenTimer.restart()
-                }
-            } else {
-                hoverOpenTimer.stop()
-                if (root.allowHover && !root.selfHovered) hoverCloseTimer.restart()
-            }
-        }
-
-        function onWallpaperOpenChanged() {
-            if (Popups.wallpaperOpen) {
-                hoverCloseTimer.stop()
+        target: SurfaceState
+        function onActiveContentChanged() {
+            if (SurfaceState.activeContent === "wallpaper") {
                 WallpaperService.refresh()
                 WallpaperService.previewWall = ""
                 content.schemePopupOpen      = false
@@ -79,44 +33,14 @@ Item {
         }
     }
 
-    Timer {
-        id: hoverOpenTimer
-        interval: Popups.hoverOpenDelay
-        onTriggered: {
-            if (root.allowHover && Popups.wallpaperTriggerHovered) {
-                if (!Popups.wallpaperOpen) {
-                    Popups.closeAll()
-                    SurfaceState.open("bottomCenter", "wallpaper")
-                }
-            }
-        }
-    }
+    Keys.onEscapePressed: SurfaceState.close()
 
-    Connections {
-        target: WallpaperService
-        function onWallpapersChanged() {
-            if (!Popups.wallpaperOpen) return
-            var walls = WallpaperService.wallpapers
-            if (!walls || walls.length === 0) return
-            var target = WallpaperService.currentWall
-            for (var i = 0; i < walls.length; i++) {
-                if (walls[i] === target) {
-                    WallpaperService.previewWall = target
-                    wallGrid.targetCenterIndex   = i
-                    centerLockTimer.restart()
-                    wallGrid.forceLayout()
-                    wallGrid.positionViewAtIndex(i, ListView.Center)
-                    return
-                }
-            }
-        }
-    }
+    // ── Self-hover tracking ───────────────────────────────────────────────────
 
-    Timer {
-        id: centerLockTimer
-        interval: Anim.transition
-        onTriggered: wallGrid.targetCenterIndex = -1
-    }
+    // ── Hover close timer ─────────────────────────────────────────────────────
+    // Fires when both the trigger region and the popup itself are no longer hovered.
+
+
 
     MouseArea {
         anchors.fill: parent
@@ -126,10 +50,6 @@ Item {
     Item {
         id: hoverContainer
         anchors.fill: parent
-
-        HoverHandler {
-            onHoveredChanged: root.selfHovered = hovered
-        }
 
         Item {
             id: sizer
@@ -141,11 +61,11 @@ Item {
                 focus: true
                 anchors {
                     bottom:           parent.bottom
-                    bottomMargin:     root.fh + Math.round(8 * root.localScale)
+                    bottomMargin:     Math.round(8 * root.localScale)
                     horizontalCenter: parent.horizontalCenter
                 }
                 width:  root.panelWidth - Math.round(32 * root.localScale)
-                height: root.panelHeight - root.fh - Math.round(24 * root.localScale)
+                height: root.panelHeight -  Math.round(24 * root.localScale)
 
             property string searchQuery:     ""
             property bool   schemePopupOpen: false
@@ -165,14 +85,14 @@ Item {
                 (WallpaperService.currentWall !== "" &&
                  WallpaperService.scheme !== content.appliedScheme)
 
-            opacity: Popups.wallpaperOpen ? 1 : 0
+            opacity: (SurfaceState.activeContent === "wallpaper") ? 1 : 0
             transform: Translate {
-                y: Popups.wallpaperOpen ? 0 : Math.round(40 * root.localScale)
+                y: (SurfaceState.activeContent === "wallpaper") ? 0 : Math.round(40 * root.localScale)
                 Behavior on y { NumberAnimation { duration: Anim.transition; easing.type: Anim.outExpo} }
             }
             Behavior on opacity {
                 NumberAnimation {
-                    duration: Popups.wallpaperOpen ? Anim.transition * 0.5 : Anim.transition * 0.15
+                    duration: (SurfaceState.activeContent === "wallpaper") ? Anim.transition * 0.5 : Anim.transition * 0.15
                 }
             }
 
@@ -180,7 +100,7 @@ Item {
                 id: wallGrid
                 property int targetCenterIndex: -1
                 onWidthChanged: {
-                    if (Popups.wallpaperOpen && targetCenterIndex !== -1 && count > targetCenterIndex)
+                    if ((SurfaceState.activeContent === "wallpaper") && targetCenterIndex !== -1 && count > targetCenterIndex)
                         positionViewAtIndex(targetCenterIndex, ListView.Center)
                 }
 
@@ -709,5 +629,4 @@ Item {
     }
 }
 }
-
 

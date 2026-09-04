@@ -1,7 +1,6 @@
 import QtQuick
-import Quickshell.Services.SystemTray
 import "../../components"
-import "../../windows"
+import "../../components"
 import "../../"
 import "../../services/"
 

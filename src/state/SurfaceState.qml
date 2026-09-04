@@ -29,10 +29,7 @@ QtObject {
 
     // Helper booleans for property binding
     readonly property bool isTopExpanded: activeSurface === "top"
-    readonly property bool isLeftExpanded: activeSurface === "left"
     readonly property bool isRightExpanded: activeSurface === "right"
-    readonly property bool isBottomExpanded: activeSurface === "bottom"
-
     // Additional morphing borders
     readonly property bool isLeftCenterExpanded: activeSurface === "leftCenter"
     readonly property bool isRightCenterExpanded: activeSurface === "rightCenter"

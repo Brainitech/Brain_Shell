@@ -1,7 +1,5 @@
 import QtQuick
-import Quickshell
 import "../../components"
-import "../../windows"
 import "../../"
 
 Item {
@@ -12,9 +10,6 @@ Item {
     // The TopBar State handles expanding the notch for notifications/network/toasts
     implicitWidth: contentRow.implicitWidth
 
-    //Behavior on implicitWidth {
-    //    NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic}
-    //}
     implicitHeight: parent.height
 
     // ── Normal content — fades out when any right popup opens ─────────────────

@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import "../../"
 import Quickshell
 import "../"
 
@@ -13,15 +14,6 @@ Item {
     property int  selIndex: -1
     property string query:  ""
 
-    Connections {
-        target: Popups
-        function onDashboardPageChanged() {
-            if (Popups.dashboardOpen && Popups.dashboardPage === "launcher") searchInput.forceActiveFocus()
-        }
-        function onDashboardOpenChanged() {
-            if (Popups.dashboardOpen && Popups.dashboardPage === "launcher") searchInput.forceActiveFocus()
-        }
-    }
 
     readonly property var apps: DesktopEntries.applications.values
 

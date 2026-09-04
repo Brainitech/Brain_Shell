@@ -1,8 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
-import "../shapes"
 import "../components"
 import "../"
 
@@ -17,9 +14,7 @@ Item {
 
     readonly property int popupWidth:  Math.round(Theme.networkPopupWidth * root.localScale)
     readonly property int popupHeight: Math.round(648 * root.localScale)
-    readonly property int fw:          Math.round(Theme.notchRadius * root.localScale)
-    readonly property int fh:          Math.round(Theme.notchRadius * root.localScale)
-
+        
     property string page: Popups.networkPage
 
     Connections {
@@ -51,10 +46,10 @@ Item {
                     bottomMargin: Math.round(8 * root.localScale)
                 }
     
-                opacity: Popups.networkOpen ? 1 : 0
+                opacity: (SurfaceState.activeContent === "network") ? 1 : 0
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: Popups.networkOpen
+                        duration: (SurfaceState.activeContent === "network")
                             ? Anim.transition * 0.5
                             : Anim.transition * 0.15
                     }

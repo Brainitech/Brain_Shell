@@ -1,9 +1,6 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
 import Quickshell.Services.Pipewire
-import "../shapes"
 import "../components"
 import "../services"
 import "../"
@@ -29,118 +26,18 @@ Item {
         objects: root.sink ? [root.sink] : []
     }
 
-    property real _bVal:  0.72
-    property int  _bMax:  100
-    property bool _bBusy: false
+    property real _bVal: BrightnessService.brightness / 100
 
-    Process {
-        id: brightRead
-        command: ["bash", "-c", "brightnessctl -m"]
-        running: false
-        stdout: SplitParser {
-            onRead: function(line) {
-                var parts = line.split(",")
-                if (parts.length >= 5) {
-                    var cur = parseInt(parts[2])
-                    var max = parseInt(parts[4])
-                    if (max > 0) {
-                        root._bMax = max
-                        root._bVal = cur / max
-                    }
-                }
-            }
-        }
-    }
 
-    Process {
-        id: brightWrite
-        command: ["bash", "-c", "brightnessctl set " + (Math.round(root._bVal * root._bMax) <= 0 ? 2 : Math.round(root._bVal * root._bMax))]
-        running: false
-        onRunningChanged: if (!running) root._bBusy = false
-    }
 
-    Timer {
-        id: bDebounce
-        interval: 50; repeat: false
-        onTriggered: { root._bBusy = true; brightWrite.running = true }
-    }
 
-    Timer {
-        interval: 1000; running: true; repeat: true
-        onTriggered: if (!root._bBusy) brightRead.running = true
-    }
 
-    Component.onCompleted: brightRead.running = true
-
-    function setBrightness(v) {
-        root._bVal = Math.max(0.0, Math.min(1.0, v))
-        bDebounce.restart()
-    }
-
-    property bool selfHovered: false
 
     Item {
         id: slide
         anchors.fill: parent
         clip: true
         
-        HoverHandler {
-            onHoveredChanged: {
-                if (!Popups.audioAllowHover && Popups.quickAllowHover) {
-                    root.selfHovered = hovered
-                    if (hovered) {
-                        hoverCloseTimer.stop()
-                    } else if (!Popups.quickTriggerHovered) {
-                        hoverCloseTimer.restart()
-                    }
-                }
-            }
-        }
-
-        Timer {
-            id: hoverCloseTimer
-            interval: Popups.hoverCloseDelay
-            onTriggered: {
-                if (!Popups.audioAllowHover && Popups.quickAllowHover && !Popups.quickPinned) {
-                    if (Popups.quickOpen) SurfaceState.close()
-                }
-            }
-        }
-
-        Connections {
-            target: Popups
-            function onQuickOpenChanged() {
-                if (!Popups.quickOpen) {
-                    hoverOpenTimer.stop()
-                    if (!Popups.audioAllowHover && Popups.quickAllowHover && !root.selfHovered) hoverCloseTimer.restart()
-                } else {
-                    hoverCloseTimer.stop()
-                }
-            }
-            function onQuickTriggerHoveredChanged() {
-                if (Popups.quickTriggerHovered) {
-                    if (!Popups.audioAllowHover && Popups.quickAllowHover) {
-                        hoverCloseTimer.stop()
-                        hoverOpenTimer.restart()
-                    }
-                } else {
-                    hoverOpenTimer.stop()
-                    if (!Popups.audioAllowHover && Popups.quickAllowHover && !root.selfHovered) hoverCloseTimer.restart()
-                }
-            }
-        }
-
-        Timer {
-            id: hoverOpenTimer
-            interval: Popups.hoverOpenDelay
-            onTriggered: {
-                if (!Popups.audioAllowHover && Popups.quickAllowHover && Popups.quickTriggerHovered) {
-                    if (!Popups.quickOpen && !Popups.audioOpen) {
-                        SurfaceState.open("rightCenter", "quick")
-                    }
-                }
-            }
-        }
 
         Row {
             anchors.centerIn: parent
@@ -172,7 +69,7 @@ Item {
                 muted:  false
                 active: true
                 onVolumeChanged: function(v) {
-                    root.setBrightness(v)
+                    BrightnessService.setBrightness(Math.round(v * 100))
                 }
             }
         }
@@ -288,11 +185,12 @@ Item {
                 }
 
                 Rectangle {
+                HoverHandler { id: muteHov }
                     anchors.fill: parent; radius: parent.radius
                     color: muteHov.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05) : "transparent"
                     Behavior on color { ColorAnimation { duration: Anim.fast} }
                 }
-                HoverHandler { id: muteHov; cursorShape: Qt.PointingHandCursor }
+
                 MouseArea { anchors.fill: parent; onClicked: col.muteToggled()}
             }
 

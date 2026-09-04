@@ -154,8 +154,8 @@ Item {
                         }
 
                         HoverHandler { id: chevronHover; cursorShape: Qt.PointingHandCursor }
-                        TapHandler {
-                            onTapped: popupGroup.dropdownExpanded = !popupGroup.dropdownExpanded
+                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                            onClicked: popupGroup.dropdownExpanded = !popupGroup.dropdownExpanded
                         }
                     }
                 }
@@ -367,8 +367,8 @@ Item {
                         }
 
                         HoverHandler { id: themeChevHover; cursorShape: Qt.PointingHandCursor }
-                        TapHandler {
-                            onTapped: appearanceGroup.dropdownExpanded = !appearanceGroup.dropdownExpanded
+                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                            onClicked: appearanceGroup.dropdownExpanded = !appearanceGroup.dropdownExpanded
                         }
                     }
                 }

@@ -201,9 +201,8 @@ QtObject {
     property var focusMode: IpcHandler {
         target: "focus-toggle"
         function toggle() {
-            root.focusToggleRequested()
+            ShellState.focusMode = !ShellState.focusMode
         }
     }
 
-    signal focusToggleRequested()
 }

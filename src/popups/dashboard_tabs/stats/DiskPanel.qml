@@ -1,7 +1,8 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import "../../../"
 import "../../"
-import "../../components"
+import "../../../components"
 
 Item {
     id: root

@@ -1,6 +1,7 @@
 import QtQuick
-import Quickshell.Io
 import "../../components"
+import Quickshell.Io
+import "../../services"
 import "../../"
 
 Item {
@@ -11,9 +12,9 @@ Item {
     implicitWidth:  row.implicitWidth + Math.round(6 * localScale)
     implicitHeight: row.implicitHeight
 
-    property int    _signal:       0
-    property bool   _ethernet:     false
-    property string _connectivity: "unknown"
+    property int    _signal:       NetworkService.signal
+    property bool   _ethernet:     NetworkService.ethernet
+    property string _connectivity: NetworkService.connectivity
 
     readonly property bool _limited: {
         var c = _connectivity
@@ -53,55 +54,6 @@ Item {
     }
 
     // Polling
-    Process {
-        id: wifiPoll
-        command: ["bash", "-c", "nmcli -t -f ACTIVE,SIGNAL dev wifi 2>/dev/null | grep '^yes:' | head -1 | cut -d: -f2"]
-        running: false
-        stdout: SplitParser { onRead: function(l) { var s = parseInt(l.trim()); root._signal = isNaN(s) ? 0 : s } }
-    }
-    Process {
-        id: ethPoll
-        command: ["bash", "-c", "nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -c 'ethernet:connected'"]
-        running: false
-        stdout: SplitParser { onRead: function(l) { root._ethernet = parseInt(l.trim()) > 0 } }
-    }
-    Process {
-        id: connPoll
-        command: ["bash", "-c", "nmcli -t -f CONNECTIVITY general 2>/dev/null | head -1"]
-        running: false
-        stdout: SplitParser {
-            onRead: function(l) { var v = l.trim().toLowerCase(); if (v !== "") root._connectivity = v }
-        }
-    }
-    Process {
-        id: btPowerPoll
-        command: ["bash", "-c", "bluetoothctl show 2>/dev/null | grep '^\\s*Powered:' | awk '{print $2}'"]
-        running: false
-        stdout: SplitParser { onRead: function(l) { ShellState.btPowered = (l.trim() === "yes") } }
-    }
-    Process {
-        id: btDevPoll
-        command: ["bash", "-c", "bluetoothctl devices Connected 2>/dev/null | head -1 | cut -d' ' -f3-"]
-        running: false
-        stdout: SplitParser { onRead: function(l) { ShellState.btConnected = (l.trim() !== "") } }
-    }
-    Timer {
-        interval: 5000; running: true; repeat: true
-        onTriggered: {
-            wifiPoll.running    = false; wifiPoll.running    = true
-            ethPoll.running     = false; ethPoll.running     = true
-            connPoll.running    = false; connPoll.running    = true
-            btPowerPoll.running = false; btPowerPoll.running = true
-            btDevPoll.running   = false; btDevPoll.running   = true
-        }
-    }
-    Component.onCompleted: {
-        wifiPoll.running    = true
-        ethPoll.running     = true
-        connPoll.running    = true
-        btPowerPoll.running = true
-        btDevPoll.running   = true
-    }
 
     HoverHandler { id: hov; onHoveredChanged: Popups.networkTriggerHovered = hovered }
 

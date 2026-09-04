@@ -1,6 +1,6 @@
 import QtQuick
-import Quickshell.Services.Pipewire
 import "../../components"
+import Quickshell.Services.Pipewire
 import "../../"
 
 Item {

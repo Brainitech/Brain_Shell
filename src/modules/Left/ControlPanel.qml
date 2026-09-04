@@ -1,5 +1,6 @@
 import QtQuick
 import "../../components"
+import "../../components"
 import "../../"
 
 IconBtn {

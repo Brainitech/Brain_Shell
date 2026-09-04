@@ -7,7 +7,7 @@ singleton ClockState state/ClockState.qml
 singleton ScreenRecService 1.0 services/ScreenRecService.qml
 singleton CavaService 1.0 services/CavaService.qml
 singleton ClipboardService 1.0 services/ClipboardService.qml
-singleton KeybindService 1.0 services/config_tab/KeybindService.qml
+singleton KeybindService 1.0 services/KeybindService.qml
 singleton UpdateService 1.0 services/UpdateService.qml
 singleton PrefsService 1.0 services/PrefsService.qml
-singleton SurfaceState 1.0 services/SurfaceState.qml
+singleton SurfaceState 1.0 state/SurfaceState.qml

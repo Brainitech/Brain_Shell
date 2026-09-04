@@ -10,11 +10,10 @@ Item {
     // Only active when a surface is expanded
     property bool isActive: SurfaceState.activeSurface !== "none" || (ShellState.screenRecord && !ScreenRecService.recording)
     
-    TapHandler {
+    MouseArea {
+        anchors.fill: parent
         enabled: root.isActive
-        onTapped: {
-            // Close all popups when clicking empty space
-            SurfaceState.close()
-        }
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked: SurfaceState.close()
     }
 }

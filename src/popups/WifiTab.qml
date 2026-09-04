@@ -32,9 +32,9 @@ Item {
     }
 
     Connections {
-        target: Popups
-        function onNetworkOpenChanged() {
-            if (Popups.networkOpen) {
+        target: SurfaceState
+        function onActiveContentChanged() {
+            if ((SurfaceState.activeContent === "network")) {
                 root._forgetSsid    = ""
                 root._expandSsid    = ""
                 root._connectingTo  = ""

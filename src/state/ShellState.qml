@@ -19,10 +19,7 @@ import "../."
 QtObject {
     id: root
 
-    property int topBarLWidth: 0
-    property int topBarCWidth: 0
-    property int topBarRWidth: 0
-    
+                
     
     property bool focusMode:    false
     property bool dnd:          false

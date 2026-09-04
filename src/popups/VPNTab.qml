@@ -203,7 +203,7 @@ Item {
     // ── nmcli monitor — debounced refresh ─────────────────────────────────────
     Process {
         id: monitorProc
-        running: Popups.networkOpen
+        running: (SurfaceState.activeContent === "network")
         command: ["nmcli", "monitor"]
         stdout: SplitParser {
             onRead: function(data) { monitorDebounce.restart() }
@@ -218,7 +218,7 @@ Item {
 
     // Also poll every 8s while popup is open to catch external changes
     Timer {
-        interval: 8000; repeat: true; running: Popups.networkOpen
+        interval: 8000; repeat: true; running: (SurfaceState.activeContent === "network")
         onTriggered: root._refresh()
     }
 
@@ -334,9 +334,9 @@ Item {
 
     // Reset on popup open
     Connections {
-        target: Popups
-        function onNetworkOpenChanged() {
-            if (Popups.networkOpen && root.visible)
+        target: SurfaceState
+        function onActiveContentChanged() {
+            if ((SurfaceState.activeContent === "network") && root.visible)
                 root._refresh()
         }
     }

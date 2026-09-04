@@ -63,9 +63,9 @@ Item {
     }
 
     Connections {
-        target: Popups
-        function onNetworkOpenChanged() {
-            if (Popups.networkOpen && root.visible) {
+        target: SurfaceState
+        function onActiveContentChanged() {
+            if ((SurfaceState.activeContent === "network") && root.visible) {
                 root._pairingMac  = ""
                 root._removeMac   = ""
                 root._removingMac = ""

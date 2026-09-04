@@ -91,7 +91,7 @@ Item {
                 
                 y: targetY
                 Behavior on y {
-                    enabled: Anim.style !== "none" && Popups.audioOpen && root.fullyOpen
+                    enabled: Anim.style !== "none" && (SurfaceState.activeContent === "audio") && root.fullyOpen
                     NumberAnimation { 
                         duration: Anim.slow; easing.type: Anim.outExpo
                         onRunningChanged: { if (!running && !pageOutput.isCurrent) pageOutput.wasCurrent = false; }
@@ -160,7 +160,7 @@ Item {
                 
                 y: targetY
                 Behavior on y {
-                    enabled: Anim.style !== "none" && Popups.audioOpen && root.fullyOpen
+                    enabled: Anim.style !== "none" && (SurfaceState.activeContent === "audio") && root.fullyOpen
                     NumberAnimation { 
                         duration: Anim.slow; easing.type: Anim.outExpo
                         onRunningChanged: { if (!running && !pageInput.isCurrent) pageInput.wasCurrent = false; }
@@ -223,7 +223,7 @@ Item {
                 
                 y: targetY
                 Behavior on y {
-                    enabled: Anim.style !== "none" && Popups.audioOpen && root.fullyOpen
+                    enabled: Anim.style !== "none" && (SurfaceState.activeContent === "audio") && root.fullyOpen
                     NumberAnimation { 
                         duration: Anim.slow; easing.type: Anim.outExpo
                         onRunningChanged: { if (!running && !pageMixer.isCurrent) pageMixer.wasCurrent = false; }

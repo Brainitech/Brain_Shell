@@ -317,57 +317,116 @@ _svc_user   wireplumber
 # ══════════════════════════════════════════════════════════════════════════════
 step 5 "Hyprland Config"
 
-# Marker used to detect whether the block was already appended
-_MARKER="quickshell.*Brain_Shell"
+STARTUP_CONF="$HOME/.config/hypr/brain-shell-startup.conf"
+STARTUP_LUA="$HOME/.config/hypr/brain-shell-startup.lua"
 
-_append_conf() {
-    cat << 'EOF' >> "$1"
+_BEGIN_MARK_CONF="# >>> Brain Shell Startup >>>"
+_END_MARK_CONF="# <<< Brain Shell Startup <<<"
+_BEGIN_MARK_LUA="-- >>> Brain Shell Startup >>>"
+_END_MARK_LUA="-- <<< Brain Shell Startup <<<"
 
-# Brain Shell Autostarts
-exec-once = awww-daemon
-exec-once = hypridle -c $HOME/.local/src/Brain_Shell/src/config/hypridle.conf
-exec-once = quickshell -c $HOME/.local/src/Brain_Shell/.
-exec-once = systemctl --user start hyprpolkitagent
-exec-once = wl-paste --type text --watch cliphist store
-exec-once = wl-paste --type image --watch cliphist store
-EOF
+detect_keyboard_layout() {
+    local layout="" variant=""
+
+    if command -v localectl &>/dev/null; then
+        local status; status="$(localectl status 2>/dev/null)"
+        layout="$(awk -F': ' '/X11 Layout/{print $2; exit}'  <<< "$status" | tr -d '[:space:]')"
+        variant="$(awk -F': ' '/X11 Variant/{print $2; exit}' <<< "$status" | tr -d '[:space:]')"
+    fi
+
+    if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]] && command -v hyprctl &>/dev/null && command -v python3 &>/dev/null; then
+        local hypr_layout
+        hypr_layout="$(hyprctl -j devices 2>/dev/null | python3 -c '
+import json, sys
+try:
+    data = json.load(sys.stdin)
+    kbs = data.get("keyboards", [])
+    kb = next((k for k in kbs if k.get("main")), kbs[0] if kbs else {})
+    print(kb.get("layout", "").split(",")[0].strip())
+except Exception:
+    pass
+' 2>/dev/null)"
+        [[ -n "$hypr_layout" ]] && layout="$hypr_layout"
+    fi
+
+    layout="${layout%%,*}"
+    [[ -z "$layout" ]] && layout="us"
+
+    printf '%s\t%s\n' "$layout" "$variant"
 }
 
-_append_lua() {
-    cat << 'EOF' >> "$1"
+KB_LAYOUT=""; KB_VARIANT=""
+IFS=$'\t' read -r KB_LAYOUT KB_VARIANT <<< "$(detect_keyboard_layout)"
+log_ok "Keyboard layout detected: ${KB_LAYOUT}${KB_VARIANT:+ (${KB_VARIANT})}"
 
--- Brain Shell Autostarts
-hl.on("hyprland.start", function()
-    hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("hypridle -c " .. os.getenv("HOME") .. "/.local/src/Brain_Shell/src/config/hypridle.conf")
-    hl.exec_cmd("quickshell -c " .. os.getenv("HOME") .. "/.local/src/Brain_Shell")
-    hl.exec_cmd("systemctl --user start hyprpolkitagent")
-    hl.exec_cmd("wl-paste --type text --watch cliphist store")
-    hl.exec_cmd("wl-paste --type image --watch cliphist store")
-end)
-EOF
+mkdir -p "$HOME/.config/hypr"
+
+_render_template() {
+    local tpl="$1" out="$2"
+    sed -e "s|__KB_LAYOUT__|${KB_LAYOUT}|g" -e "s|__KB_VARIANT__|${KB_VARIANT}|g" "$tpl" > "$out"
 }
 
-if grep -q "$_MARKER" "$HYPRLAND_CONF" 2>/dev/null; then
-    log_warn "Autostart block already present — skipping."
-else
-    case "$CONFIG_TYPE" in
+_render_template "$REPO_DIR/dots-extra/templates/startup.conf.tpl" "$STARTUP_CONF"
+_render_template "$REPO_DIR/dots-extra/templates/startup.lua.tpl"  "$STARTUP_LUA"
+log_ok "Generated $STARTUP_CONF"
+log_ok "Generated $STARTUP_LUA"
+
+remove_legacy_inline_block() {
+    local file="$1" type="$2"
+    case "$type" in
         conf)
-            _append_conf "$HYPRLAND_CONF"
-            log_ok "Autostart block appended to hyprland.conf"
+            if grep -q "^# Brain Shell Autostarts$" "$file" 2>/dev/null; then
+                sed -i '/^# Brain Shell Autostarts$/,/^exec-once = wl-paste --type image --watch cliphist store$/d' "$file"
+                log_ok "Removed legacy inline autostart block from $(basename "$file")"
+            fi
             ;;
         lua)
-            # Extra safety backup before touching a Lua config
-            cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.pre-brain-shell"
-            log_info "Safety backup: ${HYPRLAND_CONF}.pre-brain-shell"
-            _append_lua "$HYPRLAND_CONF"
-            log_ok "Autostart block appended to hyprland.lua"
-            ;;
-        *)
-            log_warn "Unknown config type '$CONFIG_TYPE' — skipping Hyprland config update."
+            if grep -q "^-- Brain Shell Autostarts$" "$file" 2>/dev/null; then
+                sed -i '/^-- Brain Shell Autostarts$/,/^end)$/d' "$file"
+                log_ok "Removed legacy inline autostart block from $(basename "$file")"
+            fi
             ;;
     esac
-fi
+}
+
+remove_existing_marked_block() {
+    local file="$1" begin="$2" end="$3"
+    if grep -qF -- "$begin" "$file" 2>/dev/null; then
+        sed -i "\\|${begin}|,\\|${end}|d" "$file"
+        log_ok "Removed previous Brain Shell startup line from $(basename "$file") (reinstall)"
+    fi
+}
+
+cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.pre-brain-shell"
+log_info "Safety backup: ${HYPRLAND_CONF}.pre-brain-shell"
+
+case "$CONFIG_TYPE" in
+    conf)
+        remove_legacy_inline_block   "$HYPRLAND_CONF" conf
+        remove_existing_marked_block "$HYPRLAND_CONF" "$_BEGIN_MARK_CONF" "$_END_MARK_CONF"
+        {
+            echo ""
+            echo "$_BEGIN_MARK_CONF"
+            echo 'source = $HOME/.config/hypr/brain-shell-startup.conf'
+            echo "$_END_MARK_CONF"
+        } >> "$HYPRLAND_CONF"
+        log_ok "Brain Shell startup sourced from hyprland.conf (1 line)"
+        ;;
+    lua)
+        remove_legacy_inline_block   "$HYPRLAND_CONF" lua
+        remove_existing_marked_block "$HYPRLAND_CONF" "$_BEGIN_MARK_LUA" "$_END_MARK_LUA"
+        {
+            echo ""
+            echo "$_BEGIN_MARK_LUA"
+            echo 'dofile(os.getenv("HOME") .. "/.config/hypr/brain-shell-startup.lua")'
+            echo "$_END_MARK_LUA"
+        } >> "$HYPRLAND_CONF"
+        log_ok "Brain Shell startup loaded from hyprland.lua (1 line)"
+        ;;
+    *)
+        log_warn "Unknown config type '$CONFIG_TYPE' — skipping Hyprland config update."
+        ;;
+esac
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -473,7 +532,7 @@ for action, info in conflicts.items():
     print(f"    {'':24}  already used by: {info['used_by']}\n")
     unbound[action] = {"mods": "", "key": ""}
 
-config_path = os.path.expanduser("~/.config/Brain_Shell/src/user_data/keybinds.json")
+config_path = os.path.expanduser("$HOME/.config/Brain_Shell/src/user_data/keybinds.json")
 with open(config_path, "w") as f:
     json.dump(unbound, f, indent=2)
 

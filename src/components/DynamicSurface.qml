@@ -183,7 +183,15 @@ PanelWindow {
         }
     }
 
-    BackgroundEffect.blurRegion: PrefsService.bgBlur ? frameRegion : null
+    Region {
+        id: fullRegion
+        x: 0; y: 0
+        width: root.width
+        height: root.height
+    }
+
+    // Pass the entire window bounding box to the compositor.
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? fullRegion : null
 
     // Mask logic: Combine frame borders + active notches + click shield. 
     mask: Region { 

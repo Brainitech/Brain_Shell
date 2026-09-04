@@ -1,55 +1,24 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
 import Quickshell.Services.Pipewire
-import "../shapes"
 import "../components"
 import "../services"
 import "../"
 
-PanelWindow {
+Item {
     id: root
 
-    required property var anchorWindow
-    screen: anchorWindow ? anchorWindow.screen : undefined
+    property real localScale: 1.0
 
-    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
-
-    readonly property int fw: Math.round(Theme.cornerRadius * root.localScale)
-    readonly property int fh: Math.round(Theme.cornerRadius * root.localScale)
     readonly property int popupHeight: Math.round(340 * root.localScale)
     readonly property int popupWidth:  Math.round(180 * root.localScale)
 
-    anchors.right: true
-    anchors.top:   true
-    anchors.bottom: true
-    margins.top:   screen ? Math.round((screen.height - popupHeight) / 2) : 0
-    margins.bottom: screen ? Math.round((screen.height - popupHeight) / 2) : 0
-    margins.right: Math.round(Theme.borderWidth * root.localScale)
+    onOpacityChanged: if (opacity === 1) forceActiveFocus()
+    Keys.onEscapePressed: SurfaceState.close()
 
-    implicitWidth:  popupWidth
-    implicitHeight: popupHeight
-
-    exclusionMode: ExclusionMode.Ignore
-    color:   "transparent"
-    WlrLayershell.layer: WlrLayer.Overlay
-    visible: slide.windowVisible
-    mask:    Region { item: maskProxy }
-
-    Region {
-        id: qcBlurReg
-        item: slide
-    }
-
-    BackgroundEffect.blurRegion: PrefsService.bgBlur ? qcBlurReg : null
-
-    Item {
-        id:      maskProxy
-        x:       slide.x + slide.innerX
-        y:       slide.y + slide.innerY
-        width:   slide.innerWidth
-        height:  slide.innerHeight
+    MouseArea {
+        anchors.fill: parent
+        onClicked: Popups.quickPinned = true
     }
 
     readonly property var sink: Pipewire.defaultAudioSink
@@ -57,89 +26,22 @@ PanelWindow {
         objects: root.sink ? [root.sink] : []
     }
 
-    property real _bVal:  0.72
-    property int  _bMax:  100
-    property bool _bBusy: false
+    property real _bVal: BrightnessService.brightness / 100
 
-    Process {
-        id: brightRead
-        command: ["bash", "-c", "brightnessctl -m"]
-        running: false
-        stdout: SplitParser {
-            onRead: function(line) {
-                var parts = line.split(",")
-                if (parts.length >= 5) {
-                    var cur = parseInt(parts[2])
-                    var max = parseInt(parts[4])
-                    if (max > 0) {
-                        root._bMax = max
-                        root._bVal = cur / max
-                    }
-                }
-            }
-        }
-    }
 
-    Process {
-        id: brightWrite
-        command: ["bash", "-c", "brightnessctl set " + (Math.round(root._bVal * root._bMax) <= 0 ? 2 : Math.round(root._bVal * root._bMax))]
-        running: false
-        onRunningChanged: if (!running) root._bBusy = false
-    }
 
-    Timer {
-        id: bDebounce
-        interval: 50; repeat: false
-        onTriggered: { root._bBusy = true; brightWrite.running = true }
-    }
 
-    Timer {
-        interval: 1000; running: true; repeat: true
-        onTriggered: if (!root._bBusy) brightRead.running = true
-    }
 
-    Component.onCompleted: brightRead.running = true
 
-    function setBrightness(v) {
-        root._bVal = Math.max(0.0, Math.min(1.0, v))
-        bDebounce.restart()
-    }
-
-    PopupSlide {
+    Item {
         id: slide
         anchors.fill: parent
+        clip: true
         
-        edge:             "right"
-        open:             Popups.quickOpen
-        hoverEnabled:     !Popups.audioAllowHover && Popups.quickAllowHover
-        triggerHovered:   Popups.quickTriggerHovered
-        pinned:           Popups.quickPinned
-        onCloseRequested: Popups.quickOpen = false
-        onPinRequested: {
-            Popups.quickOpen = true
-            Popups.quickPinned = true
-        }
-
-        PopupShape {
-            id: bg
-            anchors.fill: parent
-            attachedEdge: "right"
-            color:        Theme.background
-            radius:       Theme.cornerRadius
-            flareWidth:   root.fw
-            flareHeight:  root.fh
-        }
 
         Row {
-            width: root.popupWidth - Math.round(16 * root.localScale) - root.fw
-            height: root.popupHeight - root.fh * 2 - 60
-            
-            anchors {
-                right:        parent.right
-                verticalCenter: parent.verticalCenter
-                rightMargin:  root.fw - Math.round(4 * root.localScale)
-            }
-            spacing: 8
+            anchors.centerIn: parent
+            spacing: Math.round(8 * root.localScale)
             
             ChannelColumn {
                 icon: {
@@ -167,7 +69,7 @@ PanelWindow {
                 muted:  false
                 active: true
                 onVolumeChanged: function(v) {
-                    root.setBrightness(v)
+                    BrightnessService.setBrightness(Math.round(v * 100))
                 }
             }
         }
@@ -283,11 +185,12 @@ PanelWindow {
                 }
 
                 Rectangle {
+                HoverHandler { id: muteHov }
                     anchors.fill: parent; radius: parent.radius
                     color: muteHov.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05) : "transparent"
                     Behavior on color { ColorAnimation { duration: Anim.fast} }
                 }
-                HoverHandler { id: muteHov; cursorShape: Qt.PointingHandCursor }
+
                 MouseArea { anchors.fill: parent; onClicked: col.muteToggled()}
             }
 

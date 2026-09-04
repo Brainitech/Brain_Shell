@@ -76,9 +76,9 @@ QtObject {
         root.active     = PrefsService.overrideActive
         root.text       = PrefsService.overrideText
         root.border     = PrefsService.overrideBorder
-        root.subtext    = Qt.rgba(root.text.r, root.text.g, root.text.b, 0.65)
-        root.icon       = root.active
-        root.iconFont   = root.text
+        root.subtext    = PrefsService.overrideSubtext
+        root.icon       = PrefsService.overrideIcon
+        root.iconFont   = PrefsService.overrideIconFont
     }
     
     onOverrideModeChanged: {

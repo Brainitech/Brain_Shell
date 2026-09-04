@@ -3,7 +3,6 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell.Services.SystemTray
 import "../../components"
-import "../../windows"
 import "../../"
 
 RowLayout {

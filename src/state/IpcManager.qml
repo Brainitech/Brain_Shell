@@ -20,16 +20,19 @@ QtObject {
         Popups._ignoreDefaultTab = true
         if(Popups.anyOpen && !Popups.dashboardOpen){
             Popups.closeAll()
-            Popups.dashboardOpen = true
+            SurfaceState.open("top", "dashboard")
             Popups.dashboardPage = page
             Popups.dashboardPinned = true
         } else if(Popups.dashboardOpen && Popups.dashboardPage != page) {
             Popups.dashboardPage = page
         } else {
-            var next = !Popups.dashboardOpen
-            Popups.closeAll()
-            Popups.dashboardOpen = next
-            if (next) { Popups.dashboardPage = page; Popups.dashboardPinned = true; }
+            if (Popups.dashboardOpen) SurfaceState.close()
+            else { 
+                Popups.closeAll()
+                Popups.dashboardPage = page
+                SurfaceState.open("top", "dashboard")
+                Popups.dashboardPinned = true
+            }
         }
         Popups._ignoreDefaultTab = false
     }
@@ -63,18 +66,14 @@ QtObject {
 
     function _openAudio(page) {
         Popups._ignoreDefaultTab = true
-        if(Popups.anyOpen && !Popups.audioOpen) {
-            Popups.closeAll()
-            Popups.audioOpen = true
+        if (Popups.audioOpen && Popups.audioPage !== page) {
             Popups.audioPage = page
+        } else if (!Popups.audioOpen) {
+            Popups.audioPage = page
+            SurfaceState.open("rightCenter", "audio")
             Popups.audioPinned = true
-        } else if (Popups.audioOpen && Popups.audioPage != page) {
-            Popups.audioPage = page
         } else {
-            var next = !Popups.audioOpen
-            Popups.closeAll()
-            Popups.audioOpen = next
-            if (next) { Popups.audioPage = page; Popups.audioPinned = true; }
+            SurfaceState.close()
         }
         Popups._ignoreDefaultTab = false
     }
@@ -96,80 +95,43 @@ QtObject {
 
     // ── Network Toggles ──────────────────────────────────────
 
-    property var wifiToggle: IpcHandler {
-        target: "wifi-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.networkOpen) {
+    function _openNetwork(page) {
+        if(Popups.anyOpen && !Popups.networkOpen) {
+            Popups.closeAll()
+            Popups.networkPage = page
+            SurfaceState.open("right", "network")
+            Popups.networkPinned = true
+        } else if (Popups.networkOpen && Popups.networkPage != page) {
+            Popups.networkPage = page
+        } else {
+            if (Popups.networkOpen) SurfaceState.close()
+            else { 
                 Popups.closeAll()
-                Popups.networkPage = "wifi"
-                Popups.networkOpen = true
+                Popups.networkPage = page
+                SurfaceState.open("right", "network")
                 Popups.networkPinned = true
-            } else if (Popups.networkOpen && Popups.networkPage != "wifi") {
-                Popups.networkPage = "wifi"
-            } else {
-                var next = !Popups.networkOpen
-                Popups.closeAll()
-                Popups.networkOpen = next
-                if (next) { Popups.networkPage = "wifi"; Popups.networkPinned = true; }
             }
         }
+    }
+
+    property var wifiToggle: IpcHandler {
+        target: "wifi-toggle"
+        function toggle() { _openNetwork("wifi") }
     }
 
     property var btToggle: IpcHandler {
         target: "bluetooth-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.networkOpen) {
-                Popups.closeAll()
-                Popups.networkPage = "bluetooth"
-                Popups.networkOpen = true
-                Popups.networkPinned = true
-            } else if (Popups.networkOpen && Popups.networkPage != "bluetooth") {
-                Popups.networkPage = "bluetooth"
-            } else {
-                var next = !Popups.networkOpen
-                Popups.closeAll()
-                Popups.networkOpen = next
-                if (next) { Popups.networkPage = "bluetooth"; Popups.networkPinned = true; }
-            }
-        }
+        function toggle() { _openNetwork("bluetooth") }
     }
 
     property var vpnToggle: IpcHandler {
         target: "vpn-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.networkOpen) {
-                Popups.closeAll()
-                Popups.networkPage = "vpn"
-                Popups.networkOpen = true
-                Popups.networkPinned = true
-            } else if (Popups.networkOpen && Popups.networkPage != "vpn") {
-                Popups.networkPage = "vpn"
-            } else {
-                var next = !Popups.networkOpen
-                Popups.closeAll()
-                Popups.networkOpen = next
-                if (next) { Popups.networkPage = "vpn"; Popups.networkPinned = true; }
-            }
-        }
+        function toggle() { _openNetwork("vpn") }
     }
 
     property var hotspotToggle: IpcHandler {
         target: "hotspot-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.networkOpen) {
-                Popups.closeAll()
-                Popups.networkPage = "hotspot"
-                Popups.networkOpen = true
-                Popups.networkPinned = true
-            } else if (Popups.networkOpen && Popups.networkPage != "hotspot") {
-                Popups.networkPage = "hotspot"
-            } else {
-                var next = !Popups.networkOpen
-                Popups.closeAll()
-                Popups.networkOpen = next
-                if (next) { Popups.networkPage = "hotspot"; Popups.networkPinned = true; }
-            }
-        }
+        function toggle() { _openNetwork("hotspot") }
     }
 
     // ── Misc Toggles ─────────────────────────────────────────
@@ -177,40 +139,48 @@ QtObject {
     property var notification: IpcHandler {
         target: "notification-toggle"
         function toggle() {
-            var next = !Popups.notificationsOpen
-            Popups.closeAll()
-            Popups.notificationsOpen = next
-            if (next) Popups.notificationsPinned = true
+            if (Popups.notificationsOpen) SurfaceState.close();
+            else {
+                Popups.closeAll();
+                SurfaceState.open("right", "notifications");
+                Popups.notificationsPinned = true;
+            }
         }
     }
 
     property var clipboard: IpcHandler {
         target: "clipboard-toggle"
         function toggle() {
-            var next = !Popups.clipboardOpen
-            Popups.closeAll()
-            Popups.clipboardOpen = next
-            if (next) Popups.clipboardPinned = true
+            if (Popups.clipboardOpen) SurfaceState.close();
+            else {
+                Popups.closeAll();
+                SurfaceState.open("bottomRight", "clipboard");
+                Popups.clipboardPinned = true;
+            }
         }
     }
 
     property var wallpaper: IpcHandler {
         target: "wallpaper-toggle"
         function toggle() {
-            var next = !Popups.wallpaperOpen
-            Popups.closeAll()
-            Popups.wallpaperOpen = next
-            if (next) Popups.wallpaperPinned = true
+            if (Popups.wallpaperOpen) SurfaceState.close();
+            else {
+                Popups.closeAll();
+                SurfaceState.open("bottomCenter", "wallpaper");
+                Popups.wallpaperPinned = true;
+            }
         }
     }
 
     property var archMenu: IpcHandler {
         target: "PowerMenu-toggle"
         function toggle() {
-            var next = !Popups.archMenuOpen
-            Popups.closeAll()
-            Popups.archMenuOpen = next
-            if (next) Popups.archMenuPinned = true
+            if (Popups.archMenuOpen) SurfaceState.close();
+            else {
+                Popups.closeAll();
+                SurfaceState.open("leftCenter", "archMenu");
+                Popups.archMenuPinned = true;
+            }
         }
     }
 
@@ -231,9 +201,8 @@ QtObject {
     property var focusMode: IpcHandler {
         target: "focus-toggle"
         function toggle() {
-            root.focusToggleRequested()
+            ShellState.focusMode = !ShellState.focusMode
         }
     }
 
-    signal focusToggleRequested()
 }

@@ -18,38 +18,9 @@ StatCard {
     // ─────────────────────────────────────────────────────────────────────────
     //  Brightness
     // ─────────────────────────────────────────────────────────────────────────
-    property real _brightVal:  0.72
-    property int  _brightMax:  100
-    property bool _brightBusy: false
+    property real _brightVal: BrightnessService.brightness / 100
 
-    Process {
-        id: brightRead; command: ["bash", "-c", "brightnessctl -m"]; running: false
-        stdout: SplitParser {
-            onRead: function(line) {
-                var p = line.split(",")
-                if (p.length >= 5) {
-                    var cur = parseInt(p[2]); var max = parseInt(p[4])
-                    if (max > 0) { root._brightMax = max; root._brightVal = cur / max }
-                }
-            }
-        }
-    }
-    Process {
-        id: brightWrite
-        command: ["bash", "-c", "brightnessctl set " +
-            (Math.round(root._brightVal * root._brightMax) <= 0
-             ? 2 : Math.round(root._brightVal * root._brightMax))]
-        running: false
-        onRunningChanged: if (!running) root._brightBusy = false
-    }
-    Timer { id: brightDebounce; interval: 50; repeat: false
-        onTriggered: { root._brightBusy = true; brightWrite.running = true } }
-    Timer { interval: 1000; running: true; repeat: true
-        onTriggered: if (!root._brightBusy) brightRead.running = true }
-    function _setBright(v) {
-        root._brightVal = Math.max(0.0, Math.min(1.0, v))
-        brightDebounce.restart()
-    }
+
 
     // ─────────────────────────────────────────────────────────────────────────
     //  Wi-Fi
@@ -464,12 +435,6 @@ StatCard {
         } else { readGapsIn.running = false; readGapsIn.running = true }
     }
     
-    Connections {
-        target: IpcManager
-        function onFocusToggleRequested() {
-            root._focusToggle()
-        }
-    }
 
 // ─────────────────────────────────────────────────────────────────────────
     //  Filter  (Native Hyprland Lua)
@@ -638,7 +603,7 @@ StatCard {
     }
 
     Component.onCompleted: {
-        brightRead.running      = true
+        
         _wifiPoll(); _btPoll()
         nlCheck.running         = true
         caffeineCheck.running   = true
@@ -709,15 +674,15 @@ StatCard {
                                 return Math.max(0.0, Math.min(1.0,
                                     (mx - btw.thumbD/2) / (btrack.width - btw.thumbD)))
                             }
-                            onPressed:         root._setBright(_c(mouseX))
-                            onPositionChanged: if (pressed) root._setBright(_c(mouseX))
+                            onPressed:         BrightnessService.setBrightness(Math.round(_c(mouseX) * 100))
+                            onPositionChanged: if (pressed) BrightnessService.setBrightness(Math.round(_c(mouseX) * 100))
                         }
                         }
 
                      WheelHandler {
                         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
                         onWheel: function(e) {
-                            root._setBright(root._brightVal + (e.angleDelta.y > 0 ? 0.05 : -0.05))
+                            BrightnessService.setBrightness(Math.round((root._brightVal + (e.angleDelta.y > 0 ? 0.05 : -0.05)) * 100))
                         }
                     }
                     Rectangle {

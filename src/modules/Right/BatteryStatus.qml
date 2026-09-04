@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell.Services.UPower
-import "../"
+import "../../windows"
+import "../../"
 
 // Config:
 //showPercentage: bool — always show % beside icon (default: false = hover only)
@@ -153,7 +154,6 @@ Item {
     // ── Warning window ────────────────────────────────────────────────────────
     BatteryWarning {
         id:      warningWindow
-        // localScale: root.localScale
         visible: false
     }
 }

@@ -86,8 +86,6 @@ Item {
 
         // Quickshell emits (name, data) for raw events
         function onRawEvent(event) {
-			// console.log("RawEvent_name: "+ event.name)
-			// console.log("RawEvent_data: "+ event.data)
             refresh()  // Refresh on every event; the proc will ignore if still running
         }
     }

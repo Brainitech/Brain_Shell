@@ -102,7 +102,7 @@ jobs:
           bash -n src/scripts/PowerControl.sh
           echo "✓ src/scripts/ passed ShellCheck"
 
-      - name: Validate QML files exist and are non-empty
+      - name: Validate QML syntax and existence
         run: |
           FAILED=()
           while IFS= read -r -d '' f; do
@@ -110,11 +110,21 @@ jobs:
               echo "✗ Empty file: $f"
               FAILED+=("$f")
             else
-              echo "✓ $f"
+              # Run qmllint and capture output. 
+              # We grep for actual syntax/token errors to avoid failing on missing Quickshell C++ modules in the CI container
+              OUT=$(qmllint "$f" 2>&1 || true)
+              if echo "$OUT" | grep -q -iE "expected token|syntax error"; then
+                echo "✗ Syntax error in $f:"
+                echo "$OUT"
+                FAILED+=("$f")
+              else
+                echo "✓ $f"
+              fi
             fi
           done < <(find src -name "*.qml" -print0)
+          
           if [ ${#FAILED[@]} -gt 0 ]; then
-            echo "Empty QML files found!"
+            echo "QML Validation Failed!"
             exit 1
           fi
 
@@ -216,7 +226,9 @@ jobs:
             "src/theme/ColorLoader.qml"
             "src/state/ShellState.qml"
             "src/state/Popups.qml"
-            "src/windows/TopBar.qml"
+            "src/windows/DynamicSurface.qml"
+            "src/state/SurfaceState.qml"
+            "src/components/SurfaceShape.qml"
             "src/popups/Dashboard.qml"
           )
           FAILED=()

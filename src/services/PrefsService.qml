@@ -153,10 +153,10 @@ QtObject {
     function updateHyprlandBlur() {
         var isLua = ShellState.configProvider === "lua"
         var cmd = root.bgBlur
-            ? (isLua ? "hyprctl eval \"hl.layer_rule({ match = { namespace = 'quickshell' }, blur = true, ignore_alpha = 0.1 })\" && hyprctl keyword layerrule 'unset, quickshell' && hyprctl keyword layerrule 'blur, quickshell' && hyprctl keyword layerrule 'ignorealpha 0.1, quickshell'"
-                     : "hyprctl keyword layerrule 'unset, quickshell' && hyprctl keyword layerrule 'blur, quickshell' && hyprctl keyword layerrule 'ignorealpha 0.1, quickshell'")
-            : (isLua ? "hyprctl eval \"hl.layer_rule({ match = { namespace = 'quickshell' }, blur = false })\" && hyprctl keyword layerrule 'unset, quickshell'"
-                     : "hyprctl keyword layerrule 'unset, quickshell'")
+            ? (isLua ? "hyprctl eval \"hl.layer_rule({ match = { namespace = 'brain-shell-frame' }, blur = true, ignore_alpha = 0.1 })\""
+                     : "hyprctl keyword layerrule 'unset, brain-shell-frame' && hyprctl keyword layerrule 'blur, brain-shell-frame' && hyprctl keyword layerrule 'ignorealpha 0.1, brain-shell-frame'")
+            : (isLua ? "hyprctl eval \"hl.layer_rule({ match = { namespace = 'brain-shell-frame' }, blur = false })\""
+                     : "hyprctl keyword layerrule 'unset, brain-shell-frame'")
         _blurProc.command = ["bash", "-c", "if [ -n \"$HYPRLAND_INSTANCE_SIGNATURE\" ]; then " + cmd + "; fi"]
         _blurProc.running = false
         _blurProc.running = true

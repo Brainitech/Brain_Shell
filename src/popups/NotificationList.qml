@@ -1,7 +1,8 @@
 import QtQuick
 import Quickshell.Services.Notifications
+import "../services"
 import "../"
-import "../../"
+import "../"
 
 // ─────────────────────────────────────────────────────────────
 // NotificationList — content panel for NotificationsPopup

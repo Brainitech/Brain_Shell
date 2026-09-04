@@ -6,10 +6,6 @@ import "../../"
 // ─────────────────────────────────────────────────────────────
 // NotificationService — global singleton
 // ─────────────────────────────────────────────────────────────
-pragma Singleton
-import QtQuick
-import Quickshell.Services.Notifications
-import "../../"
 
 NotificationServer {
     id: root

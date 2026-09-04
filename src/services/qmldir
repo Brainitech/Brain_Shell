@@ -1,9 +1,5 @@
-PowerMenu    PowerMenu.qml
 SystemStats  ./system/SystemStats.qml
-BatteryStatus  BatteryStatus.qml
-BatteryWarning BatteryWarning.qml
 EnvyControl ./system/EnvyControl.qml
-AudioControl AudioControl.qml
 MemService ./system/MemService.qml
 NetService ./system/NetService.qml
 GpuService ./system/GpuService.qml
@@ -15,14 +11,13 @@ ThermalService ./system/ThermalService.qml
 FanControl ./system/FanControl.qml
 DashHome home/DashHome.qml
 singleton NotificationService 1.0 ./notifications/NotificationService.qml
-NotificationList ./notifications/NotificationList.qml
 singleton WallpaperService 1.0 WallpaperService.qml
 singleton ScreenRecService 1.0 ScreenRecService.qml
-KanbanBoard KanbanBoard.qml
-AppLauncher AppLauncher.qml
 ShellConfig ./config_tab/ShellConfig.qml
 KeybindsPage ./config_tab/KeybindsPage.qml
 GeneralPage ./config_tab/GeneralPage.qml
 VisualsBehaviorPage ./config_tab/VisualsBehaviorPage.qml
 DataPage ./config_tab/DataPage.qml
 MiscPage ./config_tab/MiscPage.qml
+singleton BrightnessService 1.0 BrightnessService.qml
+singleton NetworkService 1.0 NetworkService.qml

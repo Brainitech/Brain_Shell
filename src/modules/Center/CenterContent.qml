@@ -4,7 +4,6 @@ import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import Quickshell.Io
 import "../../"
-import "../../services/home/."
 
 // CenterContent — scrollable dynamic island carousel.
 //
@@ -33,7 +32,6 @@ Item {
 	// TopBar.cWidth reads this so the notch always matches what is visible,
 	// even if the user scrolls away from record_active while recording.
 	readonly property int fw: Math.round(Theme.notchRadius * localScale)
-	readonly property int requiredWidth: Math.round(Theme.cNotchMinWidth * localScale)
 	// ── MPRIS ─────────────────────────────────────────────────────────────────
 	readonly property var    player:    Mpris.players.values.length > 0
 	? Mpris.players.values[0] : null
@@ -219,6 +217,23 @@ Item {
 		opacity: Popups.dashboardOpen ? 0 : 1
 		visible: opacity > 0
 		Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
+
+		// ── Click to toggle dashboard (Bottom of Z-order to not block buttons) ─────
+		MouseArea {
+			anchors.top: parent.top
+			anchors.horizontalCenter: parent.horizontalCenter
+			anchors.topMargin: Math.round(-1 * localScale)
+			width: parent.width
+			height: Math.round((Theme.notchHeight + 3) * localScale)
+			
+			onClicked: {
+				if (ShellState.screenRecord && !ScreenRecService.recording) return
+				var next = !Popups.dashboardOpen
+				Popups.closeAll()
+				SurfaceState.toggle("top", "dashboard")
+				if (next) Popups.dashboardPinned = true
+			}
+		}
 
 		WheelHandler {
 			acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
@@ -446,7 +461,7 @@ Item {
 									font.pixelSize: Math.round(16 * localScale)
 									color:          _timerPauseHov.hovered ? Theme.active : Theme.text
 									HoverHandler { id: _timerPauseHov;  }
-									MouseArea {
+									MouseArea { 
 										anchors.fill: parent
 										cursorShape: Qt.PointingHandCursor
 										onClicked: ClockState.timerRunning = !ClockState.timerRunning
@@ -460,7 +475,7 @@ Item {
 									font.pixelSize: Math.round(16 * localScale)
 									color:			_timerResetHov.hovered ? Theme.active : Theme.text
 									HoverHandler { id: _timerResetHov; cursorShape: Qt.PointingHandCursor }
-									MouseArea {
+									MouseArea { 
 										anchors.fill: parent
 										cursorShape: Qt.PointingHandCursor
 										onClicked: {
@@ -520,7 +535,7 @@ Item {
 									font.pixelSize: Math.round(16 * localScale)
 									color:          _pauseHov.hovered ? Theme.active : Theme.text
 									HoverHandler { id: _pauseHov;  }
-									MouseArea {
+									MouseArea { 
 										anchors.fill: parent
 										cursorShape: Qt.PointingHandCursor
 										onClicked: {
@@ -537,7 +552,7 @@ Item {
 									color:			_notchResetHov.hovered ? Theme.active : Theme.text
 										
 									HoverHandler { id: _notchResetHov; cursorShape: Qt.PointingHandCursor }
-									MouseArea {
+									MouseArea { 
 											anchors.fill: parent
 											cursorShape: Qt.PointingHandCursor
 											onClicked: {
@@ -859,20 +874,7 @@ Item {
 				}
 			}
 
-			// ── Click to toggle dashboard ─────────────────────────────────────────────
-			// TapHandler has lower implicit grab priority than child MouseAreas.
-			// Clicks on Stop / Discard buttons are handled by their own MouseAreas
-			// first and never reach here. Tapping empty notch space opens dashboard.
-			TapHandler {
-				onTapped: {
-					// Do nothing during screen rec setup — ESC / cancel button handles it
-					if (ShellState.screenRecord && !ScreenRecService.recording) return
-					var next = !Popups.dashboardOpen
-					Popups.closeAll()
-					Popups.dashboardOpen = next
-					if (next) Popups.dashboardPinned = true
-				}
-			}
+
 
 			HoverHandler {
 				onHoveredChanged: Popups.dashboardTriggerHovered = hovered

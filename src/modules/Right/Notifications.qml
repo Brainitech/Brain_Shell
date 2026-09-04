@@ -1,7 +1,6 @@
 import QtQuick
-import Quickshell.Services.SystemTray
 import "../../components"
-import "../../windows"
+import "../../components"
 import "../../"
 import "../../services/"
 
@@ -14,7 +13,7 @@ IconBtn {
     onClicked: {
         var next = !Popups.notificationsOpen
         Popups.closeAll()
-        Popups.notificationsOpen = next
+        SurfaceState.toggle("right", "notifications")
         if (next) Popups.notificationsPinned = true
     }
 

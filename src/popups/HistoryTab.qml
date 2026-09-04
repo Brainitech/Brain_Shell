@@ -5,6 +5,7 @@ import "../"
 
 Item {
     id: root
+    function grabFocus() { mainList.forceActiveFocus() }
     property real localScale: 1.0
 
     readonly property var pinned:  ClipboardService.pinned  ?? []
@@ -178,7 +179,7 @@ Item {
 
                 Keys.onPressed: (event) => {
                     if (event.key === Qt.Key_Escape) {
-                        Popups.clipboardOpen = false
+                        SurfaceState.close()
                         event.accepted = true
                         return
                     }
@@ -189,7 +190,7 @@ Item {
                             ClipboardService.copyText(item.text || item.preview)
                         else
                             ClipboardService.copyEntry(item.id)
-                        Popups.clipboardOpen = false
+                        SurfaceState.close()
                         event.accepted = true
                     } else if (event.key === Qt.Key_Delete || event.key === Qt.Key_Backspace) {
                         if (mainList.currentItem) mainList.currentItem.deleteRow()
@@ -240,6 +241,24 @@ Item {
 // ── ClipRow ────────────────────────────────────────────────────────────────────
 component ClipRow: Item {
     id: row
+
+    // ── Click/Double-click: copy + close popup ───────────────
+    MouseArea {
+        anchors.fill: parent
+        propagateComposedEvents: true
+        onClicked: (mouse) => {
+            if (row.isPinned) ClipboardService.copyText(row.fullText || row.previewText)
+            else             ClipboardService.copyEntry(row.entryId)
+            SurfaceState.close()
+            mouse.accepted = true
+        }
+        onDoubleClicked: (mouse) => {
+            if (row.isPinned) ClipboardService.copyText(row.fullText || row.previewText)
+            else             ClipboardService.copyEntry(row.entryId)
+            SurfaceState.close()
+            mouse.accepted = true
+        }
+    }
 
 
     property bool   isPinned:    false
@@ -416,7 +435,7 @@ component ClipRow: Item {
                     onClicked: {
                         if (row.isPinned) ClipboardService.copyText(row.fullText || row.previewText)
                         else             ClipboardService.copyEntry(row.entryId)
-                        Popups.clipboardOpen = false
+                        SurfaceState.close()
                     }
                 }
 
@@ -468,15 +487,7 @@ component ClipRow: Item {
 
     HoverHandler { id: rHov }
 
-    // ── Double-tap: copy + close popup + paste into active field ───────────────
-    TapHandler {
-        onDoubleTapped: {
-            if (row.isPinned) ClipboardService.copyText(row.fullText || row.previewText)
-            else             ClipboardService.copyEntry(row.entryId)
-            Popups.clipboardOpen = false
-            ClipboardService.typeFromClipboard()
-        }
-    }
+
 
     // Fires after the collapse animation completes so the list reflows smoothly
     Timer {

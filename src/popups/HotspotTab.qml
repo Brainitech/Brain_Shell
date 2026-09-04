@@ -62,9 +62,9 @@ Item {
     }
 
     Connections {
-        target: Popups
-        function onNetworkOpenChanged() {
-            if (Popups.networkOpen && root.visible)
+        target: SurfaceState
+        function onActiveContentChanged() {
+            if ((SurfaceState.activeContent === "network") && root.visible)
                 loadProc.running = true
         }
     }

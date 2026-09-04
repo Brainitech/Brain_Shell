@@ -91,7 +91,7 @@ Item {
                 
                 y: targetY
                 Behavior on y {
-                    enabled: Anim.style !== "none" && Popups.audioOpen && root.fullyOpen
+                    enabled: Anim.style !== "none" && (SurfaceState.activeContent === "audio") && root.fullyOpen
                     NumberAnimation { 
                         duration: Anim.slow; easing.type: Anim.outExpo
                         onRunningChanged: { if (!running && !pageOutput.isCurrent) pageOutput.wasCurrent = false; }
@@ -114,6 +114,7 @@ Item {
                 ChannelColumn {
                     localScale: root.localScale
                     width:  parent.width
+                    height: pageOutput.height - Math.round(16 * root.localScale)
                     label:  (root.sink && root.sink.ready) ? root.deviceName(root.sink) : "Output"
                     icon: {
                         if (!root.sink || !root.sink.ready)           return "󰕾"
@@ -159,7 +160,7 @@ Item {
                 
                 y: targetY
                 Behavior on y {
-                    enabled: Anim.style !== "none" && Popups.audioOpen && root.fullyOpen
+                    enabled: Anim.style !== "none" && (SurfaceState.activeContent === "audio") && root.fullyOpen
                     NumberAnimation { 
                         duration: Anim.slow; easing.type: Anim.outExpo
                         onRunningChanged: { if (!running && !pageInput.isCurrent) pageInput.wasCurrent = false; }
@@ -182,6 +183,7 @@ Item {
                 ChannelColumn {
                     localScale: root.localScale
                     width:  parent.width
+                    height: pageInput.height - Math.round(16 * root.localScale)
                     label:  (root.source && root.source.ready) ? root.deviceName(root.source) : "Input"
                     icon:   (root.source && root.source.audio && root.source.audio.muted) ? "󰍭" : "󰍬"
                     value:  (root.source && root.source.ready) ? root.source.audio.volume : 0
@@ -221,7 +223,7 @@ Item {
                 
                 y: targetY
                 Behavior on y {
-                    enabled: Anim.style !== "none" && Popups.audioOpen && root.fullyOpen
+                    enabled: Anim.style !== "none" && (SurfaceState.activeContent === "audio") && root.fullyOpen
                     NumberAnimation { 
                         duration: Anim.slow; easing.type: Anim.outExpo
                         onRunningChanged: { if (!running && !pageMixer.isCurrent) pageMixer.wasCurrent = false; }
@@ -340,7 +342,7 @@ Item {
 
         Column {
             id: inner
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.centerIn: parent
             spacing: Math.round(8 * localScale)
 
             Text {

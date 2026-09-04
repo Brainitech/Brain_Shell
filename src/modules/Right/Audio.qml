@@ -1,6 +1,6 @@
 import QtQuick
-import Quickshell.Services.Pipewire
 import "../../components"
+import Quickshell.Services.Pipewire
 import "../../"
 
 Item {
@@ -75,10 +75,12 @@ Item {
                 if (root.sink?.ready)
                     root.sink.audio.muted = !root.sink.audio.muted
             } else {
-                var next = !Popups.audioOpen
-                Popups.closeAll()
-                Popups.audioOpen = next
-                if (next) Popups.audioPinned = true
+                if (!Popups.audioOpen) {
+                    SurfaceState.open("rightCenter", "audio")
+                    Popups.audioPinned = true
+                } else {
+                    SurfaceState.close()
+                }
             }
         }
     }

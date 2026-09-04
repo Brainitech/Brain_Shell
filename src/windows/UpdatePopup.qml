@@ -76,7 +76,7 @@ PanelWindow {
         id: card
         anchors.centerIn: parent
         width:  Math.round(380 * localScale)
-        radius: Math.round(Theme.notchRadius * localScale)
+        radius: Math.round(Theme.cornerRadius * localScale)
         color:  Theme.background
         border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
         border.width: 1

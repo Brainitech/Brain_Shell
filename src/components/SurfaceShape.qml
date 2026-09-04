@@ -12,7 +12,7 @@ Shape {
     
     property int frameThickness: Math.round(Theme.borderWidth * localScale)
     property int innerRadius: Math.round(Theme.cornerRadius * localScale)
-    property int flareRadius: Math.round(Theme.notchRadius * localScale)
+    property int flareRadius: Math.round(Theme.cornerRadius * localScale)
     property real localScale: 1.0
     property color frameColor: Theme.background
     

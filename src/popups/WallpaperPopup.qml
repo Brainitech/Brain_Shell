@@ -270,7 +270,7 @@ Item {
             Item {
                 id: utilBar
                 anchors.bottom:       parent.bottom
-                anchors.bottomMargin: Math.round((Theme.notchRadius - 12) * root.localScale)
+                anchors.bottomMargin: Math.round((Theme.cornerRadius - 12) * root.localScale)
                 anchors.left:         parent.left
                 anchors.right:        parent.right
                 height: Math.round(32 * localScale)

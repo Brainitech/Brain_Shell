@@ -135,7 +135,7 @@ PanelWindow {
         anchors.centerIn: parent
         width:  Math.round(360 * localScale)
         height: col.implicitHeight + Math.round(48 * localScale)
-        radius: Math.round(Theme.notchRadius * localScale)
+        radius: Math.round(Theme.cornerRadius * localScale)
         color:  Theme.background
         visible: Popups.confirmOpen && !Popups.confirmRunning
 
@@ -234,7 +234,7 @@ PanelWindow {
         anchors.centerIn: parent
         width:  Math.round(300 * localScale)
         height: processingCol.implicitHeight + Math.round(56 * localScale)
-        radius: Math.round(Theme.notchRadius * localScale)
+        radius: Math.round(Theme.cornerRadius * localScale)
         color:  Theme.background
         visible: Popups.confirmRunning
 

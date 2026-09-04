@@ -31,7 +31,7 @@ Item {
 	// ── Required notch width for the current carousel item ────────────────────
 	// TopBar.cWidth reads this so the notch always matches what is visible,
 	// even if the user scrolls away from record_active while recording.
-	readonly property int fw: Math.round(Theme.notchRadius * localScale)
+	readonly property int fw: Math.round(Theme.cornerRadius * localScale)
 	// ── MPRIS ─────────────────────────────────────────────────────────────────
 	readonly property var    player:    Mpris.players.values.length > 0
 	? Mpris.players.values[0] : null

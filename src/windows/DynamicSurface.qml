@@ -289,32 +289,32 @@ PanelWindow {
         }
         brnWidth: {
             if (!SurfaceState.isBottomRightExpanded) return innerRadius;
-            if (SurfaceState.activeContent === "clipboard") return clipboardPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale);
+            if (SurfaceState.activeContent === "clipboard") return clipboardPopupView.popupWidth + Math.round(Theme.cornerRadius * root.localScale);
             return Math.round(Theme.popupMaxWidth * root.localScale);
         }
         lcnDepth: { 
             if (!SurfaceState.isLeftCenterExpanded) return 0.001; 
-            if (SurfaceState.activeContent === "archMenu") return archMenuPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale); 
+            if (SurfaceState.activeContent === "archMenu") return archMenuPopupView.popupWidth + Math.round(Theme.cornerRadius * root.localScale); 
             return Math.round(Theme.popupMaxWidth * root.localScale); 
         } 
         lcnHeight: { 
             if (!SurfaceState.isLeftCenterExpanded) return 0.001; 
-            if (SurfaceState.activeContent === "archMenu") return archMenuPopupView.popupHeight + Math.round(Theme.notchRadius * root.localScale * 2); 
+            if (SurfaceState.activeContent === "archMenu") return archMenuPopupView.popupHeight + Math.round(Theme.cornerRadius * root.localScale * 2); 
             return Math.round(Theme.popupMaxHeight * root.localScale); 
         }
         bcnWidth: { 
             if (!SurfaceState.isBottomCenterExpanded) return 0.001; 
-            if (SurfaceState.activeContent === "wallpaper") return wallpaperPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale * 2); 
+            if (SurfaceState.activeContent === "wallpaper") return wallpaperPopupView.popupWidth + Math.round(Theme.cornerRadius * root.localScale * 2); 
             return Math.round(Theme.popupMaxWidth * root.localScale); 
         } 
         bcnDepth: { 
             if (!SurfaceState.isBottomCenterExpanded) return 0.001; 
-            if (SurfaceState.activeContent === "wallpaper") return wallpaperPopupView.popupHeight + Math.round(Theme.notchRadius * root.localScale); 
+            if (SurfaceState.activeContent === "wallpaper") return wallpaperPopupView.popupHeight + Math.round(Theme.cornerRadius * root.localScale); 
             return Math.round(Theme.popupMaxHeight * root.localScale); 
         }
         brnDepth: {
             if (!SurfaceState.isBottomRightExpanded) return 0.001;
-            if (SurfaceState.activeContent === "clipboard") return clipboardPopupView.popupHeight + Math.round(Theme.notchRadius * root.localScale);
+            if (SurfaceState.activeContent === "clipboard") return clipboardPopupView.popupHeight + Math.round(Theme.cornerRadius * root.localScale);
             return Math.round(Theme.popupMaxHeight * root.localScale);
         }
         
@@ -330,11 +330,11 @@ PanelWindow {
         rightNotchWidth: {
             if (ShellState.focusMode && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) return 0.001;
             if (!SurfaceState.isRightExpanded) {
-                if (Popups.notificationToastOpen) return notificationToastView.toastWidth + Math.round(Theme.notchRadius * root.localScale);
+                if (Popups.notificationToastOpen) return notificationToastView.toastWidth + Math.round(Theme.cornerRadius * root.localScale);
                 return Math.max(Math.round(Theme.rNotchMinWidth * localScale), Math.min(Math.round(Theme.rNotchMaxWidth * localScale), rightContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)));
             }
-            if (SurfaceState.activeContent === "network") return Math.round(Theme.networkPopupWidth * root.localScale) + Math.round(Theme.notchRadius * root.localScale);
-            if (SurfaceState.activeContent === "notifications") return notifsPopupView.popupWidth + Math.round(Theme.notchRadius * root.localScale);
+            if (SurfaceState.activeContent === "network") return Math.round(Theme.networkPopupWidth * root.localScale) + Math.round(Theme.cornerRadius * root.localScale);
+            if (SurfaceState.activeContent === "notifications") return notifsPopupView.popupWidth + Math.round(Theme.cornerRadius * root.localScale);
             return Math.round(Theme.popupMaxWidth * root.localScale);
         }
         rightNotchHeight: {

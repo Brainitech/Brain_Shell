@@ -83,23 +83,14 @@ Item {
                     SettingsDivider { localScale: root.localScale }
                     SettingsSlider {
                         localScale: root.localScale
-                        text: "Container Roundness"
-                        description: "Corner radius of windows and popups."
-                        from: 0; to: 32; stepSize: 2; value: PrefsService.cornerRadius
+                        text: "Global Roundness"
+                        description: "Global corner radius for popups, notches, and borders."
+                        from: 0; to: 20; stepSize: 2; value: PrefsService.cornerRadius
                         defaultValue: 17
                         onValueChanged: { if (value !== PrefsService.cornerRadius) { PrefsService.cornerRadius = value; PrefsService.saveConfig() } }
                         valueSuffix: "px"
                     }
                     SettingsDivider { localScale: root.localScale }
-                    SettingsSlider {
-                        localScale: root.localScale
-                        text: "Notch Roundness"
-                        description: "Corner radius of the top bar notches."
-                        from: 0; to: 32; stepSize: 2; value: PrefsService.notchRadius
-                        defaultValue: 15
-                        onValueChanged: { if (value !== PrefsService.notchRadius) { PrefsService.notchRadius = value; PrefsService.saveConfig() } }
-                        valueSuffix: "px"
-                    }
                 }
             }
 

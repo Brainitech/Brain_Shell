@@ -27,7 +27,6 @@ QtObject {
     
     property int borderWidth:   Metrics.borderWidth
     property int cornerRadius:  Metrics.cornerRadius
-    property int notchRadius:   Metrics.notchRadius
     property int notchHeight:   Metrics.notchHeight
         
     property int notchPadding:           Metrics.notchPadding

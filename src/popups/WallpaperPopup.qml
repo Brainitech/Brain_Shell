@@ -24,11 +24,28 @@ Item {
         function onActiveContentChanged() {
             if (SurfaceState.activeContent === "wallpaper") {
                 WallpaperService.refresh()
-                WallpaperService.previewWall = ""
+                
+                var current = WallpaperService.currentWall
+                var idx = -1
+                var walls = WallpaperService.wallpapers
+                for (var i = 0; i < walls.length; i++) {
+                    if (walls[i] === current) {
+                        idx = i
+                        break
+                    }
+                }
+                
+                WallpaperService.previewWall = (idx !== -1) ? current : ""
+                wallGrid.targetCenterIndex   = idx
+                
                 content.schemePopupOpen      = false
                 content.folderMode           = false
                 content.appliedScheme        = WallpaperService.scheme
                 searchInput.text             = ""
+                
+                if (idx !== -1 && wallGrid.width > 0) {
+                    wallGrid.positionViewAtIndex(idx, ListView.Center)
+                }
             }
         }
     }

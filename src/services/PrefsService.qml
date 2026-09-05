@@ -39,7 +39,7 @@ QtObject {
     property int cornerRadius: 17
 
     // Popup Behavior
-    property bool globalHoverMode: false
+    property bool globalHoverMode: true
     property bool hoverDashboard: false
     property bool hoverNetwork: false
     property bool hoverAudio: false

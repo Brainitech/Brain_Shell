@@ -2,6 +2,8 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../"
+import "../services"
 
 QtObject {
     id: root
@@ -12,58 +14,20 @@ QtObject {
     property real speedMultiplier: 1.0
     property string curveStyle: "smooth"
 
-    // Config persistence
-    readonly property string configPath: Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/animation_prefs.json"
-    property var _prefsFile: FileView {
-        path: root.configPath
-        watchChanges: true
-        onFileChanged: reload()
-        onLoaded: {
-            var txt = text()
-            if (txt && txt !== "") {
-                try {
-                    var obj = JSON.parse(txt)
-                    if (obj.style && obj.style !== "") root.style = obj.style
-                    if (obj.speed_multiplier) root.speedMultiplier = obj.speed_multiplier
-                    if (obj.curve && obj.curve !== "") root.curveStyle = obj.curve
-                } catch(e) {}
-            }
-        }
-    }
-
-    property var saveConfigProc: Process {}
 
     function setStyle(newStyle) {
         root.style = newStyle
-        _save()
+        PrefsService.saveConfig()
     }
     
     function setSpeedMultiplier(val) {
         root.speedMultiplier = val
-        _save()
+        PrefsService.saveConfig()
     }
     
     function setCurve(val) {
         root.curveStyle = val
-        _save()
-    }
-
-    function _save() {
-        var json = JSON.stringify({
-            "_comment_style": "Available styles: 'slide', 'parallax', 'none'",
-            "style": root.style,
-            "_comment_speed": "Animation speed. 1.0 is default. 2.0 is 2x faster, 0.5 is 2x slower.",
-            "speed_multiplier": root.speedMultiplier,
-            "_comment_curve": "Available curves: 'smooth', 'spring', 'linear', 'cinematic'",
-            "curve": root.curveStyle
-        }, null, 4)
-        
-        saveConfigProc.command = [
-            "bash", "-c",
-            "mkdir -p \"$(dirname '" + root.configPath + "')\" && " +
-            "cat << 'EOF' > '" + root.configPath + "'\n" + json + "\nEOF"
-        ]
-        saveConfigProc.running = true
+        PrefsService.saveConfig()
     }
 
     // Standard durations automatically scaled by speedMultiplier
@@ -84,7 +48,6 @@ QtObject {
     readonly property int globalCurve: {
         if (curveStyle === "spring") return Easing.OutBack;
         if (curveStyle === "cinematic") return Easing.InOutQuart;
-        if (curveStyle === "linear") return Easing.Linear;
         return Easing.OutQuart; // Default to smooth
     }
 
@@ -120,5 +83,17 @@ QtObject {
             "}\nEOF\nfi"
         ]
         initProc.running = true
+    }
+
+    property var _conn: Connections {
+        target: PrefsService
+        function onLoaded() {
+            root.style = PrefsService.animStyle
+            root.speedMultiplier = PrefsService.animSpeed
+            root.curveStyle = PrefsService.animCurve
+        }
+        function onAnimStyleChanged() { root.style = PrefsService.animStyle }
+        function onAnimSpeedChanged() { root.speedMultiplier = PrefsService.animSpeed }
+        function onAnimCurveChanged() { root.curveStyle = PrefsService.animCurve }
     }
 }

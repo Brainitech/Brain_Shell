@@ -103,6 +103,7 @@ QtObject {
         confirmLabel   = label
         confirmAction  = action
         confirmGfxMode = gfxMode ?? ""
+        closeAll()
         confirmOpen    = true
     }
 

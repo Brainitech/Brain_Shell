@@ -154,32 +154,9 @@ StatCard {
     property bool   hotspotBusy:   false
     property bool   _hsWifiWasOff: false  // wifi radio was off when hotspot started; restore on stop
     property string hotspotLabel:  ""    // sublabel: "Active" | "Not on ethernet" | ""
-    property string _hsSSID:       "BrainShell"
-    property string _hsPassword:   "changeme1"
+    property string _hsSSID: PrefsService.hotspotSsid
+    property string _hsPassword: PrefsService.hotspotPassword
     property string _hsWifiIface:  "wlan0"
-
-    readonly property string _hsCfgPath:
-        Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/hotspot.json"
-
-    // Load config on startup
-    Process {
-        id: hsCfgLoadProc
-        command: ["bash", "-c",
-            "[ -f '" + root._hsCfgPath + "' ] || " +
-            "(mkdir -p \"$(dirname '" + root._hsCfgPath + "')\" && " +
-            "printf '%s' '{\"ssid\":\"BrainShell\",\"password\":\"changeme1\"}' > '" + root._hsCfgPath + "'); " +
-            "cat '" + root._hsCfgPath + "'"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    var o = JSON.parse(text.trim())
-                    if (o.ssid)     root._hsSSID     = o.ssid
-                    if (o.password) root._hsPassword = o.password
-                } catch(e) {}
-            }
-        }
-    }
 
     // Detect WiFi interface name
     Process {
@@ -610,7 +587,6 @@ StatCard {
         hotspotCheck.running    = true
         airplaneCheck.running   = true
         filterCheckProc.running = true
-        hsCfgLoadProc.running   = true
         hsIfaceProc.running     = true
         hsActiveCheckProc.running = true
     }

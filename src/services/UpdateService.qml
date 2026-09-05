@@ -5,12 +5,12 @@ import Quickshell.Io
 import "../"
 
 // UpdateService — startup update checker (30s delay).
-// Persistent autoUpdate preference stored in src/user_data/update_prefs.json.
+// Persistent PrefsService.autoUpdate preference stored in src/user_data/update_prefs.json.
 QtObject {
     id: root
 
     // ── Persistent preference ──────────────────────────────────────────────
-    property bool autoUpdate: true
+    
 
     // ── Live state (drives UpdatePopup) ───────────────────────────────────
     property bool   checking:        false
@@ -62,9 +62,9 @@ QtObject {
         root._pingProc.running = true
     }
 
-    // Popup is only shown when autoUpdate is enabled
+    // Popup is only shown when PrefsService.autoUpdate is enabled
     readonly property bool showPopup:
-        autoUpdate && (
+        PrefsService.autoUpdate && (
             updateAvailable ||
             updating ||
             hasConflict ||
@@ -73,9 +73,6 @@ QtObject {
         )
 
     // ── Paths ──────────────────────────────────────────────────────────────
-    readonly property string _dir:        Quickshell.shellDir
-    readonly property string _cfgPath:    Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/update_prefs.json"
-
     // ── Startup: 30s delay ─────────────────────────────────────────────────
     property var _startTimer: Timer {
         interval: 30000
@@ -83,51 +80,8 @@ QtObject {
         running:  false
         onTriggered: root._startConnectivityCheck()
     }
-
-    // ── Config: init → read → arm timer ───────────────────────────────────
-    property var _initProc: Process {
-        command: ["bash", "-c",
-            // Ensure pref file exists
-            "[ -f '" + root._cfgPath + "' ] || " +
-            "(mkdir -p \"$(dirname '" + root._cfgPath + "')\" && " +
-            "printf '%s' '{\"autoUpdate\":true}' > '" + root._cfgPath + "');\n" +
-            // Emit prefs
-            "cat '" + root._cfgPath + "'"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    var o = JSON.parse(text.trim())
-                    if (typeof o.autoUpdate === "boolean")
-                        root.autoUpdate = o.autoUpdate
-                    // console.log("UpdateService: Loaded config. autoUpdate=" + root.autoUpdate)
-                } catch(e) {
-                    // console.log("UpdateService: Failed to parse config JSON:", e)
-                }
-
-                if (root.autoUpdate) {
-                    // console.log("UpdateService: Auto-update enabled. Starting 30s delay timer.")
-                    root._startTimer.start()
-                } else {
-                    // console.log("UpdateService: Auto-update disabled.")
-                }
-            }
-        }
-    }
-
-    // ── Config: save ──────────────────────────────────────────────────────
-    property var _saveProc: Process { command: []; running: false }
-
-    function _saveConfig() {
-        // console.log("UpdateService: Saving config. autoUpdate=" + root.autoUpdate)
-        var json = JSON.stringify({ autoUpdate: root.autoUpdate })
-        _saveProc.command = ["bash", "-c",
-            "printf '%s' '" + json.replace(/'/g, "'\\''") +
-            "' > '" + root._cfgPath + "'"]
-        _saveProc.running = false
-        _saveProc.running = true
-    }
-
+    Component.onCompleted: if(PrefsService.autoUpdate) _startTimer.start()
+    readonly property string _dir:        Quickshell.shellDir
     // ── Step 1: fetch origin/main ──────────────────────────────────────────
     property var _fetchProc: Process {
         command: ["git", "-C", root._dir, "fetch", "origin", "main", "--quiet"]
@@ -269,14 +223,12 @@ QtObject {
 
     function disableAutoUpdate() {
         // console.log("UpdateService: disableAutoUpdate() triggered")
-        root.autoUpdate      = false
+        PrefsService.PrefsService.autoUpdate      = false
         root.updateAvailable = false
         root.hasConflict     = false
         root.lastError       = ""
         root.updateSuccess   = false
         root._startTimer.stop()
-        _saveConfig()
     }
 
-    Component.onCompleted: _initProc.running = true
 }

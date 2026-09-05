@@ -63,11 +63,11 @@ Item {
                     localScale: root.localScale
                     text: "Auto-check for Updates"
                     description: "Periodically check the remote repository for shell updates."
-                    checked: UpdateService.autoUpdate
+                    checked: PrefsService.autoUpdate
                     onCheckedChanged: {
-                        if (checked !== UpdateService.autoUpdate) {
-                            UpdateService.autoUpdate = checked
-                            UpdateService._saveConfig()
+                        if (checked !== PrefsService.autoUpdate) {
+                            PrefsService.autoUpdate = checked
+                            PrefsService.saveConfig()
                         }
                     }
                 }
@@ -112,12 +112,12 @@ Item {
                     description: "Directory for saved media files."
                     inputType: "text"
                     buttonText: inputText !== "" ? inputText : "Browse..."
-                    inputText: ScreenRecService.saveDir
+                    inputText: PrefsService.screenrecSaveDir
                     validateAs: "dir"
                     onInputAccepted: function(txt) {
                         if (txt === "") return
-                        ScreenRecService.saveDir = txt
-                        ScreenRecService.saveConfig()
+                        PrefsService.screenrecSaveDir = txt
+                        PrefsService.saveConfig()
                     }
                 }
             }

@@ -49,8 +49,22 @@ QtObject {
         }
     }
     
-    Component.onCompleted: _checkBattery()
+    Component.onCompleted: {
+        _checkBattery()
+        var p = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/config_Provider.json"
+        _initProcShell.command = ["bash", "-c", "mkdir -p \"$(dirname \"" + p + "\")\" && touch \"" + p + "\"" ]
+        _initProcShell.running = true
+    }
     
+    property Process _initProcShell: Process {
+
+        command: []
+        running: false
+        onExited: (code) => {
+            providerFile.path = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/config_Provider.json"
+        }
+    }
+
     property var _batConn: Connections {
         target: UPower.displayDevice
         function onReadyChanged() {
@@ -91,13 +105,14 @@ QtObject {
     // Watch the JSON file written by the installer
     property var _providerFile: FileView {
         id: providerFile
-        path: Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/config_Provider.json"
+        path: ""
         watchChanges: true
         
         onFileChanged: {
             reload()
         }
         
+
         onLoaded: {
             _parse(providerFile.text())
         }

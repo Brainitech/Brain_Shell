@@ -15,6 +15,24 @@ QtObject {
     property string defaultAudioTab: "Output"
     property bool use24HourTime: false
 
+    // Anim
+    property string animStyle: "slide"
+    property real animSpeed: 1.0
+    property string animCurve: "smooth"
+
+    // UpdateService
+    property bool autoUpdate: true
+
+    // ScreenRecService
+    property string screenrecCaptureTarget: "region"
+    property bool screenrecAudioMic: false
+    property bool screenrecAudioSystem: false
+    property string screenrecSaveDir: Quickshell.env("HOME") + "/Videos"
+
+    // Network (Hotspot)
+    property string hotspotSsid: "BrainShell"
+    property string hotspotPassword: "changeme1"
+
     // Sizing & Borders
     property bool barEnabled: true
     property int borderWidth: 6
@@ -39,7 +57,12 @@ QtObject {
     property real bgOpacity: 1.0
     property bool bgBlur: false
     onBgBlurChanged: updateHyprlandBlur()
-    Component.onCompleted: updateHyprlandBlur()
+    Component.onCompleted: {
+        updateHyprlandBlur()
+        var p = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/shell_prefs.json"
+        _initProcPrefs.command = ["bash", "-c", "mkdir -p \"$(dirname \"" + p + "\")\" && touch \"" + p + "\"" ]
+        _initProcPrefs.running = true
+    }
 
     // Custom Theme Override Groups
     property string overrideBg: "#1a282a"
@@ -53,7 +76,7 @@ QtObject {
     property string _cfgBuf: ""
     
     property var _configFile: FileView {
-        path: Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/shell_prefs.json"
+        path: ""
         onLoaded: {
             root._parse(text())
         }
@@ -72,6 +95,17 @@ QtObject {
             if (o.defaultDashboardTab !== undefined) root.defaultDashboardTab = o.defaultDashboardTab
             if (o.defaultAudioTab !== undefined) root.defaultAudioTab = o.defaultAudioTab
             if (o.use24HourTime !== undefined) root.use24HourTime = o.use24HourTime
+
+            if (o.animStyle !== undefined) root.animStyle = o.animStyle
+            if (o.animSpeed !== undefined) root.animSpeed = o.animSpeed
+            if (o.animCurve !== undefined) root.animCurve = o.animCurve
+            if (o.autoUpdate !== undefined) root.autoUpdate = o.autoUpdate
+            if (o.screenrecCaptureTarget !== undefined) root.screenrecCaptureTarget = o.screenrecCaptureTarget
+            if (o.screenrecAudioMic !== undefined) root.screenrecAudioMic = o.screenrecAudioMic
+            if (o.screenrecAudioSystem !== undefined) root.screenrecAudioSystem = o.screenrecAudioSystem
+            if (o.screenrecSaveDir !== undefined) root.screenrecSaveDir = o.screenrecSaveDir
+            if (o.hotspotSsid !== undefined) root.hotspotSsid = o.hotspotSsid
+            if (o.hotspotPassword !== undefined) root.hotspotPassword = o.hotspotPassword
 
             if (o.barEnabled !== undefined) root.barEnabled = o.barEnabled
             if (o.borderWidth !== undefined) root.borderWidth = o.borderWidth
@@ -115,6 +149,16 @@ QtObject {
             defaultDashboardTab: root.defaultDashboardTab,
             defaultAudioTab: root.defaultAudioTab,
             use24HourTime: root.use24HourTime,
+            animStyle: root.animStyle,
+            animSpeed: root.animSpeed,
+            animCurve: root.animCurve,
+            autoUpdate: root.autoUpdate,
+            screenrecCaptureTarget: root.screenrecCaptureTarget,
+            screenrecAudioMic: root.screenrecAudioMic,
+            screenrecAudioSystem: root.screenrecAudioSystem,
+            screenrecSaveDir: root.screenrecSaveDir,
+            hotspotSsid: root.hotspotSsid,
+            hotspotPassword: root.hotspotPassword,
             barEnabled: root.barEnabled,
             borderWidth: root.borderWidth,
             cornerRadius: root.cornerRadius,
@@ -159,6 +203,16 @@ QtObject {
         _blurProc.running = true
     }
 
+
+    property Process _initProcPrefs: Process {
+
+
+        command: []
+        running: false
+        onExited: (code) => {
+            _configFile.path = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/shell_prefs.json"
+        }
+    }
     property var _saveProc: Process { command: []; running: false }
     property var _blurProc: Process { command: []; running: false }
 }

@@ -12,64 +12,10 @@ Item {
     id: root
 
     property real localScale: 1.0
-    property string _ssid:      "BrainShell"
-    property string _password:  "changeme1"
+    property alias _ssid: PrefsService.hotspotSsid
+    property alias _password: PrefsService.hotspotPassword
     property bool   _showPass:  false
     property bool   _dirty:     false   // unsaved changes
-
-    readonly property string _cfgPath:
-        Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/hotspot.json"
-
-    // ── Load ──────────────────────────────────────────────────────────────────
-    Process {
-        id: loadProc
-        command: ["bash", "-c",
-            "[ -f '" + root._cfgPath + "' ] || " +
-            "(mkdir -p \"$(dirname '" + root._cfgPath + "')\" && " +
-            "printf '%s' '{\"ssid\":\"BrainShell\",\"password\":\"changeme1\"}' " +
-            "> '" + root._cfgPath + "'); " +
-            "cat '" + root._cfgPath + "'"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                if (text.trim() === "") return
-                try {
-                    var o = JSON.parse(text)
-                    if (o.ssid)     root._ssid     = o.ssid
-                    if (o.password) root._password = o.password
-                } catch(e) {}
-            }
-        }
-    }
-
-    // ── Save ──────────────────────────────────────────────────────────────────
-    Process {
-        id: saveProc; command: []; running: false
-        onRunningChanged: if (!running) root._dirty = false
-    }
-
-    function _save() {
-        var j = JSON.stringify({ ssid: root._ssid, password: root._password })
-        saveProc.command = ["bash", "-c",
-            "printf '%s' '" + j.replace(/'/g, "'\\''") + "' > '" + root._cfgPath + "'"]
-        saveProc.running = false; saveProc.running = true
-    }
-
-    // Also update QuickSettings in-memory values so the tile uses new creds immediately
-    function _applyToQuickSettings() {
-        // Walk to the parent DashHome → QuickSettings sibling is not accessible,
-        // so we just save to disk; QS reads from disk on next hotspot start.
-    }
-
-    Connections {
-        target: SurfaceState
-        function onActiveContentChanged() {
-            if ((SurfaceState.activeContent === "network") && root.visible)
-                loadProc.running = true
-        }
-    }
-
-    Component.onCompleted: loadProc.running = true
 
     // ── Layout ────────────────────────────────────────────────────────────────
     Column {
@@ -196,7 +142,7 @@ Item {
                             Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text { anchors.centerIn: parent; text: "Save"; font.pixelSize: Math.round(12 * localScale); font.weight: Font.Medium; color: Theme.active }
                             HoverHandler { id: saveH; cursorShape: Qt.PointingHandCursor }
-                            MouseArea { anchors.fill: parent; onClicked: root._save() }
+                            MouseArea { anchors.fill: parent; onClicked: PrefsService.saveConfig(); root._dirty = false }
                         }
                     }
                 }

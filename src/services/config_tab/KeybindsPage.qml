@@ -6,6 +6,7 @@ import "../../components"
 
 Item {
     id: root
+    property real localScale: 1.0
 
     // ── Capture state ─────────────────────────────────────────────────────────
     property string _capturing: ""
@@ -65,18 +66,18 @@ Item {
     Rectangle {
         id: _saveBanner
         anchors { top: parent.top; left: parent.left; right: parent.right }
-        height: root.hasPending ? 44 : 0
+        height: root.hasPending ? Math.round(44 * localScale) : 0
         clip:   true
         color:  Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.07)
         border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.20)
         border.width: root.hasPending ? 1 : 0
-        radius: 8
+        radius: Math.round(8 * localScale)
 
         Behavior on height { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
 
         Row {
-            anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: 10 }
-            spacing: 8
+            anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: Math.round(10 * localScale) }
+            spacing: Math.round(8 * localScale)
             visible: root.hasPending
 
             Text {
@@ -85,17 +86,17 @@ Item {
                     var n = Object.keys(root._pending).length
                     return n + " unsaved change" + (n > 1 ? "s" : "")
                 }
-                font.pixelSize: 11
+                font.pixelSize: Math.round(11 * localScale)
                 color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.70)
             }
 
             // Discard
             Rectangle {
-                width: 62; height: 26; radius: 7
+                width: Math.round(62 * localScale); height: Math.round(26 * localScale); radius: Math.round(7 * localScale)
                 color: _discardH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
                 border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.13); border.width: 1
                 Behavior on color { ColorAnimation { duration: Anim.fast} }
-                Text { anchors.centerIn: parent; text: "Discard"; font.pixelSize: 10
+                Text { anchors.centerIn: parent; text: "Discard"; font.pixelSize: Math.round(10 * localScale)
                     color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.48) }
                 HoverHandler { id: _discardH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root._pending = {} }
@@ -103,14 +104,14 @@ Item {
 
             // Save
             Rectangle {
-                width: 62; height: 26; radius: 7
+                width: Math.round(62 * localScale); height: Math.round(26 * localScale); radius: Math.round(7 * localScale)
                 color: _saveH.hovered
                     ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.28)
                     : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.16)
                 border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.42)
                 border.width: 1
                 Behavior on color { ColorAnimation { duration: Anim.fast} }
-                Text { anchors.centerIn: parent; text: "Save"; font.pixelSize: 10
+                Text { anchors.centerIn: parent; text: "Save"; font.pixelSize: Math.round(10 * localScale)
                     font.weight: Font.Medium; color: Theme.active }
                 HoverHandler { id: _saveH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root._applyPending() }
@@ -125,20 +126,20 @@ Item {
             left:        parent.left
             right:       parent.right
             bottom:      parent.bottom
-            leftMargin:  12
-            rightMargin: 12
-            bottomMargin: 12
-            topMargin:   6
+            leftMargin:  Math.round(12 * localScale)
+            rightMargin: Math.round(12 * localScale)
+            bottomMargin: Math.round(12 * localScale)
+            topMargin:   Math.round(6 * localScale)
         }
         contentWidth:   width
-        contentHeight:  _col.implicitHeight + 16
+        contentHeight:  _col.implicitHeight + Math.round(16 * localScale)
         clip:           true
         boundsBehavior: Flickable.StopAtBounds
 
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
             contentItem: Rectangle {
-                implicitWidth: 3; implicitHeight: 40; radius: 1.5
+                implicitWidth: Math.round(3 * localScale); implicitHeight: Math.round(40 * localScale); radius: 1.5 * localScale
                 color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.22)
             }
             background: Item {}
@@ -146,8 +147,8 @@ Item {
 
         Column {
             id: _col
-            width:   parent.width - 12
-            spacing: 32
+            width:   parent.width - Math.round(12 * localScale)
+            spacing: Math.round(32 * localScale)
 
             Repeater {
                 model: root._groups
@@ -156,6 +157,7 @@ Item {
                     required property int index
                     width:   _col.width
                     title:   modelData.name
+                    localScale: root.localScale
 
                     Repeater {
                         model: modelData.actions
@@ -163,6 +165,7 @@ Item {
                             width: parent.width
                             
                             SettingsDivider {
+                                localScale: root.localScale
                                 visible: index > 0
                                 width: parent.width
                             }
@@ -186,6 +189,7 @@ Item {
     }
     // ── BindRow ───────────────────────────────────────────────────────────────
     component BindRow: Item {
+        property real localScale: root.localScale
         id: br
 
         property string action:      ""
@@ -249,7 +253,7 @@ Item {
         }
         readonly property bool _hasConflict: _conflictLabel !== ""
 
-        height: isCapturing ? 58 : 36
+        height: isCapturing ? Math.round(58 * localScale) : Math.round(36 * localScale)
         clip: true
         Behavior on height { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
 
@@ -267,7 +271,7 @@ Item {
         // ── Background ────────────────────────────────────────────────────────
         Rectangle {
             anchors.fill: parent
-            radius: 8
+            radius: Math.round(8 * localScale)
             color: br.isCapturing
                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.07)
                 : _rH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04) : "transparent"
@@ -342,38 +346,38 @@ Item {
         // ── Normal display ────────────────────────────────────────────────────
         Item {
             anchors { top: parent.top; left: parent.left; right: parent.right
-                      leftMargin: 10; rightMargin: 8 }
-            height: 36
+                      leftMargin: Math.round(10 * localScale); rightMargin: Math.round(8 * localScale) }
+            height: Math.round(36 * localScale)
             visible: !br.isCapturing
 
             Text {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                 text:           br._b ? br._b.label : br.action
-                font.pixelSize: 12
+                font.pixelSize: Math.round(12 * localScale)
                 color:          br._savedDupe ? "#f87171" : (br._isUnbound ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.35) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.68))
                 Behavior on color { ColorAnimation { duration: Anim.color} }
             }
 
             Row {
                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                spacing: 6
+                spacing: Math.round(6 * localScale)
 
                 // Saved duplicate warning
                 Text {
                     visible: br._savedDupe
                     anchors.verticalCenter: parent.verticalCenter
                     text:           "⚠ " + KeybindService.conflictsWith(br.action)
-                    font.pixelSize: 9
+                    font.pixelSize: Math.round(9 * localScale)
                     color:          Qt.rgba(248/255, 113/255, 113/255, 0.75)
                 }
 
 				// Clear bind
                 Rectangle {
                     visible: br._pillText !== "Unbound"
-                    width: 22; height: 22; radius: 6
+                    width: Math.round(22 * localScale); height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
                     color: _clrH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09) : "transparent"
                     Behavior on color { ColorAnimation { duration: Anim.fast} }
-                    Text { anchors.centerIn: parent; text: "󰩺"; font.pixelSize: 11
+                    Text { anchors.centerIn: parent; text: "󰩺"; font.pixelSize: Math.round(11 * localScale)
                         color: _clrH.hovered ? "#ff4444" : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.28) }
                     HoverHandler { id: _clrH; cursorShape: Qt.PointingHandCursor }
                     MouseArea {
@@ -388,10 +392,10 @@ Item {
                 // Reset to default
                 Rectangle {
                     visible: !br._isDefault
-                    width: 22; height: 22; radius: 6
+                    width: Math.round(22 * localScale); height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
                     color: _rstH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09) : "transparent"
                     Behavior on color { ColorAnimation { duration: Anim.fast} }
-                    Text { anchors.centerIn: parent; text: "↺"; font.pixelSize: 11
+                    Text { anchors.centerIn: parent; text: "↺"; font.pixelSize: Math.round(11 * localScale)
                         color: _rstH.hovered ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.28) }
                     HoverHandler { id: _rstH; cursorShape: Qt.PointingHandCursor }
                     MouseArea {
@@ -415,8 +419,8 @@ Item {
 
                 // Binding pill — amber tint when a pending change is staged
                 Rectangle {
-                    height: 24; radius: 6
-                    width:  _pillT.implicitWidth + 18
+                    height: Math.round(24 * localScale); radius: Math.round(6 * localScale)
+                    width:  _pillT.implicitWidth + Math.round(18 * localScale)
                     
                     color: br._isUnbound
                         ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
@@ -442,7 +446,7 @@ Item {
                         id: _pillT
                         anchors.centerIn: parent
                         text:           br._pillText
-                        font.pixelSize: 10; font.family: "JetBrains Mono"
+                        font.pixelSize: Math.round(10 * localScale); font.family: "JetBrains Mono"
                         font.italic:    br._isUnbound 
                         
                         color: br._isUnbound 
@@ -464,29 +468,29 @@ Item {
         // ── Capture display ───────────────────────────────────────────────────
         Column {
             anchors { top: parent.top; left: parent.left; right: parent.right
-                      leftMargin: 10; rightMargin: 8 }
+                      leftMargin: Math.round(10 * localScale); rightMargin: Math.round(8 * localScale) }
             spacing: 0
             visible: br.isCapturing
 
             // Row 1: label + live capture pill + cancel
             Item {
-                width: parent.width; height: 36
+                width: parent.width; height: Math.round(36 * localScale)
 
                 Text {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                     text:           br._b ? br._b.label : br.action
-                    font.pixelSize: 12
+                    font.pixelSize: Math.round(12 * localScale)
                     color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.68)
                 }
 
                 Row {
                     anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                    spacing: 6
+                    spacing: Math.round(6 * localScale)
 
                     // Live capture pill
                     Rectangle {
-                        height: 24; radius: 6
-                        width:  Math.max(120, _capT.implicitWidth + 18)
+                        height: Math.round(24 * localScale); radius: Math.round(6 * localScale)
+                        width:  Math.max(Math.round(120 * localScale), _capT.implicitWidth + Math.round(18 * localScale))
                         color:  Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08)
                         border.color: br._hasConflict
                             ? Qt.rgba(248/255, 113/255, 113/255, 0.55)
@@ -498,7 +502,7 @@ Item {
                         Text {
                             id: _capT
                             anchors.centerIn: parent
-                            font.pixelSize: 10; font.family: "JetBrains Mono"
+                            font.pixelSize: Math.round(10 * localScale); font.family: "JetBrains Mono"
                             color: br._hasConflict
                                 ? "#f87171"
                                 : br.capturedKey !== ""
@@ -516,10 +520,10 @@ Item {
 
                     // Cancel — Escape also cancels
                     Rectangle {
-                        width: 28; height: 24; radius: 6
+                        width: 28; height: Math.round(24 * localScale); radius: Math.round(6 * localScale)
                         color: _cnH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09) : "transparent"
                         Behavior on color { ColorAnimation { duration: Anim.fast} }
-                        Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: 10
+                        Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: Math.round(10 * localScale)
                             color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.38) }
                         HoverHandler { id: _cnH; cursorShape: Qt.PointingHandCursor }
                         MouseArea { anchors.fill: parent; onClicked: br.releaseCapture() }
@@ -529,14 +533,14 @@ Item {
 
             // Row 2: conflict warning (fades in when there's a conflict)
             Item {
-                width: parent.width; height: 22
+                width: parent.width; height: Math.round(22 * localScale)
                 opacity: (br.capturedKey !== "" && br._hasConflict) ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: Anim.color} }
 
                 Text {
-                    anchors { left: parent.left; leftMargin: 2; verticalCenter: parent.verticalCenter }
+                    anchors { left: parent.left; leftMargin: Math.round(2 * localScale); verticalCenter: parent.verticalCenter }
                     text:           "⚠  Conflicts with: " + br._conflictLabel
-                    font.pixelSize: 10
+                    font.pixelSize: Math.round(10 * localScale)
                     color:          "#f87171"
                 }
             }

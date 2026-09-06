@@ -205,4 +205,18 @@ QtObject {
         }
     }
 
+
+    property var _lockProc: Process {
+        command: ["loginctl", "lock-session"]
+        running: false
+    }
+
+    property var lockSession: IpcHandler {
+        target: "lock-session"
+        function toggle() {
+            _lockProc.running = false
+            _lockProc.running = true
+        }
+    }
+
 }

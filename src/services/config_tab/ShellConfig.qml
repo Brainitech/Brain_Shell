@@ -63,36 +63,86 @@ Item {
             clip:   true
 
             Item {
+                id: pageArea
                 anchors {
                     fill: parent
                     margins: Math.round(12 * localScale)
                 }
 
-                Item {
-                    anchors.fill: parent
-                    visible: root._page === "general"
+                property int pageIdx: Math.max(0, ["general", "visuals", "keybinds", "data", "misc"].indexOf(root._page))
+                
+                property int oldIdx: pageIdx
+                property int newIdx: pageIdx
+                property real progress: 1.0
+                
+                NumberAnimation {
+                    id: progressAnim
+                    target: pageArea
+                    property: "progress"
+                    from: 0.0
+                    to: 1.0
+                    duration: Anim.style === "none" ? 0 : Anim.transition
+                    easing.type: Anim.outCubic
+                }
+                
+                onPageIdxChanged: {
+                    oldIdx = newIdx;
+                    newIdx = pageIdx;
+                    progress = 0.0;
+                    if (Anim.style !== "none") progressAnim.restart();
+                    else progress = 1.0;
+                }
+
+                component VerticalSlidePage: Item {
+                    property int myIdx
+                    property bool isCurrent: myIdx === pageArea.pageIdx
+                    property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                    
+                    property bool isIncoming: myIdx === pageArea.newIdx
+                    property bool isOutgoing: myIdx === pageArea.oldIdx
+                    property int slideDir: pageArea.newIdx > pageArea.oldIdx ? 1 : -1
+                    
+                    width: parent.width; height: parent.height
+                    
+                    y: {
+                        if (Anim.style === "none") return 0;
+                        if (isIncoming) {
+                            return slideDir * parent.height * (1.0 - pageArea.progress);
+                        } else if (isOutgoing) {
+                            return -slideDir * parent.height * parallaxFactor * pageArea.progress;
+                        } else {
+                            return myIdx < pageArea.newIdx ? -parent.height : parent.height;
+                        }
+                    }
+                    
+                    opacity: {
+                        if (Anim.style !== "parallax") return 1.0;
+                        if (isIncoming) return pageArea.progress;
+                        if (isOutgoing) return 1.0 - pageArea.progress;
+                        return 0.0;
+                    }
+                    
+                    visible: isCurrent || (isOutgoing && pageArea.progress < 1.0)
+                }
+
+                VerticalSlidePage {
+                    myIdx: 0
                     GeneralPage { anchors.fill: parent; localScale: root.localScale }
                 }
-                Item {
-                    anchors.fill: parent
-                    visible: root._page === "visuals"
+                VerticalSlidePage {
+                    myIdx: 1
                     VisualsBehaviorPage { anchors.fill: parent; localScale: root.localScale }
                 }
-                Item {
-                    anchors.fill: parent
-                    visible: root._page === "keybinds"
-                    KeybindsPage { 
-                        anchors.fill: parent 
-                    }
+                VerticalSlidePage {
+                    myIdx: 2
+                    KeybindsPage { anchors.fill: parent; localScale: root.localScale }
                 }
-                Item {
-                    anchors.fill: parent
-                    visible: root._page === "data"
+                VerticalSlidePage {
+                    myIdx: 3
                     DataPage { anchors.fill: parent; localScale: root.localScale }
                 }
-                Item {
-                    anchors.fill: parent
-                    visible: root._page === "misc"
+                VerticalSlidePage {
+                    myIdx: 4
                     MiscPage { anchors.fill: parent; localScale: root.localScale }
                 }
             }

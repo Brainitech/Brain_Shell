@@ -12,8 +12,10 @@ Item {
     id: root
 
     property real localScale: 1.0
-    property alias _ssid: PrefsService.hotspotSsid
-    property alias _password: PrefsService.hotspotPassword
+    property string _ssid: PrefsService.hotspotSsid
+    on_SsidChanged: PrefsService.hotspotSsid = _ssid
+    property string _password: PrefsService.hotspotPassword
+    on_PasswordChanged: PrefsService.hotspotPassword = _password
     property bool   _showPass:  false
     property bool   _dirty:     false   // unsaved changes
 
@@ -142,7 +144,7 @@ Item {
                             Behavior on color { ColorAnimation { duration: Anim.fast} }
                             Text { anchors.centerIn: parent; text: "Save"; font.pixelSize: Math.round(12 * localScale); font.weight: Font.Medium; color: Theme.active }
                             HoverHandler { id: saveH; cursorShape: Qt.PointingHandCursor }
-                            MouseArea { anchors.fill: parent; onClicked: PrefsService.saveConfig(); root._dirty = false }
+                            MouseArea { anchors.fill: parent; onClicked: { PrefsService.saveConfig(); root._dirty = false } }
                         }
                     }
                 }

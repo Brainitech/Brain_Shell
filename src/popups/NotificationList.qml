@@ -189,6 +189,7 @@ Item {
                         var ic = card.notification?.appIcon ?? ""
                         if (ic === "") return ""
                         if (ic.startsWith("/")) return "file://" + ic
+                        if (!Quickshell.hasThemeIcon(ic)) return ""
                         return "image://icon/" + ic
                     }
                     fillMode:          Image.PreserveAspectFit

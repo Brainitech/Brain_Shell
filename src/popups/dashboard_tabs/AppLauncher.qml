@@ -182,8 +182,9 @@ Item {
                                     source: {
                                         var s = modelData.icon;
                                         // Tier 1 Fallback: Ask Quickshell for the generic Linux application icon
-                                        if (!s || s.trim() === "") return "image://icon/application-x-executable";
+                                        if (!s || s.trim() === "") return "";
                                         if (s.startsWith("/")) return "file://" + s;
+                                        if (!Quickshell.hasThemeIcon(s)) return "";
                                         return "image://icon/" + s;
                                     }
                                     fillMode: Image.PreserveAspectFit

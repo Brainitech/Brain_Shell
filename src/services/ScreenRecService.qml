@@ -39,17 +39,34 @@ QtObject {
         return "Non"
     }
 
-    // ── Strip hover (open = "capture" | "audio" | "") ─────────────────────────
-    property string openStrip: ""
-    property real popupTargetX: 0
-    property real popupTargetWidth: 0
-
-    property var _stripTimer: Timer {
-        interval: 280
-        onTriggered: root.openStrip = ""
+    // ── Expansion state ─────────────────────────
+    property bool optionsExpanded: false
+    
+    property var _expandTimer: Timer {
+        interval: 250
+        onTriggered: root.optionsExpanded = true
     }
-    function keepStripOpen()      { _stripTimer.stop()    }
-    function scheduleStripClose() { _stripTimer.restart() }
+    
+    property var _closeTimer: Timer {
+        interval: 100
+        onTriggered: root.optionsExpanded = false
+    }
+    
+    function requestExpand() {
+        _closeTimer.stop()
+        if (!optionsExpanded) _expandTimer.restart()
+    }
+    
+    function keepExpanded() {
+        _closeTimer.stop()
+        _expandTimer.stop()
+        root.optionsExpanded = true
+    }
+    
+    function scheduleClose() {
+        _expandTimer.stop()
+        _closeTimer.restart()
+    }
 
     // ── Recording state ───────────────────────────────────────────────────────
     property bool   recording:      false
@@ -248,31 +265,33 @@ QtObject {
     }
 
     function _buildCmd() {
-    var ts  = Qt.formatDateTime(new Date(), "yyyyMMdd_HHmmss")
-    root._currentFile = PrefsService.screenrecSaveDir + "/" + ts + ".mp4"
-    
-    var cmd = "mkdir -p '" + PrefsService.screenrecSaveDir + "' && " +
-              "wf-recorder -c libx264" +
-              " -x yuv420p" +
-              " -r 30" +                       // Limit FPS to 30
-              " -p preset=fast" +              // Faster encoding speed
-              " -p crf=26" +                   // Lower quality/smaller size
-              " -p profile=main" +             // Maximum web/Discord compatibility
-              " -p color_range=tv" +           // Fixes washed out blacks/whites
-              " -p colorspace=bt709" +         // Tags the correct HD color matrix
-              " -p color_primaries=bt709" +
-              " -p color_trc=bt709" +
-              " -f " + root._currentFile
-              
-    if (root._pendingGeometry !== "")
-        cmd += " -g '" + root._pendingGeometry + "'"
+        var ts  = Qt.formatDateTime(new Date(), "yyyyMMdd_HHmmss")
+        root._currentFile = PrefsService.screenrecSaveDir + "/" + ts + ".mp4"
         
-    // Use --audio=DEVICE (matches wf-recorder working script convention) [cite: 48]
-    if ((PrefsService.screenrecAudioMic || PrefsService.screenrecAudioSystem) && root._resolvedAudioDevice !== "")
-        cmd += " --audio=" + root._resolvedAudioDevice
+        var fps = PrefsService.screenrecFramerate > 0 ? PrefsService.screenrecFramerate : 30
         
-    return cmd
-}
+        var cmd = "mkdir -p '" + PrefsService.screenrecSaveDir + "' && " +
+                  "wf-recorder -c libx264" +
+                  " -x yuv420p" +
+                  " -r " + fps +                   // Configurable FPS
+                  " -p preset=fast" +              // Faster encoding speed
+                  " -p crf=26" +                   // Lower quality/smaller size
+                  " -p profile=main" +             // Maximum web/Discord compatibility
+                  " -p color_range=tv" +           // Fixes washed out blacks/whites
+                  " -p colorspace=bt709" +         // Tags the correct HD color matrix
+                  " -p color_primaries=bt709" +
+                  " -p color_trc=bt709" +
+                  " -f " + root._currentFile
+                  
+        if (root._pendingGeometry !== "")
+            cmd += " -g '" + root._pendingGeometry + "'"
+            
+        // Use --audio=DEVICE (matches wf-recorder working script convention)
+        if ((PrefsService.screenrecAudioMic || PrefsService.screenrecAudioSystem) && root._resolvedAudioDevice !== "")
+            cmd += " --audio=" + root._resolvedAudioDevice
+        
+        return cmd
+    }
 
     function _launch() {
         _recProc.command = ["bash", "-c", root._buildCmd()]
@@ -280,15 +299,15 @@ QtObject {
         _recProc.running = true
         root.recording   = true
         root.elapsed     = 0
-        root.openStrip   = ""
+        root.optionsExpanded = false
         if (root._resolvedAudioDevice !== "")
             _startCavaWithSource(root._resolvedAudioDevice)
     }
 
     function startRecording() {
+        root.optionsExpanded = false
         root._pendingGeometry = ""
         root._discarding      = false
-        saveConfig()
         if (PrefsService.screenrecCaptureTarget === "screen") {
             root._resolveAudio()
         } else if (PrefsService.screenrecCaptureTarget === "window") {
@@ -355,7 +374,7 @@ QtObject {
     property var _discardDeleteProc: Process { command: []; running: false }
 
     function cancelSetup() {
-        root.openStrip = ""
+        root.optionsExpanded = false
         ShellState.screenRecord = false
     }
 

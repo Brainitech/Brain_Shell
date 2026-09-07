@@ -8,6 +8,7 @@ QtObject {
     id: root
 
     signal loaded()
+    property bool _loaded: false
 
     property string customAvatarPath: ""
     property bool bootFocusMode: false
@@ -26,7 +27,9 @@ QtObject {
     // ScreenRecService
     property string screenrecCaptureTarget: "region"
     property bool screenrecAudioMic: false
-    property bool screenrecAudioSystem: false
+    property bool screenrecAudioSystem
+    property int screenrecFramerate: 60
+    property bool screenrecHidePointer: false
     property string screenrecSaveDir: Quickshell.env("HOME") + "/Videos"
 
     // Network (Hotspot)
@@ -85,7 +88,8 @@ QtObject {
     function _parse(raw) {
         if (!raw || raw.trim() === "") {
             root.updateHyprlandBlur()
-            root.loaded()
+            root._loaded = true
+                root.loaded()
             return
         }
         try {
@@ -103,6 +107,7 @@ QtObject {
             if (o.screenrecCaptureTarget !== undefined) root.screenrecCaptureTarget = o.screenrecCaptureTarget
             if (o.screenrecAudioMic !== undefined) root.screenrecAudioMic = o.screenrecAudioMic
             if (o.screenrecAudioSystem !== undefined) root.screenrecAudioSystem = o.screenrecAudioSystem
+            if (o.screenrecFramerate !== undefined) root.screenrecFramerate = o.screenrecFramerate
             if (o.screenrecSaveDir !== undefined) root.screenrecSaveDir = o.screenrecSaveDir
             if (o.hotspotSsid !== undefined) root.hotspotSsid = o.hotspotSsid
             if (o.hotspotPassword !== undefined) root.hotspotPassword = o.hotspotPassword
@@ -138,8 +143,51 @@ QtObject {
             if (o.overrideIcon !== undefined) root.overrideIcon = o.overrideIcon
         } catch(e) {}
         root.updateHyprlandBlur()
-        root.loaded()
+        root._loaded = true
+                root.loaded()
     }
+
+        onCustomAvatarPathChanged: if (_loaded) saveConfig()
+    onBootFocusModeChanged: if (_loaded) saveConfig()
+    onDefaultDashboardTabChanged: if (_loaded) saveConfig()
+    onDefaultAudioTabChanged: if (_loaded) saveConfig()
+    onUse24HourTimeChanged: if (_loaded) saveConfig()
+    onAnimStyleChanged: if (_loaded) saveConfig()
+    onAnimSpeedChanged: if (_loaded) saveConfig()
+    onAnimCurveChanged: if (_loaded) saveConfig()
+    onAutoUpdateChanged: if (_loaded) saveConfig()
+    onScreenrecCaptureTargetChanged: if (_loaded) saveConfig()
+    onScreenrecAudioMicChanged: if (_loaded) saveConfig()
+    onScreenrecAudioSystemChanged: if (_loaded) saveConfig()
+    onScreenrecFramerateChanged: if (_loaded) saveConfig()
+    onScreenrecHidePointerChanged: if (_loaded) saveConfig()
+    onScreenrecSaveDirChanged: if (_loaded) saveConfig()
+    onHotspotSsidChanged: if (_loaded) saveConfig()
+    onHotspotPasswordChanged: if (_loaded) saveConfig()
+    onBarEnabledChanged: if (_loaded) saveConfig()
+    onBorderWidthChanged: if (_loaded) saveConfig()
+    onCornerRadiusChanged: if (_loaded) saveConfig()
+    onGlobalHoverModeChanged: if (_loaded) saveConfig()
+    onHoverDashboardChanged: if (_loaded) saveConfig()
+    onHoverNetworkChanged: if (_loaded) saveConfig()
+    onHoverAudioChanged: if (_loaded) saveConfig()
+    onHoverQuickChanged: if (_loaded) saveConfig()
+    onHoverArchMenuChanged: if (_loaded) saveConfig()
+    onHoverNotificationsChanged: if (_loaded) saveConfig()
+    onHoverClipboardChanged: if (_loaded) saveConfig()
+    onHoverWallpaperChanged: if (_loaded) saveConfig()
+    onHoverOpenDelayChanged: if (_loaded) saveConfig()
+    onHoverCloseDelayChanged: if (_loaded) saveConfig()
+    onDynamicThemeOverrideChanged: if (_loaded) saveConfig()
+    onDarkModeChanged: if (_loaded) saveConfig()
+    onBgOpacityChanged: if (_loaded) saveConfig()
+    onOverrideBgChanged: if (_loaded) saveConfig()
+    onOverrideBorderChanged: if (_loaded) saveConfig()
+    onOverrideActiveChanged: if (_loaded) saveConfig()
+    onOverrideIconFontChanged: if (_loaded) saveConfig()
+    onOverrideTextChanged: if (_loaded) saveConfig()
+    onOverrideSubtextChanged: if (_loaded) saveConfig()
+    onOverrideIconChanged: if (_loaded) saveConfig()
 
     function saveConfig() {
         var path = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/shell_prefs.json"
@@ -156,6 +204,7 @@ QtObject {
             screenrecCaptureTarget: root.screenrecCaptureTarget,
             screenrecAudioMic: root.screenrecAudioMic,
             screenrecAudioSystem: root.screenrecAudioSystem,
+            screenrecFramerate: root.screenrecFramerate,
             screenrecSaveDir: root.screenrecSaveDir,
             hotspotSsid: root.hotspotSsid,
             hotspotPassword: root.hotspotPassword,

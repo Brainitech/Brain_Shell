@@ -36,7 +36,7 @@ QtObject {
             onRead: function(line) {
                 var h = line.trim()
                 if (h !== "")
-                    colorsFile.path = h + "/.cache/brain-shell/colors.json"
+                    colorsFile.path = h + "/.config/Brain_Shell/matugen/colors.json"
             }
         }
     }

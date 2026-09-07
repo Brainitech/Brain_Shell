@@ -3,8 +3,8 @@
 
 [templates.brain_shell]
 input_path = './brain-shell-colors.json.example'
-output_path = '~/.cache/brain-shell/colors.json'
+output_path = '~/.config/Brain_Shell/matugen/colors.json'
 
 [templates.hyprland_colors]
 input_path = "colors.conf.template"
-output_path = "colors.conf"
+output_path = "~/.config/Brain_Shell/matugen/colors.conf"

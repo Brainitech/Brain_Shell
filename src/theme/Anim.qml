@@ -16,18 +16,15 @@ QtObject {
 
 
     function setStyle(newStyle) {
-        root.style = newStyle
-        PrefsService.saveConfig()
+        PrefsService.animStyle = newStyle
     }
     
     function setSpeedMultiplier(val) {
-        root.speedMultiplier = val
-        PrefsService.saveConfig()
+        PrefsService.animSpeed = val
     }
     
     function setCurve(val) {
-        root.curveStyle = val
-        PrefsService.saveConfig()
+        PrefsService.animCurve = val
     }
 
     // Standard durations automatically scaled by speedMultiplier

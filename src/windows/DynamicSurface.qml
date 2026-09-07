@@ -324,7 +324,7 @@ PanelWindow {
         centerNotchHeight: {
             if (ShellState.focusMode && !SurfaceState.isTopExpanded) return 0.001;
             if (SurfaceState.isTopExpanded) return Math.round(Theme.dashboardHeight * root.localScale);
-            if (ScreenRecService.openStrip !== "") return Math.round(Theme.notchHeight * root.localScale) + screenRecOptionsPopupView.height + Math.round(16 * root.localScale);
+            if (ShellState.screenRecord && !ScreenRecService.recording && ScreenRecService.optionsExpanded) return Math.round(Theme.notchHeight * root.localScale) + screenRecOptionsPopupView.height + Math.round(16 * root.localScale);
             return Math.round(Theme.notchHeight * root.localScale);
         }
         rightNotchWidth: {
@@ -615,7 +615,7 @@ PanelWindow {
         id: screenRecOptionsPopupView
         localScale: root.localScale
         x: ScreenRecService.popupTargetX + (ScreenRecService.popupTargetWidth / 2) - (width / 2)
-        y: Math.round(25 * root.localScale) + Math.round(Theme.notchHeight * root.localScale)
+        y: Math.round(8 * root.localScale) + Math.round(Theme.notchHeight * root.localScale)
         z: 999
     }
 
@@ -625,8 +625,12 @@ PanelWindow {
         focus: SurfaceState.activeSurface !== "none" || (ShellState.screenRecord && !ScreenRecService.recording)
 
         Keys.onEscapePressed: {
+            if (ScreenRecService.optionsExpanded) {
+                ScreenRecService.optionsExpanded = false
+            } else if (ShellState.screenRecord && !ScreenRecService.recording) {
+                ScreenRecService.cancelSetup()
+            }
             SurfaceState.close()
-            ScreenRecService.cancelSetup()
         }
     }
 

@@ -20,7 +20,8 @@ import "../"
 QtObject {
     id: root
 
-    // ── Persisted options ─────────────────────────────────────────────────────
+    property real popupTargetX: 0
+    property real popupTargetWidth: 0
     
     
     

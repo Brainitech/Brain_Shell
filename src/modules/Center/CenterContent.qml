@@ -563,183 +563,68 @@ Item {
 							}
 						}
 
-						// ── Record setup — strip buttons + Record button ───────────────
+						// ── Record setup ───────────────
 						Item {
-							anchors{
+							anchors {
 								fill: parent
 								leftMargin: root.fw/2
 								rightMargin: root.fw/2
 							}
+							visible: modelData === "record_setup"
 							
-							visible:      modelData === "record_setup"
+							Item {
+								id: compactStrip
+								anchors.fill: parent
 
-							Row {
-								anchors { fill: parent; leftMargin: Math.round(8 * localScale); rightMargin: Math.round(8 * localScale) }
-								spacing: Math.round(6 * localScale)
-
-								// ── Capture strip button ───────────────────────────────
-								Item {
-									anchors.verticalCenter: parent.verticalCenter
-									width:  csRow.implicitWidth + Math.round(14 * localScale)
-									height: Math.round(22 * localScale)
-
-									Rectangle {
-										anchors.fill: parent
-										radius:       height / 2
-										color: ScreenRecService.openStrip === "capture"
-										? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
-										: csH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
-										border.color: ScreenRecService.openStrip === "capture"
-										? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.3)
-										: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1)
-										border.width: 1
-										Behavior on color        { ColorAnimation { duration: Anim.fast} }
-										Behavior on border.color { ColorAnimation { duration: Anim.fast} }
-									}
-									Row {
-										id: csRow
-										anchors.centerIn: parent
-										spacing: Math.round(5 * localScale)
-										Text {
-											text: ScreenRecService.captureIcon
-											font.pixelSize: Math.round(13 * localScale)
-											color: ScreenRecService.openStrip === "capture"
-											? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.7)
-											anchors.verticalCenter: parent.verticalCenter
-											Behavior on color { ColorAnimation { duration: Anim.fast} }
-										}
-										Text {
-											text: ScreenRecService.captureLabel
-											font.pixelSize: Math.round(11 * localScale)
-											color: ScreenRecService.openStrip === "capture"
-											? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.7)
-											anchors.verticalCenter: parent.verticalCenter
-											Behavior on color { ColorAnimation { duration: Anim.fast} }
-										}
-										Text {
-											text: "▾"; font.pixelSize: Math.round(8 * localScale)
-											color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.35)
-											anchors.verticalCenter: parent.verticalCenter
-										}
-									}
-									HoverHandler {
-										id: csH
-										onHoveredChanged: {
-											if (hovered) {
-												var pos = parent.mapToItem(null, 0, 0)
-												ScreenRecService.popupTargetX = pos.x
-												ScreenRecService.popupTargetWidth = parent.width
-
-												ScreenRecService.openStrip = "capture"
-												ScreenRecService.keepStripOpen()
-											} else {
-												ScreenRecService.scheduleStripClose()
-											}
-										}
-									}
-								}
-
-								// ── Audio strip button ─────────────────────────────────
-								Item {
-									anchors.verticalCenter: parent.verticalCenter
-									width:  asRow.implicitWidth + Math.round(14 * localScale)
-									height: Math.round(22 * localScale)
-
-									Rectangle {
-										anchors.fill: parent
-										radius:       height / 2
-										color: ScreenRecService.openStrip === "audio"
-										? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
-										: asH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
-										border.color: ScreenRecService.openStrip === "audio"
-										? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.3)
-										: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1)
-										border.width: 1
-										Behavior on color        { ColorAnimation { duration: Anim.fast} }
-										Behavior on border.color { ColorAnimation { duration: Anim.fast} }
-									}
-									Row {
-										id: asRow
-										anchors.centerIn: parent
-										spacing: Math.round(5 * localScale)
-										Text {
-											text: "🎙"; font.pixelSize: Math.round(12 * localScale)
-											anchors.verticalCenter: parent.verticalCenter
-										}
-										Text {
-											text: ScreenRecService.audioLabel
-											font.pixelSize: Math.round(11 * localScale)
-											color: ScreenRecService.openStrip === "audio"
-											? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.7)
-											anchors.verticalCenter: parent.verticalCenter
-											Behavior on color { ColorAnimation { duration: Anim.fast} }
-										}
-										Text {
-											text: "▾"; font.pixelSize: Math.round(8 * localScale)
-											color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.35)
-											anchors.verticalCenter: parent.verticalCenter
-										}
-									}
-									HoverHandler {
-										id: asH
-										onHoveredChanged: {
-											if (hovered) {
-												var pos = parent.mapToItem(null, 0, 0)
-												ScreenRecService.popupTargetX = pos.x
-												ScreenRecService.popupTargetWidth = parent.width
-
-												ScreenRecService.openStrip = "audio"
-												ScreenRecService.keepStripOpen()
-											} else {
-												ScreenRecService.scheduleStripClose()
-											}
-										}
-									}
-								}
-
-								// Flexible spacer
-								Item {
-									anchors.verticalCenter: parent.verticalCenter
-									height: 1
-									width: parent.width
-									- csRow.implicitWidth - Math.round(14 * localScale)
-									- asRow.implicitWidth - Math.round(14 * localScale)
-									- recBtnLabel.implicitWidth - Math.round(24 * localScale)
-									- parent.spacing * 3
-								}
-
-								// ── Record button ──────────────────────────────────────
 								Rectangle {
+									anchors.left: parent.left
+									anchors.leftMargin: Math.round(10 * localScale)
+									width: Math.round(8 * localScale); height: Math.round(8 * localScale); radius: width / 2
+									color: dotH.hovered ? "#ff6666" : "#ff4444"
 									anchors.verticalCenter: parent.verticalCenter
-									width:  recBtnLabel.implicitWidth + Math.round(24 * localScale)
-									height: Math.round(22 * localScale)
-									radius: height / 2
-									color:  recBtnH.hovered
-									? Qt.rgba(0.9, 0.2, 0.2, 0.85)
-									: Qt.rgba(0.8, 0.1, 0.1, 0.7)
-									Behavior on color { ColorAnimation { duration: Anim.fast} }
-									Row {
-										anchors.centerIn: parent
-										spacing: Math.round(5 * localScale)
-										Rectangle {
-											width: Math.round(7 * localScale); height: Math.round(7 * localScale); radius: Math.round(4 * localScale)
-											color: "#ffffff"
-											anchors.verticalCenter: parent.verticalCenter
-										}
-										Text {
-											id: recBtnLabel
-											text: "Record"
-											font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium
-											color: "#ffffff"
-											anchors.verticalCenter: parent.verticalCenter
+									
+									HoverHandler { id: dotH; cursorShape: Qt.PointingHandCursor }
+									MouseArea {
+										anchors.fill: parent
+										onClicked: {
+											if (!ScreenRecService.recording) {
+												var pos = compactStrip.mapToItem(null, 0, 0)
+												ScreenRecService.popupTargetX = pos.x
+												ScreenRecService.popupTargetWidth = compactStrip.width
+												ScreenRecService.optionsExpanded = !ScreenRecService.optionsExpanded
+											}
 										}
 									}
-									HoverHandler { id: recBtnH}
-									MouseArea { anchors.fill: parent;cursorShape: Qt.PointingHandCursor; onClicked: ScreenRecService.startRecording() }
+								}
+
+								// Record Button (Center)
+								Rectangle {
+									anchors.centerIn: parent
+									width: Math.round(76 * localScale); height: Math.round(22 * localScale); radius: height / 2
+									color: recBtnH.hovered ? Qt.rgba(0.9, 0.2, 0.2, 0.85) : Qt.rgba(0.8, 0.1, 0.1, 0.7)
+									Behavior on color { ColorAnimation { duration: Anim.fast} }
+									Text { text: "Record"; font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium; color: "#ffffff"; anchors.centerIn: parent }
+									HoverHandler { id: recBtnH }
+									MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ScreenRecService.startRecording() }
+								}
+
+								// Cancel Button (Extreme Right)
+								Item {
+									anchors.right: parent.right
+									anchors.rightMargin: Math.round(10 * localScale)
+									width: Math.round(24 * localScale); height: Math.round(24 * localScale)
+									anchors.verticalCenter: parent.verticalCenter
+									Rectangle {
+										anchors.fill: parent; radius: width / 2
+										color: cancelH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12) : "transparent"
+										Behavior on color { ColorAnimation { duration: Anim.fast } }
+									}
+									Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: Math.round(10 * localScale); color: Theme.subtext }
+									HoverHandler { id: cancelH }
+									MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: ScreenRecService.cancelSetup() }
 								}
 							}
 						}
-
 						// ── Record active — ● (Left) | Timer + Cava (Center) | Trash + Stop (Right) ──
 						Item {
 							anchors{

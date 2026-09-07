@@ -14,6 +14,14 @@ Item {
         anchors.fill: parent
         enabled: root.isActive
         acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onClicked: SurfaceState.close()
+        onClicked: (mouse) => {
+            if (ScreenRecService.optionsExpanded) {
+                if (mouse.y > 100) {
+                    ScreenRecService.optionsExpanded = false
+                }
+            } else {
+                SurfaceState.close()
+            }
+        }
     }
 }

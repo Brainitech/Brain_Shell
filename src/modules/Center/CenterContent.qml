@@ -227,7 +227,13 @@ Item {
 			height: Math.round((Theme.notchHeight + 3) * localScale)
 			
 			onClicked: {
-				if (ShellState.screenRecord && !ScreenRecService.recording) return
+				if (ShellState.screenRecord && !ScreenRecService.recording) {
+					var pos = root.mapToItem(null, 0, 0)
+					ScreenRecService.popupTargetX = pos.x
+					ScreenRecService.popupTargetWidth = root.width
+					ScreenRecService.optionsExpanded = !ScreenRecService.optionsExpanded
+					return
+				}
 				var next = !Popups.dashboardOpen
 				Popups.closeAll()
 				SurfaceState.toggle("top", "dashboard")
@@ -580,21 +586,8 @@ Item {
 									anchors.left: parent.left
 									anchors.leftMargin: Math.round(10 * localScale)
 									width: Math.round(8 * localScale); height: Math.round(8 * localScale); radius: width / 2
-									color: dotH.hovered ? "#ff6666" : "#ff4444"
+									color: "#ff4444"
 									anchors.verticalCenter: parent.verticalCenter
-									
-									HoverHandler { id: dotH; cursorShape: Qt.PointingHandCursor }
-									MouseArea {
-										anchors.fill: parent
-										onClicked: {
-											if (!ScreenRecService.recording) {
-												var pos = compactStrip.mapToItem(null, 0, 0)
-												ScreenRecService.popupTargetX = pos.x
-												ScreenRecService.popupTargetWidth = compactStrip.width
-												ScreenRecService.optionsExpanded = !ScreenRecService.optionsExpanded
-											}
-										}
-									}
 								}
 
 								// Record Button (Center)
@@ -762,6 +755,12 @@ Item {
 
 
 			HoverHandler {
-				onHoveredChanged: Popups.dashboardTriggerHovered = hovered
+				onHoveredChanged: {
+					Popups.dashboardTriggerHovered = hovered
+					if (ShellState.screenRecord && !ScreenRecService.recording && PrefsService.globalHoverMode && PrefsService.hoverDashboard) {
+						if (hovered) ScreenRecService.requestExpand()
+						else ScreenRecService.scheduleClose()
+					}
+				}
 			}
 		}

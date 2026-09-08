@@ -15,7 +15,7 @@ Item {
     
     width: ScreenRecService.popupTargetWidth > 0 ? ScreenRecService.popupTargetWidth : Math.round(340 * localScale)
     
-    readonly property int tileW: Math.floor((width - Math.round(16 * localScale) - (gap * 2)) / 3) // 16px is 8px left + 8px right padding on StatCard
+    readonly property int tileW: Math.floor((width - (gap * 2) - Math.round(16 * localScale) - (gap * 2)) / 3)
     readonly property int targetTileH: Math.round(54 * localScale)
     readonly property int audioFpsTileH: Math.round(42 * localScale)
     
@@ -39,6 +39,8 @@ Item {
 
     Item {
         anchors.fill: parent
+        anchors.leftMargin: root.gap
+        anchors.rightMargin: root.gap
         transform: Translate { y: root.expandOffset }
 
         MouseArea { anchors.fill: parent }

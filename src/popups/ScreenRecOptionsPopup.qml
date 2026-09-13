@@ -44,6 +44,12 @@ Item {
         transform: Translate { y: root.expandOffset }
 
         MouseArea { anchors.fill: parent }
+        HoverHandler {
+            onHoveredChanged: {
+                if (hovered) ScreenRecService.keepExpanded()
+                else ScreenRecService.scheduleClose()
+            }
+        }
 
         // Target Card
         StatCard {

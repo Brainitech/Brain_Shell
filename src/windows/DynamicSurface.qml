@@ -31,70 +31,23 @@ PanelWindow {
     
     color: "transparent"
 
-    // --- GLOBAL HOVER MANAGER ---
-    property bool _anyTriggerHovered: Popups.dashboardTriggerHovered || Popups.archMenuTriggerHovered || Popups.audioTriggerHovered || Popups.networkTriggerHovered || Popups.notificationsTriggerHovered || Popups.wallpaperTriggerHovered || Popups.quickTriggerHovered || Popups.clipboardTriggerHovered
-    
-    property bool _activeSurfaceHovered: {
-        if (SurfaceState.activeSurface === "top") return centerNotchHover.hovered || leftNotchHover.hovered || rightNotchHover.hovered;
-        if (SurfaceState.activeSurface === "leftCenter") return leftCenterNotchHover.hovered;
-        if (SurfaceState.activeSurface === "right") return rightNotchHover.hovered;
-        if (SurfaceState.activeSurface === "rightCenter") return rightCenterNotchHover.hovered;
-        if (SurfaceState.activeSurface === "bottomCenter") return bottomCenterNotchHover.hovered;
-        if (SurfaceState.activeSurface === "bottomRight") return bottomRightNotchHover.hovered;
-        return false;
+    // --- INPUT MANAGER ---
+    SurfaceInputManager {
+        id: inputManager
+        anchors.fill: parent
+        localScale: root.localScale
+        surfaceShape: surfaceShape
+        clickShield: clickShield
+        screenRecord: ShellState.screenRecord
+        screenRecording: ScreenRecService.recording
+        optionsExpanded: ScreenRecService.optionsExpanded
+        isTopHovered: leftNotchHover.hovered || centerNotchHover.hovered || rightNotchHover.hovered
+        isRightHovered: rightNotchHover.hovered
+        isLeftCenterHovered: leftCenterNotchHover.hovered
+        isRightCenterHovered: rightCenterNotchHover.hovered
+        isBottomCenterHovered: bottomCenterNotchHover.hovered
+        isBottomRightHovered: bottomRightNotchHover.hovered
     }
-
-    on_AnyTriggerHoveredChanged: {
-        if (_anyTriggerHovered) {
-            hoverCloseTimer.stop()
-            hoverOpenTimer.restart()
-        } else {
-            hoverOpenTimer.stop()
-            if (!_activeSurfaceHovered) hoverCloseTimer.restart()
-        }
-    }
-
-    on_ActiveSurfaceHoveredChanged: {
-        if (!_anyTriggerHovered && !_activeSurfaceHovered) {
-            hoverCloseTimer.restart()
-        } else {
-            hoverCloseTimer.stop()
-        }
-    }
-
-    Timer {
-        id: hoverOpenTimer
-        interval: Popups.hoverOpenDelay
-        onTriggered: {
-            if (Popups.dashboardTriggerHovered && Popups.dashboardAllowHover) { Popups.closeAll(); SurfaceState.open("top", "dashboard") }
-            else if (Popups.archMenuTriggerHovered && Popups.archMenuAllowHover) { Popups.closeAll(); SurfaceState.open("leftCenter", "archMenu") }
-            else if (Popups.audioTriggerHovered && Popups.audioAllowHover) { Popups.closeAll(); SurfaceState.open("rightCenter", "audio") }
-            else if (Popups.networkTriggerHovered && Popups.networkAllowHover) { Popups.closeAll(); SurfaceState.open("right", "network") } 
-            else if (Popups.notificationsTriggerHovered && Popups.notificationsAllowHover) { Popups.closeAll(); SurfaceState.open("right", "notifications") }
-            else if (Popups.wallpaperTriggerHovered && Popups.wallpaperAllowHover) { Popups.closeAll(); SurfaceState.open("bottomCenter", "wallpaper") }
-            else if (Popups.quickTriggerHovered && Popups.quickAllowHover) { Popups.closeAll(); SurfaceState.open("rightCenter", "quick") }
-            else if (Popups.clipboardTriggerHovered && Popups.clipboardAllowHover) { Popups.closeAll(); SurfaceState.open("bottomRight", "clipboard") }
-        }
-    }
-
-    Timer {
-        id: hoverCloseTimer
-        interval: Popups.hoverCloseDelay
-        onTriggered: {
-            if (!_anyTriggerHovered && !_activeSurfaceHovered && !Popups.colorPickerActive) {
-                if (SurfaceState.activeContent === "dashboard" && Popups.dashboardPinned) return;
-                if (SurfaceState.activeContent === "archMenu" && Popups.archMenuPinned) return;
-                if (SurfaceState.activeContent === "audio" && Popups.audioPinned) return;
-                if (SurfaceState.activeContent === "network" && Popups.networkPinned) return;
-                if (SurfaceState.activeContent === "notifications" && Popups.notificationsPinned) return;
-                if (SurfaceState.activeContent === "wallpaper" && Popups.wallpaperPinned) return;
-                if (SurfaceState.activeContent === "quick" && Popups.quickPinned) return;
-                if (SurfaceState.activeContent === "clipboard" && Popups.clipboardPinned) return;
-                SurfaceState.close();
-            }
-        }
-    }
-
     
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "brain-shell-frame"
@@ -103,145 +56,6 @@ PanelWindow {
     // --- CLICK SHIELD ---
     ClickShield { id: clickShield }
 
-    // --- MASK PROXIES ---
-    // These track the exact boundaries so clicks pass through to Hyprland when empty
-    Item { id: topMask; width: parent.width; height: surfaceShape.frameThickness }
-    Item { id: bottomMask; width: parent.width; height: surfaceShape.frameThickness; anchors.bottom: parent.bottom }
-    Item { id: leftMask; width: surfaceShape.frameThickness; height: parent.height }
-    Item { id: rightMask; width: surfaceShape.frameThickness; height: parent.height; anchors.right: parent.right }
-    
-    Item { 
-        id: leftNotchMask
-        width: surfaceShape.leftNotchWidth
-        height: surfaceShape.leftNotchHeight
-        x: 0
-    }
-    Item { 
-        id: centerNotchMask
-        width: surfaceShape.centerNotchWidth
-        height: surfaceShape.centerNotchHeight
-        anchors.horizontalCenter: parent.horizontalCenter
-    }
-    Item { 
-        id: rightNotchMask
-        width: surfaceShape.rightNotchWidth
-        height: surfaceShape.rightNotchHeight
-        anchors.right: parent.right
-    }
-
-    Item { 
-        id: leftCenterNotchMask
-        width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : surfaceShape.frameThickness
-        height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * root.localScale)
-        x: 0
-        anchors.verticalCenter: parent.verticalCenter
-        MouseArea { 
-            anchors.fill: parent
-            // Action will be added in the future
-            onClicked: {}
-        }
-        HoverHandler {
-            onHoveredChanged: Popups.archMenuTriggerHovered = hovered
-        }
-    }
-    Item { 
-        id: rightCenterNotchMask
-        width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : surfaceShape.frameThickness
-        height: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * root.localScale)
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        MouseArea { 
-            anchors.fill: parent
-            // Action will be added in the future
-            onClicked: {}
-        }
-        HoverHandler {
-            id: rcHover
-            onHoveredChanged: {
-                Popups.quickTriggerHovered = Popups.audioOpen ? false : hovered  
-                Popups.audioTriggerHovered = hovered
-            }
-        }
-        Connections {
-            target: Popups
-            function onAudioOpenChanged() {
-                Popups.quickTriggerHovered = Popups.audioOpen ? false : rcHover.hovered
-            }
-        }
-    }
-    Item { 
-        id: bottomCenterNotchMask
-        width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * root.localScale)
-        height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : surfaceShape.frameThickness
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        TapHandler { 
-            onTapped: SurfaceState.toggle("bottomCenter", "wallpaper") 
-        }
-        HoverHandler {
-            onHoveredChanged: Popups.wallpaperTriggerHovered = hovered
-        }
-    }
-    Item { 
-        id: bottomRightNotchMask
-        width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * root.localScale)
-        height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : surfaceShape.frameThickness
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-        TapHandler { 
-            onTapped: SurfaceState.toggle("bottomRight", "clipboard") 
-        }
-        HoverHandler {
-            onHoveredChanged: Popups.clipboardTriggerHovered = hovered
-        }
-    }
-
-    Region {
-        id: frameRegion
-        Region { item: topMask }
-        Region { item: bottomMask }
-        Region { item: leftMask }
-        Region { item: rightMask }
-        
-        // Top Notches (Always visible base)
-        Region {
-            x: 0; y: 0
-            width: surfaceShape.leftNotchWidth
-            height: surfaceShape.leftNotchHeight
-        }
-        Region {
-            x: root.width / 2 - (surfaceShape.centerNotchWidth / 2); y: 0
-            width: surfaceShape.centerNotchWidth
-            height: surfaceShape.centerNotchHeight
-        }
-        Region {
-            x: root.width - surfaceShape.rightNotchWidth; y: 0
-            width: surfaceShape.rightNotchWidth
-            height: surfaceShape.rightNotchHeight
-        }
-        
-        // Dynamic Side/Bottom Notches (Hidden when closed via > 1 check to avoid blurring edge artifacts)
-        Region {
-            x: 0; y: root.height / 2 - (surfaceShape.lcnHeight / 2)
-            width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : 0
-            height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : 0
-        }
-        Region {
-            x: root.width - surfaceShape.rcnDepth; y: root.height / 2 - (surfaceShape.rcnHeight / 2)
-            width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : 0
-            height: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : 0
-        }
-        Region {
-            x: root.width / 2 - (surfaceShape.bcnWidth / 2); y: root.height - surfaceShape.bcnDepth
-            width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : 0
-            height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : 0
-        }
-        Region {
-            x: root.width - surfaceShape.brnWidth; y: root.height - surfaceShape.brnDepth
-            width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : 0
-            height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : 0
-        }
-    }
 
     Region {
         id: fullRegion
@@ -254,19 +68,29 @@ PanelWindow {
     BackgroundEffect.blurRegion: PrefsService.bgBlur ? fullRegion : null
 
     // Mask logic: Combine frame borders + active notches + click shield. 
-    mask: Region { 
+    mask: Region {
         Region { item: clickShield.isActive ? clickShield : null }
-        Region { item: topMask }
-        Region { item: bottomMask }
-        Region { item: leftMask }
-        Region { item: rightMask }
-        Region { item: leftNotchMask }
-        Region { item: centerNotchMask }
-        Region { item: rightNotchMask }
-        Region { item: leftCenterNotchMask }
-        Region { item: rightCenterNotchMask }
-        Region { item: bottomCenterNotchMask }
-        Region { item: bottomRightNotchMask }
+        
+        // Top and Bottom frame borders
+        Region { x: 0; y: 0; width: root.width; height: surfaceShape.frameThickness }
+        Region { x: 0; y: root.height - surfaceShape.frameThickness; width: root.width; height: surfaceShape.frameThickness }
+        
+        // Left and Right frame borders
+        Region { x: 0; y: 0; width: surfaceShape.frameThickness; height: root.height }
+        Region { x: root.width - surfaceShape.frameThickness; y: 0; width: surfaceShape.frameThickness; height: root.height }
+        
+        // Top Notches
+        Region { x: 0; y: 0; width: surfaceShape.leftNotchWidth; height: surfaceShape.leftNotchHeight }
+        Region { x: root.width / 2 - surfaceShape.centerNotchWidth / 2; y: 0; width: surfaceShape.centerNotchWidth; height: surfaceShape.centerNotchHeight }
+        Region { x: root.width - surfaceShape.rightNotchWidth; y: 0; width: surfaceShape.rightNotchWidth; height: surfaceShape.rightNotchHeight }
+        
+        // Side Notches
+        Region { x: 0; y: root.height / 2 - (surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * root.localScale)) / 2; width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : surfaceShape.frameThickness; height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * root.localScale) }
+        Region { x: root.width - (surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : surfaceShape.frameThickness); y: root.height / 2 - (surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * root.localScale)) / 2; width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : surfaceShape.frameThickness; height: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * root.localScale) }
+        
+        // Bottom Notches
+        Region { x: root.width / 2 - (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * root.localScale)) / 2; y: root.height - (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : surfaceShape.frameThickness); width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * root.localScale); height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : surfaceShape.frameThickness }
+        Region { x: root.width - (surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * root.localScale)); y: root.height - (surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : surfaceShape.frameThickness); width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * root.localScale); height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : surfaceShape.frameThickness }
     }
 
     // --- VECTOR GEOMETRY ---
@@ -420,6 +244,13 @@ PanelWindow {
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         }
+    ScreenRecOptionsPopup {
+        id: screenRecOptionsPopupView
+        localScale: root.localScale
+        x: ScreenRecService.popupTargetX + (ScreenRecService.popupTargetWidth / 2) - (width / 2) - parent.x
+        y: Math.round(8 * root.localScale) + Math.round(Theme.notchHeight * root.localScale)
+        z: 999
+    }
     }
 
     Item {
@@ -611,36 +442,4 @@ PanelWindow {
         }
     }
 
-    ScreenRecOptionsPopup {
-        id: screenRecOptionsPopupView
-        localScale: root.localScale
-        x: ScreenRecService.popupTargetX + (ScreenRecService.popupTargetWidth / 2) - (width / 2)
-        y: Math.round(8 * root.localScale) + Math.round(Theme.notchHeight * root.localScale)
-        z: 999
-    }
-
-    // --- GLOBAL ESCAPE HANDLER ---
-    Item {
-        anchors.fill: parent
-        focus: SurfaceState.activeSurface !== "none" || (ShellState.screenRecord && !ScreenRecService.recording)
-
-        Keys.onEscapePressed: {
-            if (ScreenRecService.optionsExpanded) {
-                ScreenRecService.optionsExpanded = false
-            } else if (ShellState.screenRecord && !ScreenRecService.recording) {
-                ScreenRecService.cancelSetup()
-            }
-            SurfaceState.close()
-        }
-    }
-
-    // --- HYPRLAND EVENT DISMISS ---
-    Connections {
-        target: Hyprland
-        function onRawEvent(event) {
-            if (event.name === "workspace" || event.name === "activemonitor" || event.name === "activespecial" || event.name === "openwindow") {
-                SurfaceState.close()
-            }
-        }
-    }
 }

@@ -19,6 +19,7 @@ QtObject {
     id: root
 
     property bool   active:     true
+    property bool   hasNvidia:  false
     property real   cpuTemp:    0
     property real   gpuTemp:    0
     property int    fan1Rpm:    0
@@ -36,6 +37,13 @@ QtObject {
         stdout: StdioCollector {
             onStreamFinished: root._parse(text)
         }
+    }
+
+    // ── Nvidia check ──────────────────────────────────────────────────────────
+    property var _nvCheckProc: Process {
+        command: ["sh", "-c", "lspci | grep -iE 'vga|3d' | grep -iq nvidia"]
+        running: true
+        onExited: (code) => { root.hasNvidia = (code === 0) }
     }
 
     // ── nvidia-smi GPU temp ───────────────────────────────────────────────────
@@ -68,8 +76,10 @@ QtObject {
     function _run() {
         _proc.running   = false
         _proc.running   = true
-        _nvProc.running = false
-        _nvProc.running = true
+        if (root.hasNvidia) {
+            _nvProc.running = false
+            _nvProc.running = true
+        }
     }
 
     function _parse(text) {

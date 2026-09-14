@@ -25,9 +25,9 @@ QtObject {
     property bool available: false
 
     property var _checkProc: Process {
-        command: ["sh", "-c", "command -v envycontrol"]
+        command: ["sh", "-c", "lspci | grep -iE \'vga|3d\' | grep -iq nvidia"]
         running: true
-        onExited: (code) => { root.available = (code === 0) }
+        onExited: (code) => { { root.available = (code === 0) } }
     }
 
     // Pending mode — held until we confirm the switch succeeded
@@ -39,7 +39,11 @@ QtObject {
         stdout: StdioCollector {
             onStreamFinished: {
                 var mode = text.trim().toLowerCase()
-                if (mode !== "") root.currentMode = mode
+                if (mode === "integrated" || mode === "hybrid" || mode === "nvidia") {
+                    root.currentMode = mode
+                } else {
+                    root.currentMode = "integrated"
+                }
             }
         }
     }

@@ -23,7 +23,7 @@ QtObject {
     property bool available: false
 
     property var _checkProc: Process {
-        command: ["sh", "-c", "command -v nbfc"]
+        command: ["sh", "-c", "nbfc status >/dev/null 2>&1"]
         running: true
         onExited: (code) => { root.available = (code === 0) }
     }

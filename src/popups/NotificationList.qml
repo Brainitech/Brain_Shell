@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell.Services.Notifications
 import "../services"
 import "../"
-import "../"
 
 // ─────────────────────────────────────────────────────────────
 // NotificationList — content panel for NotificationsPopup
@@ -25,7 +24,7 @@ Item {
         height: 44
 
         Text {
-            anchors { horizontalCenter: parent.horizontalCenter; leftMargin: 16; verticalCenter: parent.verticalCenter }
+            anchors { horizontalCenter: parent.horizontalCenter; verticalCenter: parent.verticalCenter }
             text:           "Notifications"
             color:          Theme.text
             font.pixelSize: 14

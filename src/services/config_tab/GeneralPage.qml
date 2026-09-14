@@ -7,7 +7,6 @@ Item {
     id: root
     property real localScale: 1.0
     
-    // Replaced local path validator with SettingsButton's built-in validation.
 
     Flickable {
         anchors.fill: parent

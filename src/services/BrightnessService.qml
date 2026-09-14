@@ -7,7 +7,6 @@ QtObject {
     id: root
     
     property int brightness: 0
-    property int maxBrightness: 100
     
     function setBrightness(v) {
         brightWrite.command = ["brightnessctl", "set", v + "%"]

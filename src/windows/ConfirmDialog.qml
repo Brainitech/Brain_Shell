@@ -5,7 +5,6 @@ import Quickshell.Io
 import "../"
 import "../services/"
 
-// Unified confirmation modal — replaces GfxWarning.qml.
 // Driven entirely by Popups.confirm* props.
 // Call Popups.showConfirm() to open, Popups.cancelConfirm() to close.
 //

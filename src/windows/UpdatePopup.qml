@@ -224,7 +224,6 @@ PanelWindow {
                 Row {
                     spacing: Math.round(8 * localScale)
 
-                    // Update Now
                     Rectangle {
                         width: Math.round(108 * localScale); height: Math.round(30 * localScale); radius: Math.round(8 * localScale)
                         color: uH.hovered
@@ -243,7 +242,6 @@ PanelWindow {
                         MouseArea { anchors.fill: parent; onClicked: UpdateService.applyUpdate() }
                     }
 
-                    // Skip (dismiss this check)
                     Rectangle {
                         width: Math.round(58 * localScale); height: Math.round(30 * localScale); radius: Math.round(8 * localScale)
                         color:        skH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
@@ -254,7 +252,6 @@ PanelWindow {
                         MouseArea { anchors.fill: parent; onClicked: UpdateService.dismiss() }
                     }
 
-                    // Disable auto-update
                     Rectangle {
                         width: Math.round(82 * localScale); height: Math.round(30 * localScale); radius: Math.round(8 * localScale)
                         color:        disH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06) : "transparent"
@@ -306,7 +303,6 @@ PanelWindow {
                 Row {
                     spacing: Math.round(8 * localScale)
 
-                    // Stash & Update
                     Rectangle {
                         width: Math.round(128 * localScale); height: Math.round(30 * localScale); radius: Math.round(8 * localScale)
                         color: saH.hovered

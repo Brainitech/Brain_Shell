@@ -21,7 +21,6 @@ QtObject {
     signal requestTimerReset()
 
     // Alarms — list of { id, hour, minute, label, enabled }
-    property var alarms: []
 
     // Nearest upcoming enabled alarm: { hour, minute, label, minsUntil } or null
     property var nextAlarm: null

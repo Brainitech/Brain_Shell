@@ -52,11 +52,6 @@ Item {
 
     Keys.onEscapePressed: SurfaceState.close()
 
-    // ── Self-hover tracking ───────────────────────────────────────────────────
-
-    // ── Hover close timer ─────────────────────────────────────────────────────
-    // Fires when both the trigger region and the popup itself are no longer hovered.
-
 
 
     MouseArea {

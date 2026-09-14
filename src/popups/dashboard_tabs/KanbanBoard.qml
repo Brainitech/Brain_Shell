@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell.Io
 import "../../"
-import Quickshell.Io
 import "../"
 import "../../components"
 

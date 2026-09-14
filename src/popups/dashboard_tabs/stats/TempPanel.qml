@@ -9,7 +9,6 @@ Item {
     property real localScale: 1.0
     required property var  service
     property bool          dgpuActive: false
-    property string        fanMode:    "quiet"
     property int           maxFanRpm:  5500
 
     function tempColor(t) {

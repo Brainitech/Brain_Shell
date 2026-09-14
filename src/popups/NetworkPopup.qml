@@ -17,16 +17,8 @@ Item {
         
     property string page: Popups.networkPage
 
-    Connections {
-        target: Popups
-        function onNetworkPageChanged() {
-            root.page = Popups.networkPage
-        }
-    }
-
     Item {
         id: hoverContainer
-        MouseArea { anchors.fill: parent }
         anchors.fill: parent
 
         Item {

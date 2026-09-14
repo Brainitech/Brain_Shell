@@ -22,7 +22,6 @@ NotificationServer {
 
     property bool _ready: false
     
-    // Assign the Timer to a named property to avoid the default property error
     property Timer _startupTimer: Timer {
         interval: 500 
         running: true

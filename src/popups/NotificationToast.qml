@@ -30,9 +30,7 @@ Item {
 			}
 		}
 		function onActiveContentChanged() {
-			if (SurfaceState.activeContent === "notifications" || SurfaceState.activeContent === "network") {
-				_handleInterrupt()
-			}
+			_handleInterrupt()
 		}
 	}
 

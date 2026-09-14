@@ -23,11 +23,8 @@ Item {
 
     readonly property int contentWidth:  pageWidths[page]  ?? Math.round(220 * root.localScale)
     readonly property int contentHeight: pageHeights[page] ?? Math.round(220 * root.localScale)
-
-    readonly property int targetWidth: contentWidth
-    readonly property int targetHeight: contentHeight
-    readonly property int popupWidth: targetWidth
-    readonly property int popupHeight: targetHeight
+    readonly property int popupWidth: contentWidth
+    readonly property int popupHeight: contentHeight
 
     property string page: "power"
 

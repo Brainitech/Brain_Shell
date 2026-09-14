@@ -181,7 +181,6 @@ StatCard {
         ClockState.timerDisplay = _timerDisplay()
         ClockState.swRunning    = _swRunning
         ClockState.swDisplay    = _swDisplay()
-        ClockState.alarms       = _alarms
         ClockState.swStarted    = _swStarted
         ClockState.timerStarted = _timerStarted
 

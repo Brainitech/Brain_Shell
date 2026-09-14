@@ -47,13 +47,6 @@ Item {
 
     property string page: Popups.audioPage
 
-    Connections {
-        target: Popups
-        function onAudioPageChanged() {
-            root.page = Popups.audioPage
-        }
-    }
-
     Row {
         anchors.fill: parent
         spacing: 8

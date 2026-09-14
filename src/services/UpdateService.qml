@@ -40,12 +40,10 @@ QtObject {
                 root.check()
             } else {
                 root._pingAttempts++
-                // console.log("Ping attempt " + root._pingAttempts + " failed, retrying...")
                 if (root._pingAttempts < root._pingMaxAttempts) {
                     root._pingRetryTimer.restart()
                 } else {
                     root._pingAttempts = 0  // silent cancel
-                    // console.log("Max ping attempts reached. Update check aborted.")
                 }
             }
         }
@@ -54,7 +52,6 @@ QtObject {
     function _startConnectivityCheck() {
         root._pingAttempts = 0
         root._pingCheck()
-        // console.log("Started connectivity check for updates.")
     }
     
     function _pingCheck() {
@@ -88,12 +85,10 @@ QtObject {
         running: false
         onExited: function(code) {
             if (code !== 0) {
-                // console.log("UpdateService: git fetch failed with code " + code)
                 root.checking  = false
                 root.lastError = "Could not reach remote. Check your connection."
                 return
             }
-            // console.log("UpdateService: git fetch successful.")
             _countProc.running = false
             _countProc.running = true
         }
@@ -138,13 +133,11 @@ QtObject {
         onExited: function(code) {
             root.updating = false
             if (code === 0) {
-                // console.log("UpdateService: git pull successful.")
                 root.updateAvailable = false
                 root.hasConflict     = false
                 root.lastError       = ""
                 root.updateSuccess   = true
             } else {
-                // console.log("UpdateService: git pull failed with code " + code + ". (Likely local conflict)")
                 // fetch succeeded earlier, so failure = local changes conflict
                 root.hasConflict = true
                 root.lastError   = ""
@@ -164,13 +157,11 @@ QtObject {
         onExited: function(code) {
             root.updating = false
             if (code === 0) {
-                // console.log("UpdateService: git stash + pull successful.")
                 root.updateAvailable = false
                 root.hasConflict     = false
                 root.lastError       = ""
                 root.updateSuccess   = true
             } else {
-                // console.log("UpdateService: git stash + pull failed with code " + code)
                 root.hasConflict = false
                 root.lastError   = "Stash + pull failed. Try manually: git pull origin main"
             }
@@ -180,7 +171,6 @@ QtObject {
     // ── Public API ─────────────────────────────────────────────────────────
 
     function check() {
-        // console.log("UpdateService: check() triggered")
         if (root.checking || root.updating) return
         root.checking        = true
         root.lastError       = ""
@@ -192,7 +182,6 @@ QtObject {
     }
 
     function applyUpdate() {
-        // console.log("UpdateService: applyUpdate() triggered")
         if (root.updating) return
         root.updating        = true
         root.hasConflict     = false
@@ -203,7 +192,6 @@ QtObject {
     }
 
     function stashAndUpdate() {
-        // console.log("UpdateService: stashAndUpdate() triggered")
         if (root.updating) return
         root.updating            = true
         root.hasConflict         = false
@@ -214,7 +202,6 @@ QtObject {
     }
 
     function dismiss() {
-        // console.log("UpdateService: dismiss() triggered")
         root.updateAvailable = false
         root.hasConflict     = false
         root.lastError       = ""
@@ -222,7 +209,6 @@ QtObject {
     }
 
     function disableAutoUpdate() {
-        // console.log("UpdateService: disableAutoUpdate() triggered")
         PrefsService.PrefsService.autoUpdate      = false
         root.updateAvailable = false
         root.hasConflict     = false

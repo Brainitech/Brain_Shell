@@ -47,11 +47,6 @@ Item {
 		command: ["hyprctl", "activewindow", "-j"]
 		running: false
 
-		onRunningChanged: {
-			if (running) {
-			}
-		}
-
 		stdout: StdioCollector {
 			id: titleOut
 		}
@@ -291,7 +286,6 @@ Item {
 					font.pixelSize: Math.round(13 * localScale)
 					verticalAlignment:   Text.AlignVCenter
 					horizontalAlignment: Text.AlignHCenter
-					// leftPadding:  8u					rightPadding: 8
 					elide:        Text.ElideRight
 				}
 

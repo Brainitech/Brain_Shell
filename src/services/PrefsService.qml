@@ -29,7 +29,6 @@ QtObject {
     property bool screenrecAudioMic: false
     property bool screenrecAudioSystem
     property int screenrecFramerate: 60
-    property bool screenrecHidePointer: false
     property string screenrecSaveDir: Quickshell.env("HOME") + "/Videos"
 
     // Network (Hotspot)
@@ -130,7 +129,6 @@ QtObject {
             if (o.hoverCloseDelay !== undefined) root.hoverCloseDelay = o.hoverCloseDelay
 
             if (o.dynamicThemeOverride !== undefined) root.dynamicThemeOverride = o.dynamicThemeOverride
-            if (o.overrideSecondary !== undefined) root.overrideSecondary = o.overrideSecondary
             if (o.darkMode !== undefined) root.darkMode = o.darkMode
             if (o.bgOpacity !== undefined) root.bgOpacity = o.bgOpacity
             if (o.bgBlur !== undefined) root.bgBlur = o.bgBlur
@@ -160,7 +158,6 @@ QtObject {
     onScreenrecAudioMicChanged: if (_loaded) saveConfig()
     onScreenrecAudioSystemChanged: if (_loaded) saveConfig()
     onScreenrecFramerateChanged: if (_loaded) saveConfig()
-    onScreenrecHidePointerChanged: if (_loaded) saveConfig()
     onScreenrecSaveDirChanged: if (_loaded) saveConfig()
     onHotspotSsidChanged: if (_loaded) saveConfig()
     onHotspotPasswordChanged: if (_loaded) saveConfig()
@@ -223,7 +220,6 @@ QtObject {
             hoverOpenDelay: root.hoverOpenDelay,
             hoverCloseDelay: root.hoverCloseDelay,
             dynamicThemeOverride: root.dynamicThemeOverride,
-            overrideSecondary: root.overrideSecondary,
             darkMode: root.darkMode,
             bgOpacity: root.bgOpacity,
             bgBlur: root.bgBlur,

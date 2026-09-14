@@ -154,7 +154,6 @@ QtObject {
         }
     }
 
-    // New function to update borders based on config provider
     function updateBorders() {
         let colStr = PrefsService.dynamicThemeOverride ? String(Theme.border) : String(Theme.active)
         let cleanCol = colStr.replace('#', '')

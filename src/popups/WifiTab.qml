@@ -455,16 +455,13 @@ Item {
                         text: "Password…"; font.pixelSize: Math.round(12 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.22); visible: passInput.text === "" }
                         TextInput {
                             id: passInput
-                            // Updated anchors to make room for the eye button
                             anchors { left: parent.left; leftMargin: Math.round(10 * localScale); right: eyeBtn.left; rightMargin: Math.round(6 * localScale); top: parent.top; bottom: parent.bottom }
                             verticalAlignment: TextInput.AlignVCenter; color: Theme.text; font.pixelSize: Math.round(12 * localScale)
-                            // Toggle echoMode based on state
                             echoMode: netRow._showPass ? TextInput.Normal : TextInput.Password
                             selectionColor: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35); clip: true
                             Keys.onReturnPressed: { if (text.length > 0) root._connectWithPassword(netRow.net.ssid, text) }
                         }
 
-                        // Added Show Password Button
                         Item {
                             id: eyeBtn
                             anchors { right: parent.right; verticalCenter: parent.verticalCenter }

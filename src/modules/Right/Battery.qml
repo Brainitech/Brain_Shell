@@ -23,7 +23,6 @@ Item {
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            var next = !Popups.batteryOpen
             Popups.closeAll()
             SurfaceState.toggle("right", "battery")
         }

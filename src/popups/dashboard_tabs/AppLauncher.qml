@@ -120,7 +120,6 @@ Item {
                 anchors.fill: parent
                 visible: !root.loading && root.filtered.length > 0
 
-                // Reverted directly back to the pure array (instant updates, no glitching)
                 model: root.filtered
 
                 clip:    true

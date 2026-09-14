@@ -28,8 +28,6 @@ QtObject {
     property bool   busy:          false
     property string curFreqStr:    "— GHz"
 
-    property string _pendingProfile: ""
-
     // ── Daemon status check ───────────────────────────────────────────────────
     property var _daemonProc: Process {
         command: ["systemctl", "is-active", "auto-cpufreq"]

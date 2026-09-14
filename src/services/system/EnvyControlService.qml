@@ -17,16 +17,13 @@ import "../../"
 //   string currentMode  — "integrated" | "hybrid" | "nvidia"
 //   bool   busy         — true while a switch command is running
 //   function switchMode(mode)
-//   function executeSwitch(mode)  — called by ConfirmDialog
 
 QtObject {
     id: root
 
     property string currentMode: "integrated"
-    property bool   busy:        false
 
     // Pending mode — held until we confirm the switch succeeded
-    property string _pendingMode: ""
 
     // ── Query current mode ────────────────────────────────────────────────────
     property var _queryProc: Process {

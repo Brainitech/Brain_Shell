@@ -10,7 +10,6 @@ Item {
     property string description: ""
     property string buttonText: "Click"
     property bool destructive: false
-    // New modes
     property string inputType: "button" // "button", "options", "text"
     
     property var options: []

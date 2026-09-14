@@ -1,5 +1,3 @@
-SystemStats  ./system/SystemStats.qml
-EnvyControl ./system/EnvyControl.qml
 MemService ./system/MemService.qml
 NetService ./system/NetService.qml
 GpuService ./system/GpuService.qml
@@ -10,14 +8,13 @@ DiskService ./system/DiskService.qml
 ThermalService ./system/ThermalService.qml
 FanControl ./system/FanControl.qml
 DashHome home/DashHome.qml
-singleton NotificationService 1.0 ./notifications/NotificationService.qml
-singleton WallpaperService 1.0 WallpaperService.qml
-singleton ScreenRecService 1.0 ScreenRecService.qml
+singleton NotificationService ./notifications/NotificationService.qml
+singleton WallpaperService WallpaperService.qml
 ShellConfig ./config_tab/ShellConfig.qml
 KeybindsPage ./config_tab/KeybindsPage.qml
 GeneralPage ./config_tab/GeneralPage.qml
 VisualsBehaviorPage ./config_tab/VisualsBehaviorPage.qml
 DataPage ./config_tab/DataPage.qml
 MiscPage ./config_tab/MiscPage.qml
-singleton BrightnessService 1.0 BrightnessService.qml
-singleton NetworkService 1.0 NetworkService.qml
+singleton BrightnessService BrightnessService.qml
+singleton NetworkService NetworkService.qml

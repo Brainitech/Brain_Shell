@@ -1,18 +1,14 @@
 import QtQuick
-import "../popups/"
-import "../modules/Right/"
-import "../modules/Center/"
-import "../modules/Left/"
-import "../components"
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import "../"
 import "../theme"
-import "../modules/Center/"
-import "../modules/Right/"
-import "../modules/Left/"
 import "../popups/"
+import "../components"
+import "../modules/Right/"
+import "../modules/Center/"
+import "../modules/Left/"
 
 // A morphing Wayland window layer for the unified screen frame
 PanelWindow {

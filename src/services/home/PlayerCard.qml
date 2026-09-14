@@ -208,7 +208,7 @@ Item {
         // ── Title with Marquee Scroll ──
         Item {
             width: parent.width
-            height: Math.round(22 * localScale) 
+            height: Math.round(32 * localScale) 
             clip: true 
             TextMetrics {
                 id: titleMetrics

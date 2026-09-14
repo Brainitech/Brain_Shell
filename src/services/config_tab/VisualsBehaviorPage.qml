@@ -102,7 +102,6 @@ Item {
                 description: "Trigger conditions and delays for popups."
 
                 property bool dropdownExpanded: false
-                Component.onCompleted: dropdownExpanded = PrefsService.globalHoverMode
 
                 Item {
                     width: parent.width
@@ -119,6 +118,7 @@ Item {
                         onToggled: { 
                             PrefsService.globalHoverMode = checked; 
                             if (checked) popupGroup.dropdownExpanded = true;
+                            else popupGroup.dropdownExpanded = false;
                             PrefsService.saveConfig(); 
                         }
                     }

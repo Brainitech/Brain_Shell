@@ -109,6 +109,7 @@ FloatingWindow {
             onClicked:    root.visible = false
         }
         Item {
+            focus: true
             anchors.fill: parent
             Keys.onEscapePressed: root.visible = false
         }

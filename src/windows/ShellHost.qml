@@ -1,8 +1,10 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import "../"
 import "../components"
+import "../services"
 
 // The new unified root for the morphing UI
 ShellRoot {
@@ -12,6 +14,17 @@ ShellRoot {
     property var _updater:  UpdateService
     property var _ipc:      IpcManager
     
+
+    Connections {
+        target: Hyprland
+        function onRawEvent(event) {
+            if (event.name === "configreloaded") {
+                PrefsService.updateHyprlandBlur()
+                WallpaperService.updateBorders()
+            }
+        }
+    }
+
     Variants {
         model: Quickshell.screens
         

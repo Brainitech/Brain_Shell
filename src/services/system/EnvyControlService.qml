@@ -22,6 +22,13 @@ QtObject {
     id: root
 
     property string currentMode: "integrated"
+    property bool available: false
+
+    property var _checkProc: Process {
+        command: ["sh", "-c", "command -v envycontrol"]
+        running: true
+        onExited: (code) => { root.available = (code === 0) }
+    }
 
     // Pending mode — held until we confirm the switch succeeded
 

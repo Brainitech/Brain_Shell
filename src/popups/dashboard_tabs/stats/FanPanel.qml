@@ -8,8 +8,18 @@ Item {
 
     property real localScale: 1.0
     required property var service
+    
+    // Fallback UI when nbfc is not installed
+    Text {
+        anchors.centerIn: parent
+        visible: !service.available
+        text: "NBFC not installed"
+        font.pixelSize: Math.round(14 * root.localScale)
+        color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
+    }
 
     Column {
+        visible: service.available
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter:   parent.verticalCenter
         spacing: Math.round(10 * localScale)

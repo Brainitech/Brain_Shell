@@ -61,6 +61,7 @@ Item {
         Column {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: Math.round(8 * localScale)
+            visible: envyService.available
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -95,6 +96,28 @@ Item {
                 text:           "GPU mode switch requires a reboot"
                 font.pixelSize: Math.round(10 * localScale)
                 color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
+            }
+        }
+
+        // Fallback for missing envycontrol
+        Column {
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: Math.round(8 * localScale)
+            visible: !envyService.available
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text:           "GPU Mode"
+                font.pixelSize: Math.round(11 * localScale)
+                font.weight:    Font.Medium
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
+            }
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text:           "EnvyControl not installed"
+                font.pixelSize: Math.round(12 * localScale)
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.3)
             }
         }
     }

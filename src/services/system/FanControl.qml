@@ -20,6 +20,13 @@ QtObject {
     id: root
 
     property string mode: "auto"
+    property bool available: false
+
+    property var _checkProc: Process {
+        command: ["sh", "-c", "command -v nbfc"]
+        running: true
+        onExited: (code) => { root.available = (code === 0) }
+    }
     property bool   busy: false
     
 

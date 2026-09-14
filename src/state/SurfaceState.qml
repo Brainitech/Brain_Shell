@@ -18,7 +18,7 @@ QtObject {
     }
 
     function open(surface, content) {
-        if (ShellState.screenRecord) return
+        if (ShellState.screenRecord && !ScreenRecService.recording) return
         root.activeSurface = surface
         root.activeContent = content
     }

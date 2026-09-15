@@ -28,7 +28,12 @@ Item {
 
     property string page: "power"
 
-    onOpacityChanged: if (opacity === 1) forceActiveFocus()
+    onOpacityChanged: {
+        if (opacity === 1) {
+            if (page === "power") powerMenuRef.forceActiveFocus()
+            else forceActiveFocus()
+        }
+    }
     Keys.onEscapePressed: SurfaceState.close()
     MouseArea {
         anchors.fill: parent
@@ -61,6 +66,7 @@ Item {
                     visible: root.page === "power"
 
                     PowerMenu {
+                        id: powerMenuRef
                         localScale: root.localScale
                         width: parent.width
                     }

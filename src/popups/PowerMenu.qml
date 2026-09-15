@@ -74,6 +74,41 @@ Column {
         SurfaceState.close()
     }
 
+    // ── Keyboard Navigation ──────────────────────────────────────────────────
+    property int selectedIndex: 0
+    focus: true
+    onActiveFocusChanged: if (!activeFocus) selectedIndex = -1
+
+    Keys.onEscapePressed: SurfaceState.close()
+
+    Keys.onUpPressed: {
+        if (selectedIndex > 0) selectedIndex--
+        else selectedIndex = actions.length - 1
+    }
+    Keys.onDownPressed: {
+        if (selectedIndex < actions.length - 1) selectedIndex++
+        else selectedIndex = 0
+    }
+    Keys.onReturnPressed: {
+        if (selectedIndex >= 0 && selectedIndex < actions.length) {
+            runAction(actions[selectedIndex])
+        }
+    }
+    
+    function runAction(modelData) {
+        if (modelData.confirm) {
+            Popups.closeAll()
+            Popups.showConfirm(
+                modelData.title,
+                modelData.message,
+                modelData.label2,
+                modelData.action
+            )
+        } else {
+            root.runDirect(modelData.action)
+        }
+    }
+
     Repeater {
         model: root.actions
 
@@ -81,7 +116,10 @@ Column {
             width:  root.width
             height: Math.round(44 * localScale)
             radius: Math.round(Theme.cornerRadius * localScale)
-            color:  hov.hovered
+            
+            readonly property bool isSelected: root.selectedIndex === index
+            
+            color: (hov.hovered || isSelected)
                         ? (modelData.danger ? "#4d2020" : Theme.active)
                         : "transparent"
 
@@ -94,36 +132,26 @@ Column {
                 Text {
                     text:           modelData.icon
                     font.pixelSize: Math.round(16 * localScale)
-                    color:          modelData.danger && hov.hovered ? "#ff6b6b" : hov.hovered?"#000000":Theme.text
+                    color:          modelData.danger && (hov.hovered || isSelected) ? "#ff6b6b" : (hov.hovered || isSelected)?"#000000":Theme.text
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
                 Text {
                     text:           modelData.label
                     font.pixelSize: Math.round(13 * localScale)
-                    color:          modelData.danger && hov.hovered ? "#ff6b6b" : hov.hovered?"#000000":Theme.text
+                    color:          modelData.danger && (hov.hovered || isSelected) ? "#ff6b6b" : (hov.hovered || isSelected)?"#000000":Theme.text
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
 
-            HoverHandler { id: hov; cursorShape: Qt.PointingHandCursor }
+            HoverHandler { 
+                id: hov; cursorShape: Qt.PointingHandCursor 
+                onHoveredChanged: if (hovered) root.selectedIndex = index
+            }
 
             MouseArea {
                 anchors.fill: parent
-                onClicked: {
-                    if (modelData.confirm) {
-                        // Close menu first, then show confirm dialog
-                        Popups.closeAll()
-                        Popups.showConfirm(
-                            modelData.title,
-                            modelData.message,
-                            modelData.label2,
-                            modelData.action
-                        )
-                    } else {
-                        root.runDirect(modelData.action)
-                    }
-                }
+                onClicked: root.runAction(modelData)
             }
         }
     }

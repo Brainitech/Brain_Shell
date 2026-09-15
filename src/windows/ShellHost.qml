@@ -5,6 +5,7 @@ import Quickshell.Hyprland
 import "../"
 import "../components"
 import "../services"
+import Quickshell.Services.Pipewire
 
 // The new unified root for the morphing UI
 ShellRoot {
@@ -23,6 +24,50 @@ ShellRoot {
                 WallpaperService.updateBorders()
             }
         }
+    }
+
+    // ── OSD Triggers ──────────────────────────────────────────────────────────
+    property bool _isBooting: true
+    Timer {
+        id: bootGuardTimer
+        interval: 3000
+        running: true
+        repeat: false
+        onTriggered: screenRoot._isBooting = false
+    }
+
+    Timer {
+        id: osdCloseTimer
+        interval: 2500
+        repeat: false
+        onTriggered: {
+            if (SurfaceState.activeContent === "quick" && !Popups.quickPinned && !Popups.quickTriggerHovered) {
+                SurfaceState.close()
+            }
+        }
+    }
+
+    function _triggerOsd() {
+        if (_isBooting) return;
+        if (SurfaceState.activeContent === "none" || SurfaceState.activeContent === "notifications" || SurfaceState.activeContent === "quick") {
+            if (SurfaceState.activeContent !== "quick") SurfaceState.open("rightCenter", "quick")
+            osdCloseTimer.restart()
+        }
+    }
+
+    Connections {
+        target: BrightnessService
+        function onExternalBrightnessChanged(val) {
+            _triggerOsd()
+        }
+    }
+
+    property var _sinkAudio: Pipewire.defaultAudioSink ? Pipewire.defaultAudioSink.audio : null
+    Connections {
+        target: _sinkAudio
+        ignoreUnknownSignals: true
+        function onVolumeChanged() { _triggerOsd() }
+        function onMutedChanged() { _triggerOsd() }
     }
 
     Variants {

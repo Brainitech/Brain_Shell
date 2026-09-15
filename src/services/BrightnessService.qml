@@ -7,8 +7,10 @@ QtObject {
     id: root
     
     property int brightness: 0
+    signal externalBrightnessChanged(int val)
     
     function setBrightness(v) {
+        if (v < 1) v = 1
         brightWrite.command = ["brightnessctl", "set", v + "%"]
         brightWrite.running = true
         root.brightness = v
@@ -22,7 +24,12 @@ QtObject {
                 if (parts.length >= 4) {
                     var pctStr = parts[3]
                     var val = parseInt(pctStr.replace('%', ''))
-                    if (!isNaN(val)) root.brightness = val
+                    if (!isNaN(val)) {
+                        if (root.brightness !== val) {
+                            root.brightness = val
+                            root.externalBrightnessChanged(val)
+                        }
+                    }
                 }
             }
         }
@@ -35,10 +42,15 @@ QtObject {
     }
     
     property var pollTimer: Timer {
-        interval: 1000
+        interval: 200
         repeat: true
         running: true
         triggeredOnStart: true
-        onTriggered: root.brightRead.running = true
+        onTriggered: {
+            if (!brightWrite.running) {
+                root.brightRead.running = false
+                root.brightRead.running = true
+            }
+        }
     }
 }

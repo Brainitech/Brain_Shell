@@ -15,6 +15,8 @@ QtObject {
     property string defaultDashboardTab: "Home"
     property string defaultAudioTab: "Output"
     property bool use24HourTime: false
+    property bool alwaysShowBatteryPercentage: false
+    property bool alwaysShowVolumePercentage: false
 
     // Anim
     property string animStyle: "slide"
@@ -98,6 +100,8 @@ QtObject {
             if (o.defaultDashboardTab !== undefined) root.defaultDashboardTab = o.defaultDashboardTab
             if (o.defaultAudioTab !== undefined) root.defaultAudioTab = o.defaultAudioTab
             if (o.use24HourTime !== undefined) root.use24HourTime = o.use24HourTime
+            if (o.alwaysShowBatteryPercentage !== undefined) root.alwaysShowBatteryPercentage = o.alwaysShowBatteryPercentage
+            if (o.alwaysShowVolumePercentage !== undefined) root.alwaysShowVolumePercentage = o.alwaysShowVolumePercentage
 
             if (o.animStyle !== undefined) root.animStyle = o.animStyle
             if (o.animSpeed !== undefined) root.animSpeed = o.animSpeed
@@ -150,6 +154,8 @@ QtObject {
     onDefaultDashboardTabChanged: if (_loaded) saveConfig()
     onDefaultAudioTabChanged: if (_loaded) saveConfig()
     onUse24HourTimeChanged: if (_loaded) saveConfig()
+    onAlwaysShowBatteryPercentageChanged: if (_loaded) saveConfig()
+    onAlwaysShowVolumePercentageChanged: if (_loaded) saveConfig()
     onAnimStyleChanged: if (_loaded) saveConfig()
     onAnimSpeedChanged: if (_loaded) saveConfig()
     onAnimCurveChanged: if (_loaded) saveConfig()
@@ -194,6 +200,8 @@ QtObject {
             defaultDashboardTab: root.defaultDashboardTab,
             defaultAudioTab: root.defaultAudioTab,
             use24HourTime: root.use24HourTime,
+            alwaysShowBatteryPercentage: root.alwaysShowBatteryPercentage,
+            alwaysShowVolumePercentage: root.alwaysShowVolumePercentage,
             animStyle: root.animStyle,
             animSpeed: root.animSpeed,
             animCurve: root.animCurve,

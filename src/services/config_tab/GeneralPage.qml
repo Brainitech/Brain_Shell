@@ -138,6 +138,38 @@ Item {
                     }
                 }
             }
+
+            SettingsGroup {
+                localScale: root.localScale
+                title: "Top Bar Widgets"
+                description: "Customize the visibility of widget elements in the top bar."
+
+                ToggleButton {
+                    localScale: root.localScale
+                    text: "Always Show Battery Percentage"
+                    description: "Keep the battery percentage visible at all times."
+                    checked: PrefsService.alwaysShowBatteryPercentage
+                    onCheckedChanged: {
+                        if (checked !== PrefsService.alwaysShowBatteryPercentage) {
+                            PrefsService.alwaysShowBatteryPercentage = checked
+                            PrefsService.saveConfig()
+                        }
+                    }
+                }
+                SettingsDivider { localScale: root.localScale }
+                ToggleButton {
+                    localScale: root.localScale
+                    text: "Always Show Volume Percentage"
+                    description: "Keep the volume percentage visible at all times."
+                    checked: PrefsService.alwaysShowVolumePercentage
+                    onCheckedChanged: {
+                        if (checked !== PrefsService.alwaysShowVolumePercentage) {
+                            PrefsService.alwaysShowVolumePercentage = checked
+                            PrefsService.saveConfig()
+                        }
+                    }
+                }
+            }
         }
     }
 }

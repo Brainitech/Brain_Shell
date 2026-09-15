@@ -6,7 +6,7 @@ Item {
     property real localScale: 1.0
     // Set to true to always show percentage beside the icon.
     // When false (default), percentage only shows on hover.
-    property bool showPercentage: false
+    property bool showPercentage: PrefsService.alwaysShowBatteryPercentage
 
     implicitWidth:  status.implicitWidth
     implicitHeight: status.implicitHeight
@@ -20,11 +20,11 @@ Item {
         showPercentage:   parent.showPercentage
     }
 
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            Popups.closeAll()
-            SurfaceState.toggle("right", "battery")
-        }
-    }
+    // MouseArea {
+    //     anchors.fill: parent
+    //     onClicked: {
+    //         Popups.closeAll()
+    //         SurfaceState.toggle("right", "battery")
+    //     }
+    // }
 }

@@ -6,7 +6,7 @@ import "../../"
 Item {
     id: root
 
-    property bool showPercentage: false
+    property bool showPercentage: PrefsService.alwaysShowVolumePercentage
     property real localScale: 1.0
 
     implicitWidth:  row.implicitWidth + Math.round(6 * localScale)

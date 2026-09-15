@@ -23,6 +23,7 @@ Item {
 	property string currentPage: ""
 	property string orientation: "horizontal"   // "horizontal" | "vertical"
 	property real   localScale:  1.0
+	property bool   divider: false
 
 	signal pageChanged(string key)
 
@@ -175,9 +176,9 @@ Item {
 		}
 	}
 
-	// Bottom divider — horizontal only
+	// Bottom divider
 	Rectangle {
-		visible:        root.orientation === "horizontal"
+		visible:        root.orientation === "horizontal" && root.divider
 		anchors.bottom: parent.bottom
 		anchors.left:   parent.left
 		anchors.right:  parent.right

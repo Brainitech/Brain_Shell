@@ -76,6 +76,8 @@ PanelWindow {
         const powerScript = Quickshell.shellDir + "/src/scripts/PowerControl.sh"
         const gfxScript   = Quickshell.shellDir + "/src/scripts/GfxSwitch.sh"
 
+        Popups.actionConfirmed(Popups.confirmAction)
+
         switch (Popups.confirmAction) {
             case "shutdown":
                 Popups.cancelConfirm()

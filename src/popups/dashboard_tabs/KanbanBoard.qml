@@ -25,6 +25,11 @@ Item {
     property var    _tasks:    []
     property int    _nextId:   0
     property string _filePath: ""
+    property int    _interactionCount: 0
+    
+    function _evalInteraction() {
+        Popups.tasksInteractionActive = _interactionCount > 0 || pickerTaskId >= 0 || delConfirmId >= 0
+    }
 
     // ── Animation tracking ────────────────────────────────────────────────────
     // Plain objects — mutated in-place, no signal needed, checked once per card.
@@ -36,6 +41,7 @@ Item {
 
     // ── Due date picker state ─────────────────────────────────────────────────
     property int    pickerTaskId:  -1
+    onPickerTaskIdChanged: _evalInteraction()
     property int    pickerYear:    0
     property int    pickerMonth:   0
     property int    pickerDay:     0     // 0 = date not selected
@@ -107,6 +113,17 @@ Item {
     Process { id: wrProc; command: []; running: false }
 
     // ── Reset state when dashboard closes ─────────────────────────────────────
+    Connections {
+        target: Popups
+        function onActionConfirmed(action) {
+            if (action.startsWith("clear_kanban_col_")) {
+                var cId = parseInt(action.split("_").pop())
+                root._tasks = root._tasks.filter(function(t) { return t.column !== cId })
+                root._save()
+                Popups.cancelConfirm()
+            }
+        }
+    }
 
     // ── Mutations ─────────────────────────────────────────────────────────────
     function _addTask(col, title) {
@@ -280,6 +297,7 @@ Item {
     }
 
     onDelConfirmIdChanged: {
+        _evalInteraction()
         if (delConfirmId >= 0) deleteKeyHandler.forceActiveFocus()
     }
 
@@ -312,6 +330,7 @@ Item {
                 }
 
                 property bool draftOpen: false
+                onDraftOpenChanged: { root._interactionCount += draftOpen ? 1 : -1; root._evalInteraction() }
 
                 width:  (mainRow.width - mainRow.spacing * 2) / 3
                 height: parent.height
@@ -350,21 +369,49 @@ Item {
                             }
                         }
 
-                        // Add (+) button
-                        Rectangle {
+                        // Actions row
+                        Row {
                             anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                            width: Math.round(22 * localScale); height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
-                            color: addH.hovered
-                                ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
-                                : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
-                            border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.20)
-                            border.width: 1
-                            Behavior on color { ColorAnimation { duration: Anim.fast} }
-                            Text { anchors.centerIn: parent; text: "+"; color: Theme.active; font.pixelSize: Math.round(15 * localScale) }
-                            HoverHandler { id: addH; cursorShape: Qt.PointingHandCursor }
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: { colItem.draftOpen = true; draftTimer.restart() }
+                            spacing: Math.round(6 * localScale)
+
+                            // Clear column button
+                            Rectangle {
+                                width: Math.round(22 * localScale); height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
+                                color: clrColH.hovered ? Qt.rgba(248/255,113/255,113/255,0.15) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
+                                border.color: clrColH.hovered ? Qt.rgba(248/255,113/255,113/255,0.3) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
+                                border.width: 1
+                                visible: colItem.cTasks.length > 0
+                                Behavior on color { ColorAnimation { duration: Anim.fast} }
+                                Text { anchors.centerIn: parent; text: "🗑"; color: clrColH.hovered ? "#f87171" : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4); font.pixelSize: Math.round(11 * localScale) }
+                                HoverHandler { id: clrColH; cursorShape: Qt.PointingHandCursor }
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        Popups.showConfirm(
+                                            "Clear " + colItem.cLabel + "?",
+                                            "This will permanently delete " + colItem.cTasks.length + " tasks.",
+                                            "Clear Tasks",
+                                            "clear_kanban_col_" + colItem.cIdx
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Add (+) button
+                            Rectangle {
+                                width: Math.round(22 * localScale); height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
+                                color: addH.hovered
+                                    ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
+                                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
+                                border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.20)
+                                border.width: 1
+                                Behavior on color { ColorAnimation { duration: Anim.fast} }
+                                Text { anchors.centerIn: parent; text: "+"; color: Theme.active; font.pixelSize: Math.round(15 * localScale) }
+                                HoverHandler { id: addH; cursorShape: Qt.PointingHandCursor }
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: { colItem.draftOpen = true; draftTimer.restart() }
+                                }
                             }
                         }
                     }
@@ -891,6 +938,7 @@ Item {
                     wrapMode:       TextInput.WordWrap
                     selectionColor: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)
                     onEditingFinished: { var t = text.trim(); if (t !== "") root._patchTask(card.taskData.id, "title", t) }
+                    onActiveFocusChanged: { root._interactionCount += activeFocus ? 1 : -1; root._evalInteraction() }
                 }
 
                 // Badges row

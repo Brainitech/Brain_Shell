@@ -168,6 +168,7 @@ Item {
         target: Hyprland
         function onRawEvent(event) {
             if (event.name === "workspace" || event.name === "activemonitor" || event.name === "activespecial" || event.name === "openwindow") {
+                if (SurfaceState.activeContent === "dashboard" && Popups.dashboardPage === "kanban" && Popups.tasksInteractionActive) return;
                 SurfaceState.close()
             }
         }

@@ -56,6 +56,7 @@ QtObject {
     // ── Dashboard — per-page state ───────────────────────────────────────────
     property int    dashboardPageWidth: 900
     property string dashboardPage:      "home"
+    property bool   tasksInteractionActive: false
 
     // ── Audio popup — per-page state ─────────────────────────────────────────
     property string audioPage: "output"
@@ -114,6 +115,8 @@ QtObject {
     }
 
     // ── Global state ──────────────────────────────────────────────────────────
+    signal actionConfirmed(string action)
+
     readonly property bool anyOpen: audioOpen || networkOpen || batteryOpen
                                     || notificationsOpen || archMenuOpen
                                     || dashboardOpen || wallpaperOpen || quickOpen

@@ -44,7 +44,7 @@ RowLayout {
 
         visible: opacity > 0
         opacity: isOpen ? 1 : 0
-        Layout.maximumWidth: Math.round(200 * localScale)
+        Layout.maximumWidth: Math.round(60 * localScale)
         property real calculatedWidth: trayRow.count > 0 ? (trayRow.count * Math.round(26 * localScale)) + ((trayRow.count - 1) * spacing) : 0
         Layout.preferredWidth: isOpen ? Math.min(calculatedWidth, Layout.maximumWidth) : 0
         Layout.preferredHeight: Math.round(26 * localScale)

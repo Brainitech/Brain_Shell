@@ -68,12 +68,12 @@ PanelWindow {
         Region { item: clickShield.isActive ? clickShield : null }
         
         // Top and Bottom frame borders
-        Region { x: 0; y: 0; width: root.width; height: surfaceShape.frameThickness }
-        Region { x: 0; y: root.height - surfaceShape.frameThickness; width: root.width; height: surfaceShape.frameThickness }
+        Region { x: 0; y: 0; width: root.width; height: Math.max(1, surfaceShape.frameThickness) }
+        Region { x: 0; y: root.height - Math.max(1, surfaceShape.frameThickness); width: root.width; height: Math.max(1, surfaceShape.frameThickness) }
         
         // Left and Right frame borders
-        Region { x: 0; y: 0; width: surfaceShape.frameThickness; height: root.height }
-        Region { x: root.width - surfaceShape.frameThickness; y: 0; width: surfaceShape.frameThickness; height: root.height }
+        Region { x: 0; y: 0; width: Math.max(1, surfaceShape.frameThickness); height: root.height }
+        Region { x: root.width - Math.max(1, surfaceShape.frameThickness); y: 0; width: Math.max(1, surfaceShape.frameThickness); height: root.height }
         
         // Top Notches
         Region { x: 0; y: 0; width: surfaceShape.leftNotchWidth; height: surfaceShape.leftNotchHeight }
@@ -81,12 +81,12 @@ PanelWindow {
         Region { x: root.width - surfaceShape.rightNotchWidth; y: 0; width: surfaceShape.rightNotchWidth; height: surfaceShape.rightNotchHeight }
         
         // Side Notches
-        Region { x: 0; y: root.height / 2 - (surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * root.localScale)) / 2; width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : surfaceShape.frameThickness; height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * root.localScale) }
-        Region { x: root.width - (surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : surfaceShape.frameThickness); y: root.height / 2 - (surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * root.localScale)) / 2; width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : surfaceShape.frameThickness; height: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * root.localScale) }
+        Region { x: 0; y: root.height / 2 - (surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * root.localScale)) / 2; width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : Math.max(1, surfaceShape.frameThickness); height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * root.localScale) }
+        Region { x: root.width - (surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : Math.max(1, surfaceShape.frameThickness)); y: root.height / 2 - (surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * root.localScale)) / 2; width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : Math.max(1, surfaceShape.frameThickness); height: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * root.localScale) }
         
         // Bottom Notches
-        Region { x: root.width / 2 - (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * root.localScale)) / 2; y: root.height - (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : surfaceShape.frameThickness); width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * root.localScale); height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : surfaceShape.frameThickness }
-        Region { x: root.width - (surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * root.localScale)); y: root.height - (surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : surfaceShape.frameThickness); width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * root.localScale); height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : surfaceShape.frameThickness }
+        Region { x: root.width / 2 - (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * root.localScale)) / 2; y: root.height - (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : Math.max(1, surfaceShape.frameThickness)); width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * root.localScale); height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : Math.max(1, surfaceShape.frameThickness) }
+        Region { x: root.width - (surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * root.localScale)); y: root.height - (surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : Math.max(1, surfaceShape.frameThickness)); width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * root.localScale); height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : Math.max(1, surfaceShape.frameThickness) }
     }
 
     // --- VECTOR GEOMETRY ---

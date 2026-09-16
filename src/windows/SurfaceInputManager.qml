@@ -92,7 +92,7 @@ Item {
     
     Item { 
         id: leftCenterNotchMask
-        width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : surfaceShape.frameThickness
+        width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : Math.max(1, surfaceShape.frameThickness)
         height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * inputManager.localScale)
         x: 0
         anchors.verticalCenter: parent.verticalCenter
@@ -105,7 +105,7 @@ Item {
     }
     Item { 
         id: rightCenterNotchMask
-        width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : surfaceShape.frameThickness
+        width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : Math.max(1, surfaceShape.frameThickness)
         height: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * inputManager.localScale)
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
@@ -128,7 +128,7 @@ Item {
     Item { 
         id: bottomCenterNotchMask
         width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * inputManager.localScale)
-        height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : surfaceShape.frameThickness
+        height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : Math.max(1, surfaceShape.frameThickness)
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         TapHandler { 
@@ -141,7 +141,7 @@ Item {
     Item { 
         id: bottomRightNotchMask
         width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * inputManager.localScale)
-        height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : surfaceShape.frameThickness
+        height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : Math.max(1, surfaceShape.frameThickness)
         anchors.bottom: parent.bottom
         anchors.right: parent.right
         TapHandler { 

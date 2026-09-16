@@ -90,6 +90,35 @@ PanelWindow {
     }
 
     // --- VECTOR GEOMETRY ---
+    // Focus Mode Independent Hitboxes
+    Item {
+        id: fmLeftTrigger
+        anchors { left: parent.left; top: parent.top; leftMargin: Math.round(Theme.borderWidth * root.localScale) }
+        width: Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
+        height: Math.round(Theme.notchHeight * root.localScale)
+        visible: ShellState.focusMode
+        z: -1
+        HoverHandler { id: fmLeftHov }
+    }
+    Item {
+        id: fmCenterTrigger
+        anchors { horizontalCenter: parent.horizontalCenter; top: parent.top }
+        width: Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
+        height: Math.round(Theme.notchHeight * root.localScale)
+        visible: ShellState.focusMode
+        z: -1
+        HoverHandler { id: fmCenterHov; onHoveredChanged: Popups.dashboardTriggerHovered = hovered }
+    }
+    Item {
+        id: fmRightTrigger
+        anchors { right: parent.right; top: parent.top; rightMargin: Math.round(Theme.borderWidth * root.localScale) }
+        width: Math.max(Math.round(Theme.rNotchMinWidth * localScale), Math.min(Math.round(Theme.rNotchMaxWidth * localScale), rightContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
+        height: Math.round(Theme.notchHeight * root.localScale)
+        visible: ShellState.focusMode
+        z: -1
+        HoverHandler { id: fmRightHov }
+    }
+
     SurfaceShape {
         id: surfaceShape
         anchors.fill: parent
@@ -138,17 +167,17 @@ PanelWindow {
             return Math.round(Theme.popupMaxHeight * root.localScale);
         }
         
-        leftNotchWidth: ShellState.focusMode ? 0.001 : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
-        leftNotchHeight: ShellState.focusMode ? surfaceShape.innerRadius : Math.round(Theme.notchHeight * root.localScale)
-        centerNotchWidth: (ShellState.focusMode && !SurfaceState.isTopExpanded) ? 0.001 : (SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale))))
+        leftNotchWidth: (ShellState.focusMode && !(fmLeftHov.hovered || leftNotchHover.hovered)) ? 0.001 : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
+        leftNotchHeight: (ShellState.focusMode && !(fmLeftHov.hovered || leftNotchHover.hovered)) ? surfaceShape.innerRadius : Math.round(Theme.notchHeight * root.localScale)
+        centerNotchWidth: (ShellState.focusMode && !(fmCenterHov.hovered || centerNotchHover.hovered) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) ? 0.001 : (SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale))))
         centerNotchHeight: {
-            if (ShellState.focusMode && !SurfaceState.isTopExpanded) return 0.001;
+            if (ShellState.focusMode && !(fmCenterHov.hovered || centerNotchHover.hovered) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) return 0.001;
             if (SurfaceState.isTopExpanded) return Math.round(Theme.dashboardHeight * root.localScale);
             if (ShellState.screenRecord && !ScreenRecService.recording && ScreenRecService.optionsExpanded) return Math.round(Theme.notchHeight * root.localScale) + screenRecOptionsPopupView.height + Math.round(16 * root.localScale);
             return Math.round(Theme.notchHeight * root.localScale);
         }
         rightNotchWidth: {
-            if (ShellState.focusMode && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) return 0.001;
+            if (ShellState.focusMode && !(fmRightHov.hovered || rightNotchHover.hovered) && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) return 0.001;
             if (!SurfaceState.isRightExpanded) {
                 if (Popups.notificationToastOpen) return notificationToastView.toastWidth + Math.round(Theme.cornerRadius * root.localScale);
                 return Math.max(Math.round(Theme.rNotchMinWidth * localScale), Math.min(Math.round(Theme.rNotchMaxWidth * localScale), rightContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)));
@@ -158,7 +187,7 @@ PanelWindow {
             return Math.round(Theme.popupMaxWidth * root.localScale);
         }
         rightNotchHeight: {
-            if (ShellState.focusMode && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) return surfaceShape.innerRadius;
+            if (ShellState.focusMode && !(fmRightHov.hovered || rightNotchHover.hovered) && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) return surfaceShape.innerRadius;
             if (!SurfaceState.isRightExpanded) {
                 if (Popups.notificationToastOpen) return notificationToastView.targetHeight;
                 return Math.round(Theme.notchHeight * root.localScale);
@@ -183,8 +212,7 @@ PanelWindow {
         anchors.top: parent.top
         clip: true
         
-        opacity: (ShellState.focusMode && !SurfaceState.isTopExpanded) ? 0 : 1
-        visible: opacity > 0
+        opacity: (ShellState.focusMode && !(fmLeftHov.hovered || leftNotchHover.hovered) && !SurfaceState.isTopExpanded) ? 0 : 1
         Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         
         Item {
@@ -210,8 +238,7 @@ PanelWindow {
         anchors.top: parent.top
         clip: true
         
-        opacity: (ShellState.focusMode && !SurfaceState.isTopExpanded) ? 0 : 1
-        visible: opacity > 0
+        opacity: (ShellState.focusMode && !(fmCenterHov.hovered || centerNotchHover.hovered) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) ? 0 : 1
         Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         
         Item {
@@ -249,22 +276,6 @@ PanelWindow {
     }
     }
 
-    Item {
-        id: hiddenCenterTrigger
-        width: Math.round(Theme.cNotchMinWidth * root.localScale)
-        height: Math.round(Theme.notchHeight * root.localScale)
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        visible: ShellState.focusMode && !SurfaceState.isTopExpanded
-
-        HoverHandler {
-            onHoveredChanged: Popups.dashboardTriggerHovered = hovered
-        }
-        MouseArea {
-            anchors.fill: parent
-            onClicked: SurfaceState.toggle("top", "dashboard")
-        }
-    }
 
     Item {
         id: rightNotchArea
@@ -276,8 +287,7 @@ PanelWindow {
         anchors.top: parent.top
         clip: true
         
-        opacity: (ShellState.focusMode && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) ? 0 : 1
-        visible: opacity > 0
+        opacity: (ShellState.focusMode && !(fmRightHov.hovered || rightNotchHover.hovered) && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) ? 0 : 1
         Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         
         Item {

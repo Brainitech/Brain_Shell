@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import "../"
 
 QtObject {
     id: root

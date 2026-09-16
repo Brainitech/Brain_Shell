@@ -48,11 +48,24 @@ Item {
                 ToggleButton {
                     localScale: root.localScale
                     text: "Boot into Focus Mode"
-                    description: "Start the shell with notches and gaps hidden for maximum workspace."
+                    description: "Start the shell with notches hidden for a expanded workspace."
                     checked: PrefsService.bootFocusMode
                     onCheckedChanged: {
                         if (checked !== PrefsService.bootFocusMode) {
                             PrefsService.bootFocusMode = checked
+                            PrefsService.saveConfig()
+                        }
+                    }
+                }
+                SettingsDivider { localScale: root.localScale }
+                ToggleButton {
+                    localScale: root.localScale
+                    text: "Allow notches to expand on hover in focus mode"
+                    description: "When disabled, notches cannot be shown in focus mode."
+                    checked: PrefsService.focusModeHoverExpand
+                    onCheckedChanged: {
+                        if (checked !== PrefsService.focusModeHoverExpand) {
+                            PrefsService.focusModeHoverExpand = checked
                             PrefsService.saveConfig()
                         }
                     }
@@ -74,7 +87,7 @@ Item {
                     SettingsButton {
                         localScale: root.localScale
                         text: "Default Dashboard Tab"
-                        description: "Which view opens when you launch the dashboard."
+                        description: "Which view opens when you launch the dashboard via click/hover."
                         inputType: "options"
                         options: ["Home", "System", "Tasks", "Apps", "Config"]
                         selectedOption: PrefsService.defaultDashboardTab
@@ -88,7 +101,7 @@ Item {
                     SettingsButton {
                         localScale: root.localScale
                         text: "Default Audio Tab"
-                        description: "Which view opens when you launch the audio popup."
+                        description: "Which view opens when you launch the audio popup via click/hover."
                         inputType: "options"
                         options: ["Output", "Input", "Mixers"]
                         selectedOption: PrefsService.defaultAudioTab

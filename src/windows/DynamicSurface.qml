@@ -167,17 +167,17 @@ PanelWindow {
             return Math.round(Theme.popupMaxHeight * root.localScale);
         }
         
-        leftNotchWidth: (ShellState.focusMode && !(fmLeftHov.hovered || leftNotchHover.hovered)) ? 0.001 : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
-        leftNotchHeight: (ShellState.focusMode && !(fmLeftHov.hovered || leftNotchHover.hovered)) ? surfaceShape.innerRadius : Math.round(Theme.notchHeight * root.localScale)
-        centerNotchWidth: (ShellState.focusMode && !(fmCenterHov.hovered || centerNotchHover.hovered) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) ? 0.001 : (SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale))))
+        leftNotchWidth: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmLeftHov.hovered || leftNotchHover.hovered))) ? 0.001 : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
+        leftNotchHeight: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmLeftHov.hovered || leftNotchHover.hovered))) ? surfaceShape.innerRadius : Math.round(Theme.notchHeight * root.localScale)
+        centerNotchWidth: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmCenterHov.hovered || centerNotchHover.hovered)) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) ? 0.001 : (SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale))))
         centerNotchHeight: {
-            if (ShellState.focusMode && !(fmCenterHov.hovered || centerNotchHover.hovered) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) return 0.001;
+            if (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmCenterHov.hovered || centerNotchHover.hovered)) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) return 0.001;
             if (SurfaceState.isTopExpanded) return Math.round(Theme.dashboardHeight * root.localScale);
             if (ShellState.screenRecord && !ScreenRecService.recording && ScreenRecService.optionsExpanded) return Math.round(Theme.notchHeight * root.localScale) + screenRecOptionsPopupView.height + Math.round(16 * root.localScale);
             return Math.round(Theme.notchHeight * root.localScale);
         }
         rightNotchWidth: {
-            if (ShellState.focusMode && !(fmRightHov.hovered || rightNotchHover.hovered) && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) return 0.001;
+            if (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmRightHov.hovered || rightNotchHover.hovered)) && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) return 0.001;
             if (!SurfaceState.isRightExpanded) {
                 if (Popups.notificationToastOpen) return notificationToastView.toastWidth + Math.round(Theme.cornerRadius * root.localScale);
                 return Math.max(Math.round(Theme.rNotchMinWidth * localScale), Math.min(Math.round(Theme.rNotchMaxWidth * localScale), rightContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)));
@@ -187,7 +187,7 @@ PanelWindow {
             return Math.round(Theme.popupMaxWidth * root.localScale);
         }
         rightNotchHeight: {
-            if (ShellState.focusMode && !(fmRightHov.hovered || rightNotchHover.hovered) && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) return surfaceShape.innerRadius;
+            if (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmRightHov.hovered || rightNotchHover.hovered)) && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) return surfaceShape.innerRadius;
             if (!SurfaceState.isRightExpanded) {
                 if (Popups.notificationToastOpen) return notificationToastView.targetHeight;
                 return Math.round(Theme.notchHeight * root.localScale);
@@ -212,7 +212,7 @@ PanelWindow {
         anchors.top: parent.top
         clip: true
         
-        opacity: (ShellState.focusMode && !(fmLeftHov.hovered || leftNotchHover.hovered) && !SurfaceState.isTopExpanded) ? 0 : 1
+        opacity: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmLeftHov.hovered || leftNotchHover.hovered)) && !SurfaceState.isTopExpanded) ? 0 : 1
         Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         
         Item {
@@ -238,7 +238,7 @@ PanelWindow {
         anchors.top: parent.top
         clip: true
         
-        opacity: (ShellState.focusMode && !(fmCenterHov.hovered || centerNotchHover.hovered) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) ? 0 : 1
+        opacity: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmCenterHov.hovered || centerNotchHover.hovered)) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) ? 0 : 1
         Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         
         Item {
@@ -287,7 +287,7 @@ PanelWindow {
         anchors.top: parent.top
         clip: true
         
-        opacity: (ShellState.focusMode && !(fmRightHov.hovered || rightNotchHover.hovered) && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) ? 0 : 1
+        opacity: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmRightHov.hovered || rightNotchHover.hovered)) && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) ? 0 : 1
         Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
         
         Item {

@@ -12,6 +12,7 @@ QtObject {
 
     property string customAvatarPath: ""
     property bool bootFocusMode: false
+    property bool focusModeHoverExpand: true
     property string defaultDashboardTab: "Home"
     property string defaultAudioTab: "Output"
     property bool use24HourTime: false
@@ -97,6 +98,7 @@ QtObject {
             var o = JSON.parse(raw)
             if (o.customAvatarPath !== undefined) root.customAvatarPath = o.customAvatarPath
             if (o.bootFocusMode !== undefined) root.bootFocusMode = o.bootFocusMode
+            if (o.focusModeHoverExpand !== undefined) root.focusModeHoverExpand = o.focusModeHoverExpand
             if (o.defaultDashboardTab !== undefined) root.defaultDashboardTab = o.defaultDashboardTab
             if (o.defaultAudioTab !== undefined) root.defaultAudioTab = o.defaultAudioTab
             if (o.use24HourTime !== undefined) root.use24HourTime = o.use24HourTime
@@ -151,6 +153,7 @@ QtObject {
 
         onCustomAvatarPathChanged: if (_loaded) saveConfig()
     onBootFocusModeChanged: if (_loaded) saveConfig()
+    onFocusModeHoverExpandChanged: if (_loaded) saveConfig()
     onDefaultDashboardTabChanged: if (_loaded) saveConfig()
     onDefaultAudioTabChanged: if (_loaded) saveConfig()
     onUse24HourTimeChanged: if (_loaded) saveConfig()
@@ -197,6 +200,7 @@ QtObject {
         var data = JSON.stringify({
             customAvatarPath: root.customAvatarPath,
             bootFocusMode: root.bootFocusMode,
+            focusModeHoverExpand: root.focusModeHoverExpand,
             defaultDashboardTab: root.defaultDashboardTab,
             defaultAudioTab: root.defaultAudioTab,
             use24HourTime: root.use24HourTime,

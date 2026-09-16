@@ -104,7 +104,7 @@ Item {
                 
                 visible: isCurrent || wasCurrent
 
-                ChannelColumn {
+                ChannelSlider {
                     localScale: root.localScale
                     width:  parent.width
                     height: pageOutput.height - Math.round(16 * root.localScale)
@@ -173,7 +173,7 @@ Item {
                 
                 visible: isCurrent || wasCurrent
 
-                ChannelColumn {
+                ChannelSlider {
                     localScale: root.localScale
                     width:  parent.width
                     height: pageInput.height - Math.round(16 * root.localScale)
@@ -308,158 +308,7 @@ Item {
         }
     }
 
-    // ── ChannelColumn ─────────────────────────────────────────────────────────
-    component ChannelColumn: Item {
-        id: col
-
-        property real localScale: 1.0
-        property string label:  ""
-        property string icon:   ""
-        property real   value:  0.0
-        property bool   muted:  false
-        property bool   active: false
-
-        readonly property int trackHeight: Math.round(160 * localScale)
-        readonly property int barW:        Math.round(22 * localScale)
-        readonly property int thumbD:      barW - Math.round(6 * localScale)
-
-        signal volumeChanged(real value)
-        signal muteToggled()
-
-        // Expose size so PopupPage Flickable can measure content
-        implicitWidth:  inner.implicitWidth
-        implicitHeight: inner.implicitHeight
-
-        readonly property string pctText:
-            active ? Math.round(value * 100) + "%" : "--%"
-
-        Column {
-            id: inner
-            anchors.centerIn: parent
-            spacing: Math.round(8 * localScale)
-
-            Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text:           col.pctText
-                color:          col.muted ? Theme.subtext : Theme.text
-                font.pixelSize: Math.round(13 * localScale)
-                font.bold:      true
-                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
-            }
-
-            Item {
-                anchors.horizontalCenter: parent.horizontalCenter
-                width:  col.barW
-                height: col.trackHeight
-
-                Rectangle {
-                    id: track
-                    anchors.fill: parent
-                    radius: width / 2
-                    color:  Theme.border
-
-                    // Fill bar
-                    Rectangle {
-                        anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
-                        height: Math.max(parent.radius * 2, parent.height * col.value)
-                        radius: parent.radius
-                        color:  col.muted ? Theme.subtext : Theme.active
-                        Behavior on color  { ColorAnimation  { duration: Anim.mediumFast} }
-                        Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
-                    }
-
-                    // Thumb
-                    Rectangle {
-                        id: thumb
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        width:  col.thumbD
-                        height: width
-                        radius: width / 2
-                        color:  col.muted ? Theme.subtext : Theme.text
-                        y: {
-                            var travel = track.height - height
-                            return Math.max(0, Math.min(travel, (1.0 - col.value) * travel))
-                        }
-                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
-                    }
-
-                    // Drag to change volume
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape:  Qt.SizeVerCursor
-                        function calc(my) {
-                            var travel = track.height - thumb.height
-                            return Math.max(0.0, Math.min(1.0,
-                                1.0 - (my - thumb.height / 2) / travel))
-                        }
-                        onPressed:         col.volumeChanged(calc(mouseY))
-                        onPositionChanged: if (pressed) col.volumeChanged(calc(mouseY))
-                    }
-
-                    // Scroll wheel to change volume
-                    WheelHandler {
-                        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                        onWheel: function(event) {
-                            var step = 0.05
-                            var delta = event.angleDelta.y > 0 ? step : -step
-                            col.volumeChanged(Math.max(0.0, Math.min(1.0, col.value + delta)))
-                        }
-                    }
-                }
-            }
-
-            // Mute button
-            Rectangle {
-                anchors.horizontalCenter: parent.horizontalCenter
-                width:  col.barW + Math.round(32 * localScale)
-                height: Math.round(28 * localScale)
-                radius: Math.round(Theme.cornerRadius * localScale)
-                color:  col.muted
-                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2)
-                            : Theme.border
-                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
-
-                Row {
-                    anchors.centerIn: parent
-                    spacing: Math.round(5 * localScale)
-                    Text {
-                        text:           col.icon
-                        font.pixelSize: Math.round(13 * localScale)
-                        color:          col.muted ? Theme.active : Theme.icon
-                        anchors.verticalCenter: parent.verticalCenter
-                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
-                    }
-                    Text {
-                        text:           col.muted ? "Muted" : "Mute"
-                        font.pixelSize: Math.round(11 * localScale)
-                        color:          col.muted ? Theme.active : Theme.subtext
-                        anchors.verticalCenter: parent.verticalCenter
-                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
-                    }
-                }
-                Rectangle {
-                    anchors.fill: parent; radius: parent.radius
-                    color: muteHov.hovered ? Theme.border : "transparent"
-                    Behavior on color { ColorAnimation { duration: Anim.fast} }
-                }
-                HoverHandler { id: muteHov; cursorShape: Qt.PointingHandCursor }
-                MouseArea { anchors.fill: parent; onClicked: col.muteToggled() }
-            }
-
-            // Label
-            Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text:            col.label
-                color:           Theme.subtext
-                font.pixelSize:  Math.round(10 * localScale)
-                font.capitalization: Font.AllUppercase
-                font.letterSpacing: 1
-                elide:           Text.ElideRight
-                width:           col.barW + Math.round(60 * localScale)
-                horizontalAlignment: Text.AlignHCenter
-            }
-        }
-    }
+    // ── ChannelSlider ─────────────────────────────────────────────────────────
 
     // ── SectionLabel ──────────────────────────────────────────────────────────
     component SectionLabel: Text {

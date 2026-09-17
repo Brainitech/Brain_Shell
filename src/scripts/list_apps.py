@@ -2,10 +2,10 @@
 import os, json, re, configparser
 
 def main():
-    dirs = [
-        "/usr/share/applications",
-        os.path.expanduser("~/.local/share/applications")
-    ]
+
+    xdg_dirs = os.environ.get("XDG_DATA_DIRS", "").split(":")
+    dirs = [os.path.join(d, "applications") for d in xdg_dirs if d] + \
+    	   [os.path.expanduser("~/.local/share/applications")]
     apps, seen = [], set()
 
     for d in dirs:

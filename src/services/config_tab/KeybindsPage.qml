@@ -312,7 +312,7 @@ Item {
                     br.releaseCapture()
                     return
                 }
-                var k = _keyName(event.key)
+                var k = _keyName(event)
                 if (k !== "") {
                     var m = _mods(br._pressedMods)
                     br.capturedMods = m
@@ -565,7 +565,8 @@ Item {
             return p.join(" + ")
         }
 
-        function _keyName(k) {
+        function _keyName(event) {
+            var k = event.key
             if (_isMod(k)) return ""
             if (k >= Qt.Key_A && k <= Qt.Key_Z)    return String.fromCharCode(k)
             if (k >= Qt.Key_0 && k <= Qt.Key_9)    return String.fromCharCode(k)
@@ -600,7 +601,17 @@ Item {
             m[Qt.Key_Period]       = "period"
             m[Qt.Key_Slash]        = "slash"
             m[Qt.Key_QuoteLeft]    = "grave"
-            return m[k] || ""
+            m[Qt.Key_VolumeUp]       = "XF86AudioRaiseVolume"
+            m[Qt.Key_VolumeDown]     = "XF86AudioLowerVolume"
+            m[Qt.Key_VolumeMute]     = "XF86AudioMute"
+            m[Qt.Key_MediaPlay]      = "XF86AudioPlay"
+            m[Qt.Key_MediaPause]     = "XF86AudioPause"
+            m[Qt.Key_MediaTogglePlayPause] = "XF86AudioPlay"
+            m[Qt.Key_MediaNext]      = "XF86AudioNext"
+            m[Qt.Key_MediaPrevious]  = "XF86AudioPrev"
+            m[Qt.Key_MonBrightnessUp]   = "XF86MonBrightnessUp"
+            m[Qt.Key_MonBrightnessDown] = "XF86MonBrightnessDown"
+            return m[k] || (event.text !== "" ? event.text.toUpperCase() : "Unknown")
         }
 
         HoverHandler { id: _rH; enabled: !br.isCapturing }

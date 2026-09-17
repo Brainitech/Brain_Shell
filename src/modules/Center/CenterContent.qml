@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell.Hyprland
-import Quickshell.Services.Mpris
 import Quickshell.Io
 import "../../"
 
@@ -32,12 +31,10 @@ Item {
 	// TopBar.cWidth reads this so the notch always matches what is visible,
 	// even if the user scrolls away from record_active while recording.
 	readonly property int fw: Math.round(Theme.cornerRadius * localScale)
-	// ── MPRIS ─────────────────────────────────────────────────────────────────
-	readonly property var    player:    Mpris.players.values.length > 0
-	? Mpris.players.values[0] : null
-	readonly property bool   isPlaying: player?.playbackState === MprisPlaybackState.Playing
-	?? false
-	readonly property string artUrl:    player?.trackArtUrl ?? ""
+	// ── MPRIS (via MediaService) ─────────────────────────────────────────────
+	readonly property var    player:    MediaService.activePlayer
+	readonly property bool   isPlaying: MediaService.isPlaying
+	readonly property string artUrl:    MediaService.artUrl
 
 	property string activeTitle: "Desktop"
 
@@ -95,6 +92,9 @@ Item {
 	// ── Dynamic item list ─────────────────────────────────────────────────────
 	property var  _items:         ["title"]
 	property int  _carouselIndex: 0
+    on_CarouselIndexChanged: {
+        CavaService.notchMusicVisible = (_items.indexOf("music") >= 0 && _carouselIndex === _items.indexOf("music"))
+    }
 	readonly property real _itemStride: Math.round(45 * localScale)  // 30px height + 15px spacing
 
 	function _rebuildItems(autoScrollType) {
@@ -127,6 +127,9 @@ Item {
 
 		root._carouselIndex = idx
 		statusList.contentY = idx * root._itemStride
+
+		// Signal CavaService whether music carousel is visible
+		CavaService.notchMusicVisible = (list.indexOf("music") >= 0 && root._carouselIndex === list.indexOf("music"))
 	}
 
 	// Force-scroll to a specific type regardless of where the user is
@@ -343,6 +346,12 @@ Item {
 								maskSpreadAtMin:  1.0
 							}
 						}
+
+						HoverHandler { id: _miniPlayerHov; cursorShape: Qt.PointingHandCursor }
+						MouseArea {
+							anchors.fill: parent
+							onClicked: Popups.miniPlayerOpen = !Popups.miniPlayerOpen
+						}
 					}
 
 					Item {
@@ -360,225 +369,202 @@ Item {
 						readonly property real _barSpacing: Math.max(
 							1,
 							(width - _barW * root._cavaBars) / Math.max(1, root._cavaBars - 1))
-							readonly property real _maxBarH:    height / 2
+						readonly property real _maxBarH:    height / 2
 
-							Row {
-								anchors.fill: parent
-								spacing:      barsArea._barSpacing
+						Row {
+							anchors.fill: parent
+							spacing:      barsArea._barSpacing
 
-								Repeater {
-									model: root._bars
-									delegate: Item {
-										required property int modelData
+							Repeater {
+								model: root._bars
+								delegate: Item {
+									required property int modelData
+									width:  barsArea._barW
+									height: barsArea.height
+									readonly property real _amp: modelData / 100.0
+									Rectangle {
+										anchors.centerIn: parent
 										width:  barsArea._barW
-										height: barsArea.height
-										readonly property real _amp: modelData / 100.0
-										Rectangle {
-											anchors.centerIn: parent
-											width:  barsArea._barW
-											height: Math.max(2, _amp * barsArea._maxBarH * 2)
-											radius: width / 2
-											color:  Qt.rgba(
-												Theme.active.r, Theme.active.g, Theme.active.b,
-												0.28 + _amp * 0.72)
-												Behavior on height {
-													NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic}
-												}
-											}
-										}
+										height: Math.max(2, _amp * barsArea._maxBarH * 2)
+										radius: width / 2
+										color:  Qt.rgba(
+											Theme.active.r, Theme.active.g, Theme.active.b,
+											0.28 + _amp * 0.72)
 									}
 								}
 							}
 						}
-
-						// ── Timer ──────────────────────────────────────────────────────
-						Item {
-							anchors.fill: parent
-							visible:      modelData === "timer"
-
-							// Icon — left edge of notch
-							Text {
-								anchors {
-									left:           parent.left
-									leftMargin:     root.fw
-									verticalCenter: parent.verticalCenter
-								}
-								text:           "󰔟"
-								font.pixelSize: Math.round(16 * localScale)
-								color:          root.timerUrgent ? "#ff5555" : Theme.active
-								Behavior on color { ColorAnimation { duration: Anim.normal} }
-							}
-
-							// Time display — centered in remaining space
-							Text {
-								id: timerText
-								anchors {
-									left:           parent.left
-									leftMargin:     Math.round(8 * localScale)
-									right:          parent.right
-									rightMargin:    Math.round(8 * localScale)
-									verticalCenter: parent.verticalCenter
-								}
-								text:           ClockState.timerDisplay
-								font.pixelSize: Math.round(15 * localScale)
-								font.weight:    Font.Bold
-								font.family:    "JetBrains Mono"
-								horizontalAlignment: Text.AlignHCenter
-								color:          root.timerUrgent ? "#ff5555" : Theme.text
-								Behavior on color { ColorAnimation { duration: Anim.normal} }
-
-								// Blink when urgent — opacity pulses 1 → 0.25 → 1
-								SequentialAnimation on opacity {
-									id: timerBlink
-									running:  root.timerUrgent
-									loops:    Animation.Infinite
-									NumberAnimation { to: 0.25; duration: Anim.verySlow; easing.type: Anim.inOutSine}
-									NumberAnimation { to: 1.0;  duration: Anim.verySlow; easing.type: Anim.inOutSine}
-								}
-
-								// Snap back to full opacity when blink stops
-								Connections {
-									target: timerBlink
-									function onRunningChanged() {
-										if (!timerBlink.running) timerText.opacity = 1.0
-									}
-								}
-							}
-							// Icon — right edge of notch
-							Row{
-								anchors {
-									right:          parent.right
-									rightMargin:    root.fw
-									verticalCenter: parent.verticalCenter
-								}
-								spacing: root.fw
-
-								Text {
-									anchors {
-										verticalCenter: parent.verticalCenter
-									}
-									text:           ClockState.timerRunning ? "󱫟" : "󱫡"
-									font.pixelSize: Math.round(16 * localScale)
-									color:          _timerPauseHov.hovered ? Theme.active : Theme.text
-									HoverHandler { id: _timerPauseHov;  }
-									MouseArea { 
-										anchors.fill: parent
-										cursorShape: Qt.PointingHandCursor
-										onClicked: ClockState.timerRunning = !ClockState.timerRunning
-									}
-								}
-								Text {
-									anchors {
-										verticalCenter: parent.verticalCenter
-									}
-									text:			"󱫥"
-									font.pixelSize: Math.round(16 * localScale)
-									color:			_timerResetHov.hovered ? Theme.active : Theme.text
-									HoverHandler { id: _timerResetHov; cursorShape: Qt.PointingHandCursor }
-									MouseArea { 
-										anchors.fill: parent
-										cursorShape: Qt.PointingHandCursor
-										onClicked: {
-											ClockState.requestTimerReset()
-										}
-									}
-								}
-							}
-						}
-						// ── Stopwatch ──────────────────────────────────────────────────
-						Item {
-							anchors.fill: parent
-							visible:      modelData === "stopwatch"
-
-							// Icon — left edge of notch
-							Text {
-								anchors {
-									left:           parent.left
-									leftMargin:     root.fw
-									verticalCenter: parent.verticalCenter
-								}
-								text:           ""
-								font.pixelSize: Math.round(16 * localScale)
-								color:          Theme.active
-							}
-
-							// Running time — centered in remaining space
-							Text {
-								anchors {
-									left:           parent.left
-									leftMargin:     Math.round(8 * localScale)
-									right:          parent.right
-									rightMargin:    Math.round(8 * localScale)
-									verticalCenter: parent.verticalCenter
-								}
-								text:           ClockState.swDisplay
-								font.pixelSize: Math.round(15 * localScale)
-								font.weight:    Font.Bold
-								font.family:    "JetBrains Mono"
-								horizontalAlignment: Text.AlignHCenter
-								color:          Theme.text
-							}
-							// Icon — right edge of notch
-							Row{
-								anchors {
-									right:          parent.right
-									rightMargin:    root.fw
-									verticalCenter: parent.verticalCenter
-								}
-								spacing: root.fw
-								
-								Text {
-									anchors {
-										verticalCenter: parent.verticalCenter
-									}
-									text:           ClockState.swRunning ? "󱫟" : "󱫡"
-									font.pixelSize: Math.round(16 * localScale)
-									color:          _pauseHov.hovered ? Theme.active : Theme.text
-									HoverHandler { id: _pauseHov;  }
-									MouseArea { 
-										anchors.fill: parent
-										cursorShape: Qt.PointingHandCursor
-										onClicked: {
-										ClockState.swRunning = !ClockState.swRunning
-										}
-									}
-								}
-								Text {
-									anchors {
-										verticalCenter: parent.verticalCenter
-									}
-									text:			"󱫥"
-									font.pixelSize: Math.round(16 * localScale)
-									color:			_notchResetHov.hovered ? Theme.active : Theme.text
-										
-									HoverHandler { id: _notchResetHov; cursorShape: Qt.PointingHandCursor }
-									MouseArea { 
-											anchors.fill: parent
-											cursorShape: Qt.PointingHandCursor
-											onClicked: {
-												ClockState.requestStopwatchReset()
-											}
-										}
-									}
-							}
-						}
-
-						ScreenRecordSetupDelegate { anchors.fill: parent; localScale: root.localScale; fw: root.fw; itemType: modelData }
-						ScreenRecordActiveDelegate { anchors.fill: parent; localScale: root.localScale; fw: root.fw; itemType: modelData }
-
-					} // delegate
-				}
-			}
-
-
-
-			HoverHandler {
-				onHoveredChanged: {
-					Popups.dashboardTriggerHovered = hovered
-					if (ShellState.screenRecord && !ScreenRecService.recording && PrefsService.globalHoverMode && PrefsService.hoverDashboard) {
-						if (hovered) ScreenRecService.requestExpand()
-						else ScreenRecService.scheduleClose()
 					}
+				}
+
+				// ── Timer ──────────────────────────────────────────────────────
+				Item {
+					anchors.fill: parent
+					visible:      modelData === "timer"
+
+					Text {
+						anchors {
+							left:           parent.left
+							leftMargin:     root.fw
+							verticalCenter: parent.verticalCenter
+						}
+						text:           "󰔟"
+						font.pixelSize: Math.round(16 * localScale)
+						color:          root.timerUrgent ? "#ff5555" : Theme.active
+						Behavior on color { ColorAnimation { duration: Anim.normal} }
+					}
+
+					Text {
+						id: timerText
+						anchors {
+							left:           parent.left
+							leftMargin:     Math.round(8 * localScale)
+							right:          parent.right
+							rightMargin:    Math.round(8 * localScale)
+							verticalCenter: parent.verticalCenter
+						}
+						text:           ClockState.timerDisplay
+						font.pixelSize: Math.round(15 * localScale)
+						font.weight:    Font.Bold
+						font.family:    "JetBrains Mono"
+						horizontalAlignment: Text.AlignHCenter
+						color:          root.timerUrgent ? "#ff5555" : Theme.text
+						Behavior on color { ColorAnimation { duration: Anim.normal} }
+
+						SequentialAnimation on opacity {
+							id: timerBlink
+							running:  root.timerUrgent
+							loops:    Animation.Infinite
+							NumberAnimation { to: 0.25; duration: Anim.verySlow; easing.type: Anim.inOutSine}
+							NumberAnimation { to: 1.0;  duration: Anim.verySlow; easing.type: Anim.inOutSine}
+						}
+
+						Connections {
+							target: timerBlink
+							function onRunningChanged() {
+								if (!timerBlink.running) timerText.opacity = 1.0
+							}
+						}
+					}
+
+					Row{
+						anchors {
+							right:          parent.right
+							rightMargin:    root.fw
+							verticalCenter: parent.verticalCenter
+						}
+						spacing: root.fw
+
+						Text {
+							anchors.verticalCenter: parent.verticalCenter
+							text:           ClockState.timerRunning ? "󱫟" : "󱫡"
+							font.pixelSize: Math.round(16 * localScale)
+							color:          _timerPauseHov.hovered ? Theme.active : Theme.text
+							HoverHandler { id: _timerPauseHov }
+							MouseArea { 
+								anchors.fill: parent
+								cursorShape: Qt.PointingHandCursor
+								onClicked: ClockState.timerRunning = !ClockState.timerRunning
+							}
+						}
+						Text {
+							anchors.verticalCenter: parent.verticalCenter
+							text:           "󱫥"
+							font.pixelSize: Math.round(16 * localScale)
+							color:          _timerResetHov.hovered ? Theme.active : Theme.text
+							HoverHandler { id: _timerResetHov; cursorShape: Qt.PointingHandCursor }
+							MouseArea { 
+								anchors.fill: parent
+								cursorShape: Qt.PointingHandCursor
+								onClicked: ClockState.requestTimerReset()
+							}
+						}
+					}
+				}
+
+				// ── Stopwatch ──────────────────────────────────────────────────
+				Item {
+					anchors.fill: parent
+					visible:      modelData === "stopwatch"
+
+					Text {
+						anchors {
+							left:           parent.left
+							leftMargin:     root.fw
+							verticalCenter: parent.verticalCenter
+						}
+						text:           ""
+						font.pixelSize: Math.round(16 * localScale)
+						color:          Theme.active
+					}
+
+					Text {
+						anchors {
+							left:           parent.left
+							leftMargin:     Math.round(8 * localScale)
+							right:          parent.right
+							rightMargin:    Math.round(8 * localScale)
+							verticalCenter: parent.verticalCenter
+						}
+						text:           ClockState.swDisplay
+						font.pixelSize: Math.round(15 * localScale)
+						font.weight:    Font.Bold
+						font.family:    "JetBrains Mono"
+						horizontalAlignment: Text.AlignHCenter
+						color:          Theme.text
+					}
+
+					Row{
+						anchors {
+							right:          parent.right
+							rightMargin:    root.fw
+							verticalCenter: parent.verticalCenter
+						}
+						spacing: root.fw
+						
+						Text {
+							anchors.verticalCenter: parent.verticalCenter
+							text:           ClockState.swRunning ? "󱫟" : "󱫡"
+							font.pixelSize: Math.round(16 * localScale)
+							color:          _pauseHov.hovered ? Theme.active : Theme.text
+							HoverHandler { id: _pauseHov }
+							MouseArea { 
+								anchors.fill: parent
+								cursorShape: Qt.PointingHandCursor
+								onClicked: ClockState.swRunning = !ClockState.swRunning
+							}
+						}
+						Text {
+							anchors.verticalCenter: parent.verticalCenter
+							text:           "󱫥"
+							font.pixelSize: Math.round(16 * localScale)
+							color:          _notchResetHov.hovered ? Theme.active : Theme.text
+							HoverHandler { id: _notchResetHov; cursorShape: Qt.PointingHandCursor }
+							MouseArea { 
+								anchors.fill: parent
+								cursorShape: Qt.PointingHandCursor
+								onClicked: ClockState.requestStopwatchReset()
+							}
+						}
+					}
+				}
+
+				ScreenRecordSetupDelegate { anchors.fill: parent; localScale: root.localScale; fw: root.fw; itemType: modelData }
+				ScreenRecordActiveDelegate { anchors.fill: parent; localScale: root.localScale; fw: root.fw; itemType: modelData }
+
+			} // delegate
+		}
+
+
+
+		HoverHandler {
+			onHoveredChanged: {
+				Popups.dashboardTriggerHovered = hovered
+				if (ShellState.screenRecord && !ScreenRecService.recording && PrefsService.globalHoverMode && PrefsService.hoverDashboard) {
+					if (hovered) ScreenRecService.requestExpand()
+					else ScreenRecService.scheduleClose()
 				}
 			}
 		}
+	}
+}

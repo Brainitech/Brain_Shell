@@ -8,14 +8,16 @@ Item {
     anchors.fill: parent
     
     // Only active when a surface is expanded
-    property bool isActive: SurfaceState.activeSurface !== "none" || (ShellState.screenRecord && !ScreenRecService.recording)
+    property bool isActive: SurfaceState.activeSurface !== "none" || (ShellState.screenRecord && !ScreenRecService.recording) || Popups.miniPlayerOpen
     
     MouseArea {
         anchors.fill: parent
         enabled: root.isActive
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onClicked: (mouse) => {
-            if (ScreenRecService.optionsExpanded) {
+            if (Popups.miniPlayerOpen) {
+                Popups.miniPlayerOpen = false
+            } else if (ScreenRecService.optionsExpanded) {
                 if (mouse.y > 100) {
                     ScreenRecService.optionsExpanded = false
                 }

@@ -11,3 +11,4 @@ singleton KeybindService services/KeybindService.qml
 singleton UpdateService services/UpdateService.qml
 singleton PrefsService services/PrefsService.qml
 singleton SurfaceState state/SurfaceState.qml
+singleton MediaService services/MediaService.qml

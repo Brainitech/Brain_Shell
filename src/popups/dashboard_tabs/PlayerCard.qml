@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell.Io
-import Quickshell.Services.Mpris
 import "../../"
 import "../../components"
 
@@ -10,133 +9,36 @@ Item {
 
     property real localScale: 1.0
 
-    // ── Source blocklist ──────────────────────────────────────────────────────
-    readonly property var _blocked: [
-        "kdeconnect", 
-        "gsconnect", 
-        "playerctld",
-        "plasma-browser-integration"
-    ]
-
-    // Explicit count tracker — forces filteredPlayers to re-evaluate whenever
-    // a player joins or leaves the MPRIS list.
-    property int _mprisCount: Mpris.players.values.length
-
-    readonly property var filteredPlayers: {
-        var _dep = root._mprisCount  // explicit dependency on list size changes
-        var result = []
-        var vals = Mpris.players.values
-        for (var i = 0; i < vals.length; i++) {
-            var id = (vals[i].identity || "").toLowerCase()
-            var isBlocked = false
-            
-            for (var j = 0; j < root._blocked.length; j++) {
-                if (id.indexOf(root._blocked[j]) !== -1) {
-                    isBlocked = true
-                    break
-                }
-            }
-            
-            if (!isBlocked) {
-                result.push(vals[i])
-            }
-        }
-        return result
-    }
-
-    property int selectedPlayerIndex: 0
     property bool _dropdownOpen: false
 
-    onVisibleChanged: if (!visible) root._dropdownOpen = false
-
-    onFilteredPlayersChanged: {
-        // Prefer keeping the same player object selected after list change.
-        var oldPlayer = root.player
-        if (oldPlayer) {
-            for (var i = 0; i < root.filteredPlayers.length; i++) {
-                if (root.filteredPlayers[i] === oldPlayer) {
-                    root.selectedPlayerIndex = i
-                    return
-                }
-            }
-        }
-        // Fallback: clamp to valid range
-        if (root.selectedPlayerIndex >= root.filteredPlayers.length)
-            root.selectedPlayerIndex = Math.max(0, root.filteredPlayers.length - 1)
+    onVisibleChanged: {
+        if (!visible) root._dropdownOpen = false
     }
 
-    // ── MPRIS ─────────────────────────────────────────────────────────────────
-    readonly property var player: root.filteredPlayers.length > 0
-                                  ? root.filteredPlayers[root.selectedPlayerIndex] : null
-
-    readonly property bool   isPlaying: root.player?.playbackState === MprisPlaybackState.Playing ?? false
-    readonly property string artUrl:    root.player?.trackArtUrl ?? ""
-
-    readonly property string title: {
-        var t = root.player?.trackTitle
-        return (t && t !== "") ? t : "Nothing Playing"
-    }
-    readonly property string artist: {
-        var a = root.player?.trackArtists
-        if (!a) return ""
-        if (typeof a === "string") return a
-        if (typeof a.join === "function") return a.join(", ")
-        return a.toString()
+    Binding {
+        target: CavaService
+        property: "dashboardVisible"
+        value: root.visible && Popups.dashboardOpen && Popups.dashboardPage === "home"
     }
 
-    readonly property real length:   root.player?.length   ?? 0
-    readonly property real position: root.player?.position ?? 0
+    // ── MPRIS (via MediaService) ─────────────────────────────────────────────
+    readonly property var    player:    MediaService.activePlayer
+    readonly property bool   isPlaying: MediaService.isPlaying
+    readonly property string artUrl:    MediaService.artUrl
+    readonly property string title:     MediaService.title
+    readonly property string artist:    MediaService.artist
+    readonly property real   length:    MediaService.length
+    readonly property real   _pos:      MediaService._pos
+    readonly property real   _progress: MediaService.progress
 
-    property real _pos: 0
-    onPositionChanged: root._pos = position
-
-    Timer {
-        interval: 1000; running: root.isPlaying; repeat: true
-        onTriggered: {
-            if (root.length > 0)
-                root._pos = Math.min(root._pos + 1, root.length)
-        }
-    }
-
-    function _fmt(sec) {
-        var s = Math.floor(sec)
-        return Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + (s % 60)
-    }
-
-    readonly property real _progress: root.length > 0 ? root._pos / root.length : 0
+    function _fmt(sec) { return MediaService._fmt(sec) }
 
     // ── Shared cava bars (32 bars from CavaService) ───────────────────────────
     readonly property int _cavaBars: 32
     readonly property var _bars: CavaService.bars
 
-    // ── Player icon helper ────────────────────────────────────────────────────
-    function _playerIcon(player) {
-        if (!player) return "♪"
-        var id = (player.identity || "").toLowerCase()
-        if (id.indexOf("spotify")  !== -1) return ""
-        if (id.indexOf("firefox")  !== -1) return ""
-        if (id.indexOf("chromium") !== -1) return ""
-        if (id.indexOf("chrome")   !== -1) return ""
-        if (id.indexOf("brave")    !== -1) return ""
-        if (id.indexOf("youtube")  !== -1) return ""
-        return "♪"
-    }
-
-    // ── Player label helper ───────────────────────────────────────────────────
-    function _playerLabel(player) {
-        if (!player) return "—"
-        var id = (player.identity || "").toLowerCase()
-        if (id.indexOf("spotify")  !== -1) return "Spotify"
-        if (id.indexOf("firefox")  !== -1) return "Firefox"
-        if (id.indexOf("chromium") !== -1) return "Chromium"
-        if (id.indexOf("chrome")   !== -1) return "Chrome"
-        if (id.indexOf("brave")    !== -1) return "Brave"
-        if (id.indexOf("youtube")  !== -1) return "YouTube"
-        if (id.indexOf("edge")     !== -1) return "Edge"
-        if (id.indexOf("opera")    !== -1) return "Opera"
-        if (id.indexOf("vivaldi")  !== -1) return "Vivaldi"
-        return player.identity || "Player"
-    }
+    // Signal CavaService consumer visibility
+    Component.onDestruction: CavaService.dashboardVisible = false
 
     // ── Background visuals ────────────────────────────────────────────────────
     Item {
@@ -196,6 +98,18 @@ Item {
         maskSpreadAtMin:  1.0
     }
 
+    // Tap background to close dropdown or raise app (first child = bottom Z)
+    TapHandler {
+        onTapped: {
+            if (root._dropdownOpen) {
+                root._dropdownOpen = false;
+            } else {
+                MediaService.raisePlayer();
+                SurfaceState.close();
+            }
+        }
+    }
+
     // ── Track name + artist ───────────────────────────────────────────────────
     Column {
         anchors {
@@ -204,8 +118,7 @@ Item {
             top:   parent.top;   topMargin:   Math.round(16 * localScale)
         }
         spacing: Math.round(4 * localScale)
-        clip: true // Ensure nothing bleeds outside the column boundaries
-        // ── Title with Marquee Scroll ──
+        clip: true
         Item {
             width: parent.width
             height: Math.round(32 * localScale) 
@@ -246,7 +159,7 @@ Item {
         }
     }
 
-    // ── Bottom stack: controls + progress (raised to give room for picker) ──────
+    // ── Bottom stack: controls + progress ──────────────────────────────────────
     Column {
         anchors {
             left:   parent.left;   leftMargin:   Math.round(14 * localScale)
@@ -288,19 +201,9 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            if (!root.player) return
-                            switch (modelData.key) {
-                                case "play":
-                                    if (root.player.canTogglePlaying)
-                                        root.player.isPlaying = !root.player.isPlaying
-                                    break
-                                case "prev":
-                                    if (root.player.canGoPrevious) root.player.previous()
-                                    break
-                                case "next":
-                                    if (root.player.canGoNext) root.player.next()
-                                    break
-                            }
+                            if (modelData.key === "play") MediaService.toggle()
+                            else if (modelData.key === "prev") MediaService.prev()
+                            else if (modelData.key === "next") MediaService.next()
                         }
                     }
                 }
@@ -318,11 +221,8 @@ Item {
                     MouseArea {
                         anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                         onClicked: function(mouse) {
-                            if (root.player && root.length > 0) {
-                                var f = mouse.x / width
-                                root.player.position = f * root.length
-                                root._pos = f * root.length
-                            }
+                            if (root.length > 0)
+                                MediaService.seek(mouse.x / width)
                         }
                     }
                     Rectangle {
@@ -354,7 +254,6 @@ Item {
     }
 
     // ── Source picker — upward-expanding pill ─────────────────────────────────
-    // Sits in the gap between the controls and the card bottom; expands upward.
     Item {
         id: sourcePicker
         anchors {
@@ -363,7 +262,7 @@ Item {
             topMargin:    Math.round(12 * localScale)
             rightMargin:  Math.round(12 * localScale)
         }
-        visible: root.filteredPlayers.length > 1
+        visible: MediaService.filteredPlayers.length > 1
         z:       30
         
         width:  pill.width
@@ -374,12 +273,11 @@ Item {
             anchors.top:   parent.top
             anchors.right: parent.right
 
-            // Width tracks the active row + padding
             width: activeRow.implicitWidth + Math.round(24 * localScale)
 
             readonly property int _rowH: Math.round(26 * localScale)
             height: root._dropdownOpen 
-                    ? (_rowH * root.filteredPlayers.length) 
+                    ? (_rowH * MediaService.filteredPlayers.length) 
                     : _rowH
             Behavior on height { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic} }
 
@@ -392,14 +290,12 @@ Item {
             border.width: 1
             Behavior on border.color { ColorAnimation { duration: Anim.mediumFast} }
 
-            // Stacks downward from the top
             Column {
                 anchors.top:   parent.top
                 anchors.left:  parent.left
                 anchors.right: parent.right
                 spacing: 0
 
-                // ── Active player row (Always at the top) ─────────────
                 Item {
                     height: pill._rowH
                     width:  parent.width
@@ -411,17 +307,16 @@ Item {
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text:           root.player ? root._playerIcon(root.player) : "♪"
+                            text:           root.player ? MediaService.playerIcon(root.player) : "♪"
                             font.pixelSize: Math.round(11 * localScale)
                             color:          Theme.active
                         }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text:           root.player ? root._playerLabel(root.player) : "Player"
+                            text:           root.player ? MediaService.playerLabel(root.player) : "Player"
                             font.pixelSize: Math.round(11 * localScale)
                             font.weight:    Font.Medium
                             color:          Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.92)
-                            // Cap width so crazy browser identities don't stretch the pill
                             width:          Math.min(implicitWidth, Math.round(120 * localScale)) 
                             elide:          Text.ElideRight
                         }
@@ -434,13 +329,12 @@ Item {
                     }
                 }
 
-                // ── Other player rows (Drop down below active) ─────────
                 Repeater {
-                    model: root.filteredPlayers
+                    model: MediaService.filteredPlayers
                     delegate: Item {
                         required property var modelData
                         required property int index
-                        readonly property bool isCurrent: index === root.selectedPlayerIndex
+                        readonly property bool isCurrent: index === MediaService.selectedIndex
 
                         width:  parent.width
                         height: isCurrent ? 0 : (root._dropdownOpen ? pill._rowH : 0)
@@ -456,14 +350,14 @@ Item {
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text:           root._playerIcon(modelData)
+                                text:           MediaService.playerIcon(modelData)
                                 font.pixelSize: Math.round(11 * localScale)
                                 color:          rowH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.90) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.55)
                                 Behavior on color { ColorAnimation { duration: Anim.fast} }
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text:           root._playerLabel(modelData)
+                                text:           MediaService.playerLabel(modelData)
                                 font.pixelSize: Math.round(11 * localScale)
                                 color:          rowH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.90) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.55)
                                 width:          Math.min(implicitWidth, Math.round(120 * localScale))
@@ -476,7 +370,7 @@ Item {
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                root.selectedPlayerIndex = index
+                                MediaService.selectPlayer(index)
                                 root._dropdownOpen = false
                             }
                         }
@@ -486,7 +380,7 @@ Item {
         }
     } 
 
-    // ── Cava bars — independent, always flush with the card bottom ────────────
+    // ── Cava bars — flush with the card bottom ────────────────────────────────
     Item {
         anchors { left: parent.left; right: parent.right; bottom: parent.bottom; leftMargin: Math.round(7 * localScale); rightMargin: Math.round(7 * localScale); bottomMargin: Math.round(4 * localScale) }
         height: Math.round(32 * localScale)
@@ -507,7 +401,6 @@ Item {
                         height: Math.max(2, _amp * Math.round(32 * localScale))
                         radius: width / 2
                         color:  Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.25 + _amp * 0.65)
-                        Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
                     }
                 }
             }
@@ -521,11 +414,5 @@ Item {
         color:        "transparent"
         border.color: Theme.border
         border.width: 1
-    }
-
-    // Close dropdown on click outside
-    TapHandler {
-        enabled: root._dropdownOpen
-        onTapped: root._dropdownOpen = false
     }
 }

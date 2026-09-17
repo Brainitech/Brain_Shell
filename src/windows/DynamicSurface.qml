@@ -169,10 +169,11 @@ PanelWindow {
         
         leftNotchWidth: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmLeftHov.hovered || leftNotchHover.hovered))) ? 0.001 : Math.max(Math.round(Theme.lNotchMinWidth * localScale), Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale)))
         leftNotchHeight: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmLeftHov.hovered || leftNotchHover.hovered))) ? surfaceShape.innerRadius : Math.round(Theme.notchHeight * root.localScale)
-        centerNotchWidth: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmCenterHov.hovered || centerNotchHover.hovered)) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) ? 0.001 : (SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale))))
+        centerNotchWidth: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmCenterHov.hovered || centerNotchHover.hovered)) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording && !Popups.miniPlayerOpen) ? 0.001 : (SurfaceState.isTopExpanded ? Math.round(Popups.dashboardPageWidth * root.localScale) : Math.max(Math.round(Theme.cNotchMinWidth * localScale), Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContent.implicitWidth + Math.round(Theme.notchPadding * 2 * localScale))))
         centerNotchHeight: {
-            if (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmCenterHov.hovered || centerNotchHover.hovered)) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) return 0.001;
+            if (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmCenterHov.hovered || centerNotchHover.hovered)) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording && !Popups.miniPlayerOpen) return 0.001;
             if (SurfaceState.isTopExpanded) return Math.round(Theme.dashboardHeight * root.localScale);
+            if (Popups.miniPlayerOpen) return Math.round(Theme.notchHeight * root.localScale) + miniPlayerView.height + Math.round(16 * root.localScale);
             if (ShellState.screenRecord && !ScreenRecService.recording && ScreenRecService.optionsExpanded) return Math.round(Theme.notchHeight * root.localScale) + screenRecOptionsPopupView.height + Math.round(16 * root.localScale);
             return Math.round(Theme.notchHeight * root.localScale);
         }
@@ -210,6 +211,7 @@ PanelWindow {
         anchors.left: parent.left
         anchors.leftMargin: Math.round(Theme.borderWidth * root.localScale)
         anchors.top: parent.top
+        anchors.topMargin: Math.round(Theme.borderWidth * root.localScale)
         clip: true
         
         opacity: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmLeftHov.hovered || leftNotchHover.hovered)) && !SurfaceState.isTopExpanded) ? 0 : 1
@@ -236,6 +238,7 @@ PanelWindow {
         height: surfaceShape.centerNotchHeight
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
+        anchors.topMargin: Math.round(Theme.borderWidth * root.localScale)
         clip: true
         
         opacity: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmCenterHov.hovered || centerNotchHover.hovered)) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) ? 0 : 1
@@ -274,6 +277,13 @@ PanelWindow {
         y: Math.round(8 * root.localScale) + Math.round(Theme.notchHeight * root.localScale)
         z: 999
     }
+    MiniPlayer {
+        id: miniPlayerView
+        localScale: root.localScale
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: Math.round(8 * root.localScale) + Math.round(Theme.notchHeight * root.localScale)
+        z: 998
+    }
     }
 
 
@@ -285,6 +295,7 @@ PanelWindow {
         anchors.right: parent.right
         anchors.rightMargin: Math.round(Theme.borderWidth * root.localScale)
         anchors.top: parent.top
+        anchors.topMargin: Math.round(Theme.borderWidth * root.localScale)
         clip: true
         
         opacity: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmRightHov.hovered || rightNotchHover.hovered)) && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) ? 0 : 1

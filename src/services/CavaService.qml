@@ -2,11 +2,11 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import Quickshell.Services.Mpris
 import "../"
 
-// Single cava process shared by CenterContent and PlayerCard.
-// 32 bars at 30fps. isPlaying mirrors the active MPRIS player state.
+// Shared cava process for audio visualization.
+// Lifecycle-gated: only runs when audio is playing AND at least
+// one consumer is visible (notch music carousel, dashboard, or miniPlayer).
 
 QtObject {
     id: root
@@ -25,13 +25,43 @@ QtObject {
         onTriggered: root.audioActive = false
     }
 
-    // isPlaying is true if ANY MPRIS player is currently playing.
-    readonly property bool isPlaying: {
-        var vals = Mpris.players.values
-        for (var i = 0; i < vals.length; i++) {
-            if (vals[i].playbackState === MprisPlaybackState.Playing) return true
+    // ── Lifecycle gate ───────────────────────────────────────────────────────
+    // Consumers set these booleans to signal they need cava data.
+    property bool notchMusicVisible: false
+    property bool dashboardVisible: false
+    property bool miniPlayerVisible: false
+
+    readonly property bool _anyConsumerVisible:
+        notchMusicVisible || dashboardVisible || miniPlayerVisible
+
+    // 5s grace period after last consumer closes to prevent flicker
+    property bool _recentlyActive: false
+    property var _graceTimer: Timer {
+        interval: 5000
+        repeat: false
+        onTriggered: root._recentlyActive = false
+    }
+
+    on_AnyConsumerVisibleChanged: {
+        if (_anyConsumerVisible) {
+            _graceTimer.stop()
+            _recentlyActive = true
+        } else {
+            _graceTimer.restart()
         }
-        return false
+    }
+
+    readonly property bool shouldRun:
+        MediaService.anyPlaying && (_anyConsumerVisible || _recentlyActive)
+
+    // Zero-out bars when stopping to prevent stale visualization
+    onShouldRunChanged: {
+        if (!shouldRun) {
+            var zeroes = []
+            for (var i = 0; i < barCount; i++) zeroes.push(0)
+            root.bars = zeroes
+            root.audioActive = false
+        }
     }
 
     property var _proc: Process {
@@ -45,7 +75,7 @@ QtObject {
             "> /tmp/brain_shell/cava_shared.ini && " +
             "exec cava -p /tmp/brain_shell/cava_shared.ini 2>/dev/null"
         ]
-        running: true
+        running: root.shouldRun
         stdout: SplitParser {
             onRead: function(line) {
                 var t = line.trim()

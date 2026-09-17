@@ -155,6 +155,10 @@ Item {
 
     // --- GLOBAL ESCAPE HANDLER ---
     Keys.onEscapePressed: {
+        if (Popups.miniPlayerOpen) {
+            Popups.miniPlayerOpen = false
+            return
+        }
         if (inputManager.optionsExpanded) {
             ScreenRecService.optionsExpanded = false
         } else if (inputManager.screenRecord && !inputManager.screenRecording) {
@@ -169,6 +173,7 @@ Item {
         function onRawEvent(event) {
             if (event.name === "workspace" || event.name === "activemonitor" || event.name === "activespecial" || event.name === "openwindow") {
                 if (SurfaceState.activeContent === "dashboard" && Popups.dashboardPage === "kanban" && Popups.tasksInteractionActive) return;
+                Popups.miniPlayerOpen = false
                 SurfaceState.close()
             }
         }

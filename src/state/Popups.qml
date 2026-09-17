@@ -42,6 +42,7 @@ QtObject {
     readonly property bool quickOpen: SurfaceState.activeContent === "quick"
     readonly property bool clipboardOpen: SurfaceState.activeContent === "clipboard"
     property bool colorPickerActive: false
+    property bool miniPlayerOpen: false
     
     // ── Per-popup pinned state (ignores hover-leave) ──────────────────────────
     property bool audioPinned:         false
@@ -124,6 +125,7 @@ QtObject {
 
     function closeAll() {
         SurfaceState.close()
+        miniPlayerOpen      = false
         audioPinned         = false
         networkPinned       = false
         notificationsPinned = false

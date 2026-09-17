@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import "../"
 import "../../components"
+import "../../popups/dashboard_tabs"
 import "../../"
 
 // Dashboard Home tab — layout only.

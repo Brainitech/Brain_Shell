@@ -41,7 +41,7 @@ QtObject {
 
     // ── Nvidia check ──────────────────────────────────────────────────────────
     property var _nvCheckProc: Process {
-        command: ["sh", "-c", "lspci | grep -iE 'vga|3d' | grep -iq nvidia"]
+        command: ["sh", "-c", "command -v nvidia-smi"]
         running: true
         onExited: (code) => { root.hasNvidia = (code === 0) }
     }

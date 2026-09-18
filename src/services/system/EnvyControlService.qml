@@ -25,9 +25,9 @@ QtObject {
     property bool available: false
 
     property var _checkProc: Process {
-        command: ["sh", "-c", "lspci | grep -iE \'vga|3d\' | grep -iq nvidia"]
+        command: ["sh", "-c", "command -v envycontrol"]
         running: true
-        onExited: (code) => { { root.available = (code === 0) } }
+        onExited: (code) => { root.available = (code === 0) }
     }
 
     // Pending mode — held until we confirm the switch succeeded

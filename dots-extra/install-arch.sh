@@ -325,7 +325,7 @@ _append_conf() {
 
 # Brain Shell Autostarts
 exec-once = awww-daemon
-exec-once = hypridle -c $HOME/.local/src/Brain_Shell/src/config/hypridle.conf
+exec-once = hypridle
 exec-once = quickshell -c $HOME/.local/src/Brain_Shell/.
 exec-once = systemctl --user start hyprpolkitagent
 exec-once = wl-paste --type text --watch cliphist store
@@ -339,7 +339,7 @@ _append_lua() {
 -- Brain Shell Autostarts
 hl.on("hyprland.start", function()
     hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("hypridle -c " .. os.getenv("HOME") .. "/.local/src/Brain_Shell/src/config/hypridle.conf")
+    hl.exec_cmd("hypridle")
     hl.exec_cmd("quickshell -c " .. os.getenv("HOME") .. "/.local/src/Brain_Shell")
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
@@ -381,12 +381,17 @@ mkdir -p "$USER_DATA" \
          "$HOME/.config/hypr/shaders" \
          "$HOME/.config/matugen/templates"
 
-# Copy hypridle config; -n = do not overwrite if already customised
+# Copy hypridle and hyprlock configs; -n = do not overwrite if already customised
 if cp -n "$REPO_DIR/src/config/hypridle.conf" "$HOME/.config/hypr/" 2>/dev/null; then
     log_ok "hypridle.conf → $HOME/.config/hypr/"
 else
     log_info "hypridle.conf already exists — not overwritten"
 fi
+
+if cp -n "$REPO_DIR/src/config/hyprlock.conf" "$HOME/.config/hypr/" 2>/dev/null; then
+    log_ok "hyprlock.conf → $HOME/.config/hypr/"
+else
+    log_info "hyprlock.conf already exists — not overwritten"
 
 printf '{"configProvider": "%s"}\n' "$CONFIG_TYPE" > "$USER_DATA/config_Provider.json"
 printf '{}\n'                                       > "$USER_DATA/keybinds.json"

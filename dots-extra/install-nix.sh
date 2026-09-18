@@ -38,7 +38,7 @@ _append_conf() {
 
 # Brain Shell Autostarts
 exec-once = awww-daemon
-exec-once = hypridle -c $HOME/.local/src/Brain_Shell/src/config/hypridle.conf
+exec-once = hypridle
 exec-once = quickshell -c $HOME/.local/src/Brain_Shell/.
 exec-once = systemctl --user start hyprpolkitagent
 exec-once = wl-paste --type text --watch cliphist store
@@ -52,7 +52,7 @@ _append_lua() {
 -- Brain Shell Autostarts
 hl.on("hyprland.start", function()
     hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("hypridle -c " .. os.getenv("HOME") .. "/.local/src/Brain_Shell/src/config/hypridle.conf")
+    hl.exec_cmd("hypridle")
     hl.exec_cmd("quickshell -c " .. os.getenv("HOME") .. "/.local/src/Brain_Shell")
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
@@ -91,6 +91,7 @@ mkdir -p "$USER_DATA" \
          "$HOME/Pictures/Wallpapers"
 
 cp -n "$REPO_DIR/src/config/hypridle.conf" "$HOME/.config/hypr/" 2>/dev/null || true
+cp -n "$REPO_DIR/src/config/hyprlock.conf" "$HOME/.config/hypr/" 2>/dev/null || true
 touch "$HOME/.cache/brain-shell/colors.json"
 cp -n -r "$REPO_DIR/src/assets/wallpapers"/* "$HOME/Pictures/Wallpapers/" 2>/dev/null || true
 touch "$USER_DATA/keybinds.json"

@@ -392,6 +392,7 @@ if cp -n "$REPO_DIR/src/config/hyprlock.conf" "$HOME/.config/hypr/" 2>/dev/null;
     log_ok "hyprlock.conf → $HOME/.config/hypr/"
 else
     log_info "hyprlock.conf already exists — not overwritten"
+fi
 
 printf '{"configProvider": "%s"}\n' "$CONFIG_TYPE" > "$USER_DATA/config_Provider.json"
 printf '{}\n'                                       > "$USER_DATA/keybinds.json"

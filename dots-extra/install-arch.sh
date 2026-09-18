@@ -381,11 +381,17 @@ mkdir -p "$USER_DATA" \
          "$HOME/.config/hypr/shaders" \
          "$HOME/.config/matugen/templates"
 
-# Copy hypridle config; -n = do not overwrite if already customised
+# Copy hypridle and hyprlock configs; -n = do not overwrite if already customised
 if cp -n "$REPO_DIR/src/config/hypridle.conf" "$HOME/.config/hypr/" 2>/dev/null; then
     log_ok "hypridle.conf → $HOME/.config/hypr/"
 else
     log_info "hypridle.conf already exists — not overwritten"
+fi
+
+if cp -n "$REPO_DIR/src/config/hyprlock.conf" "$HOME/.config/hypr/" 2>/dev/null; then
+    log_ok "hyprlock.conf → $HOME/.config/hypr/"
+else
+    log_info "hyprlock.conf already exists — not overwritten"
 fi
 
 printf '{"configProvider": "%s"}\n' "$CONFIG_TYPE" > "$USER_DATA/config_Provider.json"

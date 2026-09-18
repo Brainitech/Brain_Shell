@@ -241,7 +241,7 @@ PACMAN_DEPS=(
 
     # Hyprland ecosystem  (hyprshutdown is AUR-only — kept out of here)
     hyprland hyprsunset hyprlock hyprpolkitagent hypridle
-    xdg-desktop-portal-hyprland
+    xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
 
     # Fonts
     ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols-common

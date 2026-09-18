@@ -65,6 +65,7 @@
             hyprsunset
             hyprshutdown
             xdg-desktop-portal-hyprland
+            xdg-desktop-portal-gtk
             cliphist
             nerd-fonts.jetbrains-mono
             nerd-fonts.symbols-only

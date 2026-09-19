@@ -99,13 +99,23 @@ Item {
     }
 
     // Tap background to close dropdown or raise app (first child = bottom Z)
-    TapHandler {
-        onTapped: {
+    MouseArea {
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        
+        Timer {
+            id: raiseTimer
+            interval: 150
+            repeat: false
+            onTriggered: MediaService.raisePlayer()
+        }
+
+        onClicked: {
             if (root._dropdownOpen) {
                 root._dropdownOpen = false;
             } else {
-                MediaService.raisePlayer();
                 SurfaceState.close();
+                raiseTimer.start();
             }
         }
     }

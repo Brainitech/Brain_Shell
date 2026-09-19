@@ -75,6 +75,7 @@ PanelWindow {
     function confirm() {
         const powerScript = Quickshell.shellDir + "/src/scripts/PowerControl.sh"
         const gfxScript   = Quickshell.shellDir + "/src/scripts/GfxSwitch.sh"
+        const restartQs   = "nohup bash -c 'sleep 0.5; pkill qs; qs' >/dev/null 2>&1 &"
 
         Popups.actionConfirmed(Popups.confirmAction)
 
@@ -106,32 +107,37 @@ PanelWindow {
                 break
             case "reset_shell":
                 Popups.cancelConfirm()
-                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/shell_prefs.json && nohup bash -c 'sleep 0.5; pkill qs; qs' >/dev/null 2>&1 &"]
+                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/shell_prefs.json && " + restartQs]
                 proc.running = true
                 break
             case "reset_wallpaper":
                 Popups.cancelConfirm()
-                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/wallpaper.json && nohup bash -c 'sleep 0.5; pkill qs; qs' >/dev/null 2>&1 &"]
+                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/wallpaper.json && " + restartQs]
                 proc.running = true
                 break
             case "clear_tasks":
                 Popups.cancelConfirm()
-                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/tasks.json && nohup bash -c 'sleep 0.5; pkill qs; qs' >/dev/null 2>&1 &"]
+                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/tasks.json && " + restartQs]
                 proc.running = true
                 break
             case "wipe_cliphist":
                 Popups.cancelConfirm()
-                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/clipboard_pins.json && cliphist wipe && nohup bash -c 'sleep 0.5; pkill qs; qs' >/dev/null 2>&1 &"]
+                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/clipboard_pins.json && cliphist wipe && " + restartQs]
+                proc.running = true
+                break
+            case "clear_frecency":
+                Popups.cancelConfirm()
+                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/app_frecency.json && " + restartQs]
                 proc.running = true
                 break
             case "clear_cache":
                 Popups.cancelConfirm()
-                proc.pendingCmd = ["bash", "-c", "rm -rf ~/.cache/quickshell/* && nohup bash -c 'sleep 0.5; pkill qs; qs' >/dev/null 2>&1 &"]
+                proc.pendingCmd = ["bash", "-c", "rm -rf ~/.cache/quickshell/* && " + restartQs]
                 proc.running = true
                 break
             case "factory_reset":
                 Popups.cancelConfirm()
-                proc.pendingCmd = ["bash", "-c", "rm -rf ~/.config/Brain_Shell/src/user_data/*.json && nohup bash -c 'sleep 0.5; pkill qs; qs' >/dev/null 2>&1 &"]
+                proc.pendingCmd = ["bash", "-c", "rm -rf ~/.config/Brain_Shell/src/user_data/*.json && " + restartQs]
                 proc.running = true
                 break
             case "gpu-switch-envy":

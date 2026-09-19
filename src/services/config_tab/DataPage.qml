@@ -130,6 +130,17 @@ Item {
                 SettingsDivider { localScale: root.localScale }
                 SettingsButton {
                     localScale: root.localScale
+                    text: "Clear App Frecency"
+                    description: "Wipe app launch history and reset sorting."
+                    buttonText: "Clear"
+                    destructive: true
+                    onClicked: {
+                        Popups.showConfirm("Clear App History?", "Reset all AppLauncher history and frecency scores?", "Confirm", "clear_frecency")
+                    }
+                }
+                SettingsDivider { localScale: root.localScale }
+                SettingsButton {
+                    localScale: root.localScale
                     text: "Clear Shell Cache"
                     description: "Wipe all temporary shell cache."
                     buttonText: "Wipe"

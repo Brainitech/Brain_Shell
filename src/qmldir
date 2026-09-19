@@ -12,3 +12,4 @@ singleton UpdateService services/UpdateService.qml
 singleton PrefsService services/PrefsService.qml
 singleton SurfaceState state/SurfaceState.qml
 singleton MediaService services/MediaService.qml
+singleton FrecencyService services/FrecencyService.qml

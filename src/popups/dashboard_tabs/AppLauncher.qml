@@ -21,10 +21,12 @@ Item {
         if (loading) return []
 
         var q = query.toLowerCase().trim()
-        if (q === "") return apps
-        return apps.filter(function(a) {
+        if (q === "") return FrecencyService.sortApps(apps)
+        
+        var f = apps.filter(function(a) {
             return a.name.toLowerCase().indexOf(q) !== -1
         })
+        return FrecencyService.sortApps(f)
     }
 
     onVisibleChanged: {
@@ -54,6 +56,7 @@ Item {
 
     // ── Launch ────────────────────────────────────────────────────────────────
     function launch(entry) {
+        FrecencyService.recordLaunch(entry.id)
         entry.execute()
         SurfaceState.close()
     }

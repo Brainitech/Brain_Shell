@@ -76,7 +76,7 @@ Item {
                     description: "Copy current Kanban board to ~/Documents/."
                     buttonText: "Export"
                     onClicked: {
-                        _proc.pendingCmd = ["bash", "-c", "cp ~/.config/Brain_Shell/src/user_data/tasks.json ~/Documents/brain_shell_tasks_backup_$(date +%s).json && notify-send 'Tasks Exported' 'Tasks successfully backed up to ~/Documents/' --icon=document-save"]
+                        _proc.pendingCmd = ["bash", "-c", "cp '" + ShellState.userDataDir + "/tasks.json' ~/Documents/brain_shell_tasks_backup_$(date +%s).json && notify-send 'Tasks Exported' 'Tasks successfully backed up to ~/Documents/' --icon=document-save"]
                         _proc.running = true
                         exportBtn.buttonText = "✓"
                         exportTickTimer.start()

@@ -20,7 +20,9 @@ QtObject {
     id: root
 
                 
-    
+    // ── File System ───────────────────────────────────────────────────────────
+    property string userDataDir: Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data"
+
     property bool focusMode:    false
     property bool dnd:          false
     property bool screenRecord: false
@@ -51,18 +53,32 @@ QtObject {
     
     Component.onCompleted: {
         _checkBattery()
-        var p = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/config_Provider.json"
-        _initProcShell.command = ["bash", "-c", "mkdir -p \"$(dirname \"" + p + "\")\" && touch \"" + p + "\"" ]
-        _initProcShell.running = true
+        // Scan for Hyprland config provider (e.g. lua or conf)
+        _configScanProc.command = ["bash", "-c", "hyprctl status | grep 'configProvider:' | awk '{print $2}'"]
+        _configScanProc.running = true
     }
     
-    property Process _initProcShell: Process {
-
+    property Process _configScanProc: Process {
         command: []
         running: false
-        onExited: (code) => {
-            providerFile.path = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/config_Provider.json"
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var provider = text.trim()
+                if (provider !== "") {
+                    root.configProvider = provider
+                    // Store the result for external components or debugging if needed
+                    var p = root.userDataDir + "/config_Provider.json"
+                    var jsonStr = JSON.stringify({ configProvider: provider })
+                    _saveConfigProc.command = ["bash", "-c", "mkdir -p \"$(dirname '" + p + "')\" && printf '%s' '" + jsonStr.replace(/'/g, "'\\''") + "' > '" + p + "'"]
+                    _saveConfigProc.running = true
+                }
+            }
         }
+    }
+
+    property Process _saveConfigProc: Process {
+        command: []
+        running: false
     }
 
     property var _batConn: Connections {
@@ -71,11 +87,11 @@ QtObject {
             _checkBattery()
         }
     }
-
+    
     // ── Keybind Interception / Hyprland Submap Controller ─────────────────────
     
     property Process submapProcess: Process {}
-
+    
     property Connections keybindListener: Connections {
         target: KeybindService 
         
@@ -101,34 +117,6 @@ QtObject {
     }
     
     property string configProvider: "lua"
-    
-    // Watch the JSON file written by the installer
-    property var _providerFile: FileView {
-        id: providerFile
-        path: ""
-        watchChanges: true
-        
-        onFileChanged: {
-            reload()
-        }
-        
-
-        onLoaded: {
-            _parse(providerFile.text())
-        }
-    }
-    
-    function _parse(jsonString) {
-        if (!jsonString || jsonString === "") return;
-        try {
-            let data = JSON.parse(jsonString)
-            if (data.configProvider) {
-                root.configProvider = data.configProvider
-            }
-        } catch (e) {
-            console.error("Brain Shell: Failed to parse config_Provider.json")
-        }
-    }
     
     property bool _bootFocusModeApplied: false
     property var _bootFocusConn: Connections {

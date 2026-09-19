@@ -14,7 +14,7 @@ QtObject {
         command: []
         running: false
         onExited: {
-            _fileView.path = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/app_frecency.json"
+            _fileView.path = ShellState.userDataDir + "/app_frecency.json"
         }
     }
 
@@ -42,7 +42,7 @@ QtObject {
     }
 
     function _save() {
-        var path = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/app_frecency.json"
+        var path = ShellState.userDataDir + "/app_frecency.json"
         var jsonStr = JSON.stringify(root._data)
         _saveProc.command = ["bash", "-c", "mkdir -p \"$(dirname '" + path + "')\" && printf '%s' '" + jsonStr.replace(/'/g, "'\\''") + "' > '" + path + "'"]
         _saveProc.running = false
@@ -102,7 +102,7 @@ QtObject {
     }
 
     Component.onCompleted: {
-        var p = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/app_frecency.json"
+        var p = ShellState.userDataDir + "/app_frecency.json"
         _initProc.command = ["bash", "-c", "mkdir -p \"$(dirname \"" + p + "\")\" && touch \"" + p + "\""]
         _initProc.running = true
     }

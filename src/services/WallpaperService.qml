@@ -18,7 +18,7 @@ QtObject {
     id: root
 
     // ── Config path — src/user_data/wallpaper.json (relative to this file) ──────
-	readonly property string configPath: Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/wallpaper.json"
+	readonly property string configPath: ShellState.userDataDir + "/wallpaper.json"
 
     // ── State ─────────────────────────────────────────────────────────────────
     property var    wallpapers:   []

@@ -107,27 +107,27 @@ PanelWindow {
                 break
             case "reset_shell":
                 Popups.cancelConfirm()
-                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/shell_prefs.json && " + restartQs]
+                proc.pendingCmd = ["bash", "-c", "rm '" + ShellState.userDataDir + "/shell_prefs.json' && " + restartQs]
                 proc.running = true
                 break
             case "reset_wallpaper":
                 Popups.cancelConfirm()
-                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/wallpaper.json && " + restartQs]
+                proc.pendingCmd = ["bash", "-c", "rm '" + ShellState.userDataDir + "/wallpaper.json' && " + restartQs]
                 proc.running = true
                 break
             case "clear_tasks":
                 Popups.cancelConfirm()
-                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/tasks.json && " + restartQs]
+                proc.pendingCmd = ["bash", "-c", "rm '" + ShellState.userDataDir + "/tasks.json' && " + restartQs]
                 proc.running = true
                 break
             case "wipe_cliphist":
                 Popups.cancelConfirm()
-                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/clipboard_pins.json && cliphist wipe && " + restartQs]
+                proc.pendingCmd = ["bash", "-c", "rm '" + ShellState.userDataDir + "/clipboard_pins.json' && cliphist wipe && " + restartQs]
                 proc.running = true
                 break
             case "clear_frecency":
                 Popups.cancelConfirm()
-                proc.pendingCmd = ["bash", "-c", "rm ~/.config/Brain_Shell/src/user_data/app_frecency.json && " + restartQs]
+                proc.pendingCmd = ["bash", "-c", "rm '" + ShellState.userDataDir + "/app_frecency.json' && " + restartQs]
                 proc.running = true
                 break
             case "clear_cache":
@@ -137,7 +137,7 @@ PanelWindow {
                 break
             case "factory_reset":
                 Popups.cancelConfirm()
-                proc.pendingCmd = ["bash", "-c", "rm -rf ~/.config/Brain_Shell/src/user_data/*.json && " + restartQs]
+                proc.pendingCmd = ["bash", "-c", "rm -rf '" + ShellState.userDataDir + "'/*.json && " + restartQs]
                 proc.running = true
                 break
             case "gpu-switch-envy":

@@ -64,7 +64,7 @@ QtObject {
     onBgBlurChanged: updateHyprlandBlur()
     Component.onCompleted: {
         updateHyprlandBlur()
-        var p = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/shell_prefs.json"
+        var p = ShellState.userDataDir + "/shell_prefs.json"
         _initProcPrefs.command = ["bash", "-c", "mkdir -p \"$(dirname \"" + p + "\")\" && touch \"" + p + "\"" ]
         _initProcPrefs.running = true
     }
@@ -196,7 +196,7 @@ QtObject {
     onOverrideIconChanged: if (_loaded) saveConfig()
 
     function saveConfig() {
-        var path = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/shell_prefs.json"
+        var path = ShellState.userDataDir + "/shell_prefs.json"
         var data = JSON.stringify({
             customAvatarPath: root.customAvatarPath,
             bootFocusMode: root.bootFocusMode,
@@ -267,7 +267,7 @@ QtObject {
         command: []
         running: false
         onExited: (code) => {
-            _configFile.path = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/shell_prefs.json"
+            _configFile.path = ShellState.userDataDir + "/shell_prefs.json"
         }
     }
     property var _saveProc: Process { command: []; running: false }

@@ -1,8 +1,0 @@
-{
-    "_comment_style": "Available styles: 'slide', 'parallax', 'none'",
-    "style": "slide",
-    "_comment_speed": "Multiplier for all animations. 1.0 is default. 0.5 is 2x faster, 2.0 is 2x slower.",
-    "speed_multiplier": 1.0,
-    "_comment_curve": "Available curves: 'smooth', 'spring', 'linear', 'cinematic'",
-    "curve": "smooth"
-}

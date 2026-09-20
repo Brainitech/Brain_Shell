@@ -326,7 +326,7 @@ _MARKER="quickshell.*Brain_Shell"
 if grep -q "$_MARKER" "$HYPRLAND_CONF" 2>/dev/null; then
     log_warn "Autostart block already present — skipping."
 else
-    SRC_FILE="$AUTOSTART_SRC_DIR/autostart.$CONFIG_TYPE"
+    SRC_FILE="$AUTOSTART_SRC_DIR/BrainShell-hyprland.$CONFIG_TYPE"
 
     if [[ ! -f "$SRC_FILE" ]]; then
         die "Autostart source file not found: $SRC_FILE"

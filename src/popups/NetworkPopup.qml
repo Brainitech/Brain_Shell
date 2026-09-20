@@ -17,6 +17,12 @@ Item {
         
     property string page: Popups.networkPage
 
+    MouseArea {
+        anchors.fill: parent
+        z: -1
+        onClicked: Popups.networkPinned = true
+    }
+
     Item {
         id: hoverContainer
         anchors.fill: parent

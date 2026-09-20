@@ -15,7 +15,6 @@ Item {
     readonly property int maxHeight:    Math.round(700 * root.localScale)
             readonly property int animDuration: Anim.transition
 
-    // Fixed — never zero, never dynamic
     implicitWidth:  popupWidth
     implicitHeight: maxHeight
 
@@ -34,10 +33,9 @@ Item {
         anchors.rightMargin: Math.round(8 * root.localScale)
         anchors.bottomMargin: Math.round(8 * root.localScale)
 
-        MouseArea { anchors.fill: parent }
-
-        TapHandler {
-            onTapped: {
+        MouseArea { 
+            anchors.fill: parent
+            onClicked: {
                 SurfaceState.open("right", "notifications")
                 Popups.notificationsPinned = true
             }

@@ -13,7 +13,9 @@ import "../modules/Left/"
 // A morphing Wayland window layer for the unified screen frame
 PanelWindow {
     id: root
-                property var screen
+    // --- CLICK SHIELD ---
+    ClickShield { id: clickShield }
+    property var screen
     readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
     anchors {
@@ -48,10 +50,6 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "brain-shell-frame"
     WlrLayershell.keyboardFocus: (SurfaceState.activeSurface !== "none" || (ShellState.screenRecord && !ScreenRecService.recording)) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
-    // --- CLICK SHIELD ---
-    ClickShield { id: clickShield }
-
 
     Region {
         id: fullRegion

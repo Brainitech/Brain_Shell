@@ -33,11 +33,9 @@ Item {
                 if (opacity === 1) historyTab.grabFocus()
             }
 
-            TapHandler {
-                onTapped: {
-                    SurfaceState.open("bottomRight", "clipboard")
-                    Popups.clipboardPinned = true
-                }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: Popups.clipboardPinned = true
             }
 
             HistoryTab {

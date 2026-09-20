@@ -74,12 +74,13 @@ else
     die "Cannot detect distro — /etc/os-release not found."
 fi
 
-# Hyprland session (warn only, don't abort)
-if [[ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
-    log_warn "Not running inside a Hyprland session."
-    log_info "Changes will apply after you restart Hyprland."
+# Check if Hyprland is installed (allows installation from TTY)
+if command -v hyprland &>/dev/null; then
+    log_ok "Hyprland installation detected"
 else
-    log_ok "Hyprland session active"
+    log_warn "Hyprland binary not found in PATH."
+    log_info "Make sure Hyprland is installed before launching it." #Future work: Prompt user for Hyprland installation, waititng for config files so
+                                                                    #default files are not picked up
 fi
 
 # Hyprland config

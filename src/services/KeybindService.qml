@@ -53,7 +53,7 @@ QtObject {
     property var _hyprBinds: []
 
     property var _hyprBindsProc: Process {
-        command: ["hyprctl", "binds", "-j"]
+        command: ["python3", Quickshell.shellDir + "/src/scripts/hypr_binds.py"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {

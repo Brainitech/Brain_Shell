@@ -24,6 +24,9 @@ Item {
 	property string orientation: "horizontal"   // "horizontal" | "vertical"
 	property real   localScale:  1.0
 	property bool   divider: false
+	
+	property var    switchStates: ({})
+	signal switchToggled(string key, bool state)
 
 	signal pageChanged(string key)
 
@@ -245,6 +248,11 @@ Item {
 						width:  vCol.width
 						height: vContainer.tabH
 
+						MouseArea {
+							anchors.fill: parent
+							onClicked:    root.pageChanged(modelData.key)
+						}
+
 						// Hover background
 						Rectangle {
 							anchors.fill: parent
@@ -262,6 +270,45 @@ Item {
 							color: vTab.isActive ? Theme.background : Theme.text
 							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
+		
+                        // Optional Switch
+                        Rectangle {
+                            visible: modelData.hasSwitch === true
+                            anchors {
+                                right: parent.right
+                                rightMargin: Math.round(16 * localScale)
+                                verticalCenter: parent.verticalCenter
+                            }
+                            width: Math.round(28 * localScale)
+                            height: Math.round(16 * localScale)
+                            radius: height / 2
+                            color: root.switchStates && root.switchStates[modelData.key] ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.2)
+                            Behavior on color { ColorAnimation { duration: Anim.fast; easing.type: Anim.linear } }
+                            border.color: root.switchStates && root.switchStates[modelData.key] ? Qt.darker(Theme.active, 1.2) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.3)
+                            border.width: Math.max(1, Math.round(1 * localScale))
+                            
+                            Rectangle {
+                                width: Math.round(12 * localScale)
+                                height: Math.round(12 * localScale)
+                                radius: width / 2
+                                anchors.verticalCenter: parent.verticalCenter
+                                x: root.switchStates && root.switchStates[modelData.key] ? (parent.width - width - Math.round(2 * localScale)) : Math.round(2 * localScale)
+                                Behavior on x { NumberAnimation { duration: Anim.fast; easing.type: Anim.globalCurve } }
+                                color: "white"
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                anchors.margins: -10
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    root.pageChanged(modelData.key)
+                                    var newState = !(root.switchStates && root.switchStates[modelData.key])
+                                    root.switchToggled(modelData.key, newState)
+                                }
+                            }
+                        }
 		
 						// Icon + label row
 						Row {
@@ -296,10 +343,6 @@ Item {
 						}
 		
 						HoverHandler { id: vHov; cursorShape: Qt.PointingHandCursor }
-						MouseArea {
-							anchors.fill: parent
-							onClicked:    root.pageChanged(modelData.key)
-						}
 					}
 				}
 			}

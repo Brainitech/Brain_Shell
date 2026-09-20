@@ -7,6 +7,11 @@ import "../../components"
 Item {
     id: root
     property real localScale: 1.0
+    property bool showHyprlandKeybinds: false
+
+    onShowHyprlandKeybindsChanged: {
+        if (showHyprlandKeybinds) KeybindService.loadHyprBinds()
+    }
 
     // ── Capture state ─────────────────────────────────────────────────────────
     property string _capturing: ""
@@ -119,20 +124,34 @@ Item {
         }
     }
 
+    Text {
+        id: _titleLabel
+        anchors {
+            top: _saveBanner.bottom
+            topMargin: Math.round(16 * localScale)
+            left: parent.left
+            leftMargin: Math.round(12 * localScale)
+        }
+        text: root.showHyprlandKeybinds ? "Hyprland Keybinds (Read-Only)" : "Brain Shell Keybinds"
+        font.pixelSize: Math.round(16 * localScale)
+        font.weight: Font.Bold
+        color: Theme.text
+    }
+
     // ── Scrollable list ───────────────────────────────────────────────────────
     Flickable {
         anchors {
-            top:         _saveBanner.bottom
+            top:         _titleLabel.bottom
             left:        parent.left
             right:       parent.right
             bottom:      parent.bottom
             leftMargin:  Math.round(12 * localScale)
             rightMargin: Math.round(12 * localScale)
             bottomMargin: Math.round(12 * localScale)
-            topMargin:   Math.round(6 * localScale)
+            topMargin:   Math.round(12 * localScale)
         }
         contentWidth:   width
-        contentHeight:  _col.implicitHeight + Math.round(16 * localScale)
+        contentHeight:  (root.showHyprlandKeybinds ? _hyprCol.implicitHeight : _col.implicitHeight) + Math.round(16 * localScale)
         clip:           true
         boundsBehavior: Flickable.StopAtBounds
 
@@ -147,6 +166,7 @@ Item {
 
         Column {
             id: _col
+            visible: !root.showHyprlandKeybinds
             width:   parent.width - Math.round(12 * localScale)
             spacing: Math.round(32 * localScale)
 
@@ -179,6 +199,67 @@ Item {
                                 onReleaseCapture: root._capturing = ""
                                 onCaptureAccepted: function(newMods, newKey) {
                                     root._addPending(_br.action, newMods, newKey)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Column {
+            id: _hyprCol
+            visible: root.showHyprlandKeybinds
+            width:   parent.width - Math.round(12 * localScale)
+            spacing: Math.round(32 * localScale)
+            
+            Repeater {
+                model: root._getHyprGroups()
+                delegate: SettingsGroup {
+                    required property var modelData
+                    required property int index
+                    width: _hyprCol.width
+                    title: modelData.name
+                    localScale: root.localScale
+                    
+                    Repeater {
+                        model: modelData.actions
+                        delegate: Column {
+                            width: parent.width
+                            
+                            SettingsDivider {
+                                localScale: root.localScale
+                                visible: index > 0
+                                width: parent.width
+                            }
+                            
+                            Item {
+                                width: parent.width; height: Math.round(48 * localScale)
+                                Text {
+                                    anchors { left: parent.left; leftMargin: Math.round(16 * localScale); verticalCenter: parent.verticalCenter; right: _pillRect.left; rightMargin: Math.round(16 * localScale) }
+                                    text: modelData.desc
+                                    font.pixelSize: Math.round(13 * localScale)
+                                    color: Theme.text
+                                    elide: Text.ElideRight
+                                }
+                                Rectangle {
+                                    id: _pillRect
+                                    anchors { right: parent.right; rightMargin: Math.round(16 * localScale); verticalCenter: parent.verticalCenter }
+                                    width: _hyprTxt.implicitWidth + Math.round(20 * localScale)
+                                    height: Math.round(26 * localScale)
+                                    radius: Math.round(4 * localScale)
+                                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.06)
+                                    border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.15)
+                                    border.width: 1
+                                    
+                                    Text {
+                                        id: _hyprTxt
+                                        anchors.centerIn: parent
+                                        text: modelData.bind
+                                        font.pixelSize: Math.round(11 * localScale)
+                                        font.family: "monospace"
+                                        color: Theme.subtext
+                                    }
                                 }
                             }
                         }
@@ -615,5 +696,61 @@ Item {
         }
 
         HoverHandler { id: _rH; enabled: !br.isCapturing }
+    }
+    function _maskToMods(mask) {
+        var p = []
+        if (mask & 64) p.push("SUPER")
+        if (mask & 4)  p.push("CTRL")
+        if (mask & 8)  p.push("ALT")
+        if (mask & 1)  p.push("SHIFT")
+        return p.join(" + ")
+    }
+
+    function _getHyprGroups() {
+        var groups = {
+            "Launch Applications": [],
+            "Close / Exit": [],
+            "Workspace Management": [],
+            "Window Management": [],
+            "Other": []
+        }
+        var binds = KeybindService._hyprBinds || []
+        for (var i = 0; i < binds.length; i++) {
+            var b = binds[i]
+            if (b.submap !== "" && b.submap_universal !== "true") continue
+            
+            var d = (b.dispatcher || "Unknown").toLowerCase()
+            
+            // Ignore Brain Shell native binds
+            if (d === "exec" && b.arg && b.arg.indexOf("qs ipc") !== -1) continue
+            
+            var groupName = "Other"
+            if (d === "exec") {
+                groupName = "Launch Applications"
+            } else if (d === "killactive" || d === "exit" || d === "forcekillactive") {
+                groupName = "Close / Exit"
+            } else if (d.indexOf("workspace") !== -1) {
+                groupName = "Workspace Management"
+            } else if (d === "movewindow" || d === "resizewindow" || d === "togglefloating" || d === "fullscreen" || d === "layoutmsg" || d === "pseudo" || d === "pin" || d === "centerwindow" || d === "movefocus" || d === "cyclenext" || d === "focuswindow") {
+                groupName = "Window Management"
+            }
+            
+            var modsStr = b.mods_str !== undefined ? b.mods_str : root._maskToMods(b.modmask)
+            var k = b.key
+            if (k === "") k = "Unknown"
+            var bindStr = modsStr ? (modsStr + " + " + k) : k
+            var desc = b.description || b.arg || "No description"
+            
+            groups[groupName].push({ bind: bindStr, desc: desc })
+        }
+        
+        var res = []
+        var order = ["Launch Applications", "Close / Exit", "Workspace Management", "Window Management", "Other"]
+        for (var i = 0; i < order.length; i++) {
+            if (groups[order[i]].length > 0) {
+                res.push({ name: order[i], actions: groups[order[i]] })
+            }
+        }
+        return res
     }
 }

@@ -219,4 +219,27 @@ QtObject {
         }
     }
 
+    property var _screenshotProc: Process {
+        command: ["bash", Quickshell.shellDir + "/src/scripts/screenshot.sh"]
+        running: false
+    }
+
+    property var screenshot: IpcHandler {
+        target: "screenshot-toggle"
+        function toggle() {
+            Popups.closeAll()
+            // Small delay to let popups close
+            _screenshotTimer.restart()
+        }
+    }
+
+    property var _screenshotTimer: Timer {
+        interval: 350
+        repeat: false
+        onTriggered: {
+            _screenshotProc.running = false
+            _screenshotProc.running = true
+        }
+    }
+
 }

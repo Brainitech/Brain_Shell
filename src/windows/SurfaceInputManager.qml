@@ -59,6 +59,7 @@ Item {
         id: hoverOpenTimer
         interval: Popups.hoverOpenDelay
         onTriggered: {
+            if (Date.now() - SurfaceState.lastCloseTime < 400) return;
             if (Popups.dashboardTriggerHovered && Popups.dashboardAllowHover) { Popups.closeAll(); SurfaceState.open("top", "dashboard") }
             else if (Popups.archMenuTriggerHovered && Popups.archMenuAllowHover) { Popups.closeAll(); SurfaceState.open("leftCenter", "archMenu") }
             else if (Popups.audioTriggerHovered && Popups.audioAllowHover) { Popups.closeAll(); SurfaceState.open("rightCenter", "audio") }
@@ -97,7 +98,18 @@ Item {
         x: 0
         anchors.verticalCenter: parent.verticalCenter
         MouseArea { 
-            onClicked: {}
+            anchors.fill: parent
+            onClicked: {
+                if (SurfaceState.activeContent === "archMenu" && Popups.archMenuAllowHover) {
+                    Popups.archMenuPinned = !Popups.archMenuPinned
+                    return
+                }
+                if (!Popups.archMenuAllowHover) {
+                    var next = (SurfaceState.activeContent !== "archMenu")
+                    SurfaceState.toggle("leftCenter", "archMenu")
+                    if (next) Popups.archMenuPinned = true
+                }
+            }
         }
         HoverHandler {
             onHoveredChanged: Popups.archMenuTriggerHovered = hovered
@@ -110,7 +122,27 @@ Item {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         MouseArea { 
-            onClicked: {}
+            anchors.fill: parent
+            onClicked: {
+                if (Popups.audioOpen && Popups.audioAllowHover) {
+                    Popups.audioPinned = !Popups.audioPinned
+                    return
+                }
+                if (SurfaceState.activeContent === "quick" && Popups.quickAllowHover) {
+                    Popups.quickPinned = !Popups.quickPinned
+                    return
+                }
+                if (!Popups.audioAllowHover && !Popups.quickAllowHover) {
+                    if (Popups.audioOpen) {
+                        SurfaceState.toggle("rightCenter", "audio")
+                    } else if (SurfaceState.activeContent === "quick") {
+                        SurfaceState.toggle("rightCenter", "quick")
+                    } else {
+                        SurfaceState.toggle("rightCenter", "quick")
+                        Popups.quickPinned = true
+                    }
+                }
+            }
         }
         HoverHandler {
             onHoveredChanged: {
@@ -131,8 +163,19 @@ Item {
         height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : Math.max(1, surfaceShape.frameThickness)
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        TapHandler { 
-            onTapped: SurfaceState.toggle("bottomCenter", "wallpaper") 
+        MouseArea { 
+            anchors.fill: parent
+            onClicked: {
+                if (SurfaceState.activeContent === "wallpaper" && Popups.wallpaperAllowHover) {
+                    Popups.wallpaperPinned = !Popups.wallpaperPinned
+                    return
+                }
+                if (!Popups.wallpaperAllowHover) {
+                    var next = (SurfaceState.activeContent !== "wallpaper")
+                    SurfaceState.toggle("bottomCenter", "wallpaper")
+                    if (next) Popups.wallpaperPinned = true
+                }
+            }
         }
         HoverHandler {
             onHoveredChanged: Popups.wallpaperTriggerHovered = hovered
@@ -144,8 +187,19 @@ Item {
         height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : Math.max(1, surfaceShape.frameThickness)
         anchors.bottom: parent.bottom
         anchors.right: parent.right
-        TapHandler { 
-            onTapped: SurfaceState.toggle("bottomRight", "clipboard") 
+        MouseArea { 
+            anchors.fill: parent
+            onClicked: {
+                if (SurfaceState.activeContent === "clipboard" && Popups.clipboardAllowHover) {
+                    Popups.clipboardPinned = !Popups.clipboardPinned
+                    return
+                }
+                if (!Popups.clipboardAllowHover) {
+                    var next = (SurfaceState.activeContent !== "clipboard")
+                    SurfaceState.toggle("bottomRight", "clipboard")
+                    if (next) Popups.clipboardPinned = true
+                }
+            }
         }
         HoverHandler {
             onHoveredChanged: Popups.clipboardTriggerHovered = hovered

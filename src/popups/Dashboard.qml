@@ -58,7 +58,10 @@ Item {
     // was the source of the vertical offset in the text-working variant.
     Item {
         id: hoverContainer
-        MouseArea { anchors.fill: parent }
+        MouseArea { 
+            anchors.fill: parent 
+            onClicked: Popups.dashboardPinned = true
+        }
         anchors.fill: parent
 
         Item {

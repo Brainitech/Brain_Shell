@@ -232,6 +232,10 @@ Item {
 					ScreenRecService.optionsExpanded = !ScreenRecService.optionsExpanded
 					return
 				}
+				if (Popups.dashboardOpen && Popups.dashboardAllowHover) {
+					Popups.dashboardPinned = !Popups.dashboardPinned
+					return
+				}
 				var next = !Popups.dashboardOpen
 				Popups.closeAll()
 				SurfaceState.toggle("top", "dashboard")

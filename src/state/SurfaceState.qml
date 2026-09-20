@@ -24,7 +24,10 @@ QtObject {
         root.activeContent = content
     }
 
+    property real lastCloseTime: 0
+
     function close() {
+        lastCloseTime = Date.now()
         root.activeSurface = "none"
         root.activeContent = "none"
     }

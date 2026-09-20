@@ -20,7 +20,7 @@ QtObject {
     property bool audioActive: false
 
     property var _silenceTimer: Timer {
-        interval: 3000
+        interval: 1000
         repeat: false
         onTriggered: root.audioActive = false
     }
@@ -52,7 +52,7 @@ QtObject {
     }
 
     readonly property bool shouldRun:
-        MediaService.anyPlaying && (_anyConsumerVisible || _recentlyActive)
+        (MediaService.anyPlaying || root.audioActive) && (_anyConsumerVisible || _recentlyActive)
 
     // Zero-out bars when stopping to prevent stale visualization
     onShouldRunChanged: {

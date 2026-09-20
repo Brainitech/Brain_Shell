@@ -74,10 +74,15 @@ Item {
 		onTriggered: { root.showing = true; Popups.notificationToastOpen = true; autoTimer.restart() }
 	}
 
-	Timer {
+	NumberAnimation {
 		id:          autoTimer
-		interval:    5000
-		onTriggered: root.startDismiss()
+		target:      progressBar
+		property:    "width"
+		from:        root.toastWidth - Math.round(10 * root.localScale)
+		to:          0
+		duration:    5000
+		easing.type: Anim.linear
+		onFinished:  root.startDismiss()
 	}
 
 	Timer {
@@ -101,6 +106,30 @@ Item {
 		id:            card
 		anchors.fill:  parent
 		clip:          true
+
+		TapHandler {
+			acceptedButtons: Qt.RightButton | Qt.MiddleButton
+			onTapped: root.startDismiss()
+		}
+
+		TapHandler {
+			acceptedButtons: Qt.LeftButton
+			onTapped: {
+				if (root.current) {
+					if (typeof root.current.invokeDefaultAction === "function") root.current.invokeDefaultAction()
+					else if (typeof root.current.invokeDefault === "function") root.current.invokeDefault()
+					else if (root.current.actions) {
+						for (var i = 0; i < root.current.actions.length; i++) {
+							if (root.current.actions[i].id === "default") {
+								root.current.actions[i].invoke()
+								break
+							}
+						}
+					}
+				}
+				root.startDismiss()
+			}
+		}
 
 
 		Rectangle {
@@ -140,33 +169,6 @@ Item {
 				radius:  Math.round(1 * root.localScale)
 				color:   Theme.active
 				opacity: 0.5
-
-				property bool running: false
-
-				// Use toastWidth so the bar stays within the visible body, not the flare
-				width: running ? 0 : root.toastWidth - Math.round(10 * root.localScale)
-				Behavior on width {
-					enabled: progressBar.running
-					NumberAnimation { duration: autoTimer.interval; easing.type: Anim.linear}
-				}
-
-				Connections {
-					target: root
-					function onShowingChanged() {
-						if (root.showing) {
-							progressBar.running = false
-							progressTick.restart()
-						} else {
-							progressBar.running = false
-						}
-					}
-				}
-
-				Timer {
-					id:          progressTick
-					interval:    16
-					onTriggered: progressBar.running = true
-				}
 			}
 
 			Column {
@@ -231,26 +233,6 @@ Item {
 						font.pixelSize:         Math.round(11 * root.localScale) | 0
 						elide:                  Text.ElideRight
 					}
-
-					Item {
-						width:  Math.round(20 * root.localScale)
-						height: Math.round(20 * root.localScale)
-						anchors.verticalCenter: parent.verticalCenter
-						Rectangle {
-							anchors.fill: parent
-							radius:       width / 2
-							color:        xHover.containsMouse ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.12) : "transparent"
-							Behavior on color { ColorAnimation { duration: Anim.fast} }
-						}
-						Text {
-							anchors.centerIn: parent
-							text:             "✕"
-							color:            Theme.subtext
-							font.pixelSize:   Math.round(9 * root.localScale) | 0
-						}
-						HoverHandler { id: xHover }
-						TapHandler   { onTapped: root.startDismiss() }
-					}
 				}
 
 				Text {
@@ -310,6 +292,19 @@ Item {
 									root.startDismiss()
 								}
 							}
+						}
+					}
+				}
+			}
+
+			HoverHandler {
+				id: toastHover
+				onHoveredChanged: {
+					if (hovered) {
+						autoTimer.pause()
+					} else {
+						if (root.showing) {
+							autoTimer.resume()
 						}
 					}
 				}

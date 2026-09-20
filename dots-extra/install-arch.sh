@@ -316,51 +316,33 @@ _svc_user   wireplumber
 # STEP 5 — Hyprland Config
 # ══════════════════════════════════════════════════════════════════════════════
 step 5 "Hyprland Config"
+# Script directory reference
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+AUTOSTART_SRC_DIR="$SCRIPT_DIR/src/config/autostart"
 
 # Marker used to detect whether the block was already appended
 _MARKER="quickshell.*Brain_Shell"
 
-_append_conf() {
-    cat << 'EOF' >> "$1"
-
-# Brain Shell Autostarts
-exec-once = awww-daemon
-exec-once = hypridle
-exec-once = quickshell -c $HOME/.local/src/Brain_Shell/.
-exec-once = systemctl --user start hyprpolkitagent
-exec-once = wl-paste --type text --watch cliphist store
-exec-once = wl-paste --type image --watch cliphist store
-EOF
-}
-
-_append_lua() {
-    cat << 'EOF' >> "$1"
-
--- Brain Shell Autostarts
-hl.on("hyprland.start", function()
-    hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("hypridle")
-    hl.exec_cmd("quickshell -c " .. os.getenv("HOME") .. "/.local/src/Brain_Shell")
-    hl.exec_cmd("systemctl --user start hyprpolkitagent")
-    hl.exec_cmd("wl-paste --type text --watch cliphist store")
-    hl.exec_cmd("wl-paste --type image --watch cliphist store")
-end)
-EOF
-}
-
 if grep -q "$_MARKER" "$HYPRLAND_CONF" 2>/dev/null; then
     log_warn "Autostart block already present — skipping."
 else
+    SRC_FILE="$AUTOSTART_SRC_DIR/autostart.$CONFIG_TYPE"
+
+    if [[ ! -f "$SRC_FILE" ]]; then
+        die "Autostart source file not found: $SRC_FILE"
+    fi
+
     case "$CONFIG_TYPE" in
         conf)
-            _append_conf "$HYPRLAND_CONF"
+            cat "$SRC_FILE" >> "$HYPRLAND_CONF"
             log_ok "Autostart block appended to hyprland.conf"
             ;;
         lua)
-            # Extra safety backup before touching a Lua config
+            # Safety backup before modifying Lua config
             cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.pre-brain-shell"
-            log_info "Safety backup: ${HYPRLAND_CONF}.pre-brain-shell"
-            _append_lua "$HYPRLAND_CONF"
+            log_info "Safety backup created: ${HYPRLAND_CONF}.pre-brain-shell"
+
+            cat "$SRC_FILE" >> "$HYPRLAND_CONF"
             log_ok "Autostart block appended to hyprland.lua"
             ;;
         *)
@@ -368,7 +350,6 @@ else
             ;;
     esac
 fi
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 # STEP 6 — Brain Shell Config & Keybind Check

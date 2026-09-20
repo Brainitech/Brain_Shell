@@ -318,7 +318,7 @@ _svc_user   wireplumber
 step 5 "Hyprland Config"
 # Script directory reference
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-AUTOSTART_SRC_DIR="$SCRIPT_DIR/src/config/autostart"
+AUTOSTART_SRC_DIR="$REPO_DIR/src/config/autostart"
 
 # Marker used to detect whether the block was already appended
 _MARKER="quickshell.*Brain_Shell"

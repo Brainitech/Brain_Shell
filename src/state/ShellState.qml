@@ -72,8 +72,25 @@ QtObject {
                     _saveConfigProc.command = ["bash", "-c", "mkdir -p \"$(dirname '" + p + "')\" && printf '%s' '" + jsonStr.replace(/'/g, "'\\''") + "' > '" + p + "'"]
                     _saveConfigProc.running = true
                 }
+                root.applyZeroGaps()
             }
         }
+    }
+
+    property Process zeroGapsProcess: Process { command: [] }
+    property Timer zeroGapsTimer: Timer {
+        interval: 10
+        onTriggered: root.zeroGapsProcess.running = true
+    }
+
+    function applyZeroGaps() {
+        zeroGapsProcess.running = false
+        if (configProvider === "lua") {
+            zeroGapsProcess.command = ["bash", "-c", "hyprctl eval \"hl.config({ general = { gaps_out = 0 } })\""]
+        } else {
+            zeroGapsProcess.command = ["hyprctl", "keyword", "general:gaps_out", "0"]
+        }
+        zeroGapsTimer.restart()
     }
 
     property Process _saveConfigProc: Process {

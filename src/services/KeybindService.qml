@@ -42,6 +42,7 @@ QtObject {
         "audioMix-toggle":    { mods: "SUPER",        key: "M",      label: "Audio: Mixer",         group: "Audio Tabs"     },
         "focus-toggle":       { mods: "SUPER",        key: "B",      label: "Focus Mode",           group: "Quick Settings" },
         "lock-session":       { mods: "SUPER",        key: "X",      label: "Lock Screen",          group: "Quick Settings" },
+        "screenshot-toggle":  { mods: "",             key: "PRINT",  label: "Screenshot",           group: "Quick Settings" },
         "screenrec-on":       { mods: "ALT",          key: "F9",     label: "Screen Record",        group: "Quick Settings" },
     })
 
@@ -283,10 +284,11 @@ QtObject {
         var ks = Object.keys(root.keybinds)
         for (var i = 0; i < ks.length; i++) {
             var k = ks[i]; var b = root.keybinds[k]
-            if (!b || !b.mods || !b.key) continue
+            if (!b || b.mods === undefined || !b.key) continue
             var g = b.group || "Other"
             if (!groups[g]) { groups[g] = []; order.push(g) }
-            groups[g].push({ k: k, mods: b.mods, key: b.key, label: b.label })
+            var entry = { k: k, mods: b.mods, key: b.key, label: b.label }
+            groups[g].push(entry)
         }
         return { groups: groups, order: order }
     }
@@ -326,7 +328,8 @@ QtObject {
             var entries = data.groups[g]
             for (var ei = 0; ei < entries.length; ei++) {
                 var e = entries[ei]
-                lines.push("hl.bind(\"" + e.mods + " + " + e.key + "\", hl.dsp.exec_cmd(\"qs ipc -c \" .. shell .. \" call " + e.k + " toggle\"))")
+                var luaBindStr = (e.mods !== "") ? (e.mods + " + " + e.key) : e.key
+                lines.push("hl.bind(\"" + luaBindStr + "\", hl.dsp.exec_cmd(\"qs ipc -c \" .. shell .. \" call " + e.k + " toggle\"))")
             }
             lines.push("")
         }

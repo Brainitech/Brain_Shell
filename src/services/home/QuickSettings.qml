@@ -424,6 +424,7 @@ StatCard {
     property string currentFilter:    ""
     property var    filterList:       []
     property bool   filterPickerOpen: false
+    property bool   screenCapturePickerOpen: false
     
     // Add your standard shader directories here (space-separated)
     property string shaderPaths: "~/.config/hypr/shaders ~/.local/share/hypr/shaders /usr/share/hyprshade/shaders ~/.local/src/Brain_Shell/src/config/shaders ~/.config/quickshell/src/config/shaders"
@@ -831,8 +832,7 @@ StatCard {
                             } else if (ShellState.screenRecord) {
                                 ScreenRecService.cancelSetup()
                             } else {
-                                Popups.closeAll()
-                                ShellState.screenRecord = true
+                                root.screenCapturePickerOpen = !root.screenCapturePickerOpen
                             }
                         }
                     }
@@ -1053,7 +1053,118 @@ StatCard {
 
     // Tap outside the picker to close it
     TapHandler {
-        enabled: root.filterPickerOpen
-        onTapped: root.filterPickerOpen = false
+        enabled: root.filterPickerOpen || root.screenCapturePickerOpen
+        onTapped: {
+            root.filterPickerOpen = false
+            root.screenCapturePickerOpen = false
+        }
+    }
+
+    Rectangle {
+        id: screenCapturePicker
+        visible:  root.screenCapturePickerOpen
+        z:        20
+        
+        onVisibleChanged: {
+            if (visible) forceActiveFocus()
+            else root.forceActiveFocus()
+        }
+
+        Keys.onEscapePressed: function(event) {
+            root.screenCapturePickerOpen = false
+            event.accepted = true
+        }
+
+        anchors {
+            right:        parent.right
+            bottom:       parent.bottom
+            rightMargin:  Math.round(12 * localScale)
+            bottomMargin: Math.round(12 * localScale)
+        }
+
+        width:  Math.round(180 * localScale)
+        height: captureCol.implicitHeight + Math.round(16 * localScale)
+        radius: Math.round(Theme.cornerRadius * localScale)
+
+        color: Qt.rgba(
+            Math.min(1, Theme.background.r + 0.05),
+            Math.min(1, Theme.background.g + 0.05),
+            Math.min(1, Theme.background.b + 0.05),
+            0.98)
+        border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.10)
+        border.width: 1
+
+        opacity: root.screenCapturePickerOpen ? 1 : 0
+        scale:   root.screenCapturePickerOpen ? 1 : 0.95
+        Behavior on opacity { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+        Behavior on scale   { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+        transformOrigin: Item.BottomRight
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {}
+        }
+
+        Item {
+            anchors { fill: parent; margins: Math.round(8 * localScale) }
+
+            Column {
+                id: captureCol
+                width: parent.width
+                spacing: Math.round(2 * localScale)
+
+                Text {
+                    width: parent.width
+                    text: "CAPTURE"
+                    font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold
+                    color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
+                    leftPadding: Math.round(4 * localScale)
+                    bottomPadding: Math.round(4 * localScale)
+                }
+
+                Rectangle {
+                    width:  parent.width
+                    height: Math.round(28 * localScale)
+                    radius: Math.round(6 * localScale)
+                    color: shotH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
+                    Text {
+                        anchors { left: parent.left; leftMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
+                        text: "Screenshot"
+                        color: Theme.text
+                        font.pixelSize: Math.round(11 * localScale)
+                    }
+                    HoverHandler { id: shotH; cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        onTapped: {
+                            root.screenCapturePickerOpen = false
+                            IpcManager.screenshot.toggle()
+                        }
+                    }
+                }
+
+                Rectangle {
+                    width:  parent.width
+                    height: Math.round(28 * localScale)
+                    radius: Math.round(6 * localScale)
+                    color: recH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
+                    Text {
+                        anchors { left: parent.left; leftMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
+                        text: "Screen Record"
+                        color: Theme.text
+                        font.pixelSize: Math.round(11 * localScale)
+                    }
+                    HoverHandler { id: recH; cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        onTapped: {
+                            root.screenCapturePickerOpen = false
+                            Popups.closeAll()
+                            ShellState.screenRecord = true
+                        }
+                    }
+                }
+            }
+        }
     }
 }

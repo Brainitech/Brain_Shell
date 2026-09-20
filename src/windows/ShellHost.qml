@@ -22,6 +22,7 @@ ShellRoot {
             if (event.name === "configreloaded") {
                 PrefsService.updateHyprlandBlur()
                 WallpaperService.updateBorders()
+                ShellState.applyZeroGaps()
             }
         }
     }

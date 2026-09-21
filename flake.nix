@@ -63,7 +63,6 @@
             hyprlock
             hypridle
             hyprsunset
-            hyprshutdown
             xdg-desktop-portal-hyprland
             xdg-desktop-portal-gtk
             cliphist

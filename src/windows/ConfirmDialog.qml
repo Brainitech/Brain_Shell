@@ -9,9 +9,9 @@ import "../services/"
 // Call Popups.showConfirm() to open, Popups.cancelConfirm() to close.
 //
 // Supported confirmAction values — all routed through scripts/PowerControl.sh:
-//   "shutdown"        → hyprshutdown --post-cmd "systemctl poweroff"
-//   "reboot"          → hyprshutdown --post-cmd "systemctl reboot"
-//   "logout"          → hyprshutdown
+//   "shutdown"        → systemctl poweroff
+//   "reboot"          → systemctl reboot
+//   "logout"          → loginctl terminate-user $USER
 //   "lock"            → loginctl lock-session
 //   "suspend"         → systemctl suspend
 //   "gpu-switch-envy" → pkexec scripts/GfxSwitch.sh <mode>, then systemctl reboot

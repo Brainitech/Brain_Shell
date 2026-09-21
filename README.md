@@ -219,7 +219,6 @@ The installer automatically:
 - **hyprlock** – Lock screen
 - **hypridle** – Idle management daemon
 - **hyprsunset** – Blue light filter
-- **hyprshutdown** – Graceful shutdown
 - **xdg-desktop-portal-hyprland** – Portal backend
 
 </details>

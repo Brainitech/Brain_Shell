@@ -126,7 +126,6 @@ echo "# HYPRLAND ECOSYSTEM"
 check_command "hyprsunset"
 check_command "hyprlock"
 check_command "hypridle"
-check_optional "hyprshutdown"
 
 echo ""
 echo "# FONTS"

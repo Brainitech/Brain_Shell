@@ -239,7 +239,7 @@ PACMAN_DEPS=(
     # Hardware sensors
     lm_sensors rfkill
 
-    # Hyprland ecosystem  (hyprshutdown is AUR-only — kept out of here)
+    # Hyprland ecosystem
     hyprland hyprsunset hyprlock hyprpolkitagent hypridle
     xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
 
@@ -268,7 +268,6 @@ AUR_DEPS=(
     auto-cpufreq     # CPU power management
     nbfc-linux       # fan control
     cliphist         # clipboard history
-    hyprshutdown     # power menu backend
     grimblast-git    # screenshot tool
 )
 

@@ -1138,7 +1138,7 @@ StatCard {
                     TapHandler {
                         onTapped: {
                             root.screenCapturePickerOpen = false
-                            IpcManager.screenshot.toggle()
+                            IpcManager.screenshotDelayed()
                         }
                     }
                 }

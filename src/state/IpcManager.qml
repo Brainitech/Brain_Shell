@@ -227,14 +227,18 @@ QtObject {
     property var screenshot: IpcHandler {
         target: "screenshot-toggle"
         function toggle() {
-            Popups.closeAll()
-            // Small delay to let popups close
-            _screenshotTimer.restart()
+            _screenshotProc.running = false
+            _screenshotProc.running = true
         }
     }
 
+    function screenshotDelayed() {
+        Popups.closeAll()
+        _screenshotTimer.restart()
+    }
+
     property var _screenshotTimer: Timer {
-        interval: 350
+        interval: Anim.transition + 100
         repeat: false
         onTriggered: {
             _screenshotProc.running = false

@@ -65,7 +65,7 @@ QtObject {
     }
 
     function mapPipewireSource(identity) {
-        if (!identity) return "auto"
+        if (!identity) return ""
         var id = identity.toLowerCase()
         if (id.indexOf("spotify") !== -1) return "Spotify"
         if (id.indexOf("firefox") !== -1) return "Firefox"
@@ -78,7 +78,25 @@ QtObject {
         return identity.replace(/'/g, "").replace(/"/g, "")
     }
 
-    property string activeSource: MediaService.activePlayer ? mapPipewireSource(MediaService.activePlayer.identity) : "auto"
+    property string _defaultSinkMonitor: ""
+    property var _sinkProc: Process {
+        command: ["pactl", "get-default-sink"]
+        running: true
+        stdout: SplitParser {
+            onRead: function(line) {
+                var t = line.trim()
+                if (t !== "") root._defaultSinkMonitor = t + ".monitor"
+            }
+        }
+    }
+
+    property string activeSource: {
+        if (MediaService.activePlayer) {
+            var mapped = mapPipewireSource(MediaService.activePlayer.identity)
+            return mapped !== "" ? mapped : _defaultSinkMonitor
+        }
+        return _defaultSinkMonitor
+    }
 
     property var _restartTimer: Timer {
         interval: 50

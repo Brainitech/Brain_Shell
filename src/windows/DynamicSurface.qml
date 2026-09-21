@@ -15,7 +15,6 @@ PanelWindow {
     id: root
     // --- CLICK SHIELD ---
     ClickShield { id: clickShield }
-    property var screen
     readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
     anchors {

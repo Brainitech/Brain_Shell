@@ -12,6 +12,7 @@ Rectangle {
     
     property string text: "" 
     property color textColor: Theme.text
+    property int fontSize: Math.round(14 * localScale)
     signal clicked()
 
     Text {
@@ -20,7 +21,7 @@ Rectangle {
         
         color: hover.hovered ? Theme.background : root.textColor
         
-        font.pixelSize: Math.round(14 * localScale)
+        font.pixelSize: root.fontSize
     }
 
     HoverHandler {

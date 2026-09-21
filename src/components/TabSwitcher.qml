@@ -150,8 +150,8 @@ Item {
 							font.pixelSize: Math.round(14 * localScale)
 							anchors.verticalCenter: parent.verticalCenter
 							color: hTab.isActive
-							? Theme.background
-							: (hHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.75) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4))
+								? Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1.0)
+								: (hHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.75) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4))
 							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 
@@ -163,8 +163,8 @@ Item {
 							font.weight:    hTab.isActive ? Font.Medium : Font.Normal
 							anchors.verticalCenter: parent.verticalCenter
 							color: hTab.isActive
-							? Theme.background
-							: (hHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.75) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4))
+								? Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1.0)
+								: (hHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.75) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4))
 							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 					}
@@ -267,7 +267,7 @@ Item {
 							anchors.centerIn: parent
 							text:             modelData.icon
 							font.pixelSize:   Math.round(16 * localScale)
-							color: vTab.isActive ? Theme.background : Theme.text
+							color: vTab.isActive ? Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1.0) : Theme.text
 							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 		
@@ -325,7 +325,7 @@ Item {
 								font.pixelSize: Math.round(15 * localScale)
 								anchors.verticalCenter: parent.verticalCenter
 								color: vTab.isActive
-									? Theme.background
+									? Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1.0)
 									: (vHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.80) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.42))
 								Behavior on color { ColorAnimation { duration: Anim.color} }
 							}
@@ -336,7 +336,7 @@ Item {
 								font.weight:    vTab.isActive ? Font.Medium : Font.Normal
 								anchors.verticalCenter: parent.verticalCenter
 								color: vTab.isActive
-									? Theme.background
+									? Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1.0)
 									: (vHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.80) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.42))
 								Behavior on color { ColorAnimation { duration: Anim.color} }
 							}

@@ -70,13 +70,13 @@ QtObject {
     }
 
     // Custom Theme Override Groups
-    property string overrideBg: "#1a282a"
-    property string overrideBorder: "#ffffff"
-    property string overrideActive: "#a6d0f7"
-    property string overrideIconFont: "#2f8d97"
-    property string overrideText: "#cdd6f4"
-    property string overrideSubtext: "#94e2d5"
-    property string overrideIcon: "#cdd6f4"
+    property string overrideBg: "#141311"
+    property string overrideBorder: "#4a473c"
+    property string overrideActive: "#f0e5bb"
+    property string overrideIconFont: "#d3c9a1"
+    property string overrideText: "#e6e2dd"
+    property string overrideSubtext: "#ccc6b9"
+    property string overrideIcon: "#e6e2dd"
 
     property string _cfgBuf: ""
     
@@ -186,7 +186,7 @@ QtObject {
     onHoverCloseDelayChanged: if (_loaded) saveConfig()
     onDynamicThemeOverrideChanged: if (_loaded) saveConfig()
     onDarkModeChanged: if (_loaded) saveConfig()
-    onBgOpacityChanged: if (_loaded) saveConfig()
+    onBgOpacityChanged: { if (bgOpacity >= 0.95 && bgBlur) { bgBlur = false } if (_loaded) saveConfig() }
     onOverrideBgChanged: if (_loaded) saveConfig()
     onOverrideBorderChanged: if (_loaded) saveConfig()
     onOverrideActiveChanged: if (_loaded) saveConfig()

@@ -307,13 +307,22 @@ Item {
                 }
 
                 ToggleButton {
+                    id: blurToggle
                     width: parent.width
                     localScale: root.localScale
                     text: "Background Blur"
-                    description: "Enable blur effect behind transparent backgrounds."
+                    description: PrefsService.bgOpacity >= 0.95 ? "Disabled — opacity must be below 95%." : "Enable blur effect behind transparent backgrounds."
                     checked: PrefsService.bgBlur
+                    Binding on checked { value: PrefsService.bgBlur; restoreMode: Binding.RestoreBinding }
+                    enabled: PrefsService.bgOpacity < 0.95
+                    opacity: PrefsService.bgOpacity >= 0.95 ? 0.4 : 1.0
+                    Behavior on opacity { NumberAnimation { duration: Anim.fast } }
                     defaultValue: false
-                    onToggled: { PrefsService.bgBlur = checked; PrefsService.saveConfig() }
+                    onToggled: { 
+                        PrefsService.bgBlur = checked; 
+                        PrefsService.saveConfig();
+                        blurToggle.checked = Qt.binding(function() { return PrefsService.bgBlur });
+                    }
                 }
                 SettingsDivider { localScale: root.localScale }
 
@@ -417,6 +426,14 @@ Item {
                             description: "Primary typography (" + (PrefsService.overrideText !== "" ? PrefsService.overrideText : "Default") + ")"
                             swatchColor: PrefsService.overrideText !== "" ? PrefsService.overrideText : Theme.text
                             onClicked: chartPopup.open("text")
+                        }
+                        SettingsDivider { localScale: root.localScale }
+                        SettingsButton {
+                            localScale: root.localScale
+                            text: "Subtext Color"
+                            description: "Secondary labels (" + (PrefsService.overrideSubtext !== "" ? PrefsService.overrideSubtext : "Default") + ")"
+                            swatchColor: PrefsService.overrideSubtext !== "" ? PrefsService.overrideSubtext : Theme.subtext
+                            onClicked: chartPopup.open("subtext")
                         }
                         SettingsDivider { localScale: root.localScale }
                         SettingsButton {

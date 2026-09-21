@@ -64,23 +64,7 @@ QtObject {
     readonly property int inCubic: Easing.InCubic
     readonly property int linear: Easing.Linear
 
-    Component.onCompleted: {
-        // Auto-create the JSON file if it doesn't exist yet on startup
-        var initProc = Qt.createQmlObject('import QtQuick; import Quickshell.Io; Process { }', root, "InitConfigProc")
-        initProc.command = [
-            "bash", "-c",
-            "if [ ! -f '" + root.configPath + "' ]; then mkdir -p \"$(dirname '" + root.configPath + "')\" && cat << 'EOF' > '" + root.configPath + "'\n" +
-            "{\n" +
-            "    \"_comment_style\": \"Available styles: 'slide', 'parallax', 'none'\",\n" +
-            "    \"style\": \"slide\",\n" +
-            "    \"_comment_speed\": \"Multiplier for all animations. 1.0 is default. 0.5 is 2x faster, 2.0 is 2x slower.\",\n" +
-            "    \"speed_multiplier\": 1.0,\n" +
-            "    \"_comment_curve\": \"Available curves: 'smooth', 'spring', 'linear', 'cinematic'\",\n" +
-            "    \"curve\": \"smooth\"\n" +
-            "}\nEOF\nfi"
-        ]
-        initProc.running = true
-    }
+
 
     property var _conn: Connections {
         target: PrefsService

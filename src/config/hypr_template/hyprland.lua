@@ -30,7 +30,6 @@ hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
 -------- MODULE SOURCES ----------
 ---------------------------------
 
-require("config.colors")
 require("config.monitors")
 require("config.autostart")
 require("config.look_and_feel")

@@ -318,6 +318,8 @@ if [[ "${FRESH_INSTALL:-}" == "true" ]]; then
     }
     KB_LAYOUT=""; KB_VARIANT=""
     IFS=$"\t" read -r KB_LAYOUT KB_VARIANT <<< "$(detect_keyboard_layout)"
+    KB_LAYOUT="${KB_LAYOUT//[[:space:]]/}"
+    KB_VARIANT="${KB_VARIANT//[[:space:]]/}"
     log_ok "Keyboard layout detected: ${KB_LAYOUT}${KB_VARIANT:+ (${KB_VARIANT})}"
 
     HYPR_DIR="$(dirname "$HYPRLAND_CONF")"
@@ -347,13 +349,6 @@ if [[ ! -f "${HYPRLAND_CONF}.pre-brain-shell" ]]; then
     cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.pre-brain-shell"
     log_info "Initial safety backup: ${HYPRLAND_CONF}.pre-brain-shell"
 else
-    # Diff to check for post-installation modifications
-    if diff -q "$HYPRLAND_CONF" "${HYPRLAND_CONF}.pre-brain-shell" &>/dev/null; then
-        log_info "No post-install modifications detected."
-    else
-        log_warn "Post-install modifications detected in $HYPRLAND_CONF."
-    fi
-    
     TS=$(date +%Y%m%d_%H%M%S)
     cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.mod-backup-${TS}"
     log_info "Backup created: ${HYPRLAND_CONF}.mod-backup-${TS}"

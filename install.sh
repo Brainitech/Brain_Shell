@@ -123,11 +123,11 @@ BACKUP_TS=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="$HOME/.config.backup-${BACKUP_TS}-Brain_Shell"
 mkdir -p "$BACKUP_DIR"
 
-if [[ "${FRESH_INSTALL:-}" != "true" && -d "$HYPR_DIR" ]]; then
-    cp -r "$HYPR_DIR" "$BACKUP_DIR/"
-    log_ok "Backed up: ~/.config/hypr → $BACKUP_DIR"
+if [[ "${FRESH_INSTALL:-}" != "true" && -f "$HYPRLAND_CONF" ]]; then
+    cp "$HYPRLAND_CONF" "$BACKUP_DIR/"
+    log_ok "Backed up: $HYPRLAND_CONF → $BACKUP_DIR"
 else
-    log_warn "$HOME/.config/hypr not found or newly created — skipped backup."
+    log_warn "Hyprland config not found or newly created — skipped backup."
 fi
 
 
@@ -136,9 +136,14 @@ fi
 # ══════════════════════════════════════════════════════════════════════════════
 step 3 "Repository"
 
-REPO_PARENT="$HOME/.local/src"
-REPO_DIR="$REPO_PARENT/Brain_Shell"
-mkdir -p "$REPO_PARENT"
+# Check if we are already running from a clone
+if [[ -d "$PWD/.git" ]] && grep -q "Brain_Shell" "$PWD/.git/config" 2>/dev/null; then
+    REPO_DIR="$PWD"
+    log_info "Running from local clone: $REPO_DIR"
+else
+    REPO_PARENT="$HOME/.local/src"
+    REPO_DIR="$REPO_PARENT/Brain_Shell"
+    mkdir -p "$REPO_PARENT"
 
 if [[ -d "$REPO_DIR/.git" ]]; then
     log_info "Existing clone found — updating..."
@@ -162,7 +167,7 @@ echo ""
 DISTRO_INSTALLER="$REPO_DIR/dots-extra/install-${DISTRO_TYPE}.sh"
 [[ -f "$DISTRO_INSTALLER" ]] || die "Distro installer not found: $DISTRO_INSTALLER"
 
-bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$BACKUP_DIR" "$CONFIG_TYPE"
+bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$BACKUP_DIR" "$CONFIG_TYPE" "$REPO_DIR"
 
 
 # ══════════════════════════════════════════════════════════════════════════════

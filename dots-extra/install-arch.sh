@@ -11,7 +11,7 @@ set -eo pipefail
 HYPRLAND_CONF="${1:?Missing arg: HYPRLAND_CONF path}"
 BACKUP_DIR="${2:?Missing arg: BACKUP_DIR}"
 CONFIG_TYPE="${3:?Missing arg: CONFIG_TYPE (conf|lua)}"
-REPO_DIR="$HOME/.local/src/Brain_Shell"
+REPO_DIR="${4:-$HOME/.local/src/Brain_Shell}"
 
 # ── Colors ────────────────────────────────────────────────────────────────────
 RED='\033[0;31m';   GREEN='\033[0;32m';  YELLOW='\033[1;33m'
@@ -324,10 +324,14 @@ if [[ "${FRESH_INSTALL:-}" == "true" ]]; then
 
     HYPR_DIR="$(dirname "$HYPRLAND_CONF")"
     mkdir -p "$HYPR_DIR"
-    cp -r "$REPO_DIR/src/config/hypr_template/"* "$HYPR_DIR/"
-    sed -i -e "s|kb_layout          = \"us\"|kb_layout          = \"${KB_LAYOUT}\"|g" \
-           -e "s|kb_variant         = \"\"|kb_variant         = \"${KB_VARIANT}\"|g" \
-           "$HYPR_DIR/config/input.lua"
+    
+    _TMP_HYPR=$(mktemp -d)
+    cp -r "$REPO_DIR/src/config/hypr_template/"* "$_TMP_HYPR/"
+    sed -i -e "s|kb_layout[[:space:]]*=.*|kb_layout          = \"${KB_LAYOUT}\"|g" \
+           -e "s|kb_variant[[:space:]]*=.*|kb_variant         = \"${KB_VARIANT}\"|g" \
+           "$_TMP_HYPR/config/input.lua"
+    cp -r "$_TMP_HYPR/"* "$HYPR_DIR/"
+    rm -rf "$_TMP_HYPR"
     log_ok "Generated base hyprland config with keyboard layout"
 fi
 
@@ -345,42 +349,48 @@ _BEGIN_MARK_LUA="-- >>> Brain Shell Startup >>>"
 _END_MARK_LUA="-- <<< Brain Shell Startup <<<"
 _LEGACY_MARKER="quickshell.*Brain_Shell"
 
-if [[ ! -f "${HYPRLAND_CONF}.pre-brain-shell" ]]; then
-    cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.pre-brain-shell"
-    log_info "Initial safety backup: ${HYPRLAND_CONF}.pre-brain-shell"
-else
-    TS=$(date +%Y%m%d_%H%M%S)
-    cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.mod-backup-${TS}"
-    log_info "Backup created: ${HYPRLAND_CONF}.mod-backup-${TS}"
-    
-    # Base it entirely off the original backup (no sed/awk stripping)
-    cp "${HYPRLAND_CONF}.pre-brain-shell" "$HYPRLAND_CONF"
-    log_info "Restored clean backup as base configuration."
-fi
+TS=$(date +%Y%m%d_%H%M%S)
+cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.mod-backup-${TS}"
+log_info "Backup created: ${HYPRLAND_CONF}.mod-backup-${TS}"
 
-case "$CONFIG_TYPE" in
-    conf)
-        {
-            echo ""
-            echo "$_BEGIN_MARK_CONF"
-            echo "source = $HOME/.config/Brain_Shell/hypr/brain-shell.conf"
-            echo "$_END_MARK_CONF"
-        } >> "$HYPRLAND_CONF"
-        log_ok "Brain Shell startup sourced from hyprland.conf (1 line)"
-        ;;
-    lua)
-        {
-            echo ""
-            echo "$_BEGIN_MARK_LUA"
-            echo 'dofile(os.getenv("HOME") .. "/.config/Brain_Shell/hypr/brain-shell.lua")'
-            echo "$_END_MARK_LUA"
-        } >> "$HYPRLAND_CONF"
-        log_ok "Brain Shell startup loaded from hyprland.lua (1 line)"
-        ;;
-    *)
-        log_warn "Unknown config type '$CONFIG_TYPE' — skipping Hyprland config update."
-        ;;
-esac
+log_info "Migrating active configuration..."
+python3 -c '
+import sys, re
+with open(sys.argv[1], "r") as f: content = f.read()
+# Scrub legacy inline autostarts (conf)
+content = re.sub(r"\n*# Brain Shell Autostarts\n(exec-once = .*\n){1,8}", "\n", content)
+# Scrub legacy inline autostarts (lua)
+content = re.sub(r"\n*-- Brain Shell Autostarts\nhl\.on\(\"hyprland\.start\", function\(\)\n(    hl\.exec_cmd\(.*\)\n){1,8}end\)\n*", "\n", content)
+with open(sys.argv[1], "w") as f: f.write(content.strip() + "\n")
+' "$HYPRLAND_CONF"
+
+if grep -q "brain-shell" "$HYPRLAND_CONF"; then
+    log_ok "Brain Shell startup already sourced in $HYPRLAND_CONF"
+else
+    case "$CONFIG_TYPE" in
+        conf)
+            {
+                echo ""
+                echo "$_BEGIN_MARK_CONF"
+                echo "source = $HOME/.config/Brain_Shell/hypr/brain-shell.conf"
+                echo "$_END_MARK_CONF"
+            } >> "$HYPRLAND_CONF"
+            log_ok "Brain Shell startup sourced from hyprland.conf (1 line)"
+            ;;
+        lua)
+            {
+                echo ""
+                echo "$_BEGIN_MARK_LUA"
+                echo 'dofile(os.getenv("HOME") .. "/.config/Brain_Shell/hypr/brain-shell.lua")'
+                echo "$_END_MARK_LUA"
+            } >> "$HYPRLAND_CONF"
+            log_ok "Brain Shell startup loaded from hyprland.lua (1 line)"
+            ;;
+        *)
+            log_warn "Unknown config type '$CONFIG_TYPE' — skipping Hyprland config update."
+            ;;
+    esac
+fi
 
 step 6 "Brain Shell Config"
 

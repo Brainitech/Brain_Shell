@@ -82,7 +82,11 @@ check_command "hyprctl"
 
 echo ""
 echo "# QT6 & RENDERING"
-check_package "qt6-base" "qdbus"
+if command -v qmake6 &> /dev/null; then
+    log_installed "qt6-base"
+else
+    log_missing "qt6-base"
+fi
 check_command "qt6ct"
 
 echo ""
@@ -129,7 +133,7 @@ check_command "hypridle"
 
 echo ""
 echo "# FONTS"
-if fc-list | grep -q "JetBrains Mono"; then
+if fc-list | grep -iq "JetBrainsMono"; then
     log_installed "JetBrains Mono Nerd Font"
 else
     log_missing "JetBrains Mono Nerd Font"
@@ -138,28 +142,26 @@ fi
 echo ""
 echo "# CONFIGURATION FILES"
 
-if [[ -f "$HOME/.config/hypr/hyprland.conf" ]]; then
+if [[ -f "$HOME/.config/hypr/hyprland.conf" ]] || [[ -f "$HOME/.config/hypr/hyprland.lua" ]]; then
     log_installed "Hyprland config"
-    
-    if grep -q "quickshell.*-c.*Brain_Shell" "$HOME/.config/hypr/hyprland.conf"; then
-        log_installed "Brain Shell exec-once in hyprland.conf"
-    else
-        log_missing "Brain Shell exec-once in hyprland.conf"
+
+    if [[ -f "$HOME/.config/hypr/hyprland.conf" ]]; then
+        if grep -q "brain-shell" "$HOME/.config/hypr/hyprland.conf"; then
+            log_installed "Brain Shell startup in hyprland.conf"
+        else
+            log_missing "Brain Shell startup in hyprland.conf"
+        fi
+    fi
+
+    if [[ -f "$HOME/.config/hypr/hyprland.lua" ]]; then
+        if grep -q "brain-shell" "$HOME/.config/hypr/hyprland.lua"; then
+            log_installed "Brain Shell startup in hyprland.lua"
+        else
+            log_missing "Brain Shell startup in hyprland.lua"
+        fi
     fi
 else
     log_missing "Hyprland config"
-fi
-
-if [[ -f "$HOME/.config/hypr/hyprland.lua" ]]; then
-    log_installed "Hyprland Lua config"
-    
-    if grep -q "quickshell.*Brain_Shell" "$HOME/.config/hypr/hyprland.lua"; then
-        log_installed "Brain Shell exec-once in hyprland.lua"
-    else
-        log_optional "Brain Shell exec-once in hyprland.lua (optional)"
-    fi
-else
-    log_optional "Hyprland Lua config (optional)"
 fi
 
 if [[ -d "$HOME/.local/src/Brain_Shell" ]]; then

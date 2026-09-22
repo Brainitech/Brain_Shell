@@ -142,13 +142,13 @@ mkdir -p "$REPO_PARENT"
 
 if [[ -d "$REPO_DIR/.git" ]]; then
     log_info "Existing clone found — updating..."
-    git -C "$REPO_DIR" fetch origin feat/v0.2.0-installer 2>/dev/null || true
-    git -C "$REPO_DIR" checkout feat/v0.2.0-installer 2>/dev/null || true
-    git -C "$REPO_DIR" pull origin feat/v0.2.0-installer 2>/dev/null || true
+    git -C "$REPO_DIR" fetch origin feat/v0.2.0-installer &>/dev/null || true
+    git -C "$REPO_DIR" reset --hard origin/feat/v0.2.0-installer &>/dev/null || true
+    git -C "$REPO_DIR" clean -fd &>/dev/null || true
     log_ok "Repository updated: $REPO_DIR"
 else
     log_info "Cloning from GitHub..."
-    git clone -b feat/v0.2.0-installer https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR"
+    git clone -q -b feat/v0.2.0-installer https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR" &>/dev/null
     log_ok "Repository cloned: $REPO_DIR"
 fi
 

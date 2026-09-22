@@ -62,6 +62,7 @@ Item {
                 clip:   true
 
                 PopupPage {
+                    localScale: root.localScale
                     anchors.fill: parent
                     visible: root.page === "power"
 

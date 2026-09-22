@@ -44,6 +44,7 @@ Item {
             spacing: Math.round(8 * root.localScale)
             
             ChannelSlider {
+                localScale: root.localScale
                 icon: {
                     if (!root.sink?.ready)            return "󰕾"
                     if (root.sink.audio.muted)        return "󰖁"

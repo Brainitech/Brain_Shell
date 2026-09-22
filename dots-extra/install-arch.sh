@@ -226,8 +226,9 @@ PACMAN_DEPS=(
 )
 
 log_info "Syncing package database..."
+if ! sudo pacman -Sy &>/dev/null; then
     log_warn "System update failed — continuing with current DB. Some packages may be stale."
-}
+fi
 
 pacman_install "${PACMAN_DEPS[@]}"
 

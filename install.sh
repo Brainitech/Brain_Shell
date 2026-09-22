@@ -123,11 +123,11 @@ BACKUP_TS=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="$HOME/.config.backup-${BACKUP_TS}-Brain_Shell"
 mkdir -p "$BACKUP_DIR"
 
-if [[ -d "$HYPR_DIR" ]]; then
+if [[ "${FRESH_INSTALL:-}" != "true" && -d "$HYPR_DIR" ]]; then
     cp -r "$HYPR_DIR" "$BACKUP_DIR/"
     log_ok "Backed up: ~/.config/hypr → $BACKUP_DIR"
 else
-    log_warn "$HOME/.config/hypr not found — nothing to back up."
+    log_warn "$HOME/.config/hypr not found or newly created — skipped backup."
 fi
 
 

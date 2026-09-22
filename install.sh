@@ -144,6 +144,7 @@ else
     REPO_PARENT="$HOME/.local/src"
     REPO_DIR="$REPO_PARENT/Brain_Shell"
     mkdir -p "$REPO_PARENT"
+fi
 
 if [[ -d "$REPO_DIR/.git" ]]; then
     log_info "Existing clone found — updating..."

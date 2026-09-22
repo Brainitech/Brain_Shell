@@ -249,7 +249,14 @@ AUR_DEPS=(
     "$(_use_variant quickshell)"
     "$(_use_variant awww)"
     "$(_use_variant matugen)"
-    envycontrol
+)
+
+# Only install envycontrol if NVIDIA is present
+if { command -v lspci &>/dev/null && lspci | grep -iq nvidia; } || grep -iq nvidia /proc/modules 2>/dev/null; then
+    AUR_DEPS+=(envycontrol)
+fi
+
+AUR_DEPS+=(
     auto-cpufreq
     nbfc-linux
     cliphist
@@ -313,6 +320,8 @@ if [[ "${FRESH_INSTALL:-}" == "true" ]]; then
     IFS=$"\t" read -r KB_LAYOUT KB_VARIANT <<< "$(detect_keyboard_layout)"
     log_ok "Keyboard layout detected: ${KB_LAYOUT}${KB_VARIANT:+ (${KB_VARIANT})}"
 
+    HYPR_DIR="$(dirname "$HYPRLAND_CONF")"
+    mkdir -p "$HYPR_DIR"
     cp -r "$REPO_DIR/src/config/hypr_template/"* "$HYPR_DIR/"
     sed -i -e "s|kb_layout          = \"us\"|kb_layout          = \"${KB_LAYOUT}\"|g" \
            -e "s|kb_variant         = \"\"|kb_variant         = \"${KB_VARIANT}\"|g" \

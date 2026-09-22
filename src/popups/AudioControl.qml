@@ -62,6 +62,7 @@ Item {
 
             // Output
             PopupPage {
+                localScale: root.localScale
                 id: pageOutput
                 readonly property int myIdx: 0
                 property bool isCurrent: root.page === "output"
@@ -131,6 +132,7 @@ Item {
 
             // Input
             PopupPage {
+                localScale: root.localScale
                 id: pageInput
                 readonly property int myIdx: 1
                 property bool isCurrent: root.page === "input"
@@ -194,6 +196,7 @@ Item {
 
             // Mixer
             PopupPage {
+                localScale: root.localScale
                 id: pageMixer
                 readonly property int myIdx: 2
                 property bool isCurrent: root.page === "mixer"

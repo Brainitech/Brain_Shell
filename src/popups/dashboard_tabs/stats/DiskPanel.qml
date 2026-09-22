@@ -10,7 +10,7 @@ Item {
     property real localScale: 1.0
     required property var service
 
-    readonly property bool _scrollable: flickable.contentHeight > flickable.height
+    readonly property bool _scrollable: Math.ceil(flickable.contentHeight) > Math.floor(flickable.height) + 1
 
     // ── Header ──────────────────────────────────────────────────────────────
     Item {

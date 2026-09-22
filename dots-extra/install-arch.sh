@@ -118,7 +118,7 @@ aur_install() {
             continue
         fi
 
-        if $helper -S --noconfirm "$pkg" &>/dev/null; then
+        if $helper -S --needed --noconfirm "$pkg" &>/dev/null; then
             echo -e "${GREEN}✓${NC}"
         else
             echo -e "${RED}✗${NC}"
@@ -235,15 +235,24 @@ pacman_install "${PACMAN_DEPS[@]}"
 
 step 3 "AUR Packages"
 
+_use_variant() {
+    local stable="$1" git_variant="${1}-git"
+    if pacman -Qi "$git_variant" &>/dev/null; then
+        echo "$git_variant"
+    else
+        echo "$stable"
+    fi
+}
+
 AUR_DEPS=(
-    quickshell       # REQUIRED — the shell runtime
-    awww             # animation daemon
-    matugen          # Material You color generation
-    envycontrol      # GPU switching
-    auto-cpufreq     # CPU power management
-    nbfc-linux       # fan control
-    cliphist         # clipboard history
-    grimblast-git    # screenshot tool
+    "$(_use_variant quickshell)"
+    "$(_use_variant awww)"
+    "$(_use_variant matugen)"
+    envycontrol
+    auto-cpufreq
+    nbfc-linux
+    cliphist
+    grimblast-git
 )
 
 if [[ "$AUR_HELPER" == "none" ]]; then
@@ -286,69 +295,66 @@ _svc_user   wireplumber
 
 step 5 "Hyprland Config"
 
+if [[ "${FRESH_INSTALL:-}" == "true" ]]; then
+    log_info "Detecting keyboard layout for base config..."
+    detect_keyboard_layout() {
+        local layout="" variant=""
+        if command -v localectl &>/dev/null; then
+            local status; status="$(localectl status 2>/dev/null)"
+            layout="$(awk -F': ' '/X11 Layout/{print $2; exit}'  <<< "$status" | tr -d '[:space:]')"
+            variant="$(awk -F': ' '/X11 Variant/{print $2; exit}' <<< "$status" | tr -d '[:space:]')"
+        fi
+        layout="${layout%%,*}"
+        [[ -z "$layout" ]] && layout="us"
+        printf '%s\t%s\n' "$layout" "$variant"
+    }
+    KB_LAYOUT=""; KB_VARIANT=""
+    IFS=$"\t" read -r KB_LAYOUT KB_VARIANT <<< "$(detect_keyboard_layout)"
+    log_ok "Keyboard layout detected: ${KB_LAYOUT}${KB_VARIANT:+ (${KB_VARIANT})}"
+
+    cp -r "$REPO_DIR/src/config/hypr_template/"* "$HYPR_DIR/"
+    sed -i -e "s|kb_layout          = \"us\"|kb_layout          = \"${KB_LAYOUT}\"|g" \
+           -e "s|kb_variant         = \"\"|kb_variant         = \"${KB_VARIANT}\"|g" \
+           "$HYPR_DIR/config/input.lua"
+    log_ok "Generated base hyprland config with keyboard layout"
+fi
+
 STARTUP_CONF="$HOME/.config/Brain_Shell/hypr/brain-shell.conf"
 STARTUP_LUA="$HOME/.config/Brain_Shell/hypr/brain-shell.lua"
 mkdir -p "$HOME/.config/Brain_Shell/hypr"
 
-detect_keyboard_layout() {
-    local layout="" variant=""
-    if command -v localectl &>/dev/null; then
-        local status; status="$(localectl status 2>/dev/null)"
-        layout="$(awk -F': ' '/X11 Layout/{print $2; exit}'  <<< "$status" | tr -d '[:space:]')"
-        variant="$(awk -F': ' '/X11 Variant/{print $2; exit}' <<< "$status" | tr -d '[:space:]')"
-    fi
-    if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]] && command -v hyprctl &>/dev/null && command -v python3 &>/dev/null; then
-        local hypr_layout
-        hypr_layout="$(hyprctl -j devices 2>/dev/null | python3 -c '
-import json, sys
-try:
-    data = json.load(sys.stdin)
-    kbs = data.get("keyboards", [])
-    kb = next((k for k in kbs if k.get("main")), kbs[0] if kbs else {})
-    print(kb.get("layout", "").split(",")[0].strip())
-except Exception:
-    pass
-' 2>/dev/null)"
-        [[ -n "$hypr_layout" ]] && layout="$hypr_layout"
-    fi
-    layout="${layout%%,*}"
-    [[ -z "$layout" ]] && layout="us"
-    printf '%s\t%s\n' "$layout" "$variant"
-}
-
-KB_LAYOUT=""; KB_VARIANT=""
-IFS=$"\t" read -r KB_LAYOUT KB_VARIANT <<< "$(detect_keyboard_layout)"
-log_ok "Keyboard layout detected: ${KB_LAYOUT}${KB_VARIANT:+ (${KB_VARIANT})}"
-
-# Use the templates from PR 87 (src/config/autostart)
-_render_template() {
-    local tpl="$1" out="$2"
-    sed -e "s|__KB_LAYOUT__|${KB_LAYOUT}|g" -e "s|__KB_VARIANT__|${KB_VARIANT}|g" "$tpl" > "$out"
-}
-
-_render_template "$REPO_DIR/src/config/autostart/BrainShell-hyprland.conf" "$STARTUP_CONF"
-_render_template "$REPO_DIR/src/config/autostart/BrainShell-hyprland.lua"  "$STARTUP_LUA"
+cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.conf" "$STARTUP_CONF"
+cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.lua"  "$STARTUP_LUA"
 log_ok "Generated isolated startup configs"
 
 _BEGIN_MARK_CONF="# >>> Brain Shell Startup >>>"
 _END_MARK_CONF="# <<< Brain Shell Startup <<<"
 _BEGIN_MARK_LUA="-- >>> Brain Shell Startup >>>"
 _END_MARK_LUA="-- <<< Brain Shell Startup <<<"
+_LEGACY_MARKER="quickshell.*Brain_Shell"
 
-remove_existing_marked_block() {
-    local file="$1" begin="$2" end="$3"
-    if grep -qF -- "$begin" "$file" 2>/dev/null; then
-        sed -i "\\|${begin}|,\\|${end}|d" "$file"
-        log_ok "Removed previous Brain Shell startup line from $(basename "$file") (reinstall)"
+if [[ ! -f "${HYPRLAND_CONF}.pre-brain-shell" ]]; then
+    cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.pre-brain-shell"
+    log_info "Initial safety backup: ${HYPRLAND_CONF}.pre-brain-shell"
+else
+    # Diff to check for post-installation modifications
+    if diff -q "$HYPRLAND_CONF" "${HYPRLAND_CONF}.pre-brain-shell" &>/dev/null; then
+        log_info "No post-install modifications detected."
+    else
+        log_warn "Post-install modifications detected in $HYPRLAND_CONF."
     fi
-}
-
-cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.pre-brain-shell"
-log_info "Safety backup: ${HYPRLAND_CONF}.pre-brain-shell"
+    
+    TS=$(date +%Y%m%d_%H%M%S)
+    cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.mod-backup-${TS}"
+    log_info "Backup created: ${HYPRLAND_CONF}.mod-backup-${TS}"
+    
+    # Base it entirely off the original backup (no sed/awk stripping)
+    cp "${HYPRLAND_CONF}.pre-brain-shell" "$HYPRLAND_CONF"
+    log_info "Restored clean backup as base configuration."
+fi
 
 case "$CONFIG_TYPE" in
     conf)
-        remove_existing_marked_block "$HYPRLAND_CONF" "$_BEGIN_MARK_CONF" "$_END_MARK_CONF"
         {
             echo ""
             echo "$_BEGIN_MARK_CONF"
@@ -358,7 +364,6 @@ case "$CONFIG_TYPE" in
         log_ok "Brain Shell startup sourced from hyprland.conf (1 line)"
         ;;
     lua)
-        remove_existing_marked_block "$HYPRLAND_CONF" "$_BEGIN_MARK_LUA" "$_END_MARK_LUA"
         {
             echo ""
             echo "$_BEGIN_MARK_LUA"
@@ -478,7 +483,7 @@ for action, info in conflicts.items():
     print(f"    {'':24}  already used by: {info['used_by']}\n")
     unbound[action] = {"mods": "", "key": ""}
 
-config_path = os.path.expanduser("~/.config/Brain_Shell/src/user_data/keybinds.json")
+config_path = os.path.join(os.environ.get("HOME", ""), ".config/Brain_Shell/src/user_data/keybinds.json")
 with open(config_path, "w") as f:
     json.dump(unbound, f, indent=2)
 

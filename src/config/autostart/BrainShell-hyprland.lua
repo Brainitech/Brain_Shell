@@ -7,5 +7,9 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
 end)
-hl.exec_cmd("hyprctl keyword input:kb_layout __KB_LAYOUT__")
-hl.exec_cmd("hyprctl keyword input:kb_variant __KB_VARIANT__")
+local kb_path = os.getenv("HOME") .. "/.config/Brain_Shell/Brain_ShellKeybinds.lua"
+local f = io.open(kb_path, "r")
+if f then
+    f:close()
+    dofile(kb_path)
+end

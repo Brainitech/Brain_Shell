@@ -1,7 +1,7 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
 #  Brain Shell — main Installer
-#  github.com/Brainitech/Brain_Shell  v0.1.0
+#  github.com/Brainitech/Brain_Shell  v0.2.0
 # ─────────────────────────────────────────────────────────────────────────────
 # Hesitation is Defeat — Isshin Ashina
 set -eo pipefail
@@ -39,7 +39,7 @@ echo " ▒███▒▒▒▒▒███ ▒███▒▒▒▒▒███
 echo " ▒███    ▒███ ▒███    ▒███  ▒███    ▒███  ▒███  ▒███  ▒▒█████     ███    ▒███ ▒███    ▒███  ▒███ ▒   █ ▒███      █ ▒███      █"
 echo " ███████████  █████   █████ █████   █████ █████ █████  ▒▒█████   ▒▒█████████  █████   █████ ██████████ ███████████ ███████████"
 echo -e "${NC}"
-echo -e "  ${DIM}v0.1.0  ·  github.com/Brainitech/Brain_Shell${NC}"
+echo -e "  ${DIM}v0.2.0  ·  github.com/Brainitech/Brain_Shell${NC}" # Update is finally seeing it's light after getting the TeamCherry Treatment
 echo ""
 
 
@@ -105,7 +105,12 @@ elif [[ -f "$HYPR_DIR/hyprland.conf" ]]; then
     log_warn "hyprland.conf support is deprecated as of 0.55 and will be removed in a future release."
     log_info "Consider migrating to hyprland.lua — see https://wiki.hypr.land/Configuring/Start/"
 else
-    die "No Hyprland config found in $HYPR_DIR. Set up Hyprland first."
+    log_warn "No Hyprland config found in $HYPR_DIR."
+    log_info "A curated base config will be generated."
+    mkdir -p "$HYPR_DIR"
+    HYPRLAND_CONF="$HYPR_DIR/hyprland.lua"
+    CONFIG_TYPE="lua"
+    export FRESH_INSTALL="true"
 fi
 
 
@@ -137,13 +142,13 @@ mkdir -p "$REPO_PARENT"
 
 if [[ -d "$REPO_DIR/.git" ]]; then
     log_info "Existing clone found — updating..."
-    git -C "$REPO_DIR" fetch origin main 2>/dev/null || true
-    git -C "$REPO_DIR" checkout main 2>/dev/null || true
-    git -C "$REPO_DIR" pull origin main 2>/dev/null || true
+    git -C "$REPO_DIR" fetch origin feat/v0.2.0-installer 2>/dev/null || true
+    git -C "$REPO_DIR" checkout feat/v0.2.0-installer 2>/dev/null || true
+    git -C "$REPO_DIR" pull origin feat/v0.2.0-installer 2>/dev/null || true
     log_ok "Repository updated: $REPO_DIR"
 else
     log_info "Cloning from GitHub..."
-    git clone -b main https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR"
+    git clone -b feat/v0.2.0-installer https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR"
     log_ok "Repository cloned: $REPO_DIR"
 fi
 

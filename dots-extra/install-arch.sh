@@ -470,6 +470,8 @@ for action, data in DEFAULTS.items():
         if hb.get("modmask") == mask and str(hb.get("key", "")).lower() == key:
             desc = hb.get("dispatcher", "")
             arg  = hb.get("arg", "")
+            if "qs ipc" in arg or "Brain_Shell" in arg:
+                continue
             conflicts[action] = {
                 "bind":    f"{data['mods']} + {data['key']}",
                 "label":   data["label"],

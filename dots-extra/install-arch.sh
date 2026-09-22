@@ -327,8 +327,8 @@ if [[ "${FRESH_INSTALL:-}" == "true" ]]; then
     
     _TMP_HYPR=$(mktemp -d)
     cp -r "$REPO_DIR/src/config/hypr_template/"* "$_TMP_HYPR/"
-    sed -i -e "s|kb_layout[[:space:]]*=.*|kb_layout          = \"${KB_LAYOUT}\"|g" \
-           -e "s|kb_variant[[:space:]]*=.*|kb_variant         = \"${KB_VARIANT}\"|g" \
+    sed -i -e "s|kb_layout[[:space:]]*=.*|kb_layout          = \"${KB_LAYOUT}\",|g" \
+           -e "s|kb_variant[[:space:]]*=.*|kb_variant         = \"${KB_VARIANT}\",|g" \
            "$_TMP_HYPR/config/input.lua"
     cp -r "$_TMP_HYPR/"* "$HYPR_DIR/"
     rm -rf "$_TMP_HYPR"
@@ -361,6 +361,10 @@ with open(sys.argv[1], "r") as f: content = f.read()
 content = re.sub(r"\n*# Brain Shell Autostarts\n(exec-once = .*\n){1,8}", "\n", content)
 # Scrub legacy inline autostarts (lua)
 content = re.sub(r"\n*-- Brain Shell Autostarts\nhl\.on\(\"hyprland\.start\", function\(\)\n(    hl\.exec_cmd\(.*\)\n){1,8}end\)\n*", "\n", content)
+# Scrub legacy keybind injections (conf)
+content = re.sub(r"\n*# Brain_ShellKeybinds\nsource = .*Brain_ShellKeybinds\.conf\n*", "\n", content)
+# Scrub legacy keybind injections (lua)
+content = re.sub(r"\n*-- Brain_ShellKeybinds\ndofile\(.*Brain_ShellKeybinds\.lua\"\)\n*", "\n", content)
 with open(sys.argv[1], "w") as f: f.write(content.strip() + "\n")
 ' "$HYPRLAND_CONF"
 

@@ -303,6 +303,70 @@ _svc_user   wireplumber
 
 step 5 "Hyprland Config"
 
+# ── Pre-generate fallback keybinds for first-boot ─────────────────────────────
+_KB_DIR="$HOME/.config/Brain_Shell"
+mkdir -p "$_KB_DIR"
+if [[ ! -f "$_KB_DIR/Brain_ShellKeybinds.lua" ]]; then
+    cat << EOF > "$_KB_DIR/Brain_ShellKeybinds.lua"
+local shell = "$REPO_DIR"
+hl.define_submap("BrainShell_clean", function()
+    hl.bind("CTRL + ESCAPE", function()
+        hl.dispatch(hl.dsp.exec_cmd("notify-send 'BrainShell' 'Emergency Exit: Keybinds re-enabled.'"))
+        hl.dispatch(hl.dsp.submap("reset"))
+    end)
+end)
+hl.bind("SUPER + D", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-home toggle"))
+hl.bind("CTRL + SHIFT + ESCAPE", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-stats toggle"))
+hl.bind("SUPER + Z", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-kanban toggle"))
+hl.bind("SUPER + Q", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-launcher toggle"))
+hl.bind("SUPER + C", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-config toggle"))
+hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call PowerMenu-toggle toggle"))
+hl.bind("SUPER + N", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call notification-toggle toggle"))
+hl.bind("SUPER + W", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call wallpaper-toggle toggle"))
+hl.bind("SUPER + V", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call clipboard-toggle toggle"))
+hl.bind("SUPER + ALT + W", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call wifi-toggle toggle"))
+hl.bind("SUPER + ALT + B", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call bluetooth-toggle toggle"))
+hl.bind("SUPER + ALT + G", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call vpn-toggle toggle"))
+hl.bind("SUPER + ALT + H", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call hotspot-toggle toggle"))
+hl.bind("SUPER + A", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioOut-toggle toggle"))
+hl.bind("SUPER + ALT + I", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioIn-toggle toggle"))
+hl.bind("SUPER + M", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioMix-toggle toggle"))
+hl.bind("SUPER + B", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call focus-toggle toggle"))
+hl.bind("SUPER + X", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call lock-session toggle"))
+hl.bind("PRINT", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call screenshot-toggle toggle"))
+hl.bind("ALT + F9", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call screenrec-on toggle"))
+EOF
+fi
+
+if [[ ! -f "$_KB_DIR/Brain_ShellKeybinds.conf" ]]; then
+    cat << EOF > "$_KB_DIR/Brain_ShellKeybinds.conf"
+submap = BrainShell_clean
+bind = CTRL, ESCAPE, exec, notify-send 'BrainShell' 'Emergency Exit: Keybinds re-enabled.'
+bind = CTRL, ESCAPE, submap, reset
+submap = reset
+bind = SUPER, D, exec, qs ipc -c $REPO_DIR call dashboard-home toggle
+bind = CTRL SHIFT, ESCAPE, exec, qs ipc -c $REPO_DIR call dashboard-stats toggle
+bind = SUPER, Z, exec, qs ipc -c $REPO_DIR call dashboard-kanban toggle
+bind = SUPER, Q, exec, qs ipc -c $REPO_DIR call dashboard-launcher toggle
+bind = SUPER, C, exec, qs ipc -c $REPO_DIR call dashboard-config toggle
+bind = SUPER, ESCAPE, exec, qs ipc -c $REPO_DIR call PowerMenu-toggle toggle
+bind = SUPER, N, exec, qs ipc -c $REPO_DIR call notification-toggle toggle
+bind = SUPER, W, exec, qs ipc -c $REPO_DIR call wallpaper-toggle toggle
+bind = SUPER, V, exec, qs ipc -c $REPO_DIR call clipboard-toggle toggle
+bind = SUPER ALT, W, exec, qs ipc -c $REPO_DIR call wifi-toggle toggle
+bind = SUPER ALT, B, exec, qs ipc -c $REPO_DIR call bluetooth-toggle toggle
+bind = SUPER ALT, G, exec, qs ipc -c $REPO_DIR call vpn-toggle toggle
+bind = SUPER ALT, H, exec, qs ipc -c $REPO_DIR call hotspot-toggle toggle
+bind = SUPER, A, exec, qs ipc -c $REPO_DIR call audioOut-toggle toggle
+bind = SUPER ALT, I, exec, qs ipc -c $REPO_DIR call audioIn-toggle toggle
+bind = SUPER, M, exec, qs ipc -c $REPO_DIR call audioMix-toggle toggle
+bind = SUPER, B, exec, qs ipc -c $REPO_DIR call focus-toggle toggle
+bind = SUPER, X, exec, qs ipc -c $REPO_DIR call lock-session toggle
+bind = , PRINT, exec, qs ipc -c $REPO_DIR call screenshot-toggle toggle
+bind = ALT, F9, exec, qs ipc -c $REPO_DIR call screenrec-on toggle
+EOF
+fi
+
 if [[ "${FRESH_INSTALL:-}" == "true" ]]; then
     log_info "Detecting keyboard layout for base config..."
     detect_keyboard_layout() {

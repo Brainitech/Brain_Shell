@@ -69,6 +69,8 @@
             nerd-fonts.jetbrains-mono
             nerd-fonts.symbols-only
             git
+            hyprpolkitagent
+            grimblast
           ];
         in {
           options.programs.brain-shell = {

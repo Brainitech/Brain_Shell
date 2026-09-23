@@ -209,7 +209,7 @@ PACMAN_DEPS=(
     wf-recorder cava
 
     # Wallpaper / theming
-    imagemagick
+    imagemagick awww matugen
 
     # Input simulation
     wtype
@@ -223,10 +223,12 @@ PACMAN_DEPS=(
 
     # Fonts
     ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols-common
+
+    cliphist
 )
 
-log_info "Syncing package database..."
-if ! sudo pacman -Sy &>/dev/null; then
+log_info "Running full system upgrade to sync package database..."
+if ! sudo pacman -Syu --noconfirm --needed&>/dev/null; then
     log_warn "System update failed — continuing with current DB. Some packages may be stale."
 fi
 
@@ -247,8 +249,6 @@ _use_variant() {
 
 AUR_DEPS=(
     "$(_use_variant quickshell)"
-    "$(_use_variant awww)"
-    "$(_use_variant matugen)"
 )
 
 # Only install envycontrol if NVIDIA is present
@@ -259,7 +259,6 @@ fi
 AUR_DEPS+=(
     auto-cpufreq
     nbfc-linux
-    cliphist
     grimblast-git
 )
 
@@ -274,7 +273,7 @@ else
 fi
 
 # quickshell is non-negotiable
-if ! "$AUR_HELPER" -Q quickshell &>/dev/null 2>&1; then
+if ! pacman -Q quickshell &>/dev/null && ! pacman -Q quickshell-git &>/dev/null; then
     die "quickshell failed to install. Brain Shell cannot run without it."
 fi
 
@@ -411,7 +410,7 @@ _BEGIN_MARK_CONF="# >>> Brain Shell Startup >>>"
 _END_MARK_CONF="# <<< Brain Shell Startup <<<"
 _BEGIN_MARK_LUA="-- >>> Brain Shell Startup >>>"
 _END_MARK_LUA="-- <<< Brain Shell Startup <<<"
-_LEGACY_MARKER="quickshell.*Brain_Shell"
+
 
 TS=$(date +%Y%m%d_%H%M%S)
 cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.mod-backup-${TS}"
@@ -482,7 +481,9 @@ else
 fi
 
 printf '{"configProvider": "%s"}\n' "$CONFIG_TYPE" > "$USER_DATA/config_Provider.json"
-printf '{}\n'                                       > "$USER_DATA/keybinds.json"
+if [[ ! -f "$USER_DATA/keybinds.json" ]]; then
+    printf '{}\n' > "$USER_DATA/keybinds.json"
+fi
 
 log_ok "Config dirs created"
 log_ok "config_Provider.json  →  $CONFIG_TYPE"

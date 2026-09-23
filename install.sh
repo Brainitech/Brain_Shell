@@ -147,11 +147,15 @@ else
 fi
 
 if [[ -d "$REPO_DIR/.git" ]]; then
-    log_info "Existing clone found — updating..."
-    git -C "$REPO_DIR" fetch origin feat/v0.2.0-installer &>/dev/null || true
-    git -C "$REPO_DIR" reset --hard origin/feat/v0.2.0-installer &>/dev/null || true
-    git -C "$REPO_DIR" clean -fd &>/dev/null || true
-    log_ok "Repository updated: $REPO_DIR"
+    if [[ "$REPO_DIR" == "$PWD" ]]; then
+        log_info "Running from local dev clone — skipping destructive git reset."
+    else
+        log_info "Existing clone found — updating..."
+        git -C "$REPO_DIR" fetch origin feat/v0.2.0-installer &>/dev/null || true
+        git -C "$REPO_DIR" reset --hard origin/feat/v0.2.0-installer &>/dev/null || true
+        git -C "$REPO_DIR" clean -fd &>/dev/null || true
+        log_ok "Repository updated: $REPO_DIR"
+    fi
 else
     log_info "Cloning from GitHub..."
     git clone -q -b feat/v0.2.0-installer https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR" &>/dev/null

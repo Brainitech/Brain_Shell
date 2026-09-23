@@ -108,9 +108,43 @@ _END_MARK_CONF="# <<< Brain Shell Startup <<<"
 _BEGIN_MARK_LUA="-- >>> Brain Shell Startup >>>"
 _END_MARK_LUA="-- <<< Brain Shell Startup <<<"
 
-TS=$(date +%Y%m%d_%H%M%S)
-cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.mod-backup-${TS}"
-log_info "Backup created: ${HYPRLAND_CONF}.mod-backup-${TS}"
+if [[ "${FRESH_INSTALL:-}" == "true" ]]; then
+    log_info "Detecting keyboard layout for base config..."
+    detect_keyboard_layout() {
+        local layout="" variant=""
+        if command -v localectl &>/dev/null; then
+            local status; status="$(localectl status 2>/dev/null)"
+            layout="$(awk -F': ' '/X11 Layout/{print $2; exit}'  <<< "$status" | tr -d '[:space:]')"
+            variant="$(awk -F': ' '/X11 Variant/{print $2; exit}' <<< "$status" | tr -d '[:space:]')"
+        fi
+        layout="${layout%%,*}"
+        [[ -z "$layout" ]] && layout="us"
+        printf '%s\t%s\n' "$layout" "$variant"
+    }
+    KB_LAYOUT=""; KB_VARIANT=""
+    IFS=$"\t" read -r KB_LAYOUT KB_VARIANT <<< "$(detect_keyboard_layout)"
+    KB_LAYOUT="${KB_LAYOUT//[[:space:]]/}"
+    KB_VARIANT="${KB_VARIANT//[[:space:]]/}"
+    log_ok "Keyboard layout detected: ${KB_LAYOUT}${KB_VARIANT:+ (${KB_VARIANT})}"
+
+    HYPR_DIR="$(dirname "$HYPRLAND_CONF")"
+    mkdir -p "$HYPR_DIR"
+    
+    _TMP_HYPR=$(mktemp -d)
+    cp -r "$REPO_DIR/src/config/hypr_template/"* "$_TMP_HYPR/"
+    sed -i -e "s|kb_layout[[:space:]]*=.*|kb_layout          = \"${KB_LAYOUT}\",|g" \
+           -e "s|kb_variant[[:space:]]*=.*|kb_variant         = \"${KB_VARIANT}\",|g" \
+           "$_TMP_HYPR/config/input.lua"
+    cp -r "$_TMP_HYPR/"* "$HYPR_DIR/"
+    rm -rf "$_TMP_HYPR"
+    log_ok "Generated base hyprland config with keyboard layout"
+fi
+
+if [[ -f "$HYPRLAND_CONF" ]]; then
+    TS=$(date +%Y%m%d_%H%M%S)
+    cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.mod-backup-${TS}"
+    log_info "Backup created: ${HYPRLAND_CONF}.mod-backup-${TS}"
+fi
 
 log_info "Migrating active configuration..."
 python3 -c '
@@ -172,10 +206,10 @@ cp -n "$REPO_DIR/src/config/hypridle.conf" "$HOME/.config/hypr/" 2>/dev/null || 
 cp -n "$REPO_DIR/src/config/hyprlock.conf" "$HOME/.config/hypr/" 2>/dev/null || true
 touch "$HOME/.cache/brain-shell/colors.json"
 cp -n -r "$REPO_DIR/src/assets/wallpapers"/* "$HOME/Pictures/Wallpapers/" 2>/dev/null || true
-touch "$USER_DATA/keybinds.json"
-
 printf '{"configProvider": "%s"}\n' "$CONFIG_TYPE" > "$USER_DATA/config_Provider.json"
-printf '{}\n' > "$USER_DATA/keybinds.json"
+if [[ ! -f "$USER_DATA/keybinds.json" ]]; then
+    printf '{}\n' > "$USER_DATA/keybinds.json"
+fi
 
 log_ok "Config and cache directories initialized."
 
@@ -268,6 +302,32 @@ step 3 "Done"
 echo ""
 log_ok "NixOS setup complete."
 log_info "System packages and dependencies are managed entirely by your flake."
+cat << NIXEOF > "$HOME/.config/Brain_Shell/nix-deps.txt"
+# Brain Shell - Required NixOS Packages Checklist
+# Add these to your environment.systemPackages or home.packages:
+
+- quickshell
+- jq
+- socat
+- python3
+- brightnessctl
+- playerctl
+- lm_sensors
+- networkmanager
+- bluez
+- pipewire
+- wireplumber
+- wl-clipboard
+- hypridle
+- hyprlock
+- hyprpolkitagent
+- xdg-desktop-portal-hyprland
+- xdg-desktop-portal-gtk
+- matugen
+- awww
+- libsForQt5.qt6ct (or qt6Packages.qt6ct)
+NIXEOF
+log_info "A package checklist has been saved to ~/.config/Brain_Shell/nix-deps.txt"
 echo ""
 echo -e "  ${BOLD}Restart Hyprland to activate Brain Shell:${NC}"
 log_info "Log out and log back in  ${DIM}(recommended)${NC}"

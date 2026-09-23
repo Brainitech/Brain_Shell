@@ -91,7 +91,13 @@ check_command "qt6ct"
 
 echo ""
 echo "# SYSTEM TOOLS"
-check_command "pactl" || check_command "pacmd"
+if command -v pactl &> /dev/null; then
+    log_installed "pactl"
+elif command -v pacmd &> /dev/null; then
+    log_installed "pacmd"
+else
+    log_missing "pactl/pacmd"
+fi
 check_command "bluetoothctl"
 check_command "brightnessctl"
 check_command "upower"
@@ -100,17 +106,20 @@ check_command "pkexec"
 check_command "python"
 check_command "wl-copy"
 check_command "slurp"
+check_command "playerctl"
+check_command "xdg-user-dirs-update"
 
 echo ""
-echo "# SCREEN RECORDING"
+echo "# SCREEN RECORDING & MEDIA"
 check_command "wf-recorder"
 check_command "cava"
+check_command "grimblast"
 
 echo ""
 echo "# WALLPAPER & THEMING"
 check_command "magick"
-check_optional "awww"
-check_optional "matugen"
+check_command "awww"
+check_command "matugen"
 
 echo ""
 echo "# CLIPBOARD"
@@ -130,6 +139,7 @@ echo "# HYPRLAND ECOSYSTEM"
 check_command "hyprsunset"
 check_command "hyprlock"
 check_command "hypridle"
+check_command "hyprpolkitagent"
 
 echo ""
 echo "# FONTS"

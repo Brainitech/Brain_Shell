@@ -78,7 +78,7 @@
           };
 
           config = mkIf cfg.enable {
-            environment.systemPackages = brainShellDeps ++ [ self.packages.${pkgs.system}.default ];
+            environment.systemPackages = brainShellDeps ++ [ self.packages.${pkgs.system}.default pkgs.pulseaudio ];
 
             fonts.packages = with pkgs; [
               nerd-fonts.jetbrains-mono
@@ -87,8 +87,18 @@
 
             environment.variables.QT_QPA_PLATFORMTHEME = "qt6ct";
 
-            services.pipewire.enable = true;
+            services.pipewire = {
+              enable = true;
+              alsa.enable = true;
+              pulse.enable = true;
+            };
             services.blueman.enable = true;
+            services.upower.enable = true;
+
+            xdg.portal = {
+              enable = true;
+              extraPortals = [ pkgs.xdg-desktop-portal-hyprland pkgs.xdg-desktop-portal-gtk ];
+            };
           };
         };
     };

@@ -190,7 +190,7 @@ step 2 "Pacman Packages"
 
 PACMAN_DEPS=(
     # Qt6 runtime
-    qt6-base qt6-declarative qt6-multimedia qt6-5compat qt6ct
+    qt6-base qt6-declarative qt6-wayland qt6-multimedia qt6-5compat qt6ct
 
     # Audio / PipeWire
     pipewire pipewire-pulse wireplumber
@@ -227,9 +227,9 @@ PACMAN_DEPS=(
     cliphist
 )
 
-log_info "Running full system upgrade to sync package database..."
-if ! sudo pacman -Syu --noconfirm --needed&>/dev/null; then
-    log_warn "System update failed — continuing with current DB. Some packages may be stale."
+log_info "Synchronizing package database..."
+if ! sudo pacman -Sy --noconfirm &>/dev/null; then
+    log_warn "Database sync failed — continuing with current DB. Some packages may be stale."
 fi
 
 pacman_install "${PACMAN_DEPS[@]}"
@@ -539,6 +539,7 @@ try:
     hypr_binds = json.loads(raw)
 except Exception:
     print("  \033[2m(not inside Hyprland — skipping live conflict check)\033[0m")
+    with open("/tmp/bs_keybind_skipped", "w") as f: f.write("1")
     sys.exit(0)
 
 conflicts = {}
@@ -609,6 +610,13 @@ else
     log_info "Find what conflicts:  pacman -Si <pkg> | grep Conflicts"
     log_info "Remove the old one:   sudo pacman -Rdd <conflicting-pkg>"
     log_info "Then retry:           sudo pacman -S <pkg>"
+    echo ""
+fi
+
+if [[ -f "/tmp/bs_keybind_skipped" ]]; then
+    log_warn "Keybind conflict check skipped (Hyprland not running)."
+    log_info "Please run 'qs ipc call dashboard-config' after booting to resolve overlaps."
+    rm -f "/tmp/bs_keybind_skipped"
     echo ""
 fi
 

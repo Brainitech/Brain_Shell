@@ -256,6 +256,7 @@ try:
     hypr_binds = json.loads(raw)
 except Exception:
     print("  \033[2m(not inside Hyprland — skipping live conflict check)\033[0m")
+    with open("/tmp/bs_keybind_skipped", "w") as f: f.write("1")
     sys.exit(0)
 
 conflicts = {}
@@ -304,13 +305,13 @@ step 3 "Done"
 echo ""
 log_ok "NixOS setup complete."
 log_info "System packages and dependencies are managed entirely by your flake."
-cat << NIXEOF > "$HOME/.config/Brain_Shell/nix-deps.txt"
+
+if ! command -v quickshell &>/dev/null; then
+    cat << NIXEOF > "$HOME/.config/Brain_Shell/nix-deps.txt"
 # Brain Shell - Required NixOS Packages Checklist
 # Add these to your environment.systemPackages or home.packages:
 
 - quickshell
-- jq
-- socat
 - python3
 - brightnessctl
 - playerctl
@@ -329,7 +330,15 @@ cat << NIXEOF > "$HOME/.config/Brain_Shell/nix-deps.txt"
 - awww
 - libsForQt5.qt6ct (or qt6Packages.qt6ct)
 NIXEOF
-log_info "A package checklist has been saved to ~/.config/Brain_Shell/nix-deps.txt"
+    log_info "A package checklist has been saved to ~/.config/Brain_Shell/nix-deps.txt"
+fi
+
+if [[ -f "/tmp/bs_keybind_skipped" ]]; then
+    log_warn "Keybind conflict check skipped (Hyprland not running)."
+    log_info "Please run 'qs ipc call dashboard-config' after booting to resolve overlaps."
+    rm -f "/tmp/bs_keybind_skipped"
+fi
+
 echo ""
 echo -e "  ${BOLD}Restart Hyprland to activate Brain Shell:${NC}"
 log_info "Log out and log back in  ${DIM}(recommended)${NC}"

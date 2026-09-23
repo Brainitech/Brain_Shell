@@ -152,23 +152,19 @@ fi
 echo ""
 echo "# CONFIGURATION FILES"
 
-if [[ -f "$HOME/.config/hypr/hyprland.conf" ]] || [[ -f "$HOME/.config/hypr/hyprland.lua" ]]; then
-    log_installed "Hyprland config"
-
-    if [[ -f "$HOME/.config/hypr/hyprland.conf" ]]; then
-        if grep -q "brain-shell" "$HOME/.config/hypr/hyprland.conf"; then
-            log_installed "Brain Shell startup in hyprland.conf"
-        else
-            log_missing "Brain Shell startup in hyprland.conf"
-        fi
+if [[ -f "$HOME/.config/hypr/hyprland.lua" ]]; then
+    log_installed "Hyprland config (lua)"
+    if grep -q "brain-shell" "$HOME/.config/hypr/hyprland.lua"; then
+        log_installed "Brain Shell startup in hyprland.lua"
+    else
+        log_missing "Brain Shell startup in hyprland.lua"
     fi
-
-    if [[ -f "$HOME/.config/hypr/hyprland.lua" ]]; then
-        if grep -q "brain-shell" "$HOME/.config/hypr/hyprland.lua"; then
-            log_installed "Brain Shell startup in hyprland.lua"
-        else
-            log_missing "Brain Shell startup in hyprland.lua"
-        fi
+elif [[ -f "$HOME/.config/hypr/hyprland.conf" ]]; then
+    log_installed "Hyprland config (conf)"
+    if grep -q "brain-shell" "$HOME/.config/hypr/hyprland.conf"; then
+        log_installed "Brain Shell startup in hyprland.conf"
+    else
+        log_missing "Brain Shell startup in hyprland.conf"
     fi
 else
     log_missing "Hyprland config"

@@ -52,6 +52,11 @@ step 1 "Pre-Flight Checks"
 [[ "$OSTYPE" =~ ^linux ]] || die "This installer only supports Linux."
 log_ok "Linux confirmed"
 
+# Deps
+command -v git &>/dev/null || die "git is not installed. Please install git first."
+command -v curl &>/dev/null || die "curl is not installed. Please install curl first."
+log_ok "Git & Curl detected"
+
 # Distro
 DISTRO_TYPE=""
 if [[ -f /etc/os-release ]]; then

@@ -88,15 +88,15 @@
             environment.variables.QT_QPA_PLATFORMTHEME = "qt6ct";
 
             services.pipewire = {
-              enable = true;
-              alsa.enable = true;
-              pulse.enable = true;
+              enable = mkDefault true;
+              alsa.enable = mkDefault true;
+              pulse.enable = mkDefault true;
             };
-            services.blueman.enable = true;
-            services.upower.enable = true;
+            services.blueman.enable = mkDefault true;
+            services.upower.enable = mkDefault true;
 
             xdg.portal = {
-              enable = true;
+              enable = mkDefault true;
               extraPortals = [ pkgs.xdg-desktop-portal-hyprland pkgs.xdg-desktop-portal-gtk ];
             };
           };

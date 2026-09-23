@@ -122,9 +122,11 @@ if [[ "${FRESH_INSTALL:-}" == "true" ]]; then
         printf '%s\t%s\n' "$layout" "$variant"
     }
     KB_LAYOUT=""; KB_VARIANT=""
-    IFS=$"\t" read -r KB_LAYOUT KB_VARIANT <<< "$(detect_keyboard_layout)"
+    IFS=$'\t' read -r KB_LAYOUT KB_VARIANT <<< "$(detect_keyboard_layout)"
     KB_LAYOUT="${KB_LAYOUT//[[:space:]]/}"
     KB_VARIANT="${KB_VARIANT//[[:space:]]/}"
+    [[ -z "$KB_LAYOUT" || "$KB_LAYOUT" == "(unset)" || "$KB_LAYOUT" == "n/a" ]] && KB_LAYOUT="us"
+    [[ "$KB_VARIANT" == "(unset)" || "$KB_VARIANT" == "n/a" ]] && KB_VARIANT=""
     log_ok "Keyboard layout detected: ${KB_LAYOUT}${KB_VARIANT:+ (${KB_VARIANT})}"
 
     HYPR_DIR="$(dirname "$HYPRLAND_CONF")"
@@ -266,7 +268,7 @@ for action, data in DEFAULTS.items():
         if hb.get("modmask") == mask and str(hb.get("key", "")).lower() == key:
             desc = hb.get("dispatcher", "")
             arg  = hb.get("arg", "")
-            if "qs ipc" in arg or "Brain_Shell" in arg:
+            if "qs ipc" in arg or "brain_shell" in arg.lower() or "brain-shell" in arg.lower():
                 continue
             conflicts[action] = {
                 "bind":    f"{data['mods']} + {data['key']}",

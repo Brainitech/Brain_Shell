@@ -9,7 +9,7 @@ set -eo pipefail
 HYPRLAND_CONF="${1:?Missing arg: HYPRLAND_CONF path}"
 BACKUP_DIR="${2:?Missing arg: BACKUP_DIR}"
 CONFIG_TYPE="${3:?Missing arg: CONFIG_TYPE (conf|lua)}"
-REPO_DIR="$HOME/.local/src/Brain_Shell"
+REPO_DIR="${4:-$HOME/.local/src/Brain_Shell}"
 
 RED='\033[0;31m';   GREEN='\033[0;32m';  YELLOW='\033[1;33m'
 BLUE='\033[0;34m';  CYAN='\033[0;36m';   BOLD='\033[1m'
@@ -31,48 +31,126 @@ step() {
 # ══════════════════════════════════════════════════════════════════════════════
 step 1 "Hyprland Config"
 
-_MARKER="quickshell.*Brain_Shell"
-
-_append_conf() {
-    cat << 'EOF' >> "$1"
-
-# Brain Shell Autostarts
-exec-once = awww-daemon
-exec-once = hypridle
-exec-once = quickshell -c $HOME/.local/src/Brain_Shell/.
-exec-once = systemctl --user start hyprpolkitagent
-exec-once = wl-paste --type text --watch cliphist store
-exec-once = wl-paste --type image --watch cliphist store
-EOF
-}
-
-_append_lua() {
-    cat << 'EOF' >> "$1"
-
--- Brain Shell Autostarts
-hl.on("hyprland.start", function()
-    hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("hypridle")
-    hl.exec_cmd("quickshell -c " .. os.getenv("HOME") .. "/.local/src/Brain_Shell")
-    hl.exec_cmd("systemctl --user start hyprpolkitagent")
-    hl.exec_cmd("wl-paste --type text --watch cliphist store")
-    hl.exec_cmd("wl-paste --type image --watch cliphist store")
+# ── Pre-generate fallback keybinds for first-boot ─────────────────────────────
+_KB_DIR="$HOME/.config/Brain_Shell"
+mkdir -p "$_KB_DIR"
+if [[ ! -f "$_KB_DIR/Brain_ShellKeybinds.lua" ]]; then
+    cat << LUAEOF > "$_KB_DIR/Brain_ShellKeybinds.lua"
+local shell = "$REPO_DIR"
+hl.define_submap("BrainShell_clean", function()
+    hl.bind("CTRL + ESCAPE", function()
+        hl.dispatch(hl.dsp.exec_cmd("notify-send 'BrainShell' 'Emergency Exit: Keybinds re-enabled.'"))
+        hl.dispatch(hl.dsp.submap("reset"))
+    end)
 end)
-EOF
-}
+hl.bind("SUPER + D", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-home toggle"))
+hl.bind("CTRL + SHIFT + ESCAPE", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-stats toggle"))
+hl.bind("SUPER + Z", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-kanban toggle"))
+hl.bind("SUPER + Q", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-launcher toggle"))
+hl.bind("SUPER + C", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-config toggle"))
+hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call PowerMenu-toggle toggle"))
+hl.bind("SUPER + N", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call notification-toggle toggle"))
+hl.bind("SUPER + W", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call wallpaper-toggle toggle"))
+hl.bind("SUPER + V", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call clipboard-toggle toggle"))
+hl.bind("SUPER + ALT + W", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call wifi-toggle toggle"))
+hl.bind("SUPER + ALT + B", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call bluetooth-toggle toggle"))
+hl.bind("SUPER + ALT + G", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call vpn-toggle toggle"))
+hl.bind("SUPER + ALT + H", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call hotspot-toggle toggle"))
+hl.bind("SUPER + A", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioOut-toggle toggle"))
+hl.bind("SUPER + ALT + I", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioIn-toggle toggle"))
+hl.bind("SUPER + M", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioMix-toggle toggle"))
+hl.bind("SUPER + B", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call focus-toggle toggle"))
+hl.bind("SUPER + X", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call lock-session toggle"))
+hl.bind("PRINT", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call screenshot-toggle toggle"))
+hl.bind("ALT + F9", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call screenrec-on toggle"))
+LUAEOF
+fi
 
-if grep -q "$_MARKER" "$HYPRLAND_CONF" 2>/dev/null; then
-    log_warn "Autostart block already present — skipping."
+if [[ ! -f "$_KB_DIR/Brain_ShellKeybinds.conf" ]]; then
+    cat << CONFEOF > "$_KB_DIR/Brain_ShellKeybinds.conf"
+submap = BrainShell_clean
+bind = CTRL, ESCAPE, exec, notify-send 'BrainShell' 'Emergency Exit: Keybinds re-enabled.'
+bind = CTRL, ESCAPE, submap, reset
+submap = reset
+bind = SUPER, D, exec, qs ipc -c $REPO_DIR call dashboard-home toggle
+bind = CTRL SHIFT, ESCAPE, exec, qs ipc -c $REPO_DIR call dashboard-stats toggle
+bind = SUPER, Z, exec, qs ipc -c $REPO_DIR call dashboard-kanban toggle
+bind = SUPER, Q, exec, qs ipc -c $REPO_DIR call dashboard-launcher toggle
+bind = SUPER, C, exec, qs ipc -c $REPO_DIR call dashboard-config toggle
+bind = SUPER, ESCAPE, exec, qs ipc -c $REPO_DIR call PowerMenu-toggle toggle
+bind = SUPER, N, exec, qs ipc -c $REPO_DIR call notification-toggle toggle
+bind = SUPER, W, exec, qs ipc -c $REPO_DIR call wallpaper-toggle toggle
+bind = SUPER, V, exec, qs ipc -c $REPO_DIR call clipboard-toggle toggle
+bind = SUPER ALT, W, exec, qs ipc -c $REPO_DIR call wifi-toggle toggle
+bind = SUPER ALT, B, exec, qs ipc -c $REPO_DIR call bluetooth-toggle toggle
+bind = SUPER ALT, G, exec, qs ipc -c $REPO_DIR call vpn-toggle toggle
+bind = SUPER ALT, H, exec, qs ipc -c $REPO_DIR call hotspot-toggle toggle
+bind = SUPER, A, exec, qs ipc -c $REPO_DIR call audioOut-toggle toggle
+bind = SUPER ALT, I, exec, qs ipc -c $REPO_DIR call audioIn-toggle toggle
+bind = SUPER, M, exec, qs ipc -c $REPO_DIR call audioMix-toggle toggle
+bind = SUPER, B, exec, qs ipc -c $REPO_DIR call focus-toggle toggle
+bind = SUPER, X, exec, qs ipc -c $REPO_DIR call lock-session toggle
+bind = , PRINT, exec, qs ipc -c $REPO_DIR call screenshot-toggle toggle
+bind = ALT, F9, exec, qs ipc -c $REPO_DIR call screenrec-on toggle
+CONFEOF
+fi
+
+STARTUP_CONF="$HOME/.config/Brain_Shell/hypr/brain-shell.conf"
+STARTUP_LUA="$HOME/.config/Brain_Shell/hypr/brain-shell.lua"
+mkdir -p "$HOME/.config/Brain_Shell/hypr"
+
+cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.conf" "$STARTUP_CONF"
+cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.lua"  "$STARTUP_LUA"
+log_ok "Generated isolated startup configs"
+
+_BEGIN_MARK_CONF="# >>> Brain Shell Startup >>>"
+_END_MARK_CONF="# <<< Brain Shell Startup <<<"
+_BEGIN_MARK_LUA="-- >>> Brain Shell Startup >>>"
+_END_MARK_LUA="-- <<< Brain Shell Startup <<<"
+
+TS=$(date +%Y%m%d_%H%M%S)
+cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.mod-backup-${TS}"
+log_info "Backup created: ${HYPRLAND_CONF}.mod-backup-${TS}"
+
+log_info "Migrating active configuration..."
+python3 -c '
+import sys, re
+with open(sys.argv[1], "r") as f: content = f.read()
+# Scrub legacy inline autostarts (conf)
+content = re.sub(r"\n*# Brain Shell Autostarts\n(exec-once = .*\n){1,8}", "\n", content)
+# Scrub legacy inline autostarts (lua)
+content = re.sub(r"\n*-- Brain Shell Autostarts\nhl\.on\(\"hyprland\.start\", function\(\)\n(    hl\.exec_cmd\(.*\)\n){1,8}end\)\n*", "\n", content)
+# Scrub legacy keybind injections (conf)
+content = re.sub(r"\n*# Brain_ShellKeybinds\nsource = .*Brain_ShellKeybinds\.conf\n*", "\n", content)
+# Scrub legacy keybind injections (lua)
+content = re.sub(r"\n*-- Brain_ShellKeybinds\ndofile\(.*Brain_ShellKeybinds\.lua\"\)\n*", "\n", content)
+with open(sys.argv[1], "w") as f: f.write(content.strip() + "\n")
+' "$HYPRLAND_CONF"
+
+if grep -q "brain-shell" "$HYPRLAND_CONF"; then
+    log_ok "Brain Shell startup already sourced in $HYPRLAND_CONF"
 else
     case "$CONFIG_TYPE" in
         conf)
-            _append_conf "$HYPRLAND_CONF"
-            log_ok "Autostart block appended to hyprland.conf"
+            {
+                echo ""
+                echo "$_BEGIN_MARK_CONF"
+                echo "source = $HOME/.config/Brain_Shell/hypr/brain-shell.conf"
+                echo "$_END_MARK_CONF"
+            } >> "$HYPRLAND_CONF"
+            log_ok "Brain Shell startup sourced from hyprland.conf (1 line)"
             ;;
         lua)
-            cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.pre-brain-shell"
-            _append_lua "$HYPRLAND_CONF"
-            log_ok "Autostart block appended to hyprland.lua"
+            {
+                echo ""
+                echo "$_BEGIN_MARK_LUA"
+                echo 'dofile(os.getenv("HOME") .. "/.config/Brain_Shell/hypr/brain-shell.lua")'
+                echo "$_END_MARK_LUA"
+            } >> "$HYPRLAND_CONF"
+            log_ok "Brain Shell startup loaded from hyprland.lua (1 line)"
+            ;;
+        *)
+            log_warn "Unknown config type '$CONFIG_TYPE' — skipping Hyprland config update."
             ;;
     esac
 fi
@@ -154,6 +232,8 @@ for action, data in DEFAULTS.items():
         if hb.get("modmask") == mask and str(hb.get("key", "")).lower() == key:
             desc = hb.get("dispatcher", "")
             arg  = hb.get("arg", "")
+            if "qs ipc" in arg or "Brain_Shell" in arg:
+                continue
             conflicts[action] = {
                 "bind":    f"{data['mods']} + {data['key']}",
                 "label":   data["label"],

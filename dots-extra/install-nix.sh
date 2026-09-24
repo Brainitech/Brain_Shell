@@ -328,6 +328,7 @@ if ! command -v quickshell &>/dev/null; then
 - xdg-desktop-portal-gtk
 - matugen
 - awww
+- kitty
 - libsForQt5.qt6ct (or qt6Packages.qt6ct)
 NIXEOF
     log_info "A package checklist has been saved to ~/.config/Brain_Shell/nix-deps.txt"

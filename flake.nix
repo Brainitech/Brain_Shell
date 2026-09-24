@@ -71,6 +71,7 @@
             git
             hyprpolkitagent
             grimblast
+            kitty
           ];
         in {
           options.programs.brain-shell = {
@@ -79,6 +80,8 @@
 
           config = mkIf cfg.enable {
             environment.systemPackages = brainShellDeps ++ [ self.packages.${pkgs.system}.default pkgs.pulseaudio ];
+
+            programs.hyprland.enable = mkDefault true;
 
             fonts.packages = with pkgs; [
               nerd-fonts.jetbrains-mono

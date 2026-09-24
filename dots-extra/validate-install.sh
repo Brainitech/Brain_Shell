@@ -124,7 +124,7 @@ check_command "matugen"
 echo ""
 echo "# CLIPBOARD"
 check_command "wtype"
-check_optional "cliphist"
+check_command "cliphist"
 
 echo ""
 echo "# POWER & HARDWARE"

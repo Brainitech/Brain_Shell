@@ -18,8 +18,10 @@ DIM='\033[2m';      NC='\033[0m'
 log_info()  { echo -e "  ${BLUE}·${NC} $1"; }
 log_ok()    { echo -e "  ${GREEN}✓${NC} $1"; }
 log_warn()  { echo -e "  ${YELLOW}⚠${NC} $1"; }
+log_error() { echo -e "  ${RED}✗${NC} $1" >&2; }
+die()       { echo ""; log_error "$1"; exit 1; }
 
-TOTAL_STEPS=3
+TOTAL_STEPS=2
 step() {
     echo ""
     echo -e "${BOLD}${CYAN}  [$1/$TOTAL_STEPS]  $2${NC}"
@@ -297,14 +299,10 @@ print("  \033[1;33m⚠\033[0m  Conflicting binds left unbound in Brain Shell.")
 print("       Re-assign them: Dashboard  →  Config  →  Keybinds\n")
 PYEOF
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 3 — Done
-# ══════════════════════════════════════════════════════════════════════════════
-step 3 "Done"
-
 echo ""
-log_ok "NixOS setup complete."
-log_info "System packages and dependencies are managed entirely by your flake."
+echo -e "  ${DIM}$(printf '%.0s─' {1..50})${NC}"
+log_ok "NixOS configuration complete."
+log_info "System packages and services are managed via your flake."
 
 if ! command -v quickshell &>/dev/null; then
     cat << NIXEOF > "$HOME/.config/Brain_Shell/nix-deps.txt"
@@ -330,20 +328,36 @@ if ! command -v quickshell &>/dev/null; then
 - awww
 - kitty
 - libsForQt5.qt6ct (or qt6Packages.qt6ct)
+
+# Optional hardware tools:
+# - auto-cpufreq (enable via: services.auto-cpufreq.enable = true;)
+# - envycontrol (for NVIDIA GPU switching, if applicable)
 NIXEOF
     log_info "A package checklist has been saved to ~/.config/Brain_Shell/nix-deps.txt"
 fi
+
+echo -e "  ${BOLD}Hardware Features Status:${NC}"
+if command -v envycontrol &>/dev/null; then
+    log_ok "GPU Switching:      envycontrol active"
+else
+    log_info "GPU Switching:      disabled (optional — configure via flake or PRIME)"
+fi
+if command -v nbfc &>/dev/null; then
+    log_ok "Fan Control:        nbfc-linux active"
+else
+    log_info "Fan Control:        disabled (optional — laptop EC fan control)"
+fi
+if command -v auto-cpufreq &>/dev/null; then
+    log_ok "Power Profile:      auto-cpufreq active"
+else
+    log_info "Power Profile:      disabled (optional — enable services.auto-cpufreq)"
+fi
+echo ""
 
 if [[ -f "/tmp/bs_keybind_skipped" ]]; then
     log_warn "Keybind conflict check skipped (Hyprland not running)."
     log_info "Please run 'qs ipc call dashboard-config' after booting to resolve overlaps."
     rm -f "/tmp/bs_keybind_skipped"
 fi
-
-echo ""
-echo -e "  ${BOLD}Restart Hyprland to activate Brain Shell:${NC}"
-log_info "Log out and log back in  ${DIM}(recommended)${NC}"
-log_info "hyprctl dispatch exit"
-echo ""
 
 exit 0

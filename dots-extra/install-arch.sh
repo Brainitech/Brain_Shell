@@ -247,18 +247,44 @@ _use_variant() {
     fi
 }
 
+_has_nvidia() {
+    { command -v lspci &>/dev/null && lspci | grep -iq nvidia; } || grep -iq nvidia /proc/modules 2>/dev/null
+}
+
+_is_laptop() {
+    if command -v systemd-detect-virt &>/dev/null && systemd-detect-virt -q; then
+        return 1
+    fi
+    if [[ -r /sys/class/dmi/id/chassis_type ]]; then
+        case "$(< /sys/class/dmi/id/chassis_type)" in
+            8|9|10|11|14|30|31|32) return 0 ;;
+        esac
+    fi
+    compgen -G "/sys/class/power_supply/BAT*" >/dev/null && return 0
+    return 1
+}
+
 AUR_DEPS=(
     "$(_use_variant quickshell)"
 )
 
-# Only install envycontrol if NVIDIA is present
-if { command -v lspci &>/dev/null && lspci | grep -iq nvidia; } || grep -iq nvidia /proc/modules 2>/dev/null; then
+# Optional hardware tools — detected dynamically
+if _has_nvidia; then
+    log_info "NVIDIA GPU detected — adding envycontrol for GPU switching"
     AUR_DEPS+=(envycontrol)
+else
+    log_info "No NVIDIA GPU detected — skipping envycontrol"
+fi
+
+if _is_laptop; then
+    log_info "Laptop detected — adding nbfc-linux for fan control"
+    AUR_DEPS+=(nbfc-linux)
+else
+    log_info "Desktop or virtual machine detected — skipping nbfc-linux"
 fi
 
 AUR_DEPS+=(
     auto-cpufreq
-    nbfc-linux
     grimblast-git
 )
 
@@ -298,6 +324,14 @@ _svc_system upower
 _svc_user   pipewire
 _svc_user   pipewire-pulse
 _svc_user   wireplumber
+
+# Optional hardware services
+if command -v auto-cpufreq &>/dev/null || pacman -Q auto-cpufreq &>/dev/null; then
+    _svc_system auto-cpufreq
+fi
+if command -v nbfc &>/dev/null || pacman -Q nbfc-linux &>/dev/null; then
+    _svc_system nbfc_service
+fi
 
 
 step 5 "Hyprland Config"
@@ -414,9 +448,11 @@ _BEGIN_MARK_LUA="-- >>> Brain Shell Startup >>>"
 _END_MARK_LUA="-- <<< Brain Shell Startup <<<"
 
 
-TS=$(date +%Y%m%d_%H%M%S)
-cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.mod-backup-${TS}"
-log_info "Backup created: ${HYPRLAND_CONF}.mod-backup-${TS}"
+if [[ -f "$HYPRLAND_CONF" ]]; then
+    TS=$(date +%Y%m%d_%H%M%S)
+    cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.mod-backup-${TS}"
+    log_info "Backup created: ${HYPRLAND_CONF}.mod-backup-${TS}"
+fi
 
 log_info "Migrating active configuration..."
 python3 -c '
@@ -612,6 +648,24 @@ else
     log_info "Then retry:           sudo pacman -S <pkg>"
     echo ""
 fi
+
+echo -e "  ${BOLD}Hardware Features Status:${NC}"
+if command -v envycontrol &>/dev/null; then
+    log_ok "GPU Switching:      envycontrol active"
+else
+    log_info "GPU Switching:      disabled (non-NVIDIA or envycontrol omitted)"
+fi
+if command -v nbfc &>/dev/null; then
+    log_ok "Fan Control:        nbfc-linux active"
+else
+    log_info "Fan Control:        disabled (desktop / VM or nbfc-linux omitted)"
+fi
+if command -v auto-cpufreq &>/dev/null; then
+    log_ok "Power Profile:      auto-cpufreq active"
+else
+    log_info "Power Profile:      disabled"
+fi
+echo ""
 
 if [[ -f "/tmp/bs_keybind_skipped" ]]; then
     log_warn "Keybind conflict check skipped (Hyprland not running)."

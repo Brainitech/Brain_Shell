@@ -186,16 +186,34 @@ bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$BACKUP_DIR" "$CONFIG_TYPE" "$REPO_DI
 step 5 "Done"
 
 echo ""
-log_ok "Brain Shell is installed."
+log_ok "Brain Shell v0.2.0 installed successfully."
 echo ""
-echo -e "  ${BOLD}Restart Hyprland to activate Brain Shell:${NC}"
-log_info "Log out and log back in  ${DIM}(recommended)${NC}"
-log_info "hyprctl dispatch exit"
-log_info "Ctrl+Alt+Q               ${DIM}(if configured)${NC}"
+
+echo -e "  ${BOLD}Next Steps:${NC}"
+if command -v hyprctl &>/dev/null && hyprctl instances &>/dev/null; then
+    log_info "Active Hyprland session detected:"
+    log_info "  • Log out and back in, or run: ${CYAN}hyprctl dispatch exit${NC}"
+else
+    log_info "From TTY, launch your Hyprland session:"
+    log_info "  • Run: ${CYAN}Hyprland${NC}"
+fi
 echo ""
-echo -e "  ${BOLD}Paths:${NC}"
-log_info "Config:  ~/.config/Brain_Shell"
-log_info "Source:  $REPO_DIR"
+
+echo -e "  ${BOLD}Essential Shortcuts:${NC}"
+log_info "  ${BOLD}SUPER + D${NC}          Dashboard (Home & System Monitoring)"
+log_info "  ${BOLD}SUPER + Q${NC}          Application Launcher"
+log_info "  ${BOLD}SUPER + C${NC}          Shell Configuration & Settings"
+log_info "  ${BOLD}SUPER + ESC${NC}        Power Menu"
+log_info "  ${BOLD}CTRL + ESC${NC}         Emergency Keybind Exit (if ever trapped)"
+echo ""
+
+echo -e "  ${BOLD}Paths & Configuration:${NC}"
+log_info "Config:              ~/.config/Brain_Shell"
+log_info "Source:              $REPO_DIR"
+if [[ -d "$BACKUP_DIR" ]]; then
+    log_info "Backup:              $BACKUP_DIR"
+fi
+log_info "Wallpapers:          Stored in ~/Pictures/Wallpapers"
 echo ""
 
 exit 0

@@ -109,7 +109,7 @@ QtObject {
             onStreamFinished: {
                 var out = text.trim()
                 if (out.startsWith("TAG:")) {
-                    var nl = out.indexOf("\\n")
+                    var nl = out.indexOf("\n")
                     if (nl !== -1) {
                         root.updateVersion = out.substring(4, nl).trim()
                         root.patchNotes = out.substring(nl + 1).trim()

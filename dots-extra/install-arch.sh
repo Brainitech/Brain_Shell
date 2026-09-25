@@ -510,6 +510,9 @@ fi
 step 6 "Brain Shell Config"
 
 USER_DATA="$HOME/.config/Brain_Shell/src/user_data"
+# Pre-generate default colors to prevent unstyled first boot
+mkdir -p "$HOME/.config/Brain_Shell/matugen"
+(cd "$REPO_DIR" && matugen image "src/assets/wallpapers/brain-shell-default-0.png" -c "src/config/matugen.toml" -m dark --source-color-index 0 --type scheme-content >/dev/null 2>&1 || true)
 
 mkdir -p "$USER_DATA" \
          "$HOME/.config/hypr/shaders" \

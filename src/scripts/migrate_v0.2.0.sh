@@ -68,5 +68,9 @@ EOF
 fi
 
 # 6. Set flag and notify
+# Pre-generate default colors to prevent unstyled first boot
+mkdir -p "$HOME/.config/Brain_Shell/matugen"
+(cd "$REPO_DIR" && matugen image "src/assets/wallpapers/brain-shell-default-0.png" -c "src/config/matugen.toml" -m dark --source-color-index 0 --type scheme-content >/dev/null 2>&1 || true)
+
 touch "$FLAG_FILE"
 notify-send -a "Brain Shell" -u normal "Update Successful" "v0.2.0 Migration Complete."

@@ -748,4 +748,5 @@ if [[ -f "/tmp/bs_keybind_skipped" ]]; then
     echo ""
 fi
 
+touch "$HOME/.config/Brain_Shell/.v0.2.0_migrated"
 exit 0

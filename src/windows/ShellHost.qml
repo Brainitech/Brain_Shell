@@ -14,6 +14,7 @@ ShellRoot {
     property var _keybinds: KeybindService
     property var _updater:  UpdateService
     property var _ipc:      IpcManager
+    property var _migrator: MigrationService
     
 
     Connections {
@@ -101,6 +102,7 @@ ShellRoot {
                 
                 ConfirmDialog { screen: modelData }
                 UpdatePopup { screen: modelData }
+                MigrationOverlay { screen: modelData }
             }
         }
     }

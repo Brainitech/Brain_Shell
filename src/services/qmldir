@@ -18,3 +18,4 @@ DataPage ./config_tab/DataPage.qml
 MiscPage ./config_tab/MiscPage.qml
 singleton BrightnessService BrightnessService.qml
 singleton NetworkService NetworkService.qml
+singleton MigrationService MigrationService.qml

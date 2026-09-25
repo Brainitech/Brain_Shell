@@ -368,6 +368,8 @@ echo -e "  ${DIM}$(printf '%.0s─' {1..50})${NC}"
 log_ok "NixOS configuration complete."
 log_info "System packages and services are managed via your flake."
 
+touch "$HOME/.config/Brain_Shell/.v0.2.0_migrated"
+
 if ! command -v quickshell &>/dev/null; then
     cat << NIXEOF > "$HOME/.config/Brain_Shell/nix-deps.txt"
 # Brain Shell - Required NixOS Packages Checklist
@@ -444,4 +446,5 @@ if [[ -f "/tmp/bs_keybind_skipped" ]]; then
     rm -f "/tmp/bs_keybind_skipped"
 fi
 
+touch "$HOME/.config/Brain_Shell/.v0.2.0_migrated"
 exit 0

@@ -163,10 +163,20 @@ else
 
     _bootstrap_aur_helper() {
         local name="$1"
+        local bin_pkg="${name}-bin"
         log_info "Bootstrapping $name from AUR..."
         sudo pacman -S --needed --noconfirm git base-devel
         local tmp; tmp=$(mktemp -d)
-        git clone "https://aur.archlinux.org/${name}.git" "$tmp/$name"
+        # Prefer precompiled -bin to prevent compiler OOM kills (Rust/Go) on VMs
+        if git clone --depth=1 "https://aur.archlinux.org/${bin_pkg}.git" "$tmp/$bin_pkg" 2>/dev/null; then
+            if ( cd "$tmp/$bin_pkg" && makepkg -si --noconfirm ); then
+                rm -rf "$tmp"
+                log_ok "$name installed."
+                return 0
+            fi
+        fi
+        # Fallback to source build
+        git clone --depth=1 "https://aur.archlinux.org/${name}.git" "$tmp/$name"
         ( cd "$tmp/$name" && makepkg -si --noconfirm )
         rm -rf "$tmp"
         log_ok "$name installed."

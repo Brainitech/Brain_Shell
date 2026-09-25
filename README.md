@@ -62,7 +62,7 @@
 ### One line installer
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/Brainitech/Brain_Shell/feat/v0.2.0-installer/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/Brainitech/Brain_Shell/dev/install.sh)
 ```
 
 ---
@@ -76,7 +76,7 @@ bash <(curl -s https://raw.githubusercontent.com/Brainitech/Brain_Shell/feat/v0.
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     brain-shell = {
-      url = "github:Brainitech/Brain_Shell?ref=feat/v0.2.0-installer";
+      url = "github:Brainitech/Brain_Shell?ref=dev";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -118,7 +118,7 @@ sudo nixos-rebuild switch --flake /etc/nixos/ (or path to flake)
 Once the system rebuild is finished, run the setup script to initialize your local ~/.config files and Hyprland autostarts.
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/Brainitech/Brain_Shell/feat/v0.2.0-installer/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/Brainitech/Brain_Shell/dev/install.sh)
 ```
 
 ---

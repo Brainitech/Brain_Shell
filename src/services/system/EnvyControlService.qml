@@ -27,7 +27,12 @@ QtObject {
     property var _checkProc: Process {
         command: ["sh", "-c", "command -v envycontrol"]
         running: true
-        onExited: (code) => { root.available = (code === 0) }
+        onExited: (code) => { 
+            root.available = (code === 0) 
+            if (root.available) {
+                _queryProc.running = true
+            }
+        }
     }
 
     // Pending mode — held until we confirm the switch succeeded
@@ -49,7 +54,7 @@ QtObject {
     }
 
     function switchMode(mode) {
-        if (mode === root.currentMode || root.busy) return
+        if (!root.available || mode === root.currentMode || root.busy) return
         Popups.closeAll()
         Popups.showConfirm(
             "Switch GPU Mode",
@@ -58,10 +63,5 @@ QtObject {
             "gpu-switch-envy",
             mode
         )
-    }
-
-
-    Component.onCompleted: {
-        _queryProc.running = true
     }
 }

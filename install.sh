@@ -163,7 +163,7 @@ if [[ -d "$REPO_DIR/.git" ]]; then
     fi
 else
     log_info "Cloning from GitHub..."
-    git clone -q -b feat/v0.2.0-installer https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR" &>/dev/null
+    git clone -b feat/v0.2.0-installer https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR" &>/dev/null
     log_ok "Repository cloned: $REPO_DIR"
 fi
 

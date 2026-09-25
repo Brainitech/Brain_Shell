@@ -96,15 +96,19 @@ QtObject {
     property string confirmMessage: ""
     property string confirmLabel:   "Confirm"
     property string confirmAction:  ""
+    property string confirmCancelLabel: "Cancel"
+    property string confirmCancelAction: "close"
     property string confirmGfxMode: ""
     property bool   confirmRunning: false
 
-    function showConfirm(title, message, label, action, gfxMode) {
+    function showConfirm(title, message, label, action, gfxMode, cancelLabel, cancelAction) {
         confirmTitle   = title
         confirmMessage = message
         confirmLabel   = label
         confirmAction  = action
         confirmGfxMode = gfxMode ?? ""
+        confirmCancelLabel = cancelLabel ?? "Cancel"
+        confirmCancelAction = cancelAction ?? "close"
         closeAll()
         confirmOpen    = true
     }

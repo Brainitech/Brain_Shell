@@ -33,9 +33,12 @@ Item {
             root.isMigrating = false
             Popups.showConfirm(
                 "v0.2.0 Migration Complete",
-                "Your configuration was successfully backed up and migrated to the new v0.2.0 modular architecture.\n\nPlease log out and log back in for all changes to take effect.",
+                "Your configuration was successfully backed up and migrated to the new v0.2.0 modular architecture.\n\nSince v0.2.0 was just installed, a system logout is strictly required to apply the new Hyprland configurations, or Brain Shell will not function correctly.",
                 "Logout Now",
-                "logout"
+                "logout",
+                "", // gfxMode
+                "Quit Brain Shell",
+                "quit"
             )
         }
     }

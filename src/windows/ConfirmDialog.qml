@@ -162,7 +162,13 @@ PanelWindow {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: if (!Popups.confirmRunning) root.cancel()
+            onClicked: {
+                if (!Popups.confirmRunning) {
+                    if (Popups.confirmCancelAction !== "quit") {
+                        root.cancel()
+                    }
+                }
+            }
         }
     }
 
@@ -234,13 +240,22 @@ PanelWindow {
 
                     Text {
                         anchors.centerIn: parent
-                        text:           "Cancel"
+                        text:           Popups.confirmCancelLabel
                         color:          Theme.text
                         font.pixelSize: Math.round(13 * localScale)
                     }
 
                     HoverHandler { id: cancelHov; cursorShape: Qt.PointingHandCursor }
-                    MouseArea { anchors.fill: parent; onClicked: root.cancel() }
+                    MouseArea { 
+                        anchors.fill: parent; 
+                        onClicked: {
+                            if (Popups.confirmCancelAction === "quit") {
+                                Qt.quit()
+                            } else {
+                                root.cancel()
+                            }
+                        }
+                    }
                 }
 
                 Rectangle {
@@ -367,6 +382,12 @@ PanelWindow {
         anchors.fill: parent
         focus: root.visible
         Keys.onReturnPressed: root.confirm()
-        Keys.onEscapePressed: root.cancel()
+        Keys.onEscapePressed: {
+            if (Popups.confirmCancelAction === "quit") {
+                Qt.quit()
+            } else {
+                root.cancel()
+            }
+        }
     }
 }

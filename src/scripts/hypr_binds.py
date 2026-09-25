@@ -2,6 +2,8 @@
 import json
 import subprocess
 import sys
+import re
+import os
 
 MOD_BITS = {1: "SHIFT", 4: "CTRL", 8: "ALT", 64: "SUPER"}
 
@@ -18,9 +20,8 @@ def main():
         live_binds = json.loads(raw)
     except Exception:
         print("[]")
-        sys.exit(1)
+        sys.exit(0)
 
-    import re, os
     bs_lua_binds = []
     kb_lua = os.path.expanduser("~/.config/Brain_Shell/Brain_ShellKeybinds.lua")
     if os.path.isfile(kb_lua):
@@ -72,7 +73,8 @@ def main():
             "arg": arg,
             "description": desc,
             "submap": b.get("submap", ""),
-            "submap_universal": b.get("submap_universal", "false")
+            "submap_universal": b.get("submap_universal", False),
+            "mouse": b.get("mouse", False)
         })
         
     print(json.dumps(out))

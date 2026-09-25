@@ -82,7 +82,7 @@ check_command "hyprctl"
 
 echo ""
 echo "# QT6 & RENDERING"
-if command -v qmake6 &> /dev/null; then
+if command -v qmake6 &> /dev/null || [[ "$DISTRO" == "nix" ]]; then
     log_installed "qt6-base"
 else
     log_missing "qt6-base"
@@ -103,7 +103,11 @@ check_command "brightnessctl"
 check_command "upower"
 check_command "notify-send"
 check_command "pkexec"
-check_command "python"
+if command -v python3 &> /dev/null || command -v python &> /dev/null; then
+    log_installed "python"
+else
+    log_missing "python"
+fi
 check_command "wl-copy"
 check_command "slurp"
 check_command "playerctl"
@@ -179,10 +183,16 @@ else
     log_missing "Hyprland config"
 fi
 
-if [[ -d "$HOME/.local/src/Brain_Shell" ]]; then
-    log_installed "Brain Shell repository"
+if [[ -d "$PWD/.git" ]] && grep -q "Brain_Shell" "$PWD/.git/config" 2>/dev/null; then
+    REPO_DIR="$PWD"
 else
-    log_missing "Brain Shell repository"
+    REPO_DIR="$HOME/.local/src/Brain_Shell"
+fi
+
+if [[ -d "$REPO_DIR" ]]; then
+    log_installed "Brain Shell repository ($REPO_DIR)"
+else
+    log_missing "Brain Shell repository ($REPO_DIR)"
 fi
 
 if [[ -d "$HOME/.config/Brain_Shell" ]]; then
@@ -193,11 +203,11 @@ fi
 
 echo ""
 echo "# BACKUPS"
-BACKUP_COUNT=$(ls -d $HOME/.config.backup-* 2>/dev/null | wc -l)
+BACKUP_COUNT=$(ls -d "$HOME/.config/hypr/hyprland"*mod-backup* 2>/dev/null | wc -l)
 
 if [[ $BACKUP_COUNT -gt 0 ]]; then
     log_info "Found $BACKUP_COUNT config backup(s)"
-    ls -d $HOME/.config.backup-* 2>/dev/null | while read backup; do
+    ls -d "$HOME/.config/hypr/hyprland"*mod-backup* 2>/dev/null | while read -r backup; do
         echo -e "  ${BLUE}→${NC} ${backup##*/}"
     done
 else

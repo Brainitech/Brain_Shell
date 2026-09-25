@@ -66,12 +66,16 @@
             xdg-desktop-portal-hyprland
             xdg-desktop-portal-gtk
             cliphist
-            nerd-fonts.jetbrains-mono
-            nerd-fonts.symbols-only
             git
             hyprpolkitagent
             grimblast
             kitty
+            qt6.qtmultimedia
+            qt6.qt5compat
+            rfkill
+            mpv-mpris
+            mpd-mpris
+            ranger
           ];
         in {
           options.programs.brain-shell = {

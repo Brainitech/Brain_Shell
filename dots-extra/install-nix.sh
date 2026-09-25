@@ -7,9 +7,8 @@
 set -eo pipefail
 
 HYPRLAND_CONF="${1:?Missing arg: HYPRLAND_CONF path}"
-BACKUP_DIR="${2:?Missing arg: BACKUP_DIR}"
-CONFIG_TYPE="${3:?Missing arg: CONFIG_TYPE (conf|lua)}"
-REPO_DIR="${4:-$HOME/.local/src/Brain_Shell}"
+CONFIG_TYPE="${2:?Missing arg: CONFIG_TYPE (conf|lua)}"
+REPO_DIR="${3:-$HOME/.local/src/Brain_Shell}"
 
 RED='\033[0;31m';   GREEN='\033[0;32m';  YELLOW='\033[1;33m'
 BLUE='\033[0;34m';  CYAN='\033[0;36m';   BOLD='\033[1m'
@@ -103,6 +102,7 @@ mkdir -p "$HOME/.config/Brain_Shell/hypr"
 
 cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.conf" "$STARTUP_CONF"
 cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.lua"  "$STARTUP_LUA"
+sed -i "s|\$HOME/.local/src/Brain_Shell|$REPO_DIR|g" "$STARTUP_CONF" "$STARTUP_LUA"
 log_ok "Generated isolated startup configs"
 
 _BEGIN_MARK_CONF="# >>> Brain Shell Startup >>>"
@@ -225,8 +225,8 @@ python3 << 'PYEOF' || log_warn "Keybind check skipped (Python error or no Hyprla
 import subprocess, json, os, sys, re
 
 DEFAULTS = {
-    "dashboard-home":      {"mods": "SUPER",        "key": "D",      "label": "Dashboard: System"},
-    "dashboard-stats":     {"mods": "CTRL + SHIFT", "key": "ESCAPE", "label": "Dashboard: Home"},
+    "dashboard-home":      {"mods": "SUPER",        "key": "D",      "label": "Dashboard: Home"},
+    "dashboard-stats":     {"mods": "CTRL + SHIFT", "key": "ESCAPE", "label": "Dashboard: System"},
     "dashboard-kanban":    {"mods": "SUPER",        "key": "Z",      "label": "Dashboard: Tasks"},
     "dashboard-launcher":  {"mods": "SUPER",        "key": "Q",      "label": "Dashboard: Apps"},
     "dashboard-config":    {"mods": "SUPER",        "key": "C",      "label": "Dashboard: Config"},
@@ -349,6 +349,16 @@ os.makedirs(os.path.dirname(config_path), exist_ok=True)
 with open(config_path, "w") as f:
     json.dump(existing, f, indent=2)
 
+lua_path = os.path.expanduser("~/.config/Brain_Shell/Brain_ShellKeybinds.lua")
+conf_path = os.path.expanduser("~/.config/Brain_Shell/Brain_ShellKeybinds.conf")
+for p in [lua_path, conf_path]:
+    if os.path.isfile(p):
+        with open(p) as f: lines = f.readlines()
+        with open(p, "w") as f:
+            for line in lines:
+                if not any(f"call {a} toggle" in line for a in conflicts):
+                    f.write(line)
+
 print("  \033[1;33m⚠\033[0m  Conflicting binds left unbound in Brain Shell.")
 print("       Re-assign them: Dashboard  →  Config  →  Keybinds\n")
 PYEOF
@@ -364,6 +374,7 @@ if ! command -v quickshell &>/dev/null; then
 # Add these to your environment.systemPackages or home.packages:
 
 - quickshell
+- hyprland
 - python3
 - brightnessctl
 - playerctl
@@ -372,6 +383,7 @@ if ! command -v quickshell &>/dev/null; then
 - bluez
 - pipewire
 - wireplumber
+- pulseaudio (for pactl)
 - wl-clipboard
 - hypridle
 - hyprlock
@@ -381,7 +393,25 @@ if ! command -v quickshell &>/dev/null; then
 - matugen
 - awww
 - kitty
-- libsForQt5.qt6ct (or qt6Packages.qt6ct)
+- grimblast
+- slurp
+- wf-recorder
+- cava
+- wtype
+- cliphist
+- imagemagick
+- hyprsunset
+- libnotify
+- xdg-user-dirs
+- rfkill
+- mpv-mpris
+- mpd-mpris
+- ranger
+- nerd-fonts.jetbrains-mono
+- nerd-fonts.symbols-only
+- qt6Packages.qt6ct
+- qt6.qtmultimedia
+- qt6.qt5compat
 
 # Optional hardware tools:
 # - auto-cpufreq (enable via: services.auto-cpufreq.enable = true;)

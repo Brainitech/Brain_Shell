@@ -39,7 +39,7 @@ echo " ▒███▒▒▒▒▒███ ▒███▒▒▒▒▒███
 echo " ▒███    ▒███ ▒███    ▒███  ▒███    ▒███  ▒███  ▒███  ▒▒█████     ███    ▒███ ▒███    ▒███  ▒███ ▒   █ ▒███      █ ▒███      █"
 echo " ███████████  █████   █████ █████   █████ █████ █████  ▒▒█████   ▒▒█████████  █████   █████ ██████████ ███████████ ███████████"
 echo -e "${NC}"
-echo -e "  ${DIM}v0.2.0  ·  github.com/Brainitech/Brain_Shell${NC}" # Update is finally seeing it's light after getting the TeamCherry Treatment
+echo -e "  ${DIM}v0.2.0  ·  github.com/Brainitech/Brain_Shell${NC}" # Update is finally seeing its light after getting the TeamCherry Treatment
 echo ""
 
 
@@ -47,6 +47,8 @@ echo ""
 # STEP 1 — Pre-Flight Checks
 # ══════════════════════════════════════════════════════════════════════════════
 step 1 "Pre-Flight Checks"
+
+[[ "$EUID" -eq 0 ]] && die "Do not run this script as root or with sudo. It prompts for sudo when required."
 
 # OS
 [[ "$OSTYPE" =~ ^linux ]] || die "This installer only supports Linux."
@@ -84,7 +86,7 @@ if command -v hyprland &>/dev/null; then
     log_ok "Hyprland installation detected"
 else
     log_warn "Hyprland binary not found in PATH."
-    log_info "Make sure Hyprland is installed before launching it." #Future work: Prompt user for Hyprland installation, waititng for config files so
+    log_info "Make sure Hyprland is installed before launching it." #Future work: Prompt user for Hyprland installation, waiting for config files so
                                                                     #default files are not picked up
 fi
 
@@ -120,26 +122,9 @@ fi
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STEP 2 — Backup
+# STEP 2 — Repository
 # ══════════════════════════════════════════════════════════════════════════════
-step 2 "Backup"
-
-BACKUP_TS=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="$HOME/.config.backup-${BACKUP_TS}-Brain_Shell"
-mkdir -p "$BACKUP_DIR"
-
-if [[ "${FRESH_INSTALL:-}" != "true" && -f "$HYPRLAND_CONF" ]]; then
-    cp "$HYPRLAND_CONF" "$BACKUP_DIR/"
-    log_ok "Backed up: $HYPRLAND_CONF → $BACKUP_DIR"
-else
-    log_warn "Hyprland config not found or newly created — skipped backup."
-fi
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 3 — Repository
-# ══════════════════════════════════════════════════════════════════════════════
-step 3 "Repository"
+step 2 "Repository"
 
 # Check if we are already running from a clone
 if [[ -d "$PWD/.git" ]] && grep -q "Brain_Shell" "$PWD/.git/config" 2>/dev/null; then
@@ -156,14 +141,22 @@ if [[ -d "$REPO_DIR/.git" ]]; then
         log_info "Running from local dev clone — skipping destructive git reset."
     else
         log_info "Existing clone found — updating..."
-        git -C "$REPO_DIR" fetch origin feat/v0.2.0-installer &>/dev/null || true
-        git -C "$REPO_DIR" reset --hard origin/feat/v0.2.0-installer &>/dev/null || true
-        git -C "$REPO_DIR" clean -fd &>/dev/null || true
+        BRAIN_SHELL_BRANCH="${BRAIN_SHELL_BRANCH:-main}"
+        git -C "$REPO_DIR" fetch origin "$BRAIN_SHELL_BRANCH" &>/dev/null || true
+        # Verify untracked changes before destructive clean
+        if [[ -n $(git -C "$REPO_DIR" status --porcelain) ]]; then
+            log_warn "Local repository has uncommitted changes. Using git pull --rebase instead of hard reset."
+            git -C "$REPO_DIR" pull --rebase origin "$BRAIN_SHELL_BRANCH" &>/dev/null || true
+        else
+            git -C "$REPO_DIR" reset --hard "origin/$BRAIN_SHELL_BRANCH" &>/dev/null || true
+            git -C "$REPO_DIR" clean -fd &>/dev/null || true
+        fi
         log_ok "Repository updated: $REPO_DIR"
     fi
 else
     log_info "Cloning from GitHub..."
-    git clone -b feat/v0.2.0-installer https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR" &>/dev/null
+    BRAIN_SHELL_BRANCH="${BRAIN_SHELL_BRANCH:-main}"
+    git clone -b "$BRAIN_SHELL_BRANCH" https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR" &>/dev/null
     log_ok "Repository cloned: $REPO_DIR"
 fi
 
@@ -177,7 +170,7 @@ echo ""
 DISTRO_INSTALLER="$REPO_DIR/dots-extra/install-${DISTRO_TYPE}.sh"
 [[ -f "$DISTRO_INSTALLER" ]] || die "Distro installer not found: $DISTRO_INSTALLER"
 
-bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$BACKUP_DIR" "$CONFIG_TYPE" "$REPO_DIR"
+bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$CONFIG_TYPE" "$REPO_DIR"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -210,9 +203,6 @@ echo ""
 echo -e "  ${BOLD}Paths & Configuration:${NC}"
 log_info "Config:              ~/.config/Brain_Shell"
 log_info "Source:              $REPO_DIR"
-if [[ -d "$BACKUP_DIR" ]]; then
-    log_info "Backup:              $BACKUP_DIR"
-fi
 log_info "Wallpapers:          Stored in ~/Pictures/Wallpapers"
 echo ""
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
 #  Brain Shell — main Installer
-#  github.com/Brainitech/Brain_Shell  v0.1.0
+#  github.com/Brainitech/Brain_Shell  v0.2.0
 # ─────────────────────────────────────────────────────────────────────────────
 # Hesitation is Defeat — Isshin Ashina
 set -eo pipefail
@@ -39,7 +39,7 @@ echo " ▒███▒▒▒▒▒███ ▒███▒▒▒▒▒███
 echo " ▒███    ▒███ ▒███    ▒███  ▒███    ▒███  ▒███  ▒███  ▒▒█████     ███    ▒███ ▒███    ▒███  ▒███ ▒   █ ▒███      █ ▒███      █"
 echo " ███████████  █████   █████ █████   █████ █████ █████  ▒▒█████   ▒▒█████████  █████   █████ ██████████ ███████████ ███████████"
 echo -e "${NC}"
-echo -e "  ${DIM}v0.1.0  ·  github.com/Brainitech/Brain_Shell${NC}"
+echo -e "  ${DIM}v0.2.0  ·  github.com/Brainitech/Brain_Shell${NC}" # Update is finally seeing its light after getting the TeamCherry Treatment
 echo ""
 
 
@@ -48,9 +48,16 @@ echo ""
 # ══════════════════════════════════════════════════════════════════════════════
 step 1 "Pre-Flight Checks"
 
+[[ "$EUID" -eq 0 ]] && die "Do not run this script as root or with sudo. It prompts for sudo when required."
+
 # OS
 [[ "$OSTYPE" =~ ^linux ]] || die "This installer only supports Linux."
 log_ok "Linux confirmed"
+
+# Deps
+command -v git &>/dev/null || die "git is not installed. Please install git first."
+command -v curl &>/dev/null || die "curl is not installed. Please install curl first."
+log_ok "Git & Curl detected"
 
 # Distro
 DISTRO_TYPE=""
@@ -74,12 +81,13 @@ else
     die "Cannot detect distro — /etc/os-release not found."
 fi
 
-# Hyprland session (warn only, don't abort)
-if [[ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
-    log_warn "Not running inside a Hyprland session."
-    log_info "Changes will apply after you restart Hyprland."
+# Check if Hyprland is installed (allows installation from TTY)
+if command -v hyprland &>/dev/null; then
+    log_ok "Hyprland installation detected"
 else
-    log_ok "Hyprland session active"
+    log_warn "Hyprland binary not found in PATH."
+    log_info "Make sure Hyprland is installed before launching it." #Future work: Prompt user for Hyprland installation, waiting for config files so
+                                                                    #default files are not picked up
 fi
 
 # Hyprland config
@@ -104,45 +112,51 @@ elif [[ -f "$HYPR_DIR/hyprland.conf" ]]; then
     log_warn "hyprland.conf support is deprecated as of 0.55 and will be removed in a future release."
     log_info "Consider migrating to hyprland.lua — see https://wiki.hypr.land/Configuring/Start/"
 else
-    die "No Hyprland config found in $HYPR_DIR. Set up Hyprland first."
+    log_warn "No Hyprland config found in $HYPR_DIR."
+    log_info "A curated base config will be generated."
+    mkdir -p "$HYPR_DIR"
+    HYPRLAND_CONF="$HYPR_DIR/hyprland.lua"
+    CONFIG_TYPE="lua"
+    export FRESH_INSTALL="true"
 fi
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STEP 2 — Backup
+# STEP 2 — Repository
 # ══════════════════════════════════════════════════════════════════════════════
-step 2 "Backup"
+step 2 "Repository"
 
-BACKUP_TS=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="$HOME/.config.backup-${BACKUP_TS}-Brain_Shell"
-mkdir -p "$BACKUP_DIR"
-
-if [[ -d "$HYPR_DIR" ]]; then
-    cp -r "$HYPR_DIR" "$BACKUP_DIR/"
-    log_ok "Backed up: ~/.config/hypr → $BACKUP_DIR"
+# Check if we are already running from a clone
+if [[ -d "$PWD/.git" ]] && grep -q "Brain_Shell" "$PWD/.git/config" 2>/dev/null; then
+    REPO_DIR="$PWD"
+    log_info "Running from local clone: $REPO_DIR"
 else
-    log_warn "$HOME/.config/hypr not found — nothing to back up."
+    REPO_PARENT="$HOME/.local/src"
+    REPO_DIR="$REPO_PARENT/Brain_Shell"
+    mkdir -p "$REPO_PARENT"
 fi
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 3 — Repository
-# ══════════════════════════════════════════════════════════════════════════════
-step 3 "Repository"
-
-REPO_PARENT="$HOME/.local/src"
-REPO_DIR="$REPO_PARENT/Brain_Shell"
-mkdir -p "$REPO_PARENT"
 
 if [[ -d "$REPO_DIR/.git" ]]; then
-    log_info "Existing clone found — updating..."
-    git -C "$REPO_DIR" fetch origin main 2>/dev/null || true
-    git -C "$REPO_DIR" checkout main 2>/dev/null || true
-    git -C "$REPO_DIR" pull origin main 2>/dev/null || true
-    log_ok "Repository updated: $REPO_DIR"
+    if [[ "$REPO_DIR" == "$PWD" ]]; then
+        log_info "Running from local dev clone — skipping destructive git reset."
+    else
+        log_info "Existing clone found — updating..."
+        BRAIN_SHELL_BRANCH="${BRAIN_SHELL_BRANCH:-main}"
+        git -C "$REPO_DIR" fetch origin "$BRAIN_SHELL_BRANCH" &>/dev/null || true
+        # Verify untracked changes before destructive clean
+        if [[ -n $(git -C "$REPO_DIR" status --porcelain) ]]; then
+            log_warn "Local repository has uncommitted changes. Using git pull --rebase instead of hard reset."
+            git -C "$REPO_DIR" pull --rebase origin "$BRAIN_SHELL_BRANCH" &>/dev/null || true
+        else
+            git -C "$REPO_DIR" reset --hard "origin/$BRAIN_SHELL_BRANCH" &>/dev/null || true
+            git -C "$REPO_DIR" clean -fd &>/dev/null || true
+        fi
+        log_ok "Repository updated: $REPO_DIR"
+    fi
 else
     log_info "Cloning from GitHub..."
-    git clone -b main https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR"
+    BRAIN_SHELL_BRANCH="${BRAIN_SHELL_BRANCH:-main}"
+    git clone -b "$BRAIN_SHELL_BRANCH" https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR" &>/dev/null
     log_ok "Repository cloned: $REPO_DIR"
 fi
 
@@ -156,8 +170,7 @@ echo ""
 DISTRO_INSTALLER="$REPO_DIR/dots-extra/install-${DISTRO_TYPE}.sh"
 [[ -f "$DISTRO_INSTALLER" ]] || die "Distro installer not found: $DISTRO_INSTALLER"
 
-chmod +x "$DISTRO_INSTALLER"
-bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$BACKUP_DIR" "$CONFIG_TYPE"
+bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$CONFIG_TYPE" "$REPO_DIR"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -166,16 +179,31 @@ bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$BACKUP_DIR" "$CONFIG_TYPE"
 step 5 "Done"
 
 echo ""
-log_ok "Brain Shell is installed."
+log_ok "Brain Shell v0.2.0 installed successfully."
 echo ""
-echo -e "  ${BOLD}Restart Hyprland to activate Brain Shell:${NC}"
-log_info "Log out and log back in  ${DIM}(recommended)${NC}"
-log_info "hyprctl dispatch exit"
-log_info "Ctrl+Alt+Q               ${DIM}(if configured)${NC}"
+
+echo -e "  ${BOLD}Next Steps:${NC}"
+if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]] && command -v hyprctl &>/dev/null && hyprctl activeworkspace &>/dev/null; then
+    log_info "Active Hyprland session detected:"
+    log_info "  • Log out and back in, or run: ${CYAN}hyprctl dispatch exit${NC}"
+else
+    log_info "From TTY, launch your Hyprland session:"
+    log_info "  • Run: ${CYAN}Hyprland${NC}"
+fi
 echo ""
-echo -e "  ${BOLD}Paths:${NC}"
-log_info "Config:  ~/.config/Brain_Shell"
-log_info "Source:  $REPO_DIR"
+
+echo -e "  ${BOLD}Essential Shortcuts:${NC}"
+log_info "  ${BOLD}SUPER + D${NC}          Dashboard (Home & System Monitoring)"
+log_info "  ${BOLD}SUPER + Q${NC}          Application Launcher"
+log_info "  ${BOLD}SUPER + C${NC}          Shell Configuration & Settings"
+log_info "  ${BOLD}SUPER + ESC${NC}        Power Menu"
+log_info "  ${BOLD}CTRL + ESC${NC}         Emergency Keybind Exit (if ever trapped)"
+echo ""
+
+echo -e "  ${BOLD}Paths & Configuration:${NC}"
+log_info "Config:              ~/.config/Brain_Shell"
+log_info "Source:              $REPO_DIR"
+log_info "Wallpapers:          Stored in ~/Pictures/Wallpapers"
 echo ""
 
 exit 0

@@ -1,82 +1,83 @@
 #!/usr/bin/env python3
 import json
+import subprocess
 import sys
-import hyprland_socket
-import hyprland_config
-from hyprland_config import is_bind_keyword, parse_bind_line
-from hyprmod.binds.live import live_bind_to_data
+import re
+import os
+
+MOD_BITS = {1: "SHIFT", 4: "CTRL", 8: "ALT", 64: "SUPER"}
+
+def parse_mods(mask):
+    parts = []
+    for bit in [64, 4, 8, 1]:  # SUPER, CTRL, ALT, SHIFT
+        if mask & bit:
+            parts.append(MOD_BITS[bit])
+    return " + ".join(parts)
 
 def main():
     try:
-        live_binds = hyprland_socket.get_binds()
-        live_data = [live_bind_to_data(b) for b in live_binds]
-        
-        entry = hyprland_config.default_entrypoint()
-        
-        # Build by_combo ourselves to extract description
-        by_combo = {}
-        if entry:
-            doc = hyprland_config.load_any(entry)
-            for kw in doc.find_all("bind*"):
-                if not is_bind_keyword(kw.key):
-                    continue
-                parsed = parse_bind_line(doc.expand(kw.raw.strip()))
-                if parsed:
-                    # Fix bindd misparsing
-                    if parsed.bind_type == "bindd":
-                        # parsed.dispatcher is the description, parsed.arg is "dispatcher, arg"
-                        desc = parsed.dispatcher
-                        rest = parsed.arg.split(",", 1)
-                        dispatcher = rest[0].strip()
-                        arg = rest[1].strip() if len(rest) > 1 else ""
-                        by_combo[parsed.combo] = {
-                            "dispatcher": dispatcher,
-                            "arg": arg,
-                            "description": desc
-                        }
-                    else:
-                        by_combo[parsed.combo] = {
-                            "dispatcher": parsed.dispatcher,
-                            "arg": parsed.arg,
-                            "description": ""
-                        }
-
-        out = []
-        for live_b, b in zip(live_binds, live_data):
-            mods_str = " + ".join(b.mods) if b.mods else ""
-            desc = getattr(live_b, "description", "") or ""
-            dispatcher = b.dispatcher
-            arg = b.arg
-            
-            if b.dispatcher == "__lua":
-                match = by_combo.get(b.combo)
-                if match:
-                    dispatcher = match["dispatcher"]
-                    arg = match["arg"]
-                    if not desc:
-                        desc = match["description"]
-
-            # Also fix fallback for conf users if IPC description somehow failed
-            if dispatcher == "bindd" or (not desc and by_combo.get(b.combo)):
-                match = by_combo.get(b.combo)
-                if match and not desc:
-                    desc = match["description"]
-
-            out.append({
-                "modmask": getattr(b, "modmask", 0), # live_data dropped modmask, it's ok we use mods_str
-                "mods_str": mods_str,
-                "key": b.key,
-                "dispatcher": dispatcher,
-                "arg": arg,
-                "description": desc,
-                "submap": getattr(b, "submap", "") or "",
-                "submap_universal": "false"
-            })
-            
-        print(json.dumps(out))
-    except Exception as e:
+        raw = subprocess.check_output(["hyprctl", "binds", "-j"], stderr=subprocess.DEVNULL).decode()
+        live_binds = json.loads(raw)
+    except Exception:
         print("[]")
-        sys.exit(1)
+        sys.exit(0)
+
+    bs_lua_binds = []
+    kb_lua = os.path.expanduser("~/.config/Brain_Shell/Brain_ShellKeybinds.lua")
+    if os.path.isfile(kb_lua):
+        try:
+            with open(kb_lua) as f:
+                content = f.read()
+            for m in re.finditer(r'hl\.bind\s*\(\s*["\']([^"\']+)["\']\s*,\s*hl\.dsp\.exec_cmd\([^)]*qs ipc', content):
+                combo = m.group(1).strip()
+                parts = [p.strip() for p in combo.split("+")]
+                k = parts[-1].lower()
+                m_parts = [p.upper() for p in parts[:-1]]
+                mask = 0
+                for bit, name in MOD_BITS.items():
+                    if name in m_parts:
+                        mask |= bit
+                bs_lua_binds.append((mask, k))
+        except Exception:
+            pass
+
+    out = []
+    for b in live_binds:
+        dispatcher = b.get("dispatcher", "")
+        arg = b.get("arg", "")
+        desc = b.get("description", "")
+        
+        # Omit Brain Shell bindings
+        if "qs ipc" in arg or "brain_shell" in arg.lower() or "brain-shell" in arg.lower():
+            continue
+        if "brain shell" in desc.lower() or "brain_shell" in desc.lower() or "brain-shell" in desc.lower():
+            continue
+
+        if dispatcher == "__lua":
+            b_mask = b.get("modmask", 0)
+            b_key = str(b.get("key", "")).lower()
+            matched = False
+            for idx, (l_mask, l_key) in enumerate(bs_lua_binds):
+                if l_mask == b_mask and l_key == b_key:
+                    matched = True
+                    bs_lua_binds.pop(idx)
+                    break
+            if matched:
+                continue
+            
+        out.append({
+            "modmask": b.get("modmask", 0),
+            "mods_str": parse_mods(b.get("modmask", 0)),
+            "key": b.get("key", ""),
+            "dispatcher": dispatcher,
+            "arg": arg,
+            "description": desc,
+            "submap": b.get("submap", ""),
+            "submap_universal": b.get("submap_universal", False),
+            "mouse": b.get("mouse", False)
+        })
+        
+    print(json.dumps(out))
 
 if __name__ == "__main__":
     main()

@@ -12,8 +12,6 @@ QtObject {
     readonly property string _luaPath:  _configDir + "/Brain_ShellKeybinds.lua"
     readonly property string _confPath: _configDir + "/Brain_ShellKeybinds.conf"
     readonly property string _jsonPath: _configDir + "/src/user_data/keybinds.json"
-    
-    property string configProvider: ShellState.configProvider
 
     // ── Capture gate ──────────────────────────────────────────────────────────
     // Set true by KeybindsPage while a combo is being recorded.
@@ -29,7 +27,7 @@ QtObject {
         "dashboard-kanban":   { mods: "SUPER",        key: "Z",      label: "Dashboard: Tasks",     group: "Dashboard"      },
         "dashboard-launcher": { mods: "SUPER",        key: "Q",      label: "Dashboard: Apps",      group: "Dashboard"      },
         "dashboard-config":   { mods: "SUPER",        key: "C",      label: "Dashboard: Config",    group: "Dashboard"      },
-        "PowerMenu-toggle":   { mods: "SUPER",        key: "ESCAPE", label: "Arch Menu",            group: "Popups"         },
+        "PowerMenu-toggle":   { mods: "SUPER",        key: "ESCAPE", label: "Power Menu",            group: "Popups"         },
         "notification-toggle":{ mods: "SUPER",        key: "N",      label: "Notifications",        group: "Popups"         },
         "wallpaper-toggle":   { mods: "SUPER",        key: "W",      label: "Wallpaper",            group: "Popups"         },
         "clipboard-toggle":   { mods: "SUPER",        key: "V",      label: "Clipboard",            group: "Popups"         },
@@ -101,14 +99,13 @@ QtObject {
         return ""
     }
 
-    // ── Internal duplicate detection ──────────────────────────────────────────
     readonly property var _comboMap: {
         var m = {}
         var ks = Object.keys(root.keybinds)
         for (var i = 0; i < ks.length; i++) {
             var b = root.keybinds[ks[i]]
-            if (!b || !b.mods || !b.key) continue
-            var combo = b.mods + "+" + b.key
+            if (!b) continue
+            var combo = root._modsToMask(b.mods) + "+" + (b.key || "").toUpperCase()
             if (!m[combo]) m[combo] = [ks[i]]
             else           m[combo] = m[combo].concat([ks[i]])
         }
@@ -117,15 +114,15 @@ QtObject {
 
     function isDuplicate(action) {
         var b = root.keybinds[action]
-        if (!b || !b.mods || !b.key) return false
-        var combo = b.mods + "+" + b.key
+        if (!b) return false
+        var combo = root._modsToMask(b.mods) + "+" + (b.key || "").toUpperCase()
         return !!(root._comboMap[combo] && root._comboMap[combo].length > 1)
     }
 
     function conflictsWith(action) {
         var b = root.keybinds[action]
-        if (!b || !b.mods || !b.key) return ""
-        var list = root._comboMap[b.mods + "+" + b.key]
+        if (!b) return ""
+        var list = root._comboMap[root._modsToMask(b.mods) + "+" + (b.key || "").toUpperCase()]
         if (!list || list.length < 2) return ""
         for (var i = 0; i < list.length; i++) {
             if (list[i] !== action) {
@@ -137,12 +134,13 @@ QtObject {
     }
 
     function wouldConflict(action, mods, key) {
-        var combo = mods + "+" + key
-        var ks    = Object.keys(root.keybinds)
+        var mask = root._modsToMask(mods)
+        var k = (key || "").toUpperCase()
+        var ks = Object.keys(root.keybinds)
         for (var i = 0; i < ks.length; i++) {
             if (ks[i] === action) continue
             var b = root.keybinds[ks[i]]
-            if (b && b.mods + "+" + b.key === combo)
+            if (b && root._modsToMask(b.mods) === mask && (b.key || "").toUpperCase() === k)
                 return b.label || ks[i]
         }
         return ""
@@ -175,7 +173,6 @@ QtObject {
                 } catch(e) {}
                 root.keybinds = merged
                 root._writeFiles()
-                root._ensureInclude()
             }
         }
     }
@@ -234,7 +231,7 @@ QtObject {
         if (!old) return
         var m = newMods.toUpperCase().trim()
         var k = newKey.toUpperCase().trim()
-        if (m === "" || k === "") return
+        if (k === "") return
         if (root.wouldConflict(action, m, k) !== "") return
         var copy     = Object.assign({}, root.keybinds)
         copy[action] = { mods: m, key: k, label: old.label, group: old.group }
@@ -329,7 +326,8 @@ QtObject {
             for (var ei = 0; ei < entries.length; ei++) {
                 var e = entries[ei]
                 var luaBindStr = (e.mods !== "") ? (e.mods + " + " + e.key) : e.key
-                lines.push("hl.bind(\"" + luaBindStr + "\", hl.dsp.exec_cmd(\"qs ipc -c \" .. shell .. \" call " + e.k + " toggle\"))")
+                var descLabel = (e.label || e.k).replace(/"/g, "\\\"")
+                lines.push("hl.bind(\"" + luaBindStr + "\", hl.dsp.exec_cmd(\"qs ipc -c \" .. shell .. \" call " + e.k + " toggle\"), { description = \"Brain Shell: " + descLabel + "\" })")
             }
             lines.push("")
         }
@@ -376,39 +374,8 @@ QtObject {
     }
 
     // ── Auto-include in hyprland configs ──────────────────────────────────────
-    property var _includeProc: Process { command: []; running: false }
-
-    function _ensureInclude() {
-        var lp = root._luaPath.replace(/"/g, "\\\"")
-        var cp = root._confPath.replace(/"/g, "\\\"")
-        
-        if (configProvider === "lua") {
-            _includeProc.command = ["bash", "-c", [
-                "MARKER='Brain_ShellKeybinds'",
-                "LUA=\"$HOME/.config/hypr/hyprland.lua\"",
-                "if [ -f \"$LUA\" ]; then",
-                "  sed -i '/quickshellKeybinds/d' \"$LUA\"",
-                "  if ! grep -qF \"$MARKER\" \"$LUA\"; then",
-                "    printf '\\n-- Brain_ShellKeybinds\\ndofile(\"" + lp + "\")\\n' >> \"$LUA\"",
-                "  fi",
-                "fi",
-            ].join("\n")]
-        } else {
-            _includeProc.command = ["bash", "-c", [
-                "MARKER='Brain_ShellKeybinds'",
-                "CONF=\"$HOME/.config/hypr/hyprland.conf\"",
-                "if [ -f \"$CONF\" ]; then",
-                "  sed -i '/quickshellKeybinds/d' \"$CONF\"",
-                "  if ! grep -qF \"$MARKER\" \"$CONF\"; then",
-                "    printf '\\n# Brain_ShellKeybinds\\nsource = " + cp + "\\n' >> \"$CONF\"",
-                "  fi",
-                "fi",
-            ].join("\n")]
-        }
-        
-        _includeProc.running = false
-        _includeProc.running = true
-    }
+    // (Legacy direct injection removed; Brain Shell now sources binds automatically
+    //  via its isolated startup files generated by the installer.)
 
     Component.onCompleted: _loadProc.running = true
 }

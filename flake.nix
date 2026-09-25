@@ -66,9 +66,16 @@
             xdg-desktop-portal-hyprland
             xdg-desktop-portal-gtk
             cliphist
-            nerd-fonts.jetbrains-mono
-            nerd-fonts.symbols-only
             git
+            hyprpolkitagent
+            grimblast
+            kitty
+            qt6.qtmultimedia
+            qt6.qt5compat
+            rfkill
+            mpv-mpris
+            mpd-mpris
+            ranger
           ];
         in {
           options.programs.brain-shell = {
@@ -76,7 +83,9 @@
           };
 
           config = mkIf cfg.enable {
-            environment.systemPackages = brainShellDeps ++ [ self.packages.${pkgs.system}.default ];
+            environment.systemPackages = brainShellDeps ++ [ self.packages.${pkgs.system}.default pkgs.pulseaudio ];
+
+            programs.hyprland.enable = mkDefault true;
 
             fonts.packages = with pkgs; [
               nerd-fonts.jetbrains-mono
@@ -85,8 +94,18 @@
 
             environment.variables.QT_QPA_PLATFORMTHEME = "qt6ct";
 
-            services.pipewire.enable = true;
-            services.blueman.enable = true;
+            services.pipewire = {
+              enable = mkDefault true;
+              alsa.enable = mkDefault true;
+              pulse.enable = mkDefault true;
+            };
+            services.blueman.enable = mkDefault true;
+            services.upower.enable = mkDefault true;
+
+            xdg.portal = {
+              enable = mkDefault true;
+              extraPortals = [ pkgs.xdg-desktop-portal-hyprland pkgs.xdg-desktop-portal-gtk ];
+            };
           };
         };
     };

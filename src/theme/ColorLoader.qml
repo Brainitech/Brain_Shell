@@ -13,13 +13,13 @@ QtObject {
     property bool overrideMode: false
 
     // ── Parsed colors (with fallbacks matching original palette) ──────────────
-    property color background: "#1a282a"
-    property color active:     "#001f3c"
-    property color text:       "#cdd6f4"
-    property color subtext:    "#94e2d5"
-    property color icon:       "#003cff"
-    property color border:     "#ffffff"
-    property color iconFont:   "#000000"
+    property color background: "#141311"
+    property color active:     "#4a473c"
+    property color text:       "#f0e5bb"
+    property color subtext:    "#d3c9a1"
+    property color icon:       "#e6e2dd"
+    property color border:     "#ccc6b9"
+    property color iconFont:   "#e6e2dd"
 
     // ── File watcher ──────────────────────────────────────────────────────────
     property var _file: FileView {

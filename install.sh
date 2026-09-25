@@ -190,7 +190,7 @@ log_ok "Brain Shell v0.2.0 installed successfully."
 echo ""
 
 echo -e "  ${BOLD}Next Steps:${NC}"
-if command -v hyprctl &>/dev/null && hyprctl instances &>/dev/null; then
+if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]] && command -v hyprctl &>/dev/null && hyprctl activeworkspace &>/dev/null; then
     log_info "Active Hyprland session detected:"
     log_info "  • Log out and back in, or run: ${CYAN}hyprctl dispatch exit${NC}"
 else

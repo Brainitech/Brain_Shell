@@ -328,7 +328,8 @@ QtObject {
             for (var ei = 0; ei < entries.length; ei++) {
                 var e = entries[ei]
                 var luaBindStr = (e.mods !== "") ? (e.mods + " + " + e.key) : e.key
-                lines.push("hl.bind(\"" + luaBindStr + "\", hl.dsp.exec_cmd(\"qs ipc -c \" .. shell .. \" call " + e.k + " toggle\"))")
+                var descLabel = (e.label || e.k).replace(/"/g, "\\\"")
+                lines.push("hl.bind(\"" + luaBindStr + "\", hl.dsp.exec_cmd(\"qs ipc -c \" .. shell .. \" call " + e.k + " toggle\"), { description = \"Brain Shell: " + descLabel + "\" })")
             }
             lines.push("")
         }

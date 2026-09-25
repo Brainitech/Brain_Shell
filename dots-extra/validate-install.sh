@@ -139,7 +139,16 @@ echo "# HYPRLAND ECOSYSTEM"
 check_command "hyprsunset"
 check_command "hyprlock"
 check_command "hypridle"
-check_command "hyprpolkitagent"
+if command -v hyprpolkitagent &>/dev/null \
+    || [[ -x /usr/lib/hyprpolkitagent/hyprpolkitagent ]] \
+    || [[ -x /usr/lib/hyprpolkitagent ]] \
+    || [[ -x /usr/libexec/hyprpolkitagent ]] \
+    || systemctl --user list-unit-files hyprpolkitagent.service &>/dev/null \
+    || (command -v pacman &>/dev/null && pacman -Q hyprpolkitagent &>/dev/null); then
+    log_installed "hyprpolkitagent"
+else
+    log_missing "hyprpolkitagent"
+fi
 
 echo ""
 echo "# FONTS"

@@ -356,28 +356,28 @@ hl.define_submap("BrainShell_clean", function()
     hl.bind("CTRL + ESCAPE", function()
         hl.dispatch(hl.dsp.exec_cmd("notify-send 'BrainShell' 'Emergency Exit: Keybinds re-enabled.'"))
         hl.dispatch(hl.dsp.submap("reset"))
-    end)
+    end, { description = "Emergency return to global submap" })
 end)
-hl.bind("SUPER + D", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-home toggle"))
-hl.bind("CTRL + SHIFT + ESCAPE", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-stats toggle"))
-hl.bind("SUPER + Z", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-kanban toggle"))
-hl.bind("SUPER + Q", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-launcher toggle"))
-hl.bind("SUPER + C", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-config toggle"))
-hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call PowerMenu-toggle toggle"))
-hl.bind("SUPER + N", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call notification-toggle toggle"))
-hl.bind("SUPER + W", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call wallpaper-toggle toggle"))
-hl.bind("SUPER + V", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call clipboard-toggle toggle"))
-hl.bind("SUPER + ALT + W", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call wifi-toggle toggle"))
-hl.bind("SUPER + ALT + B", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call bluetooth-toggle toggle"))
-hl.bind("SUPER + ALT + G", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call vpn-toggle toggle"))
-hl.bind("SUPER + ALT + H", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call hotspot-toggle toggle"))
-hl.bind("SUPER + A", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioOut-toggle toggle"))
-hl.bind("SUPER + ALT + I", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioIn-toggle toggle"))
-hl.bind("SUPER + M", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioMix-toggle toggle"))
-hl.bind("SUPER + B", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call focus-toggle toggle"))
-hl.bind("SUPER + X", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call lock-session toggle"))
-hl.bind("PRINT", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call screenshot-toggle toggle"))
-hl.bind("ALT + F9", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call screenrec-on toggle"))
+hl.bind("SUPER + D", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-home toggle"), { description = "Brain Shell: Dashboard" })
+hl.bind("CTRL + SHIFT + ESCAPE", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-stats toggle"), { description = "Brain Shell: Task Manager" })
+hl.bind("SUPER + Z", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-kanban toggle"), { description = "Brain Shell: Kanban Board" })
+hl.bind("SUPER + Q", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-launcher toggle"), { description = "Brain Shell: App Launcher" })
+hl.bind("SUPER + C", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-config toggle"), { description = "Brain Shell: Shell Config" })
+hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call PowerMenu-toggle toggle"), { description = "Brain Shell: Power Menu" })
+hl.bind("SUPER + N", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call notification-toggle toggle"), { description = "Brain Shell: Notifications" })
+hl.bind("SUPER + W", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call wallpaper-toggle toggle"), { description = "Brain Shell: Wallpaper" })
+hl.bind("SUPER + V", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call clipboard-toggle toggle"), { description = "Brain Shell: Clipboard" })
+hl.bind("SUPER + ALT + W", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call wifi-toggle toggle"), { description = "Brain Shell: Network Wi-Fi" })
+hl.bind("SUPER + ALT + B", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call bluetooth-toggle toggle"), { description = "Brain Shell: Network Bluetooth" })
+hl.bind("SUPER + ALT + G", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call vpn-toggle toggle"), { description = "Brain Shell: Network VPN" })
+hl.bind("SUPER + ALT + H", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call hotspot-toggle toggle"), { description = "Brain Shell: Network Hotspot" })
+hl.bind("SUPER + A", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioOut-toggle toggle"), { description = "Brain Shell: Audio Output" })
+hl.bind("SUPER + ALT + I", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioIn-toggle toggle"), { description = "Brain Shell: Audio Input" })
+hl.bind("SUPER + M", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioMix-toggle toggle"), { description = "Brain Shell: Audio Mixer" })
+hl.bind("SUPER + B", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call focus-toggle toggle"), { description = "Brain Shell: Focus Mode" })
+hl.bind("SUPER + X", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call lock-session toggle"), { description = "Brain Shell: Lock Screen" })
+hl.bind("PRINT", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call screenshot-toggle toggle"), { description = "Brain Shell: Screenshot" })
+hl.bind("ALT + F9", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call screenrec-on toggle"), { description = "Brain Shell: Screen Record" })
 EOF
 fi
 
@@ -549,7 +549,7 @@ echo ""
 log_info "Checking keybind conflicts against active Hyprland session..."
 
 python3 << 'PYEOF' || log_warn "Keybind check skipped (Python error or no Hyprland session)."
-import subprocess, json, os, sys
+import subprocess, json, os, sys, re
 
 DEFAULTS = {
     "dashboard-home":      {"mods": "SUPER",        "key": "D",      "label": "Dashboard: System"},
@@ -569,6 +569,8 @@ DEFAULTS = {
     "audioIn-toggle":      {"mods": "SUPER + ALT",  "key": "I",      "label": "Audio: Input"},
     "audioMix-toggle":     {"mods": "SUPER",        "key": "M",      "label": "Audio: Mixer"},
     "focus-toggle":        {"mods": "SUPER",        "key": "B",      "label": "Focus Mode"},
+    "lock-session":        {"mods": "SUPER",        "key": "X",      "label": "Lock Screen"},
+    "screenshot-toggle":   {"mods": "",             "key": "PRINT",  "label": "Screenshot"},
     "screenrec-on":        {"mods": "ALT",          "key": "F9",     "label": "Screen Record"},
 }
 
@@ -588,22 +590,65 @@ except Exception:
     with open("/tmp/bs_keybind_skipped", "w") as f: f.write("1")
     sys.exit(0)
 
+bs_lua_binds = []
+kb_lua = os.path.expanduser("~/.config/Brain_Shell/Brain_ShellKeybinds.lua")
+if os.path.isfile(kb_lua):
+    try:
+        with open(kb_lua) as f:
+            content = f.read()
+        for m in re.finditer(r'hl\.bind\s*\(\s*["\']([^"\']+)["\']\s*,\s*hl\.dsp\.exec_cmd\([^)]*qs ipc', content):
+            combo = m.group(1).strip()
+            parts = [p.strip() for p in combo.split("+")]
+            key = parts[-1].lower()
+            mods = "+".join(parts[:-1]) if len(parts) > 1 else ""
+            bs_lua_binds.append((mods_to_mask(mods), key))
+    except Exception:
+        pass
+
+consumed_bind_indices = set()
+for i, hb in enumerate(hypr_binds):
+    if hb.get("submap", "") or hb.get("mouse"):
+        continue
+    desc = hb.get("dispatcher", "")
+    arg = hb.get("arg", "")
+    hb_desc = hb.get("description", "")
+
+    if "qs ipc" in arg or "brain_shell" in arg.lower() or "brain-shell" in arg.lower():
+        consumed_bind_indices.add(i)
+        continue
+    if "brain shell" in hb_desc.lower() or "brain_shell" in hb_desc.lower() or "brain-shell" in hb_desc.lower():
+        consumed_bind_indices.add(i)
+        continue
+
+    if desc == "__lua":
+        b_mask = hb.get("modmask")
+        b_key = str(hb.get("key", "")).lower()
+        for idx, (l_mask, l_key) in enumerate(bs_lua_binds):
+            if l_mask == b_mask and l_key == b_key:
+                consumed_bind_indices.add(i)
+                bs_lua_binds.pop(idx)
+                break
+
 conflicts = {}
 for action, data in DEFAULTS.items():
     mask = mods_to_mask(data["mods"])
     key  = data["key"].lower()
-    for hb in hypr_binds:
+    for i, hb in enumerate(hypr_binds):
+        if i in consumed_bind_indices:
+            continue
         if hb.get("submap", "") or hb.get("mouse"):
             continue
         if hb.get("modmask") == mask and str(hb.get("key", "")).lower() == key:
             desc = hb.get("dispatcher", "")
             arg  = hb.get("arg", "")
-            if "qs ipc" in arg or "brain_shell" in arg.lower() or "brain-shell" in arg.lower():
-                continue
+            hb_desc = hb.get("description", "")
+            used_by = f"{desc} {arg}".strip()
+            if hb_desc:
+                used_by += f" ({hb_desc})"
             conflicts[action] = {
-                "bind":    f"{data['mods']} + {data['key']}",
+                "bind":    f"{data['mods']} + {data['key']}" if data['mods'] else data['key'],
                 "label":   data["label"],
-                "used_by": f"{desc} {arg}".strip(),
+                "used_by": used_by,
             }
             break
 
@@ -618,9 +663,18 @@ for action, info in conflicts.items():
     print(f"    {'':24}  already used by: {info['used_by']}\n")
     unbound[action] = {"mods": "", "key": ""}
 
-config_path = os.path.join(os.environ.get("HOME", ""), ".config/Brain_Shell/src/user_data/keybinds.json")
+config_path = os.path.expanduser("~/.config/Brain_Shell/src/user_data/keybinds.json")
+existing = {}
+if os.path.isfile(config_path):
+    try:
+        with open(config_path) as f:
+            existing = json.load(f)
+    except Exception:
+        existing = {}
+existing.update(unbound)
+os.makedirs(os.path.dirname(config_path), exist_ok=True)
 with open(config_path, "w") as f:
-    json.dump(unbound, f, indent=2)
+    json.dump(existing, f, indent=2)
 
 print("  \033[1;33m⚠\033[0m  Conflicting binds left unbound in Brain Shell.")
 print("       Re-assign them: Dashboard  →  Config  →  Keybinds\n")

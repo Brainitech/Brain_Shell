@@ -224,7 +224,7 @@ PACMAN_DEPS=(
     wtype
 
     # Hardware sensors
-    lm_sensors rfkill
+    lm_sensors util-linux
 
     # Hyprland ecosystem
     hyprland hyprsunset hyprlock hyprpolkitagent hypridle

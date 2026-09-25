@@ -32,10 +32,10 @@ jobs:
             pipewire pipewire-pulse wireplumber
             playerctl mpv-mpris mpd-mpris
             networkmanager bluez bluez-utils
-            brightnessctl upower libnotify polkit
+            brightnessctl upower libnotify polkit kitty
             python wl-clipboard slurp xdg-user-dirs
             wf-recorder cava imagemagick wtype
-            lm_sensors rfkill
+            lm_sensors util-linux
             hyprland hyprsunset hyprlock hyprpolkitagent hypridle
             xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
             ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols-common

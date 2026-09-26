@@ -64,61 +64,12 @@ QtObject {
         }
     }
 
-    function mapPipewireSource(identity) {
-        if (!identity) return ""
-        var id = identity.toLowerCase()
-        if (id.indexOf("spotify") !== -1) return "Spotify"
-        if (id.indexOf("firefox") !== -1) return "Firefox"
-        if (id.indexOf("chromium") !== -1) return "Chromium"
-        if (id.indexOf("chrome") !== -1) return "Google Chrome"
-        if (id.indexOf("brave") !== -1) return "Brave"
-        if (id.indexOf("youtube") !== -1) return "YouTube Music Desktop App"
-        if (id.indexOf("vlc") !== -1) return "vlc"
-        if (id.indexOf("mpv") !== -1) return "mpv"
-        return identity.replace(/'/g, "").replace(/"/g, "")
-    }
-
-    property string _defaultSinkMonitor: ""
-    property var _sinkProc: Process {
-        command: ["pactl", "get-default-sink"]
-        running: true
-        stdout: SplitParser {
-            onRead: function(line) {
-                var t = line.trim()
-                if (t !== "") root._defaultSinkMonitor = t + ".monitor"
-            }
-        }
-    }
-
-    property string activeSource: {
-        if (MediaService.activePlayer) {
-            var mapped = mapPipewireSource(MediaService.activePlayer.identity)
-            return mapped !== "" ? mapped : _defaultSinkMonitor
-        }
-        return _defaultSinkMonitor
-    }
-
-    property var _restartTimer: Timer {
-        interval: 50
-        repeat: false
-        onTriggered: {
-            if (root.shouldRun) _proc.running = true
-        }
-    }
-
-    onActiveSourceChanged: {
-        if (_proc.running) {
-            _proc.running = false
-            _restartTimer.restart()
-        }
-    }
-
     property var _proc: Process {
         command: [
             "bash", "-c",
             "mkdir -p /tmp/brain_shell && " +
             "printf '[general]\\nbars = 32\\nframerate = 30\\nnoise_reduction = 77\\n\\n" +
-            "[input]\\nmethod = pipewire\\nsource = " + root.activeSource + "\\n\\n" +
+            "[input]\\nmethod = pipewire\\nsource = auto\\n\\n" +
             "[output]\\nmethod = raw\\nraw_target = /dev/stdout\\n" +
             "data_format = ascii\\nascii_max_range = 100\\n" +
             "bar_delimiter = 59\\nframe_delimiter = 10\\n' " +

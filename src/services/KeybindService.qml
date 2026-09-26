@@ -94,6 +94,7 @@ QtObject {
             
             if (b.modmask === mask && (b.key || "").toLowerCase() === k) {
                 if (b.description && b.description.trim() !== "") return b.description
+                if (b.dispatcher === "__lua") return "Lua Bind (No Description)"
                 var desc = b.dispatcher || ""
                 if (b.arg) desc += ": " + b.arg.substring(0, 36)
                 return desc || "Hyprland bind"

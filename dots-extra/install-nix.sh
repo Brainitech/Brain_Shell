@@ -296,14 +296,9 @@ for i, hb in enumerate(hypr_binds):
         consumed_bind_indices.add(i)
         continue
 
-    if desc == "__lua":
-        b_mask = hb.get("modmask")
-        b_key = str(hb.get("key", "")).lower()
-        for idx, (l_mask, l_key) in enumerate(bs_lua_binds):
-            if l_mask == b_mask and l_key == b_key:
-                consumed_bind_indices.add(i)
-                bs_lua_binds.pop(idx)
-                break
+    if desc == "__lua" and ("brain shell" in hb_desc.lower() or "brain-shell" in hb_desc.lower()):
+        consumed_bind_indices.add(i)
+        continue
 
 conflicts = {}
 for action, data in DEFAULTS.items():

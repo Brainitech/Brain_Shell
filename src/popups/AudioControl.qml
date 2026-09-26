@@ -77,7 +77,8 @@ Item {
                 width: parent.width; height: parent.height
                 
                 property real targetY: {
-                    if (Anim.style === "none") return 0;
+                    if (Anim.style === "none" || Anim.style === "fade" || Anim.style === "scale") return 0;
+                    if (Anim.style === "rise") return isCurrent ? 0 : (myIdx < contentArea.pageIdx ? -30 : 30);
                     if (isCurrent) return 0;
                     if (myIdx < contentArea.pageIdx) return -height * parallaxFactor;
                     return height;
@@ -87,20 +88,32 @@ Item {
                 Behavior on y {
                     enabled: Anim.style !== "none" && (SurfaceState.activeContent === "audio") && root.fullyOpen
                     NumberAnimation { 
-                        duration: Anim.slow; easing.type: Anim.outExpo
+                        duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
                         onRunningChanged: { if (!running && !pageOutput.isCurrent) pageOutput.wasCurrent = false; }
                     }
                 }
                 
                 property real targetOpacity: {
-                    if (Anim.style !== "parallax") return 1.0;
+                    if (Anim.style === "none" || Anim.style === "slide") return 1.0;
                     if (isCurrent) return 1.0;
                     return 0.0;
                 }
                 opacity: targetOpacity
                 Behavior on opacity {
-                    enabled: Anim.style === "parallax"
-                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                    enabled: Anim.style !== "none" && Anim.style !== "slide"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
+                        onRunningChanged: { if (!running && !pageOutput.isCurrent) pageOutput.wasCurrent = false; } }
+                }
+                
+                scale: targetScale
+                property real targetScale: {
+                    if (Anim.style === "scale" || Anim.style === "rise") return isCurrent ? 1.0 : 0.95;
+                    return 1.0;
+                }
+                Behavior on scale {
+                    enabled: Anim.style === "scale" || Anim.style === "rise"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
+                        onRunningChanged: { if (!running && !pageOutput.isCurrent) pageOutput.wasCurrent = false; } }
                 }
                 
                 visible: isCurrent || wasCurrent
@@ -147,7 +160,8 @@ Item {
                 width: parent.width; height: parent.height
                 
                 property real targetY: {
-                    if (Anim.style === "none") return 0;
+                    if (Anim.style === "none" || Anim.style === "fade" || Anim.style === "scale") return 0;
+                    if (Anim.style === "rise") return isCurrent ? 0 : (myIdx < contentArea.pageIdx ? -30 : 30);
                     if (isCurrent) return 0;
                     if (myIdx < contentArea.pageIdx) return -height * parallaxFactor;
                     return height;
@@ -157,20 +171,32 @@ Item {
                 Behavior on y {
                     enabled: Anim.style !== "none" && (SurfaceState.activeContent === "audio") && root.fullyOpen
                     NumberAnimation { 
-                        duration: Anim.slow; easing.type: Anim.outExpo
+                        duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
                         onRunningChanged: { if (!running && !pageInput.isCurrent) pageInput.wasCurrent = false; }
                     }
                 }
                 
                 property real targetOpacity: {
-                    if (Anim.style !== "parallax") return 1.0;
+                    if (Anim.style === "none" || Anim.style === "slide") return 1.0;
                     if (isCurrent) return 1.0;
                     return 0.0;
                 }
                 opacity: targetOpacity
                 Behavior on opacity {
-                    enabled: Anim.style === "parallax"
-                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                    enabled: Anim.style !== "none" && Anim.style !== "slide"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
+                        onRunningChanged: { if (!running && !pageInput.isCurrent) pageInput.wasCurrent = false; } }
+                }
+                
+                scale: targetScale
+                property real targetScale: {
+                    if (Anim.style === "scale" || Anim.style === "rise") return isCurrent ? 1.0 : 0.95;
+                    return 1.0;
+                }
+                Behavior on scale {
+                    enabled: Anim.style === "scale" || Anim.style === "rise"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
+                        onRunningChanged: { if (!running && !pageInput.isCurrent) pageInput.wasCurrent = false; } }
                 }
                 
                 visible: isCurrent || wasCurrent
@@ -211,7 +237,8 @@ Item {
                 width: parent.width; height: parent.height
                 
                 property real targetY: {
-                    if (Anim.style === "none") return 0;
+                    if (Anim.style === "none" || Anim.style === "fade" || Anim.style === "scale") return 0;
+                    if (Anim.style === "rise") return isCurrent ? 0 : (myIdx < contentArea.pageIdx ? -30 : 30);
                     if (isCurrent) return 0;
                     if (myIdx < contentArea.pageIdx) return -height * parallaxFactor;
                     return height;
@@ -221,20 +248,32 @@ Item {
                 Behavior on y {
                     enabled: Anim.style !== "none" && (SurfaceState.activeContent === "audio") && root.fullyOpen
                     NumberAnimation { 
-                        duration: Anim.slow; easing.type: Anim.outExpo
+                        duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
                         onRunningChanged: { if (!running && !pageMixer.isCurrent) pageMixer.wasCurrent = false; }
                     }
                 }
                 
                 property real targetOpacity: {
-                    if (Anim.style !== "parallax") return 1.0;
+                    if (Anim.style === "none" || Anim.style === "slide") return 1.0;
                     if (isCurrent) return 1.0;
                     return 0.0;
                 }
                 opacity: targetOpacity
                 Behavior on opacity {
-                    enabled: Anim.style === "parallax"
-                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                    enabled: Anim.style !== "none" && Anim.style !== "slide"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
+                        onRunningChanged: { if (!running && !pageMixer.isCurrent) pageMixer.wasCurrent = false; } }
+                }
+                
+                scale: targetScale
+                property real targetScale: {
+                    if (Anim.style === "scale" || Anim.style === "rise") return isCurrent ? 1.0 : 0.95;
+                    return 1.0;
+                }
+                Behavior on scale {
+                    enabled: Anim.style === "scale" || Anim.style === "rise"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
+                        onRunningChanged: { if (!running && !pageMixer.isCurrent) pageMixer.wasCurrent = false; } }
                 }
                 
                 visible: isCurrent || wasCurrent
@@ -253,7 +292,8 @@ Item {
                 }
 
                 Text {
-                    visible:        root.sinkNodes.length === 0
+                
+                visible:        root.sinkNodes.length === 0
                     text:           "No output devices"
                     color:          Theme.subtext
                     font.pixelSize: Math.round(11 * localScale)
@@ -279,7 +319,8 @@ Item {
                 }
 
                 Text {
-                    visible:        root.sourceNodes.length === 0
+                
+                visible:        root.sourceNodes.length === 0
                     text:           "No input devices"
                     color:          Theme.subtext
                     font.pixelSize: Math.round(11 * localScale)

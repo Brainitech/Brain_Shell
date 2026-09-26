@@ -92,7 +92,7 @@ Item {
                             from: 0.0
                             to: 1.0
                             duration: Anim.style === "none" ? 0 : Anim.slow
-                            easing.type: Anim.outExpo
+                            easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
                         }
                         
                         onPageIdxChanged: {
@@ -115,7 +115,7 @@ Item {
                             width: parent.width; height: parent.height
                             
                             x: {
-                                if (Anim.style === "none") return 0;
+                                if (Anim.style === "none" || Anim.style === "fade" || Anim.style === "scale" || Anim.style === "rise") return 0;
                                 if (isIncoming) {
                                     return slideDir * width * (1.0 - tabContent.progress);
                                 } else if (isOutgoing) {
@@ -126,13 +126,31 @@ Item {
                             }
                             
                             opacity: {
-                                if (Anim.style !== "parallax") return 1.0;
+                                if (Anim.style === "none" || Anim.style === "slide") return 1.0;
+                            if (Anim.style === "scale" || Anim.style === "rise") { if (isIncoming) return tabContent.progress; if (isOutgoing) return 1.0 - tabContent.progress; return 0.0; }
                                 if (isIncoming) return tabContent.progress;
                                 if (isOutgoing) return 1.0 - tabContent.progress;
                                 return 0.0;
                             }
                             
                             active: isIncoming || (isOutgoing && tabContent.progress < 1.0)
+                            
+                            y: {
+                                if (Anim.style === "rise") {
+                                    if (isIncoming) return 30 * (1.0 - tabContent.progress);
+                                    if (isOutgoing) return -30 * tabContent.progress;
+                                }
+                                return 0;
+                            }
+                            
+                            scale: {
+                                if (Anim.style === "scale" || Anim.style === "rise") {
+                                    if (isIncoming) return 0.95 + 0.05 * tabContent.progress;
+                                    if (isOutgoing) return 1.0 + 0.05 * tabContent.progress;
+                                }
+                                return 1.0;
+                            }
+                            
                             visible: active
                             
                             source: sourceFile

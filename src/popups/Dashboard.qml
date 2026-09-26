@@ -133,7 +133,7 @@ Item {
                         from: 0.0
                         to: 1.0
                         duration: Anim.style === "none" ? 0 : Anim.transition
-                        easing.type: Anim.outCubic
+                        easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
                     }
                     
                     onPageIdxChanged: {
@@ -156,7 +156,7 @@ Item {
                         width: parent.width; height: parent.height
                         
                         x: {
-                            if (Anim.style === "none") return 0;
+                            if (Anim.style === "none" || Anim.style === "fade" || Anim.style === "scale" || Anim.style === "rise") return 0;
                             if (isIncoming) {
                                 return slideDir * root.scaledPageWidth * (1.0 - pageArea.progress);
                             } else if (isOutgoing) {
@@ -167,10 +167,27 @@ Item {
                         }
                         
                         opacity: {
-                            if (Anim.style !== "parallax") return 1.0;
+                            if (Anim.style === "none" || Anim.style === "slide") return 1.0;
+                            if (Anim.style === "scale" || Anim.style === "rise") { if (isIncoming) return pageArea.progress; if (isOutgoing) return 1.0 - pageArea.progress; return 0.0; }
                             if (isIncoming) return pageArea.progress;
                             if (isOutgoing) return 1.0 - pageArea.progress;
                             return 0.0;
+                        }
+                        
+                        y: {
+                            if (Anim.style === "rise") {
+                                if (isIncoming) return 30 * (1.0 - pageArea.progress);
+                                if (isOutgoing) return -30 * pageArea.progress;
+                            }
+                            return 0;
+                        }
+                        
+                        scale: {
+                            if (Anim.style === "scale" || Anim.style === "rise") {
+                                if (isIncoming) return 0.95 + 0.05 * pageArea.progress;
+                                if (isOutgoing) return 1.0 + 0.05 * pageArea.progress;
+                            }
+                            return 1.0;
                         }
                         
                         visible: isCurrent || (isOutgoing && pageArea.progress < 1.0)

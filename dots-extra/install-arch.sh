@@ -44,7 +44,7 @@ pacman_install() {
     log_info "Installing $total packages via pacman..."
 
     # Attempt 1 — bulk
-    if sudo pacman -S --needed --noconfirm "${pkgs[@]}" 2>/dev/null; then
+    if sudo pacman -S --needed --noconfirm "${pkgs[@]}"; then
         log_ok "All $total packages installed."
         return 0
     fi
@@ -237,7 +237,7 @@ PACMAN_DEPS=(
 )
 
 log_info "Synchronizing package database..."
-if ! sudo pacman -Sy --noconfirm &>/dev/null; then
+if ! sudo pacman -Sy --noconfirm; then
     log_warn "Database sync failed — continuing with current DB. Some packages may be stale."
 fi
 

@@ -330,7 +330,7 @@ QtObject {
                 var e = entries[ei]
                 var luaBindStr = (e.mods !== "") ? (e.mods + " + " + e.key) : e.key
                 var descLabel = (e.label || e.k).replace(/"/g, "\\\"")
-                lines.push("hl.bind(\"" + luaBindStr + "\", hl.dsp.exec_cmd(\"qs ipc -c \" .. shell .. \" call " + e.k + " toggle\"), { description = \"Brain Shell: " + descLabel + "\" })")
+                lines.push("hl.bind(\"" + luaBindStr + "\", hl.dsp.exec_cmd(\"qs ipc -p \" .. shell .. \" call " + e.k + " toggle\"), { description = \"Brain Shell: " + descLabel + "\" })")
             }
             lines.push("")
         }
@@ -368,7 +368,7 @@ QtObject {
                 var e = entries[ei]
                 // Hyprland .conf format drops the '+' symbol between modifiers
                 var confMods = e.mods.replace(/\s*\+\s*/g, " ")
-                var cmd = "qs ipc -c " + root._shellDir + " call " + e.k + " toggle"
+                var cmd = "qs ipc -p " + root._shellDir + " call " + e.k + " toggle"
                 lines.push("bind = " + confMods + ", " + e.key + ", exec, " + cmd)
             }
             lines.push("")

@@ -357,26 +357,26 @@ hl.define_submap("BrainShell_clean", function()
         hl.dispatch(hl.dsp.submap("reset"))
     end, { description = "Emergency return to global submap" })
 end)
-hl.bind("SUPER + D", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-home toggle"), { description = "Brain Shell: Dashboard" })
-hl.bind("CTRL + SHIFT + ESCAPE", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-stats toggle"), { description = "Brain Shell: Task Manager" })
-hl.bind("SUPER + Z", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-kanban toggle"), { description = "Brain Shell: Kanban Board" })
-hl.bind("SUPER + Q", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-launcher toggle"), { description = "Brain Shell: App Launcher" })
-hl.bind("SUPER + C", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call dashboard-config toggle"), { description = "Brain Shell: Shell Config" })
-hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call PowerMenu-toggle toggle"), { description = "Brain Shell: Power Menu" })
-hl.bind("SUPER + N", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call notification-toggle toggle"), { description = "Brain Shell: Notifications" })
-hl.bind("SUPER + W", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call wallpaper-toggle toggle"), { description = "Brain Shell: Wallpaper" })
-hl.bind("SUPER + V", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call clipboard-toggle toggle"), { description = "Brain Shell: Clipboard" })
-hl.bind("SUPER + ALT + W", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call wifi-toggle toggle"), { description = "Brain Shell: Network Wi-Fi" })
-hl.bind("SUPER + ALT + B", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call bluetooth-toggle toggle"), { description = "Brain Shell: Network Bluetooth" })
-hl.bind("SUPER + ALT + G", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call vpn-toggle toggle"), { description = "Brain Shell: Network VPN" })
-hl.bind("SUPER + ALT + H", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call hotspot-toggle toggle"), { description = "Brain Shell: Network Hotspot" })
-hl.bind("SUPER + A", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioOut-toggle toggle"), { description = "Brain Shell: Audio Output" })
-hl.bind("SUPER + ALT + I", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioIn-toggle toggle"), { description = "Brain Shell: Audio Input" })
-hl.bind("SUPER + M", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call audioMix-toggle toggle"), { description = "Brain Shell: Audio Mixer" })
-hl.bind("SUPER + B", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call focus-toggle toggle"), { description = "Brain Shell: Focus Mode" })
-hl.bind("SUPER + X", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call lock-session toggle"), { description = "Brain Shell: Lock Screen" })
-hl.bind("PRINT", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call screenshot-toggle toggle"), { description = "Brain Shell: Screenshot" })
-hl.bind("ALT + F9", hl.dsp.exec_cmd("qs ipc -c " .. shell .. " call screenrec-on toggle"), { description = "Brain Shell: Screen Record" })
+hl.bind("SUPER + D", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call dashboard-home toggle"), { description = "Brain Shell: Dashboard" })
+hl.bind("CTRL + SHIFT + ESCAPE", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call dashboard-stats toggle"), { description = "Brain Shell: Task Manager" })
+hl.bind("SUPER + Z", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call dashboard-kanban toggle"), { description = "Brain Shell: Kanban Board" })
+hl.bind("SUPER + Q", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call dashboard-launcher toggle"), { description = "Brain Shell: App Launcher" })
+hl.bind("SUPER + C", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call dashboard-config toggle"), { description = "Brain Shell: Shell Config" })
+hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call PowerMenu-toggle toggle"), { description = "Brain Shell: Power Menu" })
+hl.bind("SUPER + N", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call notification-toggle toggle"), { description = "Brain Shell: Notifications" })
+hl.bind("SUPER + W", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call wallpaper-toggle toggle"), { description = "Brain Shell: Wallpaper" })
+hl.bind("SUPER + V", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call clipboard-toggle toggle"), { description = "Brain Shell: Clipboard" })
+hl.bind("SUPER + ALT + W", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call wifi-toggle toggle"), { description = "Brain Shell: Network Wi-Fi" })
+hl.bind("SUPER + ALT + B", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call bluetooth-toggle toggle"), { description = "Brain Shell: Network Bluetooth" })
+hl.bind("SUPER + ALT + G", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call vpn-toggle toggle"), { description = "Brain Shell: Network VPN" })
+hl.bind("SUPER + ALT + H", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call hotspot-toggle toggle"), { description = "Brain Shell: Network Hotspot" })
+hl.bind("SUPER + A", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call audioOut-toggle toggle"), { description = "Brain Shell: Audio Output" })
+hl.bind("SUPER + ALT + I", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call audioIn-toggle toggle"), { description = "Brain Shell: Audio Input" })
+hl.bind("SUPER + M", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call audioMix-toggle toggle"), { description = "Brain Shell: Audio Mixer" })
+hl.bind("SUPER + B", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call focus-toggle toggle"), { description = "Brain Shell: Focus Mode" })
+hl.bind("SUPER + X", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call lock-session toggle"), { description = "Brain Shell: Lock Screen" })
+hl.bind("PRINT", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call screenshot-toggle toggle"), { description = "Brain Shell: Screenshot" })
+hl.bind("ALT + F9", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call screenrec-on toggle"), { description = "Brain Shell: Screen Record" })
 EOF
 fi
 
@@ -386,26 +386,26 @@ submap = BrainShell_clean
 bind = CTRL, ESCAPE, exec, notify-send 'BrainShell' 'Emergency Exit: Keybinds re-enabled.'
 bind = CTRL, ESCAPE, submap, reset
 submap = reset
-bind = SUPER, D, exec, qs ipc -c $REPO_DIR call dashboard-home toggle
-bind = CTRL SHIFT, ESCAPE, exec, qs ipc -c $REPO_DIR call dashboard-stats toggle
-bind = SUPER, Z, exec, qs ipc -c $REPO_DIR call dashboard-kanban toggle
-bind = SUPER, Q, exec, qs ipc -c $REPO_DIR call dashboard-launcher toggle
-bind = SUPER, C, exec, qs ipc -c $REPO_DIR call dashboard-config toggle
-bind = SUPER, ESCAPE, exec, qs ipc -c $REPO_DIR call PowerMenu-toggle toggle
-bind = SUPER, N, exec, qs ipc -c $REPO_DIR call notification-toggle toggle
-bind = SUPER, W, exec, qs ipc -c $REPO_DIR call wallpaper-toggle toggle
-bind = SUPER, V, exec, qs ipc -c $REPO_DIR call clipboard-toggle toggle
-bind = SUPER ALT, W, exec, qs ipc -c $REPO_DIR call wifi-toggle toggle
-bind = SUPER ALT, B, exec, qs ipc -c $REPO_DIR call bluetooth-toggle toggle
-bind = SUPER ALT, G, exec, qs ipc -c $REPO_DIR call vpn-toggle toggle
-bind = SUPER ALT, H, exec, qs ipc -c $REPO_DIR call hotspot-toggle toggle
-bind = SUPER, A, exec, qs ipc -c $REPO_DIR call audioOut-toggle toggle
-bind = SUPER ALT, I, exec, qs ipc -c $REPO_DIR call audioIn-toggle toggle
-bind = SUPER, M, exec, qs ipc -c $REPO_DIR call audioMix-toggle toggle
-bind = SUPER, B, exec, qs ipc -c $REPO_DIR call focus-toggle toggle
-bind = SUPER, X, exec, qs ipc -c $REPO_DIR call lock-session toggle
-bind = , PRINT, exec, qs ipc -c $REPO_DIR call screenshot-toggle toggle
-bind = ALT, F9, exec, qs ipc -c $REPO_DIR call screenrec-on toggle
+bind = SUPER, D, exec, qs ipc -p $REPO_DIR call dashboard-home toggle
+bind = CTRL SHIFT, ESCAPE, exec, qs ipc -p $REPO_DIR call dashboard-stats toggle
+bind = SUPER, Z, exec, qs ipc -p $REPO_DIR call dashboard-kanban toggle
+bind = SUPER, Q, exec, qs ipc -p $REPO_DIR call dashboard-launcher toggle
+bind = SUPER, C, exec, qs ipc -p $REPO_DIR call dashboard-config toggle
+bind = SUPER, ESCAPE, exec, qs ipc -p $REPO_DIR call PowerMenu-toggle toggle
+bind = SUPER, N, exec, qs ipc -p $REPO_DIR call notification-toggle toggle
+bind = SUPER, W, exec, qs ipc -p $REPO_DIR call wallpaper-toggle toggle
+bind = SUPER, V, exec, qs ipc -p $REPO_DIR call clipboard-toggle toggle
+bind = SUPER ALT, W, exec, qs ipc -p $REPO_DIR call wifi-toggle toggle
+bind = SUPER ALT, B, exec, qs ipc -p $REPO_DIR call bluetooth-toggle toggle
+bind = SUPER ALT, G, exec, qs ipc -p $REPO_DIR call vpn-toggle toggle
+bind = SUPER ALT, H, exec, qs ipc -p $REPO_DIR call hotspot-toggle toggle
+bind = SUPER, A, exec, qs ipc -p $REPO_DIR call audioOut-toggle toggle
+bind = SUPER ALT, I, exec, qs ipc -p $REPO_DIR call audioIn-toggle toggle
+bind = SUPER, M, exec, qs ipc -p $REPO_DIR call audioMix-toggle toggle
+bind = SUPER, B, exec, qs ipc -p $REPO_DIR call focus-toggle toggle
+bind = SUPER, X, exec, qs ipc -p $REPO_DIR call lock-session toggle
+bind = , PRINT, exec, qs ipc -p $REPO_DIR call screenshot-toggle toggle
+bind = ALT, F9, exec, qs ipc -p $REPO_DIR call screenrec-on toggle
 EOF
 fi
 

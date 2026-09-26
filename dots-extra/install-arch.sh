@@ -249,10 +249,10 @@ step 3 "AUR Packages"
 
 _use_variant() {
     local stable="$1" git_variant="${1}-git"
-    if pacman -Qi "$stable" &>/dev/null; then
-        echo "$stable"
-    else
+    if pacman -Qi "$git_variant" &>/dev/null; then
         echo "$git_variant"
+    else
+        echo "$stable"
     fi
 }
 

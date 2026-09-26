@@ -93,6 +93,7 @@ QtObject {
             if (b.description && b.description.toLowerCase().indexOf("brain shell") >= 0) continue // modular lua binds
             
             if (b.modmask === mask && (b.key || "").toLowerCase() === k) {
+                if (b.description && b.description.trim() !== "") return b.description
                 var desc = b.dispatcher || ""
                 if (b.arg) desc += ": " + b.arg.substring(0, 36)
                 return desc || "Hyprland bind"

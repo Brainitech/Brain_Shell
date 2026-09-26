@@ -30,9 +30,9 @@ Item {
                 SettingsButton {
                     localScale: root.localScale
                     text: "Animation Style"
-                    description: "Global transition style (Slide, Parallax, None)."
+                    description: "Global transition style."
                     inputType: "options"
-                    options: ["slide", "parallax", "none"]
+                    options: ["rise", "slide", "parallax", "fade", "scale", "none"]
                     selectedOption: Anim.style
                     buttonText: selectedOption
                     defaultValue: "slide"
@@ -44,7 +44,7 @@ Item {
                     text: "Easing Curve"
                     description: "The mathematical curve for animations."
                     inputType: "options"
-                    options: ["smooth", "spring", "linear", "cinematic"]
+                    options: ["smooth", "spring", "jello", "linear", "sharp", "cinematic"]
                     selectedOption: Anim.curveStyle
                     buttonText: selectedOption
                     defaultValue: "smooth"
@@ -159,7 +159,7 @@ Item {
                     Behavior on height {
                         NumberAnimation {
                             duration: Anim.fast
-                            easing.type: Anim.globalCurve
+                            easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
                         }
                     }
 
@@ -381,7 +381,7 @@ Item {
                     Behavior on height {
                         NumberAnimation {
                             duration: Anim.fast
-                            easing.type: Anim.globalCurve
+                            easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
                         }
                     }
 

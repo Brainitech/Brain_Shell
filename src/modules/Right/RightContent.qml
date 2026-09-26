@@ -23,8 +23,8 @@ Item {
 
         opacity: SurfaceState.isRightExpanded ? 0 : 1
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic} }
-        Behavior on anchors.rightMargin { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic} }
+        Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
+        Behavior on anchors.rightMargin { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
 
         Network{ 
             localScale: root.localScale

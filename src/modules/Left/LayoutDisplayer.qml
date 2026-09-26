@@ -171,7 +171,7 @@ Item {
                     NumberAnimation {
                         target: icon; property: "scale"
                         to: 1.0; duration: Anim.color
-                        easing.type: Anim.outBack
+                        easing.type: Anim.outBack; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
                     }
                 }
             }

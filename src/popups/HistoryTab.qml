@@ -174,7 +174,7 @@ Item {
 
                 // Smooth repositioning when items are removed
                 displaced: Transition {
-                    NumberAnimation { property: "y"; duration: Anim.normal; easing.type: Anim.outCubic}
+                    NumberAnimation { property: "y"; duration: Anim.normal; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod}
                 }
 
                 Keys.onPressed: (event) => {
@@ -371,7 +371,7 @@ component ClipRow: Item {
                         smooth:   true
                         asynchronous: true
                         opacity: thumbImg.status === Image.Ready ? 1.0 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: Anim.mediumSlow; easing.type: Anim.outCubic} }
+                        Behavior on opacity { NumberAnimation { duration: Anim.mediumSlow; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
                     }
 
                     // Placeholder while loading / no path yet
@@ -532,8 +532,8 @@ component ActionBtn: Rectangle {
         origin.x: 13; origin.y: 13
         xScale: aH.hovered ? 1.10 : 1.0
         yScale: aH.hovered ? 1.10 : 1.0
-        Behavior on xScale { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
-        Behavior on yScale { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+        Behavior on xScale { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
+        Behavior on yScale { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
     }
 
     Text {

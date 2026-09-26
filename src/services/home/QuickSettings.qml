@@ -643,7 +643,7 @@ StatCard {
                             anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
                             width: Math.max(parent.radius * 2, parent.width * root._brightVal)
                             radius: parent.radius; color: Theme.active
-                            Behavior on width { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
+                            Behavior on width { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
                         }
                         MouseArea {
                             anchors.fill: parent; cursorShape: Qt.PointingHandCursor
@@ -666,7 +666,7 @@ StatCard {
                         width: btw.thumbD; height: btw.thumbD; radius: btw.thumbD / 2
                         color: Theme.text; anchors.verticalCenter: parent.verticalCenter
                         x: Math.max(0, Math.min(btw.width - width, root._brightVal * (btw.width - width)))
-                        Behavior on x { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
+                        Behavior on x { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
                     }
                 }
 
@@ -925,8 +925,8 @@ StatCard {
         // Subtle entrance scale + fade
         opacity: root.filterPickerOpen ? 1 : 0
         scale:   root.filterPickerOpen ? 1 : 0.95
-        Behavior on opacity { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
-        Behavior on scale   { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+        Behavior on opacity { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
+        Behavior on scale   { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
         transformOrigin: Item.BottomRight
 
         // Dismiss when clicking outside the picker
@@ -1096,8 +1096,8 @@ StatCard {
 
         opacity: root.screenCapturePickerOpen ? 1 : 0
         scale:   root.screenCapturePickerOpen ? 1 : 0.95
-        Behavior on opacity { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
-        Behavior on scale   { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+        Behavior on opacity { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
+        Behavior on scale   { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
         transformOrigin: Item.BottomRight
 
         MouseArea {

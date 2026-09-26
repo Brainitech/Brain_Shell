@@ -44,8 +44,28 @@ QtObject {
     // Global Curve Modifier
     readonly property int globalCurve: {
         if (curveStyle === "spring") return Easing.OutBack;
+        if (curveStyle === "jello") return Easing.OutElastic;
         if (curveStyle === "cinematic") return Easing.InOutQuart;
+        if (curveStyle === "linear") return Easing.Linear;
+        if (curveStyle === "sharp") return Easing.InQuint;
         return Easing.OutQuart; // Default to smooth
+    }
+    
+    // Physics Parameters
+
+    readonly property real globalOvershoot: {
+        if (curveStyle === "spring") return 1.12; // Balanced rebound
+        return 1.70158;
+    }
+    
+    readonly property real globalAmplitude: {
+        if (curveStyle === "jello") return 0.15; // Barely stretches
+        return 1.0;
+    }
+    
+    readonly property real globalPeriod: {
+        if (curveStyle === "jello") return 0.5; // Slower, relaxed wobbles
+        return 0.3;
     }
 
     // Easings (Mapping legacy bindings to the new global curve where appropriate)

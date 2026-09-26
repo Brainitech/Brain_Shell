@@ -110,7 +110,7 @@ RowLayout {
                     radius: Theme.cornerRadius
                     
                     opacity: isMenuOpen ? 1 : 0
-                    Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+                    Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
                     
                     // Flatten top corners to merge seamlessly with the top bar notch style
                     Rectangle {

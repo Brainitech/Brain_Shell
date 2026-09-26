@@ -19,10 +19,10 @@ Item {
     property bool isOpen: Popups.miniPlayerOpen && !ShellState.screenRecord
     opacity: isOpen ? 1 : 0
     visible: opacity > 0
-    Behavior on opacity { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic } }
+    Behavior on opacity { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
 
     property real expandOffset: opacity === 1 ? 0 : -Math.round(20 * localScale)
-    Behavior on expandOffset { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic } }
+    Behavior on expandOffset { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
 
     onIsOpenChanged: {
         CavaService.miniPlayerVisible = isOpen

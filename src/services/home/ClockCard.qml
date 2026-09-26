@@ -260,7 +260,7 @@ StatCard {
                 width: parent.width; height: parent.height
                 
                 property real targetX: {
-                    if (Anim.style === "none") return 0;
+                    if (Anim.style === "none" || Anim.style === "fade" || Anim.style === "scale" || Anim.style === "rise") return 0;
                     if (isCurrent) return 0;
                     if (myIdx < pagesContainer.pageIdx) return -width * parallaxFactor;
                     return width;
@@ -276,14 +276,26 @@ StatCard {
                 }
                 
                 property real targetOpacity: {
-                    if (Anim.style !== "parallax") return 1.0;
+                    if (Anim.style === "none" || Anim.style === "slide") return 1.0;
                     if (isCurrent) return 1.0;
                     return 0.0;
                 }
                 opacity: targetOpacity
                 Behavior on opacity {
-                    enabled: Anim.style === "parallax"
-                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+                    enabled: Anim.style !== "none" && Anim.style !== "slide"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo
+                        onRunningChanged: { if (!running && !pageClock.isCurrent) pageClock.wasCurrent = false; } }
+                }
+                
+                scale: targetScale
+                property real targetScale: {
+                    if (Anim.style === "scale" || Anim.style === "rise") return isCurrent ? 1.0 : 0.95;
+                    return 1.0;
+                }
+                Behavior on scale {
+                    enabled: Anim.style === "scale" || Anim.style === "rise"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
+                        onRunningChanged: { if (!running && !pageClock.isCurrent) pageClock.wasCurrent = false; } }
                 }
                 
                 visible: isCurrent || wasCurrent
@@ -357,7 +369,7 @@ StatCard {
             width: parent.width; height: parent.height
             
             property real targetX: {
-                if (Anim.style === "none") return 0;
+                if (Anim.style === "none" || Anim.style === "fade" || Anim.style === "scale" || Anim.style === "rise") return 0;
                 if (isCurrent) return 0;
                 if (myIdx < pagesContainer.pageIdx) return -width * parallaxFactor;
                 return width;
@@ -371,8 +383,30 @@ StatCard {
                     onRunningChanged: { if (!running && !pageTimer.isCurrent) pageTimer.wasCurrent = false; }
                 }
             }
+
+            property real targetOpacity: {
+                if (Anim.style === "none" || Anim.style === "slide") return 1.0;
+                if (isCurrent) return 1.0;
+                return 0.0;
+            }
+            opacity: targetOpacity
+            Behavior on opacity {
+                enabled: Anim.style !== "none" && Anim.style !== "slide"
+                NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+            }
             
-            visible: isCurrent || wasCurrent
+            scale: targetScale
+                property real targetScale: {
+                    if (Anim.style === "scale" || Anim.style === "rise") return isCurrent ? 1.0 : 0.95;
+                    return 1.0;
+                }
+                Behavior on scale {
+                    enabled: Anim.style === "scale" || Anim.style === "rise"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
+                        onRunningChanged: { if (!running && !pageTimer.isCurrent) pageTimer.wasCurrent = false; } }
+                }
+                
+                visible: isCurrent || wasCurrent
 
             // "+" / "x" toggle — top-right corner
             Item {
@@ -613,7 +647,7 @@ StatCard {
             width: parent.width; height: parent.height
             
             property real targetX: {
-                if (Anim.style === "none") return 0;
+                if (Anim.style === "none" || Anim.style === "fade" || Anim.style === "scale" || Anim.style === "rise") return 0;
                 if (isCurrent) return 0;
                 if (myIdx < pagesContainer.pageIdx) return -width * parallaxFactor;
                 return width;
@@ -627,8 +661,30 @@ StatCard {
                     onRunningChanged: { if (!running && !pageAlarm.isCurrent) pageAlarm.wasCurrent = false; }
                 }
             }
+
+            property real targetOpacity: {
+                if (Anim.style === "none" || Anim.style === "slide") return 1.0;
+                if (isCurrent) return 1.0;
+                return 0.0;
+            }
+            opacity: targetOpacity
+            Behavior on opacity {
+                enabled: Anim.style !== "none" && Anim.style !== "slide"
+                NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+            }
             
-            visible: isCurrent || wasCurrent
+            scale: targetScale
+                property real targetScale: {
+                    if (Anim.style === "scale" || Anim.style === "rise") return isCurrent ? 1.0 : 0.95;
+                    return 1.0;
+                }
+                Behavior on scale {
+                    enabled: Anim.style === "scale" || Anim.style === "rise"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
+                        onRunningChanged: { if (!running && !pageAlarm.isCurrent) pageAlarm.wasCurrent = false; } }
+                }
+                
+                visible: isCurrent || wasCurrent
             clip: true
 
             Item {
@@ -696,8 +752,9 @@ StatCard {
                     radius:  Math.round(8 * localScale)
                     border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,0.1); border.width: 1
                     opacity: root._addOpen ? 1 : 0
-                    Behavior on height  { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
-                    Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
+                    Behavior on height  { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
+                    Behavior on opacity { NumberAnimation { duration: Anim.mediumFast
+                        onRunningChanged: { if (!running && !pageAlarm.isCurrent) pageAlarm.wasCurrent = false; }} }
 
                     Column {
                         anchors.centerIn: parent
@@ -782,7 +839,7 @@ StatCard {
                                 anchors.verticalCenter: parent.verticalCenter
                                 x: modelData.enabled ? parent.width - width - Math.round(3 * localScale) : Math.round(3 * localScale)
                                 color: modelData.enabled ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.3)
-                                Behavior on x     { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+                                Behavior on x     { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
                                 Behavior on color { ColorAnimation  { duration: Anim.color} }
                             }
                             MouseArea {
@@ -828,7 +885,7 @@ StatCard {
             width: parent.width; height: parent.height
             
             property real targetX: {
-                if (Anim.style === "none") return 0;
+                if (Anim.style === "none" || Anim.style === "fade" || Anim.style === "scale" || Anim.style === "rise") return 0;
                 if (isCurrent) return 0;
                 if (myIdx < pagesContainer.pageIdx) return -width * parallaxFactor;
                 return width;
@@ -842,8 +899,30 @@ StatCard {
                     onRunningChanged: { if (!running && !pageStopwatch.isCurrent) pageStopwatch.wasCurrent = false; }
                 }
             }
+
+            property real targetOpacity: {
+                if (Anim.style === "none" || Anim.style === "slide") return 1.0;
+                if (isCurrent) return 1.0;
+                return 0.0;
+            }
+            opacity: targetOpacity
+            Behavior on opacity {
+                enabled: Anim.style !== "none" && Anim.style !== "slide"
+                NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
+            }
             
-            visible: isCurrent || wasCurrent
+            scale: targetScale
+                property real targetScale: {
+                    if (Anim.style === "scale" || Anim.style === "rise") return isCurrent ? 1.0 : 0.95;
+                    return 1.0;
+                }
+                Behavior on scale {
+                    enabled: Anim.style === "scale" || Anim.style === "rise"
+                    NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
+                        onRunningChanged: { if (!running && !pageStopwatch.isCurrent) pageStopwatch.wasCurrent = false; } }
+                }
+                
+                visible: isCurrent || wasCurrent
 
             Column {
                 anchors.centerIn: parent; spacing: Math.round(12 * localScale)

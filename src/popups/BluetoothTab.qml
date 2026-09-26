@@ -271,7 +271,7 @@ Item {
                     running: root._scanning; loops: Animation.Infinite
                     PauseAnimation { duration: index * 650 }
                     ParallelAnimation {
-                        NumberAnimation { property: "scale";   from: 0.08; to: 1.0; duration: Anim.megaSlow; easing.type: Anim.outCubic}
+                        NumberAnimation { property: "scale";   from: 0.08; to: 1.0; duration: Anim.megaSlow; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod}
                         NumberAnimation { property: "opacity"; from: 0.80; to: 0.0; duration: Anim.megaSlow; easing.type: Anim.outQuad}
                     }
                 }
@@ -431,7 +431,7 @@ Item {
             anchors { top: baseRow.bottom; left: parent.left; right: parent.right }
             clip: true
             height: dRow.isRemovePending ? removeRow.implicitHeight + Math.round(16 * localScale) : dRow.isPairingOpen ? pinRow.implicitHeight + Math.round(16 * localScale) : 0
-            Behavior on height { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic} }
+            Behavior on height { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
 
             // Remove confirmation
             Item {
@@ -580,7 +580,7 @@ Item {
         // Scan animation strip
         Item {
             width: parent.width; height: root._scanning ? Math.round(90 * localScale) : 0; clip: true
-            Behavior on height { NumberAnimation { duration: Anim.mediumSlow; easing.type: Anim.outCubic} }
+            Behavior on height { NumberAnimation { duration: Anim.mediumSlow; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
             ScanRings { anchors.centerIn: parent; width: Math.round(52 * localScale); height: Math.round(52 * localScale); centerGlyph: "󰂯"; glyphSize: Math.round(14 * localScale) }
             Text { anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: Math.round(6 * localScale) }
             text: "Scanning for devices…"; font.pixelSize: Math.round(10 * localScale); color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.50) }
@@ -591,7 +591,7 @@ Item {
             height: parent.height - Math.round(49 * localScale) - (root._scanning ? Math.round(90 * localScale) : 0)
             contentWidth: width; contentHeight: devCol.height
             clip: true; boundsBehavior: Flickable.StopAtBounds
-            Behavior on height { NumberAnimation { duration: Anim.mediumSlow; easing.type: Anim.outCubic} }
+            Behavior on height { NumberAnimation { duration: Anim.mediumSlow; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
 
             Column {
                 id: devCol; width: parent.width; height: implicitHeight; spacing: Math.round(4 * localScale)

@@ -507,7 +507,7 @@ Item {
                         ? Theme.active
                         : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
                     border.width: 1
-                    Behavior on width        { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic} }
+                    Behavior on width        { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
                     Behavior on opacity      { NumberAnimation { duration: Anim.mediumFast} }
                     Behavior on color        { ColorAnimation { duration: Anim.fast} }
                     Behavior on border.color { ColorAnimation { duration: Anim.fast} }

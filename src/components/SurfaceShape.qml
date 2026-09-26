@@ -78,31 +78,31 @@ Shape {
     property real brnTopFlareR:    SurfaceState.isBottomRightExpanded ? fr : r
     
     // --- ANIMATIONS ---
-    Behavior on lnRightFlare    { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on lnLeftMelt      { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on lnInnerR        { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on rnTopFlare      { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on rnBottomMelt    { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on rnInnerR        { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on lnRightFlare    { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on lnLeftMelt      { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on lnInnerR        { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on rnTopFlare      { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on rnBottomMelt    { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on rnInnerR        { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
     
-    Behavior on brnBottomFlareR { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on brnInnerR       { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on brnTopFlareR    { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on centerNotchHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on centerNotchWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on leftNotchHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on leftNotchWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on rightNotchHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on rightNotchWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on brnBottomFlareR { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on brnInnerR       { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on brnTopFlareR    { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on centerNotchHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on centerNotchWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on leftNotchHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on leftNotchWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on rightNotchHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on rightNotchWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
     
-    Behavior on lcnDepth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on lcnHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on rcnDepth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on rcnHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on bcnDepth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on bcnWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on brnDepth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-    Behavior on brnWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+    Behavior on lcnDepth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on lcnHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on rcnDepth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on rcnHeight { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on bcnDepth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on bcnWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on brnDepth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+    Behavior on brnWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
 
     ShapePath {
         fillColor: frameColor

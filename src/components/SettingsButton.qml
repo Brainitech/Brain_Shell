@@ -76,7 +76,7 @@ Item {
     height: baseRow.height + (expanded ? expandArea.implicitHeight : 0)
     clip: true
     
-    Behavior on height { NumberAnimation { duration: Anim.fast; easing.type: Anim.outCubic } }
+    Behavior on height { NumberAnimation { duration: Anim.fast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
 
     // Background Hover Highlight
     Rectangle {

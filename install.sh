@@ -142,11 +142,11 @@ if [[ -d "$REPO_DIR/.git" ]]; then
     else
         log_info "Existing clone found — updating..."
         BRAIN_SHELL_BRANCH="${BRAIN_SHELL_BRANCH:-main}"
-        git -C "$REPO_DIR" fetch origin "$BRAIN_SHELL_BRANCH" &>/dev/null || true
+        git -C "$REPO_DIR" fetch origin "$BRAIN_SHELL_BRANCH" || true
         # Verify untracked changes before destructive clean
         if [[ -n $(git -C "$REPO_DIR" status --porcelain) ]]; then
             log_warn "Local repository has uncommitted changes. Using git pull --rebase instead of hard reset."
-            git -C "$REPO_DIR" pull --rebase origin "$BRAIN_SHELL_BRANCH" &>/dev/null || true
+            git -C "$REPO_DIR" pull --rebase origin "$BRAIN_SHELL_BRANCH" || true
         else
             git -C "$REPO_DIR" reset --hard "origin/$BRAIN_SHELL_BRANCH" &>/dev/null || true
             git -C "$REPO_DIR" clean -fd &>/dev/null || true
@@ -156,7 +156,7 @@ if [[ -d "$REPO_DIR/.git" ]]; then
 else
     log_info "Cloning from GitHub..."
     BRAIN_SHELL_BRANCH="${BRAIN_SHELL_BRANCH:-main}"
-    git clone -b "$BRAIN_SHELL_BRANCH" https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR" &>/dev/null
+    git clone -b "$BRAIN_SHELL_BRANCH" https://github.com/Brainitech/Brain_Shell.git "$REPO_DIR"
     log_ok "Repository cloned: $REPO_DIR"
 fi
 

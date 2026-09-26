@@ -18,38 +18,9 @@ StatCard {
     // ─────────────────────────────────────────────────────────────────────────
     //  Brightness
     // ─────────────────────────────────────────────────────────────────────────
-    property real _brightVal:  0.72
-    property int  _brightMax:  100
-    property bool _brightBusy: false
+    property real _brightVal: BrightnessService.brightness / 100
 
-    Process {
-        id: brightRead; command: ["bash", "-c", "brightnessctl -m"]; running: false
-        stdout: SplitParser {
-            onRead: function(line) {
-                var p = line.split(",")
-                if (p.length >= 5) {
-                    var cur = parseInt(p[2]); var max = parseInt(p[4])
-                    if (max > 0) { root._brightMax = max; root._brightVal = cur / max }
-                }
-            }
-        }
-    }
-    Process {
-        id: brightWrite
-        command: ["bash", "-c", "brightnessctl set " +
-            (Math.round(root._brightVal * root._brightMax) <= 0
-             ? 2 : Math.round(root._brightVal * root._brightMax))]
-        running: false
-        onRunningChanged: if (!running) root._brightBusy = false
-    }
-    Timer { id: brightDebounce; interval: 50; repeat: false
-        onTriggered: { root._brightBusy = true; brightWrite.running = true } }
-    Timer { interval: 1000; running: true; repeat: true
-        onTriggered: if (!root._brightBusy) brightRead.running = true }
-    function _setBright(v) {
-        root._brightVal = Math.max(0.0, Math.min(1.0, v))
-        brightDebounce.restart()
-    }
+
 
     // ─────────────────────────────────────────────────────────────────────────
     //  Wi-Fi
@@ -95,12 +66,18 @@ StatCard {
         command: ["bash", "-c",
             "bluetoothctl show 2>/dev/null | grep '^\\s*Powered:' | awk '{print $2}'"]
         running: false
-        stdout: SplitParser { onRead: function(l) { root.btOn = l.trim() === "yes" } } }
+        stdout: SplitParser { onRead: function(l) {
+            root.btOn = l.trim() === "yes"
+            ShellState.btPowered = root.btOn
+        } } }
     Process { id: btDeviceRead
         command: ["bash", "-c",
             "bluetoothctl devices Connected 2>/dev/null | head -1 | cut -d' ' -f3-"]
         running: false
-        stdout: SplitParser { onRead: function(l) { root.btDevice = l.trim() } } }
+        stdout: SplitParser { onRead: function(l) {
+            root.btDevice = l.trim()
+            ShellState.btConnected = (root.btDevice !== "")
+        } } }
     Process { id: btToggleProc; command: []; running: false
         onRunningChanged: if (!running) {
             _btPoll()
@@ -177,32 +154,9 @@ StatCard {
     property bool   hotspotBusy:   false
     property bool   _hsWifiWasOff: false  // wifi radio was off when hotspot started; restore on stop
     property string hotspotLabel:  ""    // sublabel: "Active" | "Not on ethernet" | ""
-    property string _hsSSID:       "BrainShell"
-    property string _hsPassword:   "changeme1"
+    property string _hsSSID: PrefsService.hotspotSsid
+    property string _hsPassword: PrefsService.hotspotPassword
     property string _hsWifiIface:  "wlan0"
-
-    readonly property string _hsCfgPath:
-        Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/hotspot.json"
-
-    // Load config on startup
-    Process {
-        id: hsCfgLoadProc
-        command: ["bash", "-c",
-            "[ -f '" + root._hsCfgPath + "' ] || " +
-            "(mkdir -p \"$(dirname '" + root._hsCfgPath + "')\" && " +
-            "printf '%s' '{\"ssid\":\"BrainShell\",\"password\":\"changeme1\"}' > '" + root._hsCfgPath + "'); " +
-            "cat '" + root._hsCfgPath + "'"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    var o = JSON.parse(text.trim())
-                    if (o.ssid)     root._hsSSID     = o.ssid
-                    if (o.password) root._hsPassword = o.password
-                } catch(e) {}
-            }
-        }
-    }
 
     // Detect WiFi interface name
     Process {
@@ -458,12 +412,6 @@ StatCard {
         } else { readGapsIn.running = false; readGapsIn.running = true }
     }
     
-    Connections {
-        target: IpcManager
-        function onFocusToggleRequested() {
-            root._focusToggle()
-        }
-    }
 
 // ─────────────────────────────────────────────────────────────────────────
     //  Filter  (Native Hyprland Lua)
@@ -476,6 +424,7 @@ StatCard {
     property string currentFilter:    ""
     property var    filterList:       []
     property bool   filterPickerOpen: false
+    property bool   screenCapturePickerOpen: false
     
     // Add your standard shader directories here (space-separated)
     property string shaderPaths: "~/.config/hypr/shaders ~/.local/share/hypr/shaders /usr/share/hyprshade/shaders ~/.local/src/Brain_Shell/src/config/shaders ~/.config/quickshell/src/config/shaders"
@@ -578,11 +527,48 @@ StatCard {
         root.filterPickerOpen  = true
     }
 
+    property string pickerFormat: "HEX"
+    property var sysThemeProc: Process {}
+
+    function _pickerLaunch() {
+        Popups.colorPickerActive = true;
+        var fmt = root.pickerFormat;
+        
+        pickerProc.command = ["bash", "-c",
+            "geom=$(slurp -p -b 00000000 -c 00000000 2>/dev/null) || exit 0; " +
+            "rgb=$(grim -g \"$geom\" -t ppm - 2>/dev/null | tail -c 3 | od -An -t u1) || exit 0; " +
+            "res=$(echo \"$rgb\" | awk -v fmt=\"" + fmt + "\" '{" +
+            "  r=$1+0; g=$2+0; b=$3+0; " +
+            "  if(fmt==\"RGB\") printf \"rgb(%d, %d, %d)\",r,g,b; " +
+            "  else if(fmt==\"HSL\"){ " +
+            "    rf=r/255;gf=g/255;bf=b/255; mx=rf;mn=rf; " +
+            "    if(gf>mx)mx=gf; if(bf>mx)mx=bf; if(gf<mn)mn=gf; if(bf<mn)mn=bf; " +
+            "    l=(mx+mn)/2; if(mx==mn){h=0;sv=0} else { d=mx-mn; " +
+            "    sv=(l>0.5)?d/(2-mx-mn):d/(mx+mn); " +
+            "    if(mx==rf)h=(gf-bf)/d+(gf<bf?6:0); else if(mx==gf)h=(bf-rf)/d+2; else h=(rf-gf)/d+4; h=h/6; } " +
+            "    printf \"hsl(%d, %d%%, %d%%)\",int(h*360+0.5),int(sv*100+0.5),int(l*100+0.5); " +
+            "  } else { " +
+            "    printf \"#%02x%02x%02x\",r,g,b; " +
+            "  } " +
+            "}'); " +
+            "if [ -n \"$res\" ]; then " +
+            "  printf '%s' \"$res\" | { if command -v wl-copy >/dev/null 2>&1; then setsid -f wl-copy; else wl-copy; fi; }; " +
+            "  echo \"$res\"; " +
+            "fi"
+        ];
+        
+        pickerProc.running = false;
+        pickerProc.running = true;
+    }
+    property var pickerProc: Process {
+        onExited: Popups.colorPickerActive = false
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     //  Polling timer
     // ─────────────────────────────────────────────────────────────────────────
     Timer {
-        interval: 5000; running: true; repeat: true
+        interval: 5000; running: Popups.dashboardOpen; repeat: true
         onTriggered: {
             _wifiPoll(); _btPoll()
             hsActiveCheckProc.running = false; hsActiveCheckProc.running = true
@@ -595,14 +581,13 @@ StatCard {
     }
 
     Component.onCompleted: {
-        brightRead.running      = true
+        
         _wifiPoll(); _btPoll()
         nlCheck.running         = true
         caffeineCheck.running   = true
         hotspotCheck.running    = true
         airplaneCheck.running   = true
         filterCheckProc.running = true
-        hsCfgLoadProc.running   = true
         hsIfaceProc.running     = true
         hsActiveCheckProc.running = true
     }
@@ -666,20 +651,20 @@ StatCard {
                                 return Math.max(0.0, Math.min(1.0,
                                     (mx - btw.thumbD/2) / (btrack.width - btw.thumbD)))
                             }
-                            onPressed:         root._setBright(_c(mouseX))
-                            onPositionChanged: if (pressed) root._setBright(_c(mouseX))
+                            onPressed:         BrightnessService.setBrightness(Math.round(_c(mouseX) * 100))
+                            onPositionChanged: if (pressed) BrightnessService.setBrightness(Math.round(_c(mouseX) * 100))
                         }
                         }
 
                      WheelHandler {
                         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
                         onWheel: function(e) {
-                            root._setBright(root._brightVal + (e.angleDelta.y > 0 ? 0.05 : -0.05))
+                            BrightnessService.setBrightness(Math.round((root._brightVal + (e.angleDelta.y > 0 ? 0.05 : -0.05)) * 100))
                         }
                     }
                     Rectangle {
                         width: btw.thumbD; height: btw.thumbD; radius: btw.thumbD / 2
-                        color: "#ffffff"; anchors.verticalCenter: parent.verticalCenter
+                        color: Theme.text; anchors.verticalCenter: parent.verticalCenter
                         x: Math.max(0, Math.min(btw.width - width, root._brightVal * (btw.width - width)))
                         Behavior on x { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
                     }
@@ -726,6 +711,7 @@ StatCard {
                     required property string label
                     property  string sublabel: ""
                     signal toggled()
+                    signal rightToggled()
 
                     radius: Math.round(10 * localScale)
                     color: on
@@ -769,7 +755,14 @@ StatCard {
                         }
                     }
                     HoverHandler { id: bH; cursorShape: Qt.PointingHandCursor }
-                    MouseArea    { anchors.fill: parent; onClicked: btn.toggled() }
+                    MouseArea { 
+                        anchors.fill: parent
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        onClicked: (mouse) => {
+                            if (mouse.button === Qt.RightButton) btn.rightToggled()
+                            else btn.toggled()
+                        }
+                    }
                 }
 
                 Grid {
@@ -839,8 +832,7 @@ StatCard {
                             } else if (ShellState.screenRecord) {
                                 ScreenRecService.cancelSetup()
                             } else {
-                                Popups.closeAll()
-                                ShellState.screenRecord = true
+                                root.screenCapturePickerOpen = !root.screenCapturePickerOpen
                             }
                         }
                     }
@@ -852,6 +844,37 @@ StatCard {
                         label:    "Filter"
                         sublabel: root.currentFilter !== "" ? root.currentFilter : ""
                         onToggled: root._filterOpen()
+                    }
+                    // Picker tile — opens Wayland portal color picker dialog (right-click cycles format)
+                    TglBtn {
+                        width: tileGrid.btnW; height: tileGrid.btnH
+                        on: false
+                        icon: "󰈊"
+                        label: "Picker"
+                        sublabel: root.pickerFormat
+                        onToggled: root._pickerLaunch()
+                        onRightToggled: {
+                            if (root.pickerFormat === "HEX") root.pickerFormat = "RGB";
+                            else if (root.pickerFormat === "RGB") root.pickerFormat = "HSL";
+                            else root.pickerFormat = "HEX";
+                        }
+                    }
+                    // Theme Mode tile — system wide dark/light scheme toggle
+                    TglBtn {
+                        width: tileGrid.btnW; height: tileGrid.btnH
+                        on: PrefsService.darkMode
+                        icon: PrefsService.darkMode ? "󰔎" : "󰖨"
+                        label: "Theme Mode"
+                        sublabel: PrefsService.darkMode ? "Dark Scheme" : "Light Scheme"
+                        onToggled: {
+                            PrefsService.darkMode = !PrefsService.darkMode
+                            PrefsService.saveConfig()
+                            sysThemeProc.command = ["bash", "-c", "gsettings set org.gnome.desktop.interface color-scheme " + (PrefsService.darkMode ? "'prefer-dark'" : "'prefer-light'")]
+                            sysThemeProc.running = false; sysThemeProc.running = true
+                            if (WallpaperService.currentWall !== "") {
+                                WallpaperService.apply(WallpaperService.currentWall)
+                            }
+                        }
                     }
                 }
             }
@@ -1030,7 +1053,118 @@ StatCard {
 
     // Tap outside the picker to close it
     TapHandler {
-        enabled: root.filterPickerOpen
-        onTapped: root.filterPickerOpen = false
+        enabled: root.filterPickerOpen || root.screenCapturePickerOpen
+        onTapped: {
+            root.filterPickerOpen = false
+            root.screenCapturePickerOpen = false
+        }
+    }
+
+    Rectangle {
+        id: screenCapturePicker
+        visible:  root.screenCapturePickerOpen
+        z:        20
+        
+        onVisibleChanged: {
+            if (visible) forceActiveFocus()
+            else root.forceActiveFocus()
+        }
+
+        Keys.onEscapePressed: function(event) {
+            root.screenCapturePickerOpen = false
+            event.accepted = true
+        }
+
+        anchors {
+            right:        parent.right
+            bottom:       parent.bottom
+            rightMargin:  Math.round(12 * localScale)
+            bottomMargin: Math.round(12 * localScale)
+        }
+
+        width:  Math.round(180 * localScale)
+        height: captureCol.implicitHeight + Math.round(16 * localScale)
+        radius: Math.round(Theme.cornerRadius * localScale)
+
+        color: Qt.rgba(
+            Math.min(1, Theme.background.r + 0.05),
+            Math.min(1, Theme.background.g + 0.05),
+            Math.min(1, Theme.background.b + 0.05),
+            0.98)
+        border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.10)
+        border.width: 1
+
+        opacity: root.screenCapturePickerOpen ? 1 : 0
+        scale:   root.screenCapturePickerOpen ? 1 : 0.95
+        Behavior on opacity { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+        Behavior on scale   { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic} }
+        transformOrigin: Item.BottomRight
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {}
+        }
+
+        Item {
+            anchors { fill: parent; margins: Math.round(8 * localScale) }
+
+            Column {
+                id: captureCol
+                width: parent.width
+                spacing: Math.round(2 * localScale)
+
+                Text {
+                    width: parent.width
+                    text: "CAPTURE"
+                    font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold
+                    color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
+                    leftPadding: Math.round(4 * localScale)
+                    bottomPadding: Math.round(4 * localScale)
+                }
+
+                Rectangle {
+                    width:  parent.width
+                    height: Math.round(28 * localScale)
+                    radius: Math.round(6 * localScale)
+                    color: shotH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
+                    Text {
+                        anchors { left: parent.left; leftMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
+                        text: "Screenshot"
+                        color: Theme.text
+                        font.pixelSize: Math.round(11 * localScale)
+                    }
+                    HoverHandler { id: shotH; cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        onTapped: {
+                            root.screenCapturePickerOpen = false
+                            IpcManager.screenshotDelayed()
+                        }
+                    }
+                }
+
+                Rectangle {
+                    width:  parent.width
+                    height: Math.round(28 * localScale)
+                    radius: Math.round(6 * localScale)
+                    color: recH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
+                    Behavior on color { ColorAnimation { duration: Anim.fast} }
+                    Text {
+                        anchors { left: parent.left; leftMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
+                        text: "Screen Record"
+                        color: Theme.text
+                        font.pixelSize: Math.round(11 * localScale)
+                    }
+                    HoverHandler { id: recH; cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        onTapped: {
+                            root.screenCapturePickerOpen = false
+                            Popups.closeAll()
+                            ShellState.screenRecord = true
+                        }
+                    }
+                }
+            }
+        }
     }
 }

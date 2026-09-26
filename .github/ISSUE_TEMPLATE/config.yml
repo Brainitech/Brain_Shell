@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question (Discussions)
+    url: https://github.com/Brainitech/Brain_Shell/discussions
+    about: Please ask and answer questions here rather than using the issue tracker.
+  - name: Join our Discord
+    url: https://discord.gg/BV8UduvABx
+    about: Chat with the community and get help in real-time.

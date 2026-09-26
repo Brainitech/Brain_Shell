@@ -28,14 +28,18 @@ jobs:
       - name: Validate pacman dependencies exist in repos
         run: |
           PACMAN_DEPS=(
-            hyprland qt6-base qt6-declarative qt6-multimedia
-            qt6-5compat qt6ct pipewire pipewire-pulse wireplumber
-            networkmanager bluez bluez-utils brightnessctl upower
-            libnotify polkit python wl-clipboard slurp xdg-user-dirs
-            wf-recorder cava imagemagick wtype lm_sensors util-linux
-            hyprsunset hyprlock hyprpolkitagent hypridle
-            xdg-desktop-portal-hyprland ttf-jetbrains-mono-nerd
-            ttf-nerd-fonts-symbols-common hyprshutdown cliphist
+            qt6-base qt6-declarative qt6-wayland qt6-multimedia qt6-5compat qt6ct
+            pipewire pipewire-pulse wireplumber
+            playerctl mpv-mpris mpd-mpris
+            networkmanager bluez bluez-utils
+            brightnessctl upower libnotify polkit kitty
+            python wl-clipboard slurp xdg-user-dirs
+            wf-recorder cava imagemagick wtype
+            lm_sensors util-linux
+            hyprland hyprsunset hyprlock hyprpolkitagent hypridle
+            xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
+            ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols-common
+            cliphist awww matugen
           )
           FAILED=()
           for pkg in "${PACMAN_DEPS[@]}"; do
@@ -56,8 +60,6 @@ jobs:
         run: |
           AUR_DEPS=(
             quickshell-git
-            awww-git
-            matugen-bin
             envycontrol
             auto-cpufreq
             nbfc-linux
@@ -91,18 +93,29 @@ jobs:
           bash -n dots-extra/install-arch.sh
           echo "✓ install-arch.sh syntax OK"
 
+      - name: Lint dots-extra/install-nix.sh
+        run: |
+          bash -n dots-extra/install-nix.sh
+          echo "✓ install-nix.sh syntax OK"
+
       - name: Lint dots-extra/validate-install.sh
         run: |
           bash -n dots-extra/validate-install.sh
-          echo "✓ validate-install.sh passed ShellCheck"
+          echo "✓ validate-install.sh syntax OK"
 
       - name: Lint shell scripts in src/scripts/
         run: |
           bash -n src/scripts/GfxSwitch.sh
           bash -n src/scripts/PowerControl.sh
-          echo "✓ src/scripts/ passed ShellCheck"
+          bash -n src/scripts/screenshot.sh
+          echo "✓ src/scripts/ syntax OK"
 
-      - name: Validate QML files exist and are non-empty
+      - name: Lint Python scripts
+        run: |
+          python3 -m py_compile src/scripts/hypr_binds.py
+          echo "✓ hypr_binds.py syntax OK"
+
+      - name: Validate QML syntax and existence
         run: |
           FAILED=()
           while IFS= read -r -d '' f; do
@@ -110,11 +123,21 @@ jobs:
               echo "✗ Empty file: $f"
               FAILED+=("$f")
             else
-              echo "✓ $f"
+              # Run qmllint and capture output. 
+              # We grep for actual syntax/token errors to avoid failing on missing Quickshell C++ modules in the CI container
+              OUT=$(qmllint "$f" 2>&1 || true)
+              if echo "$OUT" | grep -q -iE "expected token|syntax error"; then
+                echo "✗ Syntax error in $f:"
+                echo "$OUT"
+                FAILED+=("$f")
+              else
+                echo "✓ $f"
+              fi
             fi
           done < <(find src -name "*.qml" -print0)
+          
           if [ ${#FAILED[@]} -gt 0 ]; then
-            echo "Empty QML files found!"
+            echo "QML Validation Failed!"
             exit 1
           fi
 
@@ -174,11 +197,14 @@ jobs:
           with open('flake.nix') as f:
               content = f.read()
           checks = {
-            'packages':     'packages' in content,
-            'devShells':    'devShells' in content,
-            'nixosModules': 'nixosModules' in content,
-            'description':  'description' in content,
-            'brain-shell':  'brain-shell' in content,
+            'packages':              'packages' in content,
+            'devShells':             'devShells' in content,
+            'nixosModules':          'nixosModules' in content,
+            'description':           'description' in content,
+            'brain-shell':           'brain-shell' in content,
+            'programs.hyprland':     'programs.hyprland.enable' in content,
+            'services.pipewire':     'services.pipewire' in content,
+            'kitty':                 'kitty' in content,
           }
           failed = []
           for key, ok in checks.items():
@@ -210,14 +236,21 @@ jobs:
             "flake.lock"
             "install.sh"
             "dots-extra/install-arch.sh"
+            "dots-extra/install-nix.sh"
             "dots-extra/validate-install.sh"
             "src/config/brain-shell-colors.json.example"
             "src/theme/Theme.qml"
             "src/theme/ColorLoader.qml"
             "src/state/ShellState.qml"
             "src/state/Popups.qml"
-            "src/windows/TopBar.qml"
+            "src/state/SurfaceState.qml"
+            "src/windows/DynamicSurface.qml"
+            "src/windows/SurfaceInputManager.qml"
+            "src/components/SurfaceShape.qml"
             "src/popups/Dashboard.qml"
+            "src/scripts/hypr_binds.py"
+            "src/scripts/screenshot.sh"
+            "src/scripts/PowerControl.sh"
           )
           FAILED=()
           for f in "${REQUIRED[@]}"; do
@@ -239,7 +272,9 @@ jobs:
           echo "QML file counts by directory:"
           find src -name "*.qml" | sed 's|/[^/]*$||' | sort | uniq -c | sort -rn
 
-      - name: Check install.sh is executable or has correct shebang
+      - name: Check installer shebangs
         run: |
-          head -1 install.sh | grep -q "^#!/" && echo "✓ shebang OK" || (echo "✗ Missing shebang in install.sh" && exit 1)
-          head -1 dots-extra/install-arch.sh | grep -q "^#!/" && echo "✓ shebang OK (arch)" || (echo "✗ Missing shebang in install-arch.sh" && exit 1)
+          head -1 install.sh | grep -q "^#!/" && echo "✓ shebang OK (install.sh)" || (echo "✗ Missing shebang in install.sh" && exit 1)
+          head -1 dots-extra/install-arch.sh | grep -q "^#!/" && echo "✓ shebang OK (install-arch.sh)" || (echo "✗ Missing shebang in install-arch.sh" && exit 1)
+          head -1 dots-extra/install-nix.sh | grep -q "^#!/" && echo "✓ shebang OK (install-nix.sh)" || (echo "✗ Missing shebang in install-nix.sh" && exit 1)
+          head -1 dots-extra/validate-install.sh | grep -q "^#!/" && echo "✓ shebang OK (validate-install.sh)" || (echo "✗ Missing shebang in validate-install.sh" && exit 1)

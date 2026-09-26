@@ -7,13 +7,15 @@ Item {
     id: root
 
     property real localScale: 1.0
-    property string _page: "appearance"
+    property string _page: "general"
+
+    property bool showHyprlandKeybinds: false
 
     readonly property var _tabs: [
-        { key: "appearance", icon: "󰏘", label: "Appearance"        },
-        { key: "layout",     icon: "󰕰", label: "Layout & Behavior" },
+        { key: "general",    icon: "󰒓", label: "General"            },
+        { key: "visuals",    icon: "󰏘", label: "Visuals & Behavior" },
+        { key: "keybinds",   icon: "󰌌", label: "Keybinds",          hasSwitch: true },
         { key: "data",       icon: "󰋊", label: "Data & Storage"    },
-        { key: "keybinds",   icon: "󰌌", label: "Keybinds"          },
         { key: "misc",       icon: "󰒓", label: "Misc"               },
     ]
 
@@ -29,8 +31,8 @@ Item {
             width:  Math.floor((parent.width - parent.spacing) * 0.30)
             height: parent.height
             radius: Math.round(Theme.cornerRadius * localScale)
-            color:  Qt.rgba(1, 1, 1, 0.04)
-            border.color: Qt.rgba(1, 1, 1, 0.07)
+            color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+            border.color: Theme.border
             border.width: 1
 
             TabSwitcher {
@@ -48,42 +50,111 @@ Item {
                 }
                 currentPage: root._page
                 model:       root._tabs
+                switchStates: ({ "keybinds": root.showHyprlandKeybinds })
+                onSwitchToggled: function(key, state) {
+                    if (key === "keybinds") root.showHyprlandKeybinds = state
+                }
                 onPageChanged: function(key) { root._page = key }
             }
         }
 
         // ── Right: content area (70%) ─────────────────────────────────────────
-        Item {
+        Rectangle {
             width:  parent.width - Math.floor((parent.width - parent.spacing) * 0.30) - parent.spacing
             height: parent.height
+            radius: Math.round(Theme.cornerRadius * localScale)
+            color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+            border.color: Theme.border
+            border.width: 1
+            clip:   true
 
             Item {
-                anchors.fill: parent
-                visible: root._page === "appearance"
-                Text { anchors.centerIn: parent; text: "Appearance Coming Soon!"; font.pixelSize: Math.round(13 * localScale); color: Qt.rgba(1,1,1,0.12) }
-            }
-            Item {
-                anchors.fill: parent
-                visible: root._page === "layout"
-                Text { anchors.centerIn: parent; text: "Layout & Behavior Coming Soon!"; font.pixelSize: Math.round(13 * localScale); color: Qt.rgba(1,1,1,0.12) }
-            }
-            Item {
-                anchors.fill: parent
-                visible: root._page === "data"
-                Text { anchors.centerIn: parent; text: "Data & Storage Coming Soon! "; font.pixelSize: Math.round(13 * localScale); color: Qt.rgba(1,1,1,0.12) }
-            }
-            Item {
-                anchors.fill: parent
-                visible: root._page === "keybinds"
-                KeybindsPage { 
-                    anchors.fill: parent 
-                    // localScale: root.localScale // If KeybindsPage is updated later
+                id: pageArea
+                anchors {
+                    fill: parent
+                    margins: Math.round(12 * localScale)
                 }
-            }
-            Item {
-                anchors.fill: parent
-                visible: root._page === "misc"
-                Text { anchors.centerIn: parent; text: "Misc Coming Soon!"; font.pixelSize: Math.round(13 * localScale); color: Qt.rgba(1,1,1,0.12) }
+
+                property int pageIdx: Math.max(0, ["general", "visuals", "keybinds", "data", "misc"].indexOf(root._page))
+                
+                property int oldIdx: pageIdx
+                property int newIdx: pageIdx
+                property real progress: 1.0
+                
+                NumberAnimation {
+                    id: progressAnim
+                    target: pageArea
+                    property: "progress"
+                    from: 0.0
+                    to: 1.0
+                    duration: Anim.style === "none" ? 0 : Anim.transition
+                    easing.type: Anim.outCubic
+                }
+                
+                onPageIdxChanged: {
+                    oldIdx = newIdx;
+                    newIdx = pageIdx;
+                    progress = 0.0;
+                    if (Anim.style !== "none") progressAnim.restart();
+                    else progress = 1.0;
+                }
+
+                component VerticalSlidePage: Item {
+                    property int myIdx
+                    property bool isCurrent: myIdx === pageArea.pageIdx
+                    property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                    
+                    property bool isIncoming: myIdx === pageArea.newIdx
+                    property bool isOutgoing: myIdx === pageArea.oldIdx
+                    property int slideDir: pageArea.newIdx > pageArea.oldIdx ? 1 : -1
+                    
+                    width: parent.width; height: parent.height
+                    
+                    y: {
+                        if (Anim.style === "none") return 0;
+                        if (isIncoming) {
+                            return slideDir * parent.height * (1.0 - pageArea.progress);
+                        } else if (isOutgoing) {
+                            return -slideDir * parent.height * parallaxFactor * pageArea.progress;
+                        } else {
+                            return myIdx < pageArea.newIdx ? -parent.height : parent.height;
+                        }
+                    }
+                    
+                    opacity: {
+                        if (Anim.style !== "parallax") return 1.0;
+                        if (isIncoming) return pageArea.progress;
+                        if (isOutgoing) return 1.0 - pageArea.progress;
+                        return 0.0;
+                    }
+                    
+                    visible: isCurrent || (isOutgoing && pageArea.progress < 1.0)
+                }
+
+                VerticalSlidePage {
+                    myIdx: 0
+                    GeneralPage { anchors.fill: parent; localScale: root.localScale }
+                }
+                VerticalSlidePage {
+                    myIdx: 1
+                    VisualsBehaviorPage { anchors.fill: parent; localScale: root.localScale }
+                }
+                VerticalSlidePage {
+                    myIdx: 2
+                    KeybindsPage { 
+                        anchors.fill: parent
+                        localScale: root.localScale
+                        showHyprlandKeybinds: root.showHyprlandKeybinds
+                    }
+                }
+                VerticalSlidePage {
+                    myIdx: 3
+                    DataPage { anchors.fill: parent; localScale: root.localScale }
+                }
+                VerticalSlidePage {
+                    myIdx: 4
+                    MiscPage { anchors.fill: parent; localScale: root.localScale }
+                }
             }
         }
     }

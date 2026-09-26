@@ -28,8 +28,6 @@ QtObject {
     property bool   busy:          false
     property string curFreqStr:    "— GHz"
 
-    property string _pendingProfile: ""
-
     // ── Daemon status check ───────────────────────────────────────────────────
     property var _daemonProc: Process {
         command: ["systemctl", "is-active", "auto-cpufreq"]
@@ -120,9 +118,10 @@ QtObject {
     }
 
     // ── Poll timer ────────────────────────────────────────────────────────────
+    property bool active: true
     property var _pollTimer: Timer {
         interval: 2000
-        running:  true
+        running:  root.active
         repeat:   true
         onTriggered: root._poll()
     }

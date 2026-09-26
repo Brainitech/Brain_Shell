@@ -1,117 +1,47 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
-import "../shapes"
 import "../components"
 import "../"
 
-PanelWindow {
+Item {
     id: root
 
-    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+    property real localScale: 1.0
 
     readonly property int popupWidth:  Math.round(420 * root.localScale)
     readonly property int popupHeight: Math.round(560 * root.localScale)
-    readonly property int fw: Math.round(Theme.cornerRadius * root.localScale)
-    readonly property int fh: Math.round(Theme.cornerRadius * root.localScale)
+        
 
-    anchors.top:    true
-    anchors.left:   true
-    anchors.right:  true
-    anchors.bottom: true
 
-    exclusionMode: ExclusionMode.Ignore
-    color:         "transparent"
 
-    WlrLayershell.layer:         WlrLayer.Overlay
-    property bool wantsFocus: false
-    WlrLayershell.keyboardFocus: wantsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
-    Timer {
-        id: focusGrabTimer
-        interval: 15
-        onTriggered: { if (root.windowVisible && Popups.clipboardOpen) root.wantsFocus = true }
-    }
-
-    property bool windowVisible: false
-    visible: windowVisible
-
-    Connections {
-        target: Popups
-        function onClipboardOpenChanged() {
-            if (Popups.clipboardOpen) {
-                closeTimer.stop()
-                root.windowVisible = true
-                focusGrabTimer.restart()
-            } else {
-                root.wantsFocus = false
-                focusGrabTimer.stop()
-                closeTimer.restart()
-            }
-        }
-    }
-
-    Timer {
-        id: closeTimer
-        interval: Anim.transition + 20
-        onTriggered: {
-            if (!Popups.clipboardOpen)
-                root.windowVisible = false
-        }
-    }
     
-    MouseArea {
-        anchors.fill: parent
-        onClicked:    Popups.clipboardOpen = false
-    }
 
+    // ── Content ────────────────────────────────────────────
     Item {
-        id: sizer
-        anchors.right:  parent.right
-        anchors.bottom: parent.bottom
-        anchors.rightMargin: Theme.borderWidth
-        anchors.bottomMargin: Theme.borderWidth
-        clip: true
-
-        width:  Popups.clipboardOpen ? root.popupWidth  + root.fw : 0
-        height: Popups.clipboardOpen ? root.popupHeight + root.fh : 0
-
-        Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-        Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked:    {}
-        }
-
-        PopupShape {
-            anchors.fill: parent
-            attachedEdge: "bottom-right"
-            color:        Theme.background
-            radius:       Math.round(Theme.cornerRadius * root.localScale)
-            flareWidth:   root.fw
-            flareHeight:  root.fh
-        }
+        anchors.top: parent.top
+        anchors.left: parent.left
+        width: root.popupWidth
+        height: root.popupHeight
 
         Item {
-            id: content
-            anchors {
-                fill:         parent
-                topMargin:    root.fh + Math.round(8 * root.localScale)
-                leftMargin:   root.fw + Math.round(10 * root.localScale)
-                bottomMargin: Math.round(8 * root.localScale)
+            anchors.fill: parent
+
+            opacity: (SurfaceState.activeContent === "clipboard") ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic } }
+            onOpacityChanged: {
+                if (opacity === 1) historyTab.grabFocus()
             }
 
-            opacity: Popups.clipboardOpen ? 1 : 0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Popups.clipboardOpen ? Anim.transition * 0.5 : Anim.transition * 0.15
-                }
-            }
-
-            HistoryTab { 
+            MouseArea {
                 anchors.fill: parent
+                onClicked: Popups.clipboardPinned = true
+            }
+
+            HistoryTab {
+                id: historyTab
+                anchors.fill: parent
+                anchors.margins: Math.round(8 * root.localScale)
                 localScale: root.localScale
             }
         }

@@ -1,10 +1,8 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
-import "../shapes"
 import "../components"
-import "../modules/Center/"
+import "dashboard_tabs"
+import "dashboard_tabs/stats"
 import '../services/'
 import "../"
 
@@ -15,20 +13,19 @@ import "../"
 // exactly at the notch-bar bottom (topMargin: Theme.notchHeight), so there is
 // no vertical offset compared to the PopupWindow version.
 
-PanelWindow {
+Item {
     id: root
+    Keys.onEscapePressed: if (!Popups.colorPickerActive) SurfaceState.close()
+    onOpacityChanged: { if (opacity === 1 && Popups.dashboardPage !== "launcher") forceActiveFocus() }
 
-    // Kept so existing instantiation sites that pass anchorWindow: … still compile.
-    required property var anchorWindow
+    property var screen
 
     // ── Context-Aware Scaling ─────────────────────────────────────────────────
     // Multiplier based on screen height relative to 1080p, clamped to prevent
     // extreme scaling on ultra-high or ultra-low resolution displays.
-    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+    property real localScale: 1.0
 
-    readonly property int fw: Math.round(Theme.notchRadius * localScale)
-    readonly property int fh: Math.round(Theme.notchRadius * localScale)
-    readonly property int animDuration: Anim.transition
+            readonly property int animDuration: Anim.transition
 
     property string page: Popups.dashboardPage
 
@@ -49,108 +46,45 @@ PanelWindow {
 
     readonly property real scaledPageWidth: Math.min(Popups.dashboardPageWidth * localScale, (screen ? screen.width : 1920) * 0.95)
 
-    color:   "transparent"
-    visible: windowVisible
-
-    anchors.top:   true
-    anchors.left:  true
-    anchors.right: true
-    anchors.bottom: true
-
-    exclusionMode: ExclusionMode.Ignore
-
-    WlrLayershell.layer:         WlrLayer.Overlay
-
-    property bool wantsFocus: false
-    WlrLayershell.keyboardFocus: wantsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
-    Timer {
-        id: focusGrabTimer
-        interval: 15
-        onTriggered: if (windowVisible && Popups.dashboardOpen) root.wantsFocus = true
-    }
-
-    property bool windowVisible: false
-
-    Connections {
-        target: Popups
-        function onDashboardOpenChanged() {
-            if (Popups.dashboardOpen) {
-                closeTimer.stop()
-                root.windowVisible = true
-                root._applyPageWidth(root.page)
-                focusGrabTimer.restart() // Delay the grab slightly
-            } else {
-                root.wantsFocus = false // Release instantly
-                focusGrabTimer.stop()
-                closeTimer.restart()
-            }
-        }
-    }
     
-    Timer {
-        id: closeTimer
-        interval: root.animDuration + 20
-        onTriggered: {
-            root.windowVisible = false
-            tabBar.reset()
-        }
-    }
 
-    // ── Backdrop — closes popup when clicking outside the sizer ──────────────
-    MouseArea {
-        anchors.fill: parent
-        onClicked:    Popups.dashboardOpen = false
-    }
+    
+
+
 
     // ── Sizer ─────────────────────────────────────────────────────────────────
     // topMargin: Theme.notchHeight places the sizer top exactly at the notch
     // bottom — identical to where PopupWindow put it. No fh subtraction, which
     // was the source of the vertical offset in the text-working variant.
     Item {
-        id: sizer
-        anchors.top:              parent.top
-        anchors.horizontalCenter: parent.horizontalCenter
-        clip: true
-
-        width:  Popups.dashboardOpen ? root.scaledPageWidth + 2 * root.fw : Theme.cNotchMinWidth + 2 * root.fw
-        height: Popups.dashboardOpen 
-            ? Math.min(Theme.dashboardHeight * localScale, (screen ? screen.height : 1080) * 0.90) 
-            : Theme.notchHeight / 2
-
-        Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
-        Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Anim.inOutCubic} }
-        
-        MouseArea {
-            anchors.fill: parent
-            onClicked:    {}
+        id: hoverContainer
+        MouseArea { 
+            anchors.fill: parent 
+            onClicked: Popups.dashboardPinned = true
         }
+        anchors.fill: parent
 
-        // ── Background ────────────────────────────────────────────────────────
-        PopupShape {
+        Item {
+            id: sizer
             anchors.fill: parent
-            attachedEdge: "top"
-            color:        Theme.background
-            radius:       Math.round(Theme.cornerRadius * localScale)
-            flareWidth:   root.fw
-            flareHeight:  root.fh
-        }
+            clip: true
+            
 
         // ── Content ───────────────────────────────────────────────────────────
         Item {
             id: content
             anchors {
                 fill:         parent
-                topMargin:    root.fh + Math.round(8 * localScale)
-                leftMargin:   root.fw + Math.round(8 * localScale)
-                rightMargin:  root.fw + Math.round(8 * localScale)
+                topMargin:    Math.round(8 * localScale)
+                leftMargin:   Math.round(8 * localScale)
+                rightMargin:  Math.round(8 * localScale)
                 bottomMargin: Math.round(8 * localScale)
             }
 
-            opacity: Popups.dashboardOpen ? 1 : 0
+            opacity: (SurfaceState.activeContent === "dashboard") ? 1 : 0
             Behavior on opacity {
                 NumberAnimation {
-                    duration: Popups.dashboardOpen
+                    duration: (SurfaceState.activeContent === "dashboard")
                         ? root.animDuration * 0.5
                         : root.animDuration * 0.15
                 }
@@ -188,7 +122,7 @@ PanelWindow {
                     
                     property int pageIdx: Math.max(0, ["home", "stats", "kanban", "launcher", "config"].indexOf(root.page))
                     
-                    property int oldIdx: 0
+                    property int oldIdx: pageIdx
                     property int newIdx: pageIdx
                     property real progress: 1.0
                     
@@ -198,14 +132,16 @@ PanelWindow {
                         property: "progress"
                         from: 0.0
                         to: 1.0
-                        duration: Anim.style === "none" ? 0 : Anim.slow
-                        easing.type: Anim.outExpo
+                        duration: Anim.style === "none" ? 0 : Anim.transition
+                        easing.type: Anim.outCubic
                     }
                     
                     onPageIdxChanged: {
                         oldIdx = newIdx;
                         newIdx = pageIdx;
-                        progressAnim.restart();
+                        progress = 0.0;
+                        if (Anim.style !== "none") progressAnim.restart();
+                        else progress = 1.0;
                     }
 
                     component SlidePage: Item {
@@ -279,10 +215,11 @@ PanelWindow {
                             localScale:   root.localScale
                         }
                     }
-                    
-                    Keys.onEscapePressed: Popups.dashboardOpen = false
+
+                    Keys.onEscapePressed: if (!Popups.colorPickerActive) SurfaceState.close()
                 }
             }
+        }
         }
     }
 }

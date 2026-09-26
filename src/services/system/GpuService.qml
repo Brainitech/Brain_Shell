@@ -19,6 +19,13 @@ QtObject {
 
     property bool   active:   true
     property string envyMode: "integrated"
+    property bool hasNvidia: false
+
+    property var _nvCheckProc: Process {
+        command: ["sh", "-c", "command -v nvidia-smi"]
+        running: true
+        onExited: (code) => { root.hasNvidia = (code === 0) }
+    }
 
     property QtObject igpu: QtObject {
         property real   freqPercent: 0.0
@@ -105,7 +112,7 @@ QtObject {
 
     property var _nvTimer: Timer {
         interval: 1000
-        running:  root.active && root.envyMode !== "integrated"
+        running:  root.active && root.envyMode !== "integrated" && root.hasNvidia
         repeat:   true
         onTriggered: {
             _nvProc.running = false
@@ -126,7 +133,7 @@ QtObject {
     Component.onCompleted: {
         _actProc.running = true
         _maxProc.running = true
-        if (envyMode !== "integrated")
+        if (envyMode !== "integrated" && root.hasNvidia)
             _nvProc.running = true
     }
 }

@@ -1,114 +1,59 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import "../shapes"
 import "../components"
 import "../services"
 import "../"
 
-PopupWindow {
-	id: root
+Item {
+    id: root
 
-	required property var anchorWindow
+    property real localScale: 1.0
 
-	readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
+    readonly property int popupHeight: Math.round(340 * root.localScale)
+    readonly property int maxWidth: Math.round(300 * root.localScale)
 
-	readonly property int fw: Math.round(Theme.cornerRadius * root.localScale)
-	readonly property int fh: Math.round(Theme.cornerRadius * root.localScale)
+    readonly property var pageWidths: ({
+        "output": Math.round(200 * root.localScale),
+        "input":  Math.round(200 * root.localScale),
+        "mixer":  Math.round(300 * root.localScale)
+    })
+    
+    // Animate target width slightly for tab changes
+    property real targetWidth: (pageWidths[Popups.audioPage] ?? maxWidth)
 
-	readonly property var pageWidths: ({
-		"output": Math.round(200 * root.localScale),
-		"input":  Math.round(200 * root.localScale),
-		"mixer":  Math.round(300 * root.localScale)
-	})
+    readonly property int popupWidth: targetWidth
 
-	readonly property int popupHeight: Math.round(340 * root.localScale)
+    onOpacityChanged: if (opacity === 1) forceActiveFocus()
+    Keys.onEscapePressed: SurfaceState.close()
 
-	readonly property int maxWidth: Math.round(300 * root.localScale)
+    MouseArea {
+        anchors.fill: parent
+        onClicked: Popups.audioPinned = true
+    }
 
-	color:   "transparent"
-	visible: slide.windowVisible
-	mask: Region { item: maskProxy }
+    Item {
+        id: slide
+        anchors.fill: parent
+        clip: true
 
-	anchor.window:  anchorWindow
-	anchor.rect: Qt.rect(
-		Math.round(Theme.cornerRadius * root.localScale),
-		anchorWindow.height/2,
-		0,
-		popupHeight
-	)
-	anchor.gravity: Edges.Left
-	
-	Item {
-	    id:      maskProxy
-	    x:       root.maxWidth - sizer.width
-	    y:       ((root.popupHeight - sizer.height) / 2) -root.fh
-	    width:   sizer.width
-	    height:  sizer.height
-	}
-
-	implicitWidth:  maxWidth
-	implicitHeight: popupHeight
-	
-	PopupSlide {
-		id: slide
-		anchors.fill: parent
-		edge:             "right"
-		open:             Popups.audioOpen
-		hoverEnabled:     false
-		triggerHovered:   Popups.audioTriggerHovered
-		onCloseRequested: Popups.audioOpen = false
-
-		Connections {
-			target: Popups
-			function onAudioOpenChanged() {
-				if (!Popups.audioOpen) audioResetTimer.restart()
-                else audioControl.page = Popups.audioPage
-			}
-
-            function onAudioPageChanged() {
-                audioControl.page = Popups.audioPage
+        onOpacityChanged: {
+            if (opacity === 1 && !(SurfaceState.activeContent === "audio")) {
+                let opt = PrefsService.defaultAudioTab
+                if (opt === "Input") Popups.audioPage = "input"
+                else if (opt === "Mixers") Popups.audioPage = "mixer"
+                else Popups.audioPage = "output"
             }
-		}
+        }
 
-		Timer {
-			id: audioResetTimer
-			interval: Anim.transition + 20
-			onTriggered: audioControl.reset()
-		}
+        AudioControl {
+            id: audioControl
+            localScale: root.localScale
+            fullyOpen: (SurfaceState.activeContent === "audio") && root.opacity === 1
 
-		Item {
-			id: sizer
-			anchors.right:          parent.right
-			anchors.verticalCenter: parent.verticalCenter
-			clip: true
-
-			width:  (root.pageWidths[audioControl.page] ?? root.maxWidth)
-			height: root.popupHeight
-
-			Behavior on width { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic} }
-
-			PopupShape {
-				id: bg
-				anchors.fill: parent
-				attachedEdge: "right"
-				color:        Theme.background
-				radius:       Math.round(Theme.cornerRadius * root.localScale)
-				flareWidth:   root.fw
-				flareHeight:  root.fh
-			}
-
-			AudioControl {
-				id: audioControl
-				localScale: root.localScale
-				anchors {
-					fill:         parent
-					topMargin:    root.fh + Math.round(6 * root.localScale)
-					bottomMargin: root.fh + Math.round(6 * root.localScale)
-					leftMargin:   Math.round(10 * root.localScale)
-					rightMargin:  root.fw - Math.round(4 * root.localScale)
-				}
-			}
-		}
-	}
+            width: root.targetWidth - Math.round(16 * root.localScale)
+            height: root.popupHeight - Math.round(16 * root.localScale)
+            
+            anchors.centerIn: parent
+        }
+    }
 }

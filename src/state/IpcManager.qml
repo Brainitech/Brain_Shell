@@ -7,7 +7,7 @@ import "../"
 // ─────────────────────────────────────────────────────────────
 // IpcManager — centralized entry point for all external IPC signals.
 //
-// Moving handlers here ensures that on multi-monitor setups (where 
+// Moving handlers here ensures that on multi-monitor setups (where
 // TopBar/PopupLayer are duplicated) only ONE handler reacts to a signal.
 // ─────────────────────────────────────────────────────────────
 
@@ -15,225 +15,123 @@ QtObject {
     id: root
 
     // ── Dashboard Toggles ────────────────────────────────────
-    
-    property var dashboardHome: IpcHandler {
-        target: "dashboard-home"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
+
+    function _openDashboard(page) {
+        Popups._ignoreDefaultTab = true
+        if(Popups.anyOpen && !Popups.dashboardOpen){
+            Popups.closeAll()
+            SurfaceState.open("top", "dashboard")
+            Popups.dashboardPage = page
+            Popups.dashboardPinned = true
+        } else if(Popups.dashboardOpen && Popups.dashboardPage != page) {
+            Popups.dashboardPage = page
+        } else {
+            if (Popups.dashboardOpen) SurfaceState.close()
+            else { 
                 Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "home"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "home") {
-                Popups.dashboardPage = "home"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) Popups.dashboardPage = "home"
+                Popups.dashboardPage = page
+                SurfaceState.open("top", "dashboard")
+                Popups.dashboardPinned = true
             }
         }
+        Popups._ignoreDefaultTab = false
+    }
+
+    property var dashboardHome: IpcHandler {
+        target: "dashboard-home"
+        function toggle() { _openDashboard("home") }
     }
 
     property var dashboardStats: IpcHandler {
         target: "dashboard-stats"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "stats"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "stats") {
-                Popups.dashboardPage = "stats"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) Popups.dashboardPage = "stats"
-            }
-        }
+        function toggle() { _openDashboard("stats") }
     }
 
     property var dashboardKanban: IpcHandler {
         target: "dashboard-kanban"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "kanban"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "kanban") {
-                Popups.dashboardPage = "kanban"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) Popups.dashboardPage = "kanban"
-            }
-        }
+        function toggle() { _openDashboard("kanban") }
     }
 
     property var dashboardLauncher: IpcHandler {
         target: "dashboard-launcher"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "launcher"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "launcher") {
-                Popups.dashboardPage = "launcher"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) Popups.dashboardPage = "launcher"
-            }
-        }
+        function toggle() { _openDashboard("launcher") }
     }
 
     property var dashboardConfig: IpcHandler {
         target: "dashboard-config"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.dashboardOpen){
-                Popups.closeAll()
-                Popups.dashboardOpen = true
-                Popups.dashboardPage = "config"
-            } else if(Popups.dashboardOpen && Popups.dashboardPage != "config") {
-                Popups.dashboardPage = "config"
-            } else {
-                var next = !Popups.dashboardOpen
-                Popups.closeAll()
-                Popups.dashboardOpen = next
-                if (next) Popups.dashboardPage = "config"
-            }
-        }
+        function toggle() { _openDashboard("config") }
     }
 
     // ── Audio Toggles ────────────────────────────────────────
 
+    function _openAudio(page) {
+        Popups._ignoreDefaultTab = true
+        if (Popups.audioOpen && Popups.audioPage !== page) {
+            Popups.audioPage = page
+        } else if (!Popups.audioOpen) {
+            Popups.audioPage = page
+            SurfaceState.open("rightCenter", "audio")
+            Popups.audioPinned = true
+        } else {
+            SurfaceState.close()
+        }
+        Popups._ignoreDefaultTab = false
+    }
+
     property var audioOut: IpcHandler {
         target: "audioOut-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.audioOpen) {
-                Popups.closeAll()
-                Popups.audioPage = "output"
-                Popups.audioOpen = true
-            } else if (Popups.audioOpen && Popups.audioPage != "output") {
-                Popups.audioPage = "output"
-            } else {
-                var next = !Popups.audioOpen
-                Popups.closeAll()
-                Popups.audioOpen = next
-                if (next) Popups.audioPage = "output"
-            }
-        }
+        function toggle() { _openAudio("output") }
     }
 
     property var audioMix: IpcHandler {
         target: "audioMix-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.audioOpen) {
-                Popups.closeAll()
-                Popups.audioPage = "mixer"
-                Popups.audioOpen = true
-            } else if (Popups.audioOpen && Popups.audioPage != "mixer") {
-                Popups.audioPage = "mixer"
-            } else {
-                var next = !Popups.audioOpen
-                Popups.closeAll()
-                Popups.audioOpen = next
-                if (next) Popups.audioPage = "mixer"
-            }
-        }
+        function toggle() { _openAudio("mixer") }
     }
 
     property var audioIn: IpcHandler {
         target: "audioIn-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.audioOpen) {
-                Popups.closeAll()
-                Popups.audioPage = "input"
-                Popups.audioOpen = true
-            } else if (Popups.audioOpen && Popups.audioPage != "input") {
-                Popups.audioPage = "input"
-            } else {
-                var next = !Popups.audioOpen
-                Popups.closeAll()
-                Popups.audioOpen = next
-                if (next) Popups.audioPage = "input"
-            }
-        }
+        function toggle() { _openAudio("input") }
     }
 
     // ── Network Toggles ──────────────────────────────────────
 
-    property var wifiToggle: IpcHandler {
-        target: "wifi-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.networkOpen) {
+    function _openNetwork(page) {
+        if(Popups.anyOpen && !Popups.networkOpen) {
+            Popups.closeAll()
+            Popups.networkPage = page
+            SurfaceState.open("right", "network")
+            Popups.networkPinned = true
+        } else if (Popups.networkOpen && Popups.networkPage != page) {
+            Popups.networkPage = page
+        } else {
+            if (Popups.networkOpen) SurfaceState.close()
+            else { 
                 Popups.closeAll()
-                Popups.networkPage = "wifi"
-                Popups.networkOpen = true
-            } else if (Popups.networkOpen && Popups.networkPage != "wifi") {
-                Popups.networkPage = "wifi"
-            } else {
-                var next = !Popups.networkOpen
-                Popups.closeAll()
-                Popups.networkOpen = next
-                if (next) Popups.networkPage = "wifi"
+                Popups.networkPage = page
+                SurfaceState.open("right", "network")
+                Popups.networkPinned = true
             }
         }
+    }
+
+    property var wifiToggle: IpcHandler {
+        target: "wifi-toggle"
+        function toggle() { _openNetwork("wifi") }
     }
 
     property var btToggle: IpcHandler {
         target: "bluetooth-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.networkOpen) {
-                Popups.closeAll()
-                Popups.networkPage = "bluetooth"
-                Popups.networkOpen = true
-            } else if (Popups.networkOpen && Popups.networkPage != "bluetooth") {
-                Popups.networkPage = "bluetooth"
-            } else {
-                var next = !Popups.networkOpen
-                Popups.closeAll()
-                Popups.networkOpen = next
-                if (next) Popups.networkPage = "bluetooth"
-            }
-        }
+        function toggle() { _openNetwork("bluetooth") }
     }
 
     property var vpnToggle: IpcHandler {
         target: "vpn-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.networkOpen) {
-                Popups.closeAll()
-                Popups.networkPage = "vpn"
-                Popups.networkOpen = true
-            } else if (Popups.networkOpen && Popups.networkPage != "vpn") {
-                Popups.networkPage = "vpn"
-            } else {
-                var next = !Popups.networkOpen
-                Popups.closeAll()
-                Popups.networkOpen = next
-                if (next) Popups.networkPage = "vpn"
-            }
-        }
+        function toggle() { _openNetwork("vpn") }
     }
 
     property var hotspotToggle: IpcHandler {
         target: "hotspot-toggle"
-        function toggle() {
-            if(Popups.anyOpen && !Popups.networkOpen) {
-                Popups.closeAll()
-                Popups.networkPage = "hotspot"
-                Popups.networkOpen = true
-            } else if (Popups.networkOpen && Popups.networkPage != "hotspot") {
-                Popups.networkPage = "hotspot"
-            } else {
-                var next = !Popups.networkOpen
-                Popups.closeAll()
-                Popups.networkOpen = next
-                if (next) Popups.networkPage = "hotspot"
-            }
-        }
+        function toggle() { _openNetwork("hotspot") }
     }
 
     // ── Misc Toggles ─────────────────────────────────────────
@@ -241,36 +139,48 @@ QtObject {
     property var notification: IpcHandler {
         target: "notification-toggle"
         function toggle() {
-            var next = !Popups.notificationsOpen
-            Popups.closeAll()
-            Popups.notificationsOpen = next
+            if (Popups.notificationsOpen) SurfaceState.close();
+            else {
+                Popups.closeAll();
+                SurfaceState.open("right", "notifications");
+                Popups.notificationsPinned = true;
+            }
         }
     }
 
     property var clipboard: IpcHandler {
         target: "clipboard-toggle"
         function toggle() {
-            var next = !Popups.clipboardOpen
-            Popups.closeAll()
-            Popups.clipboardOpen = next
+            if (Popups.clipboardOpen) SurfaceState.close();
+            else {
+                Popups.closeAll();
+                SurfaceState.open("bottomRight", "clipboard");
+                Popups.clipboardPinned = true;
+            }
         }
     }
 
     property var wallpaper: IpcHandler {
         target: "wallpaper-toggle"
         function toggle() {
-            var next = !Popups.wallpaperOpen
-            Popups.closeAll()
-            Popups.wallpaperOpen = next
+            if (Popups.wallpaperOpen) SurfaceState.close();
+            else {
+                Popups.closeAll();
+                SurfaceState.open("bottomCenter", "wallpaper");
+                Popups.wallpaperPinned = true;
+            }
         }
     }
 
     property var archMenu: IpcHandler {
         target: "PowerMenu-toggle"
         function toggle() {
-            var next = !Popups.archMenuOpen
-            Popups.closeAll()
-            Popups.archMenuOpen = next
+            if (Popups.archMenuOpen) SurfaceState.close();
+            else {
+                Popups.closeAll();
+                SurfaceState.open("leftCenter", "archMenu");
+                Popups.archMenuPinned = true;
+            }
         }
     }
 
@@ -291,9 +201,49 @@ QtObject {
     property var focusMode: IpcHandler {
         target: "focus-toggle"
         function toggle() {
-            root.focusToggleRequested()
+            ShellState.focusMode = !ShellState.focusMode
         }
     }
-    
-    signal focusToggleRequested()
+
+
+    property var _lockProc: Process {
+        command: ["loginctl", "lock-session"]
+        running: false
+    }
+
+    property var lockSession: IpcHandler {
+        target: "lock-session"
+        function toggle() {
+            _lockProc.running = false
+            _lockProc.running = true
+        }
+    }
+
+    property var _screenshotProc: Process {
+        command: ["bash", Quickshell.shellDir + "/src/scripts/screenshot.sh"]
+        running: false
+    }
+
+    property var screenshot: IpcHandler {
+        target: "screenshot-toggle"
+        function toggle() {
+            _screenshotProc.running = false
+            _screenshotProc.running = true
+        }
+    }
+
+    function screenshotDelayed() {
+        Popups.closeAll()
+        _screenshotTimer.restart()
+    }
+
+    property var _screenshotTimer: Timer {
+        interval: Anim.transition + 100
+        repeat: false
+        onTriggered: {
+            _screenshotProc.running = false
+            _screenshotProc.running = true
+        }
+    }
+
 }

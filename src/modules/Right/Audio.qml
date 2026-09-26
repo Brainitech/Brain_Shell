@@ -1,12 +1,12 @@
 import QtQuick
-import Quickshell.Services.Pipewire
 import "../../components"
+import Quickshell.Services.Pipewire
 import "../../"
 
 Item {
     id: root
 
-    property bool showPercentage: false
+    property bool showPercentage: PrefsService.alwaysShowVolumePercentage
     property real localScale: 1.0
 
     implicitWidth:  row.implicitWidth + Math.round(6 * localScale)
@@ -75,9 +75,12 @@ Item {
                 if (root.sink?.ready)
                     root.sink.audio.muted = !root.sink.audio.muted
             } else {
-                var next = !Popups.audioOpen
-                Popups.closeAll()
-                Popups.audioOpen = next
+                if (!Popups.audioOpen) {
+                    SurfaceState.open("rightCenter", "audio")
+                    Popups.audioPinned = true
+                } else {
+                    SurfaceState.close()
+                }
             }
         }
     }

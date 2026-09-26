@@ -1,7 +1,5 @@
 import QtQuick
-import Quickshell
 import "../../components"
-import "../../windows"
 import "../../"
 
 Row {

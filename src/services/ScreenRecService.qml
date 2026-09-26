@@ -20,35 +20,54 @@ import "../"
 QtObject {
     id: root
 
-    // ── Persisted options ─────────────────────────────────────────────────────
-    property string captureTarget: "screen"
-    property bool   audioMic:      false
-    property bool   audioSystem:   false
+    property real popupTargetX: 0
+    property real popupTargetWidth: 0
+    
+    
+    
+    
 
     // ── Display helpers ───────────────────────────────────────────────────────
     readonly property var _captureIcons:  ({ screen: "󰍹", window: "󱂬", region: "󰩭" })
     readonly property var _captureLabels: ({ screen: "Screen", window: "Window", region: "Region" })
-    readonly property string captureIcon:  _captureIcons[captureTarget]  ?? "󰍹"
-    readonly property string captureLabel: _captureLabels[captureTarget] ?? "Screen"
+    readonly property string captureIcon:  _captureIcons[PrefsService.screenrecCaptureTarget]  ?? "󰍹"
+    readonly property string captureLabel: _captureLabels[PrefsService.screenrecCaptureTarget] ?? "Screen"
 
     readonly property string audioLabel: {
-        if (audioMic && audioSystem) return "Mic + Sys"
-        if (audioMic)                return "Mic"
-        if (audioSystem)             return "Sys"
+        if (PrefsService.screenrecAudioMic && PrefsService.screenrecAudioSystem) return "Mic + Sys"
+        if (PrefsService.screenrecAudioMic)                return "Mic"
+        if (PrefsService.screenrecAudioSystem)             return "Sys"
         return "Non"
     }
 
-    // ── Strip hover (open = "capture" | "audio" | "") ─────────────────────────
-    property string openStrip: ""
-    property real popupTargetX: 0
-    property real popupTargetWidth: 0
-
-    property var _stripTimer: Timer {
-        interval: 280
-        onTriggered: root.openStrip = ""
+    // ── Expansion state ─────────────────────────
+    property bool optionsExpanded: false
+    
+    property var _expandTimer: Timer {
+        interval: 250
+        onTriggered: root.optionsExpanded = true
     }
-    function keepStripOpen()      { _stripTimer.stop()    }
-    function scheduleStripClose() { _stripTimer.restart() }
+    
+    property var _closeTimer: Timer {
+        interval: 100
+        onTriggered: root.optionsExpanded = false
+    }
+    
+    function requestExpand() {
+        _closeTimer.stop()
+        if (!optionsExpanded) _expandTimer.restart()
+    }
+    
+    function keepExpanded() {
+        _closeTimer.stop()
+        _expandTimer.stop()
+        root.optionsExpanded = true
+    }
+    
+    function scheduleClose() {
+        _expandTimer.stop()
+        _closeTimer.restart()
+    }
 
     // ── Recording state ───────────────────────────────────────────────────────
     property bool   recording:      false
@@ -73,56 +92,6 @@ QtObject {
     // ── Audio bars — 6 bars, always active during recording ───────────────────
     property var audioBars: [0, 0, 0, 0, 0, 0]
 
-    // ── Config ────────────────────────────────────────────────────────────────
-    property var _configView: FileView {
-        id: configView
-        watchChanges: false
-        onLoaded: root._parseConfig(configView.text())
-    }
-
-    property var _initConfig: Process {
-        command: []
-        running: false
-        onExited: function() { configView.reload() }
-    }
-
-    Component.onCompleted: {
-        var path = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/screenrec.json"
-        configView.path = path
-        _initConfig.command = [
-            "bash", "-c",
-            "[ -f '" + path + "' ] || " +
-            "(mkdir -p \"$(dirname '" + path + "')\" && " +
-            "printf '{\"captureTarget\":\"screen\",\"audioMic\":false,\"audioSystem\":false}\\n'" +
-            " > '" + path + "')"
-        ]
-        _initConfig.running = true
-    }
-
-    function _parseConfig(raw) {
-        if (!raw || raw.trim() === "") return
-        try {
-            var o = JSON.parse(raw)
-            if (o.captureTarget) root.captureTarget = o.captureTarget
-            if (typeof o.audioMic    === "boolean") root.audioMic    = o.audioMic
-            if (typeof o.audioSystem === "boolean") root.audioSystem = o.audioSystem
-        } catch(e) {}
-    }
-
-    function saveConfig() {
-        var path = Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/screenrec.json"
-        var data = JSON.stringify({
-            captureTarget: root.captureTarget,
-            audioMic:      root.audioMic,
-            audioSystem:   root.audioSystem
-        })
-        _saveProc.command = ["bash", "-c",
-            "printf '%s' '" + data.replace(/'/g, "'\\''") + "' > '" + path + "'"]
-        _saveProc.running = false
-        _saveProc.running = true
-    }
-
-    property var _saveProc: Process { command: []; running: false }
 
     // ── Recording process ─────────────────────────────────────────────────────
     property string _pendingGeometry: ""
@@ -192,13 +161,13 @@ QtObject {
         root._resolvedAudioDevice = ""
         root._usingNullSink       = false
 
-        if (!root.audioMic && !root.audioSystem) {
+        if (!PrefsService.screenrecAudioMic && !PrefsService.screenrecAudioSystem) {
             // No audio — skip device resolution entirely
             root._launch()
             return
         }
 
-        if (root.audioMic && !root.audioSystem) {
+        if (PrefsService.screenrecAudioMic && !PrefsService.screenrecAudioSystem) {
             // Mic only — use the default source directly; no null sink needed
             _audioDeviceProc.command = ["bash", "-c",
                 "printf '%s\\n' \"$(pactl get-default-source)\""]
@@ -222,7 +191,7 @@ QtObject {
             "pactl load-module module-loopback " +
             "sink=BrainShellMixer source=$(pactl get-default-sink).monitor >/dev/null"
 
-        if (root.audioMic && root.audioSystem) {
+        if (PrefsService.screenrecAudioMic && PrefsService.screenrecAudioSystem) {
             // Also route mic into BrainShellMixer
             script += "; pactl load-module module-loopback " +
                       "sink=BrainShellMixer source=$(pactl get-default-source) >/dev/null"
@@ -297,31 +266,33 @@ QtObject {
     }
 
     function _buildCmd() {
-    var ts  = Qt.formatDateTime(new Date(), "yyyyMMdd_HHmmss")
-    root._currentFile = "$HOME/Videos/screen_recordings/" + ts + ".mp4"
-    
-    var cmd = "mkdir -p $HOME/Videos/screen_recordings && " +
-              "wf-recorder -c libx264" +
-              " -x yuv420p" +
-              " -r 30" +                       // Limit FPS to 30
-              " -p preset=fast" +              // Faster encoding speed
-              " -p crf=26" +                   // Lower quality/smaller size
-              " -p profile=main" +             // Maximum web/Discord compatibility
-              " -p color_range=tv" +           // Fixes washed out blacks/whites
-              " -p colorspace=bt709" +         // Tags the correct HD color matrix
-              " -p color_primaries=bt709" +
-              " -p color_trc=bt709" +
-              " -f " + root._currentFile
-              
-    if (root._pendingGeometry !== "")
-        cmd += " -g '" + root._pendingGeometry + "'"
+        var ts  = Qt.formatDateTime(new Date(), "yyyyMMdd_HHmmss")
+        root._currentFile = PrefsService.screenrecSaveDir + "/" + ts + ".mp4"
         
-    // Use --audio=DEVICE (matches wf-recorder working script convention) [cite: 48]
-    if ((root.audioMic || root.audioSystem) && root._resolvedAudioDevice !== "")
-        cmd += " --audio=" + root._resolvedAudioDevice
+        var fps = PrefsService.screenrecFramerate > 0 ? PrefsService.screenrecFramerate : 30
         
-    return cmd
-}
+        var cmd = "mkdir -p '" + PrefsService.screenrecSaveDir + "' && " +
+                  "wf-recorder -c libx264" +
+                  " -x yuv420p" +
+                  " -r " + fps +                   // Configurable FPS
+                  " -p preset=fast" +              // Faster encoding speed
+                  " -p crf=26" +                   // Lower quality/smaller size
+                  " -p profile=main" +             // Maximum web/Discord compatibility
+                  " -p color_range=tv" +           // Fixes washed out blacks/whites
+                  " -p colorspace=bt709" +         // Tags the correct HD color matrix
+                  " -p color_primaries=bt709" +
+                  " -p color_trc=bt709" +
+                  " -f " + root._currentFile
+                  
+        if (root._pendingGeometry !== "")
+            cmd += " -g '" + root._pendingGeometry + "'"
+            
+        // Use --audio=DEVICE (matches wf-recorder working script convention)
+        if ((PrefsService.screenrecAudioMic || PrefsService.screenrecAudioSystem) && root._resolvedAudioDevice !== "")
+            cmd += " --audio=" + root._resolvedAudioDevice
+        
+        return cmd
+    }
 
     function _launch() {
         _recProc.command = ["bash", "-c", root._buildCmd()]
@@ -329,18 +300,18 @@ QtObject {
         _recProc.running = true
         root.recording   = true
         root.elapsed     = 0
-        root.openStrip   = ""
+        root.optionsExpanded = false
         if (root._resolvedAudioDevice !== "")
             _startCavaWithSource(root._resolvedAudioDevice)
     }
 
     function startRecording() {
+        root.optionsExpanded = false
         root._pendingGeometry = ""
         root._discarding      = false
-        saveConfig()
-        if (root.captureTarget === "screen") {
+        if (PrefsService.screenrecCaptureTarget === "screen") {
             root._resolveAudio()
-        } else if (root.captureTarget === "window") {
+        } else if (PrefsService.screenrecCaptureTarget === "window") {
             _windowPickerProc.command = [
                 "bash", "-c",
                 "hyprctl clients -j | python3 -c \"" +
@@ -404,7 +375,7 @@ QtObject {
     property var _discardDeleteProc: Process { command: []; running: false }
 
     function cancelSetup() {
-        root.openStrip = ""
+        root.optionsExpanded = false
         ShellState.screenRecord = false
     }
 

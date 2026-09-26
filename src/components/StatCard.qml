@@ -20,8 +20,8 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius:       Math.round(Theme.cornerRadius * localScale)
-        color:        Qt.rgba(1, 1, 1, 0.04)
-        border.color: Qt.rgba(1, 1, 1, 0.07)
+        color:        Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+        border.color: Theme.border
         border.width: 1
     }
 

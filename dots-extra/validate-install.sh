@@ -82,36 +82,53 @@ check_command "hyprctl"
 
 echo ""
 echo "# QT6 & RENDERING"
-check_package "qt6-base" "qdbus"
+if command -v qmake6 &> /dev/null || [[ "$DISTRO" == "nix" ]]; then
+    log_installed "qt6-base"
+else
+    log_missing "qt6-base"
+fi
 check_command "qt6ct"
 
 echo ""
 echo "# SYSTEM TOOLS"
-check_command "pactl" || check_command "pacmd"
+if command -v pactl &> /dev/null; then
+    log_installed "pactl"
+elif command -v pacmd &> /dev/null; then
+    log_installed "pacmd"
+else
+    log_missing "pactl/pacmd"
+fi
 check_command "bluetoothctl"
 check_command "brightnessctl"
 check_command "upower"
 check_command "notify-send"
 check_command "pkexec"
-check_command "python"
+if command -v python3 &> /dev/null || command -v python &> /dev/null; then
+    log_installed "python"
+else
+    log_missing "python"
+fi
 check_command "wl-copy"
 check_command "slurp"
+check_command "playerctl"
+check_command "xdg-user-dirs-update"
 
 echo ""
-echo "# SCREEN RECORDING"
+echo "# SCREEN RECORDING & MEDIA"
 check_command "wf-recorder"
 check_command "cava"
+check_command "grimblast"
 
 echo ""
 echo "# WALLPAPER & THEMING"
 check_command "magick"
-check_optional "awww"
-check_optional "matugen"
+check_command "awww"
+check_command "matugen"
 
 echo ""
 echo "# CLIPBOARD"
 check_command "wtype"
-check_optional "cliphist"
+check_command "cliphist"
 
 echo ""
 echo "# POWER & HARDWARE"
@@ -126,11 +143,20 @@ echo "# HYPRLAND ECOSYSTEM"
 check_command "hyprsunset"
 check_command "hyprlock"
 check_command "hypridle"
-check_optional "hyprshutdown"
+if command -v hyprpolkitagent &>/dev/null \
+    || [[ -x /usr/lib/hyprpolkitagent/hyprpolkitagent ]] \
+    || [[ -x /usr/lib/hyprpolkitagent ]] \
+    || [[ -x /usr/libexec/hyprpolkitagent ]] \
+    || systemctl --user list-unit-files hyprpolkitagent.service &>/dev/null \
+    || (command -v pacman &>/dev/null && pacman -Q hyprpolkitagent &>/dev/null); then
+    log_installed "hyprpolkitagent"
+else
+    log_missing "hyprpolkitagent"
+fi
 
 echo ""
 echo "# FONTS"
-if fc-list | grep -q "JetBrains Mono"; then
+if fc-list | grep -iq "JetBrainsMono"; then
     log_installed "JetBrains Mono Nerd Font"
 else
     log_missing "JetBrains Mono Nerd Font"
@@ -139,34 +165,34 @@ fi
 echo ""
 echo "# CONFIGURATION FILES"
 
-if [[ -f "$HOME/.config/hypr/hyprland.conf" ]]; then
-    log_installed "Hyprland config"
-    
-    if grep -q "quickshell.*-c.*Brain_Shell" "$HOME/.config/hypr/hyprland.conf"; then
-        log_installed "Brain Shell exec-once in hyprland.conf"
+if [[ -f "$HOME/.config/hypr/hyprland.lua" ]]; then
+    log_installed "Hyprland config (lua)"
+    if grep -q "brain-shell" "$HOME/.config/hypr/hyprland.lua"; then
+        log_installed "Brain Shell startup in hyprland.lua"
     else
-        log_missing "Brain Shell exec-once in hyprland.conf"
+        log_missing "Brain Shell startup in hyprland.lua"
+    fi
+elif [[ -f "$HOME/.config/hypr/hyprland.conf" ]]; then
+    log_installed "Hyprland config (conf)"
+    if grep -q "brain-shell" "$HOME/.config/hypr/hyprland.conf"; then
+        log_installed "Brain Shell startup in hyprland.conf"
+    else
+        log_missing "Brain Shell startup in hyprland.conf"
     fi
 else
     log_missing "Hyprland config"
 fi
 
-if [[ -f "$HOME/.config/hypr/hyprland.lua" ]]; then
-    log_installed "Hyprland Lua config"
-    
-    if grep -q "quickshell.*Brain_Shell" "$HOME/.config/hypr/hyprland.lua"; then
-        log_installed "Brain Shell exec-once in hyprland.lua"
-    else
-        log_optional "Brain Shell exec-once in hyprland.lua (optional)"
-    fi
+if [[ -d "$PWD/.git" ]] && grep -q "Brain_Shell" "$PWD/.git/config" 2>/dev/null; then
+    REPO_DIR="$PWD"
 else
-    log_optional "Hyprland Lua config (optional)"
+    REPO_DIR="$HOME/.local/src/Brain_Shell"
 fi
 
-if [[ -d "$HOME/.local/src/Brain_Shell" ]]; then
-    log_installed "Brain Shell repository"
+if [[ -d "$REPO_DIR" ]]; then
+    log_installed "Brain Shell repository ($REPO_DIR)"
 else
-    log_missing "Brain Shell repository"
+    log_missing "Brain Shell repository ($REPO_DIR)"
 fi
 
 if [[ -d "$HOME/.config/Brain_Shell" ]]; then
@@ -177,11 +203,11 @@ fi
 
 echo ""
 echo "# BACKUPS"
-BACKUP_COUNT=$(ls -d $HOME/.config.backup-* 2>/dev/null | wc -l)
+BACKUP_COUNT=$(ls -d "$HOME/.config/hypr/hyprland"*mod-backup* 2>/dev/null | wc -l)
 
 if [[ $BACKUP_COUNT -gt 0 ]]; then
     log_info "Found $BACKUP_COUNT config backup(s)"
-    ls -d $HOME/.config.backup-* 2>/dev/null | while read backup; do
+    ls -d "$HOME/.config/hypr/hyprland"*mod-backup* 2>/dev/null | while read -r backup; do
         echo -e "  ${BLUE}→${NC} ${backup##*/}"
     done
 else

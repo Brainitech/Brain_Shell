@@ -1,25 +1,25 @@
 import QtQuick
 import Quickshell.Io
+import "../"
 
 // ============================================================
 // ColorsLoader — watches ~/.cache/brain-shell/colors.json
 // and exposes parsed color properties.
-//
-// Not a singleton. Instantiated as a property inside Theme.qml.
-// Theme.qml reads loader.background, loader.active etc.
 // ============================================================
 
 QtObject {
     id: root
+    
+    property bool overrideMode: false
 
     // ── Parsed colors (with fallbacks matching original palette) ──────────────
-    property color background: "#1a282a"
-    property color active:     "#a6d0f7"
-    property color text:       "#cdd6f4"
-    property color subtext:    "#94e2d5"
-    property color icon:       "#cdd6f4"
-    property color border:     "#ffffff"
-    property color iconFont:   "#2f8d97"
+    property color background: "#141311"
+    property color active:     "#4a473c"
+    property color text:       "#f0e5bb"
+    property color subtext:    "#d3c9a1"
+    property color icon:       "#e6e2dd"
+    property color border:     "#ccc6b9"
+    property color iconFont:   "#e6e2dd"
 
     // ── File watcher ──────────────────────────────────────────────────────────
     property var _file: FileView {
@@ -36,14 +36,27 @@ QtObject {
             onRead: function(line) {
                 var h = line.trim()
                 if (h !== "")
-                    colorsFile.path = h + "/.cache/brain-shell/colors.json"
+                    colorsFile.path = h + "/.config/Brain_Shell/matugen/colors.json"
             }
         }
     }
 
     // ── Parser ────────────────────────────────────────────────────────────────
+    function _adjustLightMode() {
+        if (!PrefsService.darkMode && !root.overrideMode) {
+            root.background = Qt.darker(root.background, 1.06)
+            root.border = Qt.rgba(root.text.r, root.text.g, root.text.b, 0.25)
+            root.subtext = Qt.rgba(root.text.r, root.text.g, root.text.b, 0.75)
+            root.iconFont = root.active
+        }
+    }
+
     function _parse(raw) {
         if (!raw || raw.trim() === "") return
+        if (root.overrideMode) {
+            root._loadOverrides()
+            return
+        }
         try {
             var obj = JSON.parse(raw)
             if (obj.background) root.background = obj.background
@@ -55,5 +68,36 @@ QtObject {
         } catch (e) {
             // Malformed JSON — keep fallback values
         }
+        _adjustLightMode()
+    }
+
+    function _loadOverrides() {
+        root.background = PrefsService.overrideBg
+        root.active     = PrefsService.overrideActive
+        root.text       = PrefsService.overrideText
+        root.border     = PrefsService.overrideBorder
+        root.subtext    = PrefsService.overrideSubtext
+        root.icon       = PrefsService.overrideIcon
+        root.iconFont   = PrefsService.overrideIconFont
+    }
+    
+    onOverrideModeChanged: {
+        if (overrideMode) {
+            _loadOverrides()
+        } else {
+            _parse(colorsFile.text())
+        }
+    }
+
+    property var _con: Connections {
+        target: PrefsService
+        function onDarkModeChanged()          { if (!root.overrideMode) root._parse(colorsFile.text()) }
+        function onOverrideBgChanged()        { if (root.overrideMode) root._loadOverrides() }
+        function onOverrideBorderChanged()    { if (root.overrideMode) root._loadOverrides() }
+        function onOverrideActiveChanged()    { if (root.overrideMode) root._loadOverrides() }
+        function onOverrideIconFontChanged()  { if (root.overrideMode) root._loadOverrides() }
+        function onOverrideTextChanged()      { if (root.overrideMode) root._loadOverrides() }
+        function onOverrideSubtextChanged()   { if (root.overrideMode) root._loadOverrides() }
+        function onOverrideIconChanged()      { if (root.overrideMode) root._loadOverrides() }
     }
 }

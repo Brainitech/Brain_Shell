@@ -5,6 +5,7 @@ import "../"
 
 Item {
     id: root
+    function grabFocus() { mainList.forceActiveFocus() }
     property real localScale: 1.0
 
     readonly property var pinned:  ClipboardService.pinned  ?? []
@@ -74,7 +75,7 @@ Item {
                 height: Math.round(26 * localScale); radius: Math.round(8 * localScale)
                 color: clearH.hovered
                     ? Qt.rgba(248/255, 113/255, 113/255, 0.18)
-                    : Qt.rgba(1, 1, 1, 0.04)
+                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
                 border.color: Qt.rgba(248/255, 113/255, 113/255, clearH.hovered ? 0.38 : 0.12)
                 border.width: 1
                 Behavior on color        { ColorAnimation { duration: Anim.mediumFast} }
@@ -101,7 +102,7 @@ Item {
         }
 
         // Divider
-        Rectangle { width: parent.width; height: 1; color: Qt.rgba(1,1,1,0.07) }
+        Rectangle { width: parent.width; height: 1; color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.07) }
 
         // ── Content ────────────────────────────────────────────────────────────
         Item {
@@ -125,7 +126,7 @@ Item {
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "Loading…"; font.pixelSize: 12; color: Qt.rgba(1,1,1,0.25)
+                    text: "Loading…"; font.pixelSize: 12; color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25)
                 }
             }
 
@@ -137,15 +138,15 @@ Item {
                          && root.pinned.length  === 0
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "󰅍"; font.pixelSize: 32; color: Qt.rgba(1,1,1,0.08)
+                    text: "󰅍"; font.pixelSize: 32; color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08)
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "Clipboard is empty"; font.pixelSize: 12; color: Qt.rgba(1,1,1,0.20)
+                    text: "Clipboard is empty"; font.pixelSize: 12; color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.20)
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "Copy something to get started"; font.pixelSize: 10; color: Qt.rgba(1,1,1,0.13)
+                    text: "Copy something to get started"; font.pixelSize: 10; color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.13)
                 }
             }
 
@@ -178,7 +179,7 @@ Item {
 
                 Keys.onPressed: (event) => {
                     if (event.key === Qt.Key_Escape) {
-                        Popups.clipboardOpen = false
+                        SurfaceState.close()
                         event.accepted = true
                         return
                     }
@@ -189,7 +190,7 @@ Item {
                             ClipboardService.copyText(item.text || item.preview)
                         else
                             ClipboardService.copyEntry(item.id)
-                        Popups.clipboardOpen = false
+                        SurfaceState.close()
                         event.accepted = true
                     } else if (event.key === Qt.Key_Delete || event.key === Qt.Key_Backspace) {
                         if (mainList.currentItem) mainList.currentItem.deleteRow()
@@ -230,7 +231,7 @@ Item {
                     implicitWidth:  4
                     implicitHeight: 10
                     radius:         2
-                    color:          Qt.rgba(1, 1, 1, 0.22)
+                    color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.22)
                 }
             }
         }
@@ -240,6 +241,24 @@ Item {
 // ── ClipRow ────────────────────────────────────────────────────────────────────
 component ClipRow: Item {
     id: row
+
+    // ── Click/Double-click: copy + close popup ───────────────
+    MouseArea {
+        anchors.fill: parent
+        propagateComposedEvents: true
+        onClicked: (mouse) => {
+            if (row.isPinned) ClipboardService.copyText(row.fullText || row.previewText)
+            else             ClipboardService.copyEntry(row.entryId)
+            SurfaceState.close()
+            mouse.accepted = true
+        }
+        onDoubleClicked: (mouse) => {
+            if (row.isPinned) ClipboardService.copyText(row.fullText || row.previewText)
+            else             ClipboardService.copyEntry(row.entryId)
+            SurfaceState.close()
+            mouse.accepted = true
+        }
+    }
 
 
     property bool   isPinned:    false
@@ -302,13 +321,13 @@ component ClipRow: Item {
 
         color: row.isPinned
             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, (rHov.hovered || row.highlighted) ? 0.10 : 0.055)
-            : (rHov.hovered || row.highlighted) ? Qt.rgba(1, 1, 1, 0.065) : Qt.rgba(1, 1, 1, 0.024)
+            : (rHov.hovered || row.highlighted) ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.065) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.024)
 
         border.color: row.isPinned
             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, (rHov.hovered || row.highlighted) ? 0.30 : 0.18)
             : row.highlighted
                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.50)
-                : rHov.hovered ? Qt.rgba(1, 1, 1, 0.13) : Qt.rgba(1, 1, 1, 0.065)
+                : rHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.13) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.065)
         border.width: 1
 
         Behavior on color        { ColorAnimation { duration: Anim.color} }
@@ -341,7 +360,7 @@ component ClipRow: Item {
                         rightMargin: 6
                     }
                     radius: 6
-                    color:  Qt.rgba(1, 1, 1, 0.05)
+                    color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
                     clip:   true
 
                     Image {
@@ -362,7 +381,7 @@ component ClipRow: Item {
 
                         Rectangle {
                             anchors.fill: parent
-                            color: Qt.rgba(1,1,1,0.03)
+                            color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.03)
                         }
                         Text {
                             anchors.centerIn: parent
@@ -377,7 +396,7 @@ component ClipRow: Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text:           "󰅍"
                     font.pixelSize: 12
-                    color:          Qt.rgba(1, 1, 1, 0.22)
+                    color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.22)
                 }
             }
 
@@ -394,8 +413,8 @@ component ClipRow: Item {
                 text: row.isImage ? "Image" : row.previewText
                 font.pixelSize:   12
                 color: row.isImage
-                    ? Qt.rgba(1, 1, 1, 0.28)
-                    : Qt.rgba(1, 1, 1, 0.78)
+                    ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.28)
+                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.78)
                 font.italic:      row.isImage
                 elide:            Text.ElideRight
                 maximumLineCount: 2
@@ -416,7 +435,7 @@ component ClipRow: Item {
                     onClicked: {
                         if (row.isPinned) ClipboardService.copyText(row.fullText || row.previewText)
                         else             ClipboardService.copyEntry(row.entryId)
-                        Popups.clipboardOpen = false
+                        SurfaceState.close()
                     }
                 }
 
@@ -468,15 +487,7 @@ component ClipRow: Item {
 
     HoverHandler { id: rHov }
 
-    // ── Double-tap: copy + close popup + paste into active field ───────────────
-    TapHandler {
-        onDoubleTapped: {
-            if (row.isPinned) ClipboardService.copyText(row.fullText || row.previewText)
-            else             ClipboardService.copyEntry(row.entryId)
-            Popups.clipboardOpen = false
-            ClipboardService.typeFromClipboard()
-        }
-    }
+
 
     // Fires after the collapse animation completes so the list reflows smoothly
     Timer {
@@ -512,7 +523,7 @@ component ActionBtn: Rectangle {
         ? (aH.hovered ? Qt.rgba(248/255, 113/255, 113/255, 0.20) : "transparent")
         : ab.active
             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
-            : (aH.hovered ? Qt.rgba(1, 1, 1, 0.11) : "transparent")
+            : (aH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.11) : "transparent")
 
     Behavior on color { ColorAnimation { duration: Anim.color} }
 
@@ -533,7 +544,7 @@ component ActionBtn: Rectangle {
             ? (aH.hovered ? "#f87171" : Qt.rgba(248/255, 113/255, 113/255, 0.50))
             : ab.active
                 ? Theme.active
-                : (aH.hovered ? Qt.rgba(1, 1, 1, 0.88) : Qt.rgba(1, 1, 1, 0.38))
+                : (aH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.88) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.38))
         Behavior on color { ColorAnimation { duration: Anim.color} }
     }
 

@@ -1,25 +1,20 @@
 pragma Singleton
 import QtQuick
+import "../"
 
 QtObject {
     // --Bar Toggle--
-    property bool barEnabled: false
+    property bool barEnabled: PrefsService.barEnabled
 
     // -- Bar Sizes --
-    property int borderWidth:   6
-    property int cornerRadius:  17
-    property int notchRadius:   15
+    property int borderWidth:   PrefsService.borderWidth
+    property int cornerRadius:  PrefsService.cornerRadius
     property int notchHeight:   40
-    property int exclusionGap:  34
-    property int spacing:       10
-
+        
     // -- Notch Content Padding --
     // Space added around the content inside each notch
     property int notchPadding:           16   // horizontal padding each side
-    property int notchHorizontalPadding: 20
-    property int notchVerticalPadding:   10
-    property int notchSideMargin:        10
-
+            
     // -- Notch Width Constraints --
     // Each notch sizes itself to its content, clamped between min and max.
     property int lNotchMinWidth: 180
@@ -42,9 +37,7 @@ QtObject {
     property int networkPopupWidth:  480
 
     // -- Popup Size Constraints --
-    property int popupMinWidth:   160
     property int popupMaxWidth:   420
-    property int popupMinHeight:   80
     property int popupMaxHeight:  520
     property int popupPadding:     16
 

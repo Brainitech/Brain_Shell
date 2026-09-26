@@ -86,8 +86,6 @@ Item {
 
         // Quickshell emits (name, data) for raw events
         function onRawEvent(event) {
-			// console.log("RawEvent_name: "+ event.name)
-			// console.log("RawEvent_data: "+ event.data)
             refresh()  // Refresh on every event; the proc will ignore if still running
         }
     }
@@ -133,7 +131,7 @@ Item {
         id: bg
         anchors.fill: parent
         radius: Math.round(6 * localScale)
-        color: mouseArea.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
+        color: mouseArea.containsMouse ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : "transparent"
 
         Behavior on color {
             ColorAnimation { duration: Anim.color}

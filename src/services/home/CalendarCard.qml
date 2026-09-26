@@ -89,7 +89,7 @@ StatCard {
             Text {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                 text: "‹"; font.pixelSize: Math.round(15 * localScale)
-                color: pH.hovered ? Qt.rgba(1,1,1,0.7) : Qt.rgba(1,1,1,0.25)
+                color: pH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.7) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25)
                 Behavior on color { ColorAnimation { duration: Anim.fast} }
                 HoverHandler { id: pH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root._prev() }
@@ -102,7 +102,7 @@ StatCard {
             Text {
                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                 text: "›"; font.pixelSize: Math.round(15 * localScale)
-                color: nH.hovered ? Qt.rgba(1,1,1,0.7) : Qt.rgba(1,1,1,0.25)
+                color: nH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.7) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25)
                 Behavior on color { ColorAnimation { duration: Anim.fast} }
                 HoverHandler { id: nH; cursorShape: Qt.PointingHandCursor }
                 MouseArea { anchors.fill: parent; onClicked: root._next() }
@@ -122,7 +122,7 @@ StatCard {
                         width: Math.floor(dow.width / 7)
                         horizontalAlignment: Text.AlignHCenter
                         text: modelData; font.pixelSize: Math.round(8 * localScale); font.weight: Font.Bold
-                        color: Qt.rgba(1,1,1,0.2)
+                        color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.2)
                     }
                 }
             }
@@ -153,9 +153,9 @@ StatCard {
                         anchors.centerIn: parent
                         width: Math.min(parent.width, parent.height) - Math.round(4 * localScale)
                         height: width; radius: width / 2
-                        color: isToday ? Qt.rgba(166/255,208/255,247/255,0.15)
-                               : dH.hovered && modelData.cur ? Qt.rgba(1,1,1,0.07) : "transparent"
-                        border.color: isToday ? Qt.rgba(166/255,208/255,247/255,0.3) : "transparent"
+                        color: isToday ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
+                               : dH.hovered && modelData.cur ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.07) : "transparent"
+                        border.color: isToday ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.3) : "transparent"
                         border.width: 1
                         Behavior on color { ColorAnimation { duration: Anim.superFast} }
                         Text {
@@ -163,8 +163,8 @@ StatCard {
                             font.pixelSize: Math.round(9 * localScale); font.family: "JetBrains Mono"
                             font.weight: isToday ? Font.Bold : Font.Normal
                             color: isToday ? Theme.active
-                                   : modelData.cur ? Qt.rgba(205/255,214/255,244/255,0.55)
-                                                   : Qt.rgba(1,1,1,0.13)
+                                   : modelData.cur ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.55)
+                                                   : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.13)
                         }
                     }
                     HoverHandler { id: dH; enabled: modelData.cur; cursorShape: Qt.PointingHandCursor }

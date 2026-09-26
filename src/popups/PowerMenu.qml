@@ -1,0 +1,158 @@
+import QtQuick
+import Quickshell.Io
+import "../"
+
+// Power menu — vertical list of power action buttons.
+
+Column {
+    id: root
+    spacing: Math.round(4 * localScale)
+    width: parent.width
+    property real localScale: 1.0
+
+    readonly property var actions: [
+        {
+            label:   "Shutdown",
+            icon:    "⏻",
+            danger:  true,
+            confirm: true,
+            title:   "Shut Down?",
+            message: "Your computer will power off. Save your work before continuing.",
+            label2:  "Shut Down",
+            action:  "shutdown"
+        },
+        {
+            label:   "Reboot     ",
+            icon:    "↺",
+            danger:  true,
+            confirm: true,
+            title:   "Reboot?",
+            message: "Your computer will restart. Save your work before continuing.",
+            label2:  "Reboot",
+            action:  "reboot"
+        },
+        {
+            label:   "Log Out  ",
+            icon:    "󰍃",
+            danger:  true,
+            confirm: true,
+            title:   "Log Out?",
+            message: "You will be logged out of your session. Save your work before continuing.",
+            label2:  "Log Out",
+            action:  "logout" 
+        },
+        {
+            label:   "Lock        ",
+            icon:    "󰌾",
+            danger:  false,
+            confirm: false,
+            action:  "lock"
+        },
+        {
+            label:   "Suspend ",
+            icon:    "⏾",
+            danger:  false,
+            confirm: false,
+            action:  "suspend"
+        },
+    ]
+
+    // Direct runner for non-confirm actions
+    Process {
+        id: runner
+        property var pendingCmd: []
+        command: pendingCmd
+        onRunningChanged: if (!running) pendingCmd = []
+    }
+
+    function runDirect(action) {
+        switch (action) {
+            case "lock":    runner.pendingCmd = ["loginctl", "lock-session"];    break
+            case "suspend": runner.pendingCmd = ["systemctl", "suspend"];        break
+        }
+        runner.running = true
+        SurfaceState.close()
+    }
+
+    // ── Keyboard Navigation ──────────────────────────────────────────────────
+    property int selectedIndex: 0
+    focus: true
+    onActiveFocusChanged: if (!activeFocus) selectedIndex = -1
+
+    Keys.onEscapePressed: SurfaceState.close()
+
+    Keys.onUpPressed: {
+        if (selectedIndex > 0) selectedIndex--
+        else selectedIndex = actions.length - 1
+    }
+    Keys.onDownPressed: {
+        if (selectedIndex < actions.length - 1) selectedIndex++
+        else selectedIndex = 0
+    }
+    Keys.onReturnPressed: {
+        if (selectedIndex >= 0 && selectedIndex < actions.length) {
+            runAction(actions[selectedIndex])
+        }
+    }
+    
+    function runAction(modelData) {
+        if (modelData.confirm) {
+            Popups.closeAll()
+            Popups.showConfirm(
+                modelData.title,
+                modelData.message,
+                modelData.label2,
+                modelData.action
+            )
+        } else {
+            root.runDirect(modelData.action)
+        }
+    }
+
+    Repeater {
+        model: root.actions
+
+        delegate: Rectangle {
+            width:  root.width
+            height: Math.round(44 * localScale)
+            radius: Math.round(Theme.cornerRadius * localScale)
+            
+            readonly property bool isSelected: root.selectedIndex === index
+            
+            color: (hov.hovered || isSelected)
+                        ? (modelData.danger ? "#4d2020" : Theme.active)
+                        : "transparent"
+
+            Behavior on color { ColorAnimation { duration: Anim.color} }
+
+            Row {
+                anchors.centerIn: parent
+                spacing: Math.round(10 * localScale)
+
+                Text {
+                    text:           modelData.icon
+                    font.pixelSize: Math.round(16 * localScale)
+                    color:          modelData.danger && (hov.hovered || isSelected) ? "#ff6b6b" : (hov.hovered || isSelected)?"#000000":Theme.text
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                Text {
+                    text:           modelData.label
+                    font.pixelSize: Math.round(13 * localScale)
+                    color:          modelData.danger && (hov.hovered || isSelected) ? "#ff6b6b" : (hov.hovered || isSelected)?"#000000":Theme.text
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
+
+            HoverHandler { 
+                id: hov; cursorShape: Qt.PointingHandCursor 
+                onHoveredChanged: if (hovered) root.selectedIndex = index
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: root.runAction(modelData)
+            }
+        }
+    }
+}

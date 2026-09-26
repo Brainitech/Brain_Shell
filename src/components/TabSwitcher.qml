@@ -23,6 +23,10 @@ Item {
 	property string currentPage: ""
 	property string orientation: "horizontal"   // "horizontal" | "vertical"
 	property real   localScale:  1.0
+	property bool   divider: false
+	
+	property var    switchStates: ({})
+	signal switchToggled(string key, bool state)
 
 	signal pageChanged(string key)
 
@@ -131,7 +135,7 @@ Item {
 						width: hTab.bgWidth
 						height: parent.height - Math.round(8 * localScale)
 						radius: height / 2
-						color: !hTab.isActive && hHov.hovered ? Qt.rgba(1, 1, 1, 0.07) : "transparent"
+						color: !hTab.isActive && hHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
 						Behavior on color { ColorAnimation { duration: Anim.color} }
 					}
 
@@ -146,8 +150,8 @@ Item {
 							font.pixelSize: Math.round(14 * localScale)
 							anchors.verticalCenter: parent.verticalCenter
 							color: hTab.isActive
-							? Theme.background
-							: (hHov.hovered ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.4))
+								? Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1.0)
+								: (hHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.75) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4))
 							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 
@@ -159,8 +163,8 @@ Item {
 							font.weight:    hTab.isActive ? Font.Medium : Font.Normal
 							anchors.verticalCenter: parent.verticalCenter
 							color: hTab.isActive
-							? Theme.background
-							: (hHov.hovered ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.4))
+								? Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1.0)
+								: (hHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.75) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4))
 							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 					}
@@ -175,14 +179,14 @@ Item {
 		}
 	}
 
-	// Bottom divider — horizontal only
+	// Bottom divider
 	Rectangle {
-		visible:        root.orientation === "horizontal"
+		visible:        root.orientation === "horizontal" && root.divider
 		anchors.bottom: parent.bottom
 		anchors.left:   parent.left
 		anchors.right:  parent.right
 		height:         1
-		color:          Qt.rgba(1, 1, 1, 0.07)
+		color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
 	}
 
 	// ── VERTICAL layout — Column ──────────────────────────────────────────────
@@ -244,11 +248,16 @@ Item {
 						width:  vCol.width
 						height: vContainer.tabH
 
+						MouseArea {
+							anchors.fill: parent
+							onClicked:    root.pageChanged(modelData.key)
+						}
+
 						// Hover background
 						Rectangle {
 							anchors.fill: parent
 							radius: Math.round(Theme.cornerRadius * 2 * localScale)
-							color: !vTab.isActive && vHov.hovered ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
+							color: !vTab.isActive && vHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : "transparent"
 							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
 		
@@ -258,9 +267,48 @@ Item {
 							anchors.centerIn: parent
 							text:             modelData.icon
 							font.pixelSize:   Math.round(16 * localScale)
-							color: vTab.isActive ? Theme.background : Theme.text
+							color: vTab.isActive ? Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1.0) : Theme.text
 							Behavior on color { ColorAnimation { duration: Anim.color} }
 						}
+		
+                        // Optional Switch
+                        Rectangle {
+                            visible: modelData.hasSwitch === true
+                            anchors {
+                                right: parent.right
+                                rightMargin: Math.round(16 * localScale)
+                                verticalCenter: parent.verticalCenter
+                            }
+                            width: Math.round(28 * localScale)
+                            height: Math.round(16 * localScale)
+                            radius: height / 2
+                            color: root.switchStates && root.switchStates[modelData.key] ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.2)
+                            Behavior on color { ColorAnimation { duration: Anim.fast; easing.type: Anim.linear } }
+                            border.color: root.switchStates && root.switchStates[modelData.key] ? Qt.darker(Theme.active, 1.2) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.3)
+                            border.width: Math.max(1, Math.round(1 * localScale))
+                            
+                            Rectangle {
+                                width: Math.round(12 * localScale)
+                                height: Math.round(12 * localScale)
+                                radius: width / 2
+                                anchors.verticalCenter: parent.verticalCenter
+                                x: root.switchStates && root.switchStates[modelData.key] ? (parent.width - width - Math.round(2 * localScale)) : Math.round(2 * localScale)
+                                Behavior on x { NumberAnimation { duration: Anim.fast; easing.type: Anim.globalCurve } }
+                                color: "white"
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                anchors.margins: -10
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    root.pageChanged(modelData.key)
+                                    var newState = !(root.switchStates && root.switchStates[modelData.key])
+                                    root.switchToggled(modelData.key, newState)
+                                }
+                            }
+                        }
 		
 						// Icon + label row
 						Row {
@@ -277,8 +325,8 @@ Item {
 								font.pixelSize: Math.round(15 * localScale)
 								anchors.verticalCenter: parent.verticalCenter
 								color: vTab.isActive
-									? Theme.background
-									: (vHov.hovered ? Qt.rgba(1, 1, 1, 0.80) : Qt.rgba(1, 1, 1, 0.42))
+									? Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1.0)
+									: (vHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.80) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.42))
 								Behavior on color { ColorAnimation { duration: Anim.color} }
 							}
 		
@@ -288,17 +336,13 @@ Item {
 								font.weight:    vTab.isActive ? Font.Medium : Font.Normal
 								anchors.verticalCenter: parent.verticalCenter
 								color: vTab.isActive
-									? Theme.background
-									: (vHov.hovered ? Qt.rgba(1, 1, 1, 0.80) : Qt.rgba(1, 1, 1, 0.42))
+									? Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1.0)
+									: (vHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.80) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.42))
 								Behavior on color { ColorAnimation { duration: Anim.color} }
 							}
 						}
 		
 						HoverHandler { id: vHov; cursorShape: Qt.PointingHandCursor }
-						MouseArea {
-							anchors.fill: parent
-							onClicked:    root.pageChanged(modelData.key)
-						}
 					}
 				}
 			}

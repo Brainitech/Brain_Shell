@@ -24,10 +24,10 @@ Item {
 
         color: root.active
                    ? Theme.active
-                   : (hov.hovered && root.enabled ? Qt.rgba(1,1,1,0.08) : "transparent")
+                   : (hov.hovered && root.enabled ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : "transparent")
         border.color: root.active
                           ? Theme.active
-                          : Qt.rgba(1, 1, 1, 0.18)
+                          : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.18)
         border.width: 1
 
         Behavior on color        { ColorAnimation { duration: Anim.color} }
@@ -43,7 +43,7 @@ Item {
             visible:        root.icon !== ""
             text:           root.icon
             font.pixelSize: Math.round(12 * localScale)
-            color:          root.active ? Theme.background : Qt.rgba(1, 1, 1, 0.7)
+            color:          root.active ? Theme.background : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.7)
             anchors.verticalCenter: parent.verticalCenter
             Behavior on color { ColorAnimation { duration: Anim.color} }
         }
@@ -52,7 +52,7 @@ Item {
             text:           root.label
             font.pixelSize: Math.round(11 * localScale)
             font.weight:    root.active ? Font.Medium : Font.Normal
-            color:          root.active ? Theme.background : Qt.rgba(1, 1, 1, 0.7)
+            color:          root.active ? Theme.background : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.7)
             anchors.verticalCenter: parent.verticalCenter
             Behavior on color { ColorAnimation { duration: Anim.color} }
         }

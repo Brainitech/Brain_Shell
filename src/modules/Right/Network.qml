@@ -1,6 +1,7 @@
 import QtQuick
-import Quickshell.Io
 import "../../components"
+import Quickshell.Io
+import "../../services"
 import "../../"
 
 Item {
@@ -11,9 +12,9 @@ Item {
     implicitWidth:  row.implicitWidth + Math.round(6 * localScale)
     implicitHeight: row.implicitHeight
 
-    property int    _signal:       0
-    property bool   _ethernet:     false
-    property string _connectivity: "unknown"
+    property int    _signal:       NetworkService.signal
+    property bool   _ethernet:     NetworkService.ethernet
+    property string _connectivity: NetworkService.connectivity
 
     readonly property bool _limited: {
         var c = _connectivity
@@ -32,7 +33,7 @@ Item {
     }
 
     readonly property color _netColor: {
-        if (!_ethernet && _signal <= 0) return Qt.rgba(1,1,1,0.28)
+        if (!_ethernet && _signal <= 0) return Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.28)
         if (_connectivity === "none")   return "#f87171"
         if (_limited)                   return "#f5c47a"
         return hov.hovered ? Theme.active : Theme.text
@@ -53,35 +54,6 @@ Item {
     }
 
     // Polling
-    Process {
-        id: wifiPoll
-        command: ["bash", "-c", "nmcli -t -f ACTIVE,SIGNAL dev wifi 2>/dev/null | grep '^yes:' | head -1 | cut -d: -f2"]
-        running: false
-        stdout: SplitParser { onRead: function(l) { var s = parseInt(l.trim()); root._signal = isNaN(s) ? 0 : s } }
-    }
-    Process {
-        id: ethPoll
-        command: ["bash", "-c", "nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -c 'ethernet:connected'"]
-        running: false
-        stdout: SplitParser { onRead: function(l) { root._ethernet = parseInt(l.trim()) > 0 } }
-    }
-    Process {
-        id: connPoll
-        command: ["bash", "-c", "nmcli -t -f CONNECTIVITY general 2>/dev/null | head -1"]
-        running: false
-        stdout: SplitParser {
-            onRead: function(l) { var v = l.trim().toLowerCase(); if (v !== "") root._connectivity = v }
-        }
-    }
-    Timer {
-        interval: 5000; running: true; repeat: true
-        onTriggered: {
-            wifiPoll.running = false; wifiPoll.running = true
-            ethPoll.running  = false; ethPoll.running  = true
-            connPoll.running = false; connPoll.running = true
-        }
-    }
-    Component.onCompleted: { wifiPoll.running = true; ethPoll.running = true; connPoll.running = true }
 
     HoverHandler { id: hov; onHoveredChanged: Popups.networkTriggerHovered = hovered }
 
@@ -94,18 +66,20 @@ Item {
         Text {
             id: netIcon
             text:           root._netIcon
-            color:          root._netColor
+            color:          wifiHov.hovered ? Theme.active : root._netColor
             font.pixelSize: Math.round(16 * localScale)
             anchors.verticalCenter: parent.verticalCenter
             Behavior on color { ColorAnimation { duration: Anim.normal} }
+            HoverHandler {
+                id: wifiHov
+                onHoveredChanged: {
+                    if (hovered && !Popups.networkPinned) Popups.networkPage = "wifi"
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    Popups.closeAll()
-                    Popups.networkPage = "wifi"
-                    Popups.networkOpen = true
-                }
+                onClicked: IpcManager.wifiToggle.toggle()
             }
         }
 
@@ -116,17 +90,19 @@ Item {
             font.pixelSize: Math.round(14 * localScale)
             anchors.verticalCenter: parent.verticalCenter
             opacity:        root._vpnOpacity
-            color: ShellState.vpnActive ? Theme.active : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.70)
+            color: ShellState.vpnActive ? Theme.active : (vpHov.hovered ? Theme.active : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.70))
             Behavior on color   { ColorAnimation  { duration: Anim.normal} }
             Behavior on opacity { NumberAnimation { duration: Anim.superFast} }
+            HoverHandler {
+                id: vpHov
+                onHoveredChanged: {
+                    if (hovered && !Popups.networkPinned) Popups.networkPage = "vpn"
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    Popups.closeAll()
-                    Popups.networkPage = "vpn"
-                    Popups.networkOpen = true
-                }
+                onClicked: IpcManager.vpnToggle.toggle()
             }
         }
 
@@ -136,16 +112,18 @@ Item {
             text:           ShellState.btConnected ? "󰂱" : "󰂯"
             font.pixelSize: Math.round(14 * localScale)
             anchors.verticalCenter: parent.verticalCenter
-            color: ShellState.btConnected ? (hov.hovered ? Theme.active : Theme.text) : Qt.rgba(1,1,1,0.32)
+            color: ShellState.btConnected ? (btHov.hovered ? Theme.active : Theme.text) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.32)
             Behavior on color { ColorAnimation { duration: Anim.normal} }
+            HoverHandler {
+                id: btHov
+                onHoveredChanged: {
+                    if (hovered && !Popups.networkPinned) Popups.networkPage = "bluetooth"
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    Popups.closeAll()
-                    Popups.networkPage = "bluetooth"
-                    Popups.networkOpen = true
-                }
+                onClicked: IpcManager.btToggle.toggle()
             }
         }
 
@@ -155,16 +133,18 @@ Item {
             text:           "󰀂"
             font.pixelSize: Math.round(14 * localScale)
             anchors.verticalCenter: parent.verticalCenter
-            color:          Theme.active
+            color:          hotspotHov.hovered ? Theme.active : Theme.text
             Behavior on color { ColorAnimation { duration: Anim.normal} }
+            HoverHandler {
+                id: hotspotHov
+                onHoveredChanged: {
+                    if (hovered && !Popups.networkPinned) Popups.networkPage = "hotspot"
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    Popups.closeAll()
-                    Popups.networkPage = "hotspot"
-                    Popups.networkOpen = true
-                }
+                onClicked: IpcManager.hotspotToggle.toggle()
             }
         }
     }

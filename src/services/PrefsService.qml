@@ -30,9 +30,9 @@ QtObject {
     // ScreenRecService
     property string screenrecCaptureTarget: "region"
     property bool screenrecAudioMic: false
-    property bool screenrecAudioSystem
-    property int screenrecFramerate: 60
-    property string screenrecSaveDir: Quickshell.env("HOME") + "/Videos"
+    property bool screenrecAudioSystem: false
+    property int screenrecFramerate: 30
+    property string screenrecSaveDir: Quickshell.env("HOME") + "/Videos/screen_recordings"
 
     // Network (Hotspot)
     property string hotspotSsid: "BrainShell"

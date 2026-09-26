@@ -87,9 +87,11 @@ QtObject {
         var k    = key.toLowerCase()
         for (var i = 0; i < root._hyprBinds.length; i++) {
             var b = root._hyprBinds[i]
-            if (b.submap !== "")                        continue  // ignore submaps
-            if (b.mouse)                                continue  // ignore mouse binds
-            if (b.arg && b.arg.indexOf("qs ipc") >= 0) continue  // our own shell binds
+            if (b.submap !== "") continue  // ignore submaps
+            if (b.mouse)         continue  // ignore mouse binds
+            if (b.arg && b.arg.indexOf("qs ipc") >= 0) continue // standard shell binds
+            if (b.description && b.description.toLowerCase().indexOf("brain shell") >= 0) continue // modular lua binds
+            
             if (b.modmask === mask && (b.key || "").toLowerCase() === k) {
                 var desc = b.dispatcher || ""
                 if (b.arg) desc += ": " + b.arg.substring(0, 36)

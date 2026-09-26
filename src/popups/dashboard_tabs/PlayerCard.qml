@@ -239,7 +239,7 @@ Item {
                         anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
                         width:  Math.max(radius * 2, parent.width * root._progress)
                         radius: parent.radius; color: Theme.active
-                        Behavior on width { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic} }
+                        Behavior on width { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
                     }
                 }
             }
@@ -289,7 +289,7 @@ Item {
             height: root._dropdownOpen 
                     ? (_rowH * MediaService.filteredPlayers.length) 
                     : _rowH
-            Behavior on height { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic} }
+            Behavior on height { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
 
             radius:       _rowH / 2
             clip:         true
@@ -351,7 +351,7 @@ Item {
                         visible: !isCurrent
                         opacity: root._dropdownOpen ? 1 : 0
                         
-                        Behavior on height  { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
+                        Behavior on height  { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
                         Behavior on opacity { NumberAnimation { duration: Anim.color} }
 
                         Row {

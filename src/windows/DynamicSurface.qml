@@ -212,7 +212,7 @@ PanelWindow {
         clip: true
         
         opacity: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmLeftHov.hovered || leftNotchHover.hovered)) && !SurfaceState.isTopExpanded) ? 0 : 1
-        Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+        Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         
         Item {
             id: leftNotchHead
@@ -239,7 +239,7 @@ PanelWindow {
         clip: true
         
         opacity: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmCenterHov.hovered || centerNotchHover.hovered)) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) ? 0 : 1
-        Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+        Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         
         Item {
             id: centerNotchHead
@@ -265,7 +265,7 @@ PanelWindow {
             
             opacity: SurfaceState.activeContent === "dashboard" ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         }
     ScreenRecOptionsPopup {
         id: screenRecOptionsPopupView
@@ -296,7 +296,7 @@ PanelWindow {
         clip: true
         
         opacity: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (fmRightHov.hovered || rightNotchHover.hovered)) && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) ? 0 : 1
-        Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+        Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         
         Item {
             id: rightNotchHead
@@ -328,7 +328,7 @@ PanelWindow {
             visible: opacity > 0
 
             
-            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         }
 
         NotificationsPopup {
@@ -345,7 +345,7 @@ PanelWindow {
             visible: opacity > 0
 
             
-            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         }
 
         NotificationToast {
@@ -358,7 +358,7 @@ PanelWindow {
             
             opacity: Popups.notificationToastOpen && !Popups.notificationsOpen ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         }
     }
 
@@ -379,7 +379,7 @@ PanelWindow {
 
             visible: opacity > 0
 
-            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         }
     }
 
@@ -400,7 +400,7 @@ PanelWindow {
 
             visible: opacity > 0
 
-            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         }
 
         QuickControl {
@@ -411,7 +411,7 @@ PanelWindow {
 
             visible: opacity > 0
 
-            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         }
     }
 
@@ -432,7 +432,7 @@ PanelWindow {
 
             visible: opacity > 0
 
-            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         }
     }
 
@@ -452,7 +452,7 @@ PanelWindow {
             anchors.fill: parent
             opacity: SurfaceState.activeContent === "clipboard" ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         }
     }
 

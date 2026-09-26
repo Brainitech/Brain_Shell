@@ -272,7 +272,7 @@ Item {
 			interactive:  false
 
 			Behavior on contentY {
-				NumberAnimation { duration: Anim.mediumSlow; easing.type: Anim.outCubic}
+				NumberAnimation { duration: Anim.mediumSlow; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod}
 			}
 
 			model: root._items

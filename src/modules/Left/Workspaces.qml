@@ -132,7 +132,7 @@ Rectangle {
                     return Theme.wsEmpty
                 }
 
-                Behavior on width { NumberAnimation { duration: Anim.normal; easing.type: Anim.outBack} }
+                Behavior on width { NumberAnimation { duration: Anim.normal; easing.type: Anim.outBack; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
                 Behavior on color { ColorAnimation { duration: Anim.normal} }
 
                 // --- Urgent pulse ---

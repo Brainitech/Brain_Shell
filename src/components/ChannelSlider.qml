@@ -53,7 +53,7 @@ Item {
                     radius: parent.radius
                     color:  col.muted ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.15) : Theme.active
                     Behavior on color  { ColorAnimation  { duration: Anim.mediumFast} }
-                    Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic} }
+                    Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
                 }
 
                 MouseArea {

@@ -557,7 +557,7 @@ Item {
             SequentialAnimation {
                 id: pulseAnim; running: false
                 ColorAnimation { target: card; to: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30); duration: Anim.mediumFast}
-                ColorAnimation { target: card; to: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08); duration: Anim.verySlow; easing.type: Anim.outCubic}
+                ColorAnimation { target: card; to: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08); duration: Anim.verySlow; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod}
             }
         }
 

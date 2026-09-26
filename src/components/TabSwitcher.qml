@@ -293,7 +293,7 @@ Item {
                                 radius: width / 2
                                 anchors.verticalCenter: parent.verticalCenter
                                 x: root.switchStates && root.switchStates[modelData.key] ? (parent.width - width - Math.round(2 * localScale)) : Math.round(2 * localScale)
-                                Behavior on x { NumberAnimation { duration: Anim.fast; easing.type: Anim.globalCurve } }
+                                Behavior on x { NumberAnimation { duration: Anim.fast; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
                                 color: "white"
                             }
 

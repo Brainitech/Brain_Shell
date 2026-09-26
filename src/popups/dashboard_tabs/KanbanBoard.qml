@@ -433,7 +433,7 @@ Item {
                             id: draftWrap; z: 2; width: parent.width
                             height: colItem.draftOpen ? draftRect.implicitHeight + Math.round(6 * localScale) : 0
                             clip:   true
-                            Behavior on height { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
+                            Behavior on height { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
 
                             Rectangle {
                                 id: draftRect

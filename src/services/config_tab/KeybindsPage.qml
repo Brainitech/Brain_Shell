@@ -78,7 +78,7 @@ Item {
         border.width: root.hasPending ? 1 : 0
         radius: Math.round(8 * localScale)
 
-        Behavior on height { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
+        Behavior on height { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
 
         Row {
             anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: Math.round(10 * localScale) }
@@ -336,7 +336,7 @@ Item {
 
         height: isCapturing ? Math.round(58 * localScale) : Math.round(36 * localScale)
         clip: true
-        Behavior on height { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic} }
+        Behavior on height { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
 
         onIsCapturingChanged: {
             if (isCapturing) {

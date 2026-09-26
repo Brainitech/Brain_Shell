@@ -236,7 +236,7 @@ Item {
                     running: root._scanning; loops: Animation.Infinite
                     PauseAnimation { duration: index * 650 }
                     ParallelAnimation {
-                        NumberAnimation { property: "scale";   from: 0.08; to: 1.0; duration: Anim.megaSlow; easing.type: Anim.outCubic}
+                        NumberAnimation { property: "scale";   from: 0.08; to: 1.0; duration: Anim.megaSlow; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod}
                         NumberAnimation { property: "opacity"; from: 0.80; to: 0.0; duration: Anim.megaSlow; easing.type: Anim.outQuad}
                     }
                 }
@@ -401,7 +401,7 @@ Item {
             anchors { top: baseRow.bottom; left: parent.left; right: parent.right }
             clip: true
             height: netRow.isForgetPending ? forgetRow.implicitHeight + Math.round(16 * localScale) : netRow.isExpanded ? passRow.implicitHeight + Math.round(16 * localScale) : 0
-            Behavior on height { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic} }
+            Behavior on height { NumberAnimation { duration: Anim.normal; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
 
             Item {
                 id: forgetRow

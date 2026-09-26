@@ -79,7 +79,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             x: root.checked ? (parent.width - width - Math.round(3 * localScale)) : Math.round(3 * localScale)
             
-            Behavior on x { NumberAnimation { duration: Anim.fast; easing.type: Anim.globalCurve } }
+            Behavior on x { NumberAnimation { duration: Anim.fast; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
 
             color: "white"
         }

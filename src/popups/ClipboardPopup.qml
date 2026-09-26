@@ -28,7 +28,7 @@ Item {
 
             opacity: (SurfaceState.activeContent === "clipboard") ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic } }
+            Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
             onOpacityChanged: {
                 if (opacity === 1) historyTab.grabFocus()
             }

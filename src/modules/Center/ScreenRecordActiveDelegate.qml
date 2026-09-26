@@ -81,7 +81,7 @@ Item {
                         ? Qt.rgba(0.95, 0.3, 0.3, 0.30 + _amp * 0.70)
                         : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.10)
                         Behavior on height {
-                            NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic}
+                            NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod}
                         }
                     }
                 }

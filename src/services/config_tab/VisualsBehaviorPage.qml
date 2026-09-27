@@ -116,7 +116,32 @@ Item {
                         text: "Hover-to-Open Mode"
                         description: "Popups open on hover instead of requiring a click."
                         checked: PrefsService.globalHoverMode
-                        defaultValue: false
+                        useOverrideReset: true
+                        overrideResetVisible: checked && (
+                            PrefsService.hoverDashboard !== false ||
+                            PrefsService.hoverNetwork !== false ||
+                            PrefsService.hoverAudio !== false ||
+                            PrefsService.hoverQuick !== true ||
+                            PrefsService.hoverArchMenu !== false ||
+                            PrefsService.hoverNotifications !== false ||
+                            PrefsService.hoverClipboard !== false ||
+                            PrefsService.hoverWallpaper !== false ||
+                            PrefsService.hoverOpenDelay !== 150 ||
+                            PrefsService.hoverCloseDelay !== 300
+                        )
+                        onResetTriggered: {
+                            PrefsService.hoverDashboard = false;
+                            PrefsService.hoverNetwork = false;
+                            PrefsService.hoverAudio = false;
+                            PrefsService.hoverQuick = true;
+                            PrefsService.hoverArchMenu = false;
+                            PrefsService.hoverNotifications = false;
+                            PrefsService.hoverClipboard = false;
+                            PrefsService.hoverWallpaper = false;
+                            PrefsService.hoverOpenDelay = 150;
+                            PrefsService.hoverCloseDelay = 300;
+                            PrefsService.saveConfig();
+                        }
                         onToggled: { 
                             PrefsService.globalHoverMode = checked; 
                             if (checked) popupGroup.dropdownExpanded = true;
@@ -189,7 +214,6 @@ Item {
                             text: "Dashboard"
                             description: "Dashboard expands when hovering top edge."
                             checked: PrefsService.hoverDashboard
-                            defaultValue: false
                             onToggled: { PrefsService.hoverDashboard = checked; PrefsService.saveConfig() }
                         }
                         SettingsDivider { localScale: root.localScale }
@@ -197,7 +221,6 @@ Item {
                             localScale: root.localScale
                             text: "Network"
                             checked: PrefsService.hoverNetwork
-                            defaultValue: false
                             onToggled: { PrefsService.hoverNetwork = checked; PrefsService.saveConfig() }
                         }
                         SettingsDivider { localScale: root.localScale }
@@ -207,7 +230,6 @@ Item {
                             text: "Audio"
                             checked: PrefsService.hoverAudio
                             Binding on checked { value: PrefsService.hoverAudio; restoreMode: Binding.RestoreBinding }
-                            defaultValue: false
                             onToggled: { 
                                 PrefsService.hoverAudio = checked; 
                                 if (checked) PrefsService.hoverQuick = false;
@@ -225,7 +247,6 @@ Item {
                             opacity: PrefsService.hoverAudio ? 0.4 : 1.0
                             Behavior on opacity { NumberAnimation { duration: Anim.fast } }
                             Binding on checked { value: PrefsService.hoverQuick; restoreMode: Binding.RestoreBinding }
-                            defaultValue: true
                             onToggled: { 
                                 PrefsService.hoverQuick = checked; 
                                 PrefsService.saveConfig();
@@ -237,7 +258,6 @@ Item {
                             localScale: root.localScale
                             text: "Power Menu"
                             checked: PrefsService.hoverArchMenu
-                            defaultValue: false
                             onToggled: { PrefsService.hoverArchMenu = checked; PrefsService.saveConfig() }
                         }
                         SettingsDivider { localScale: root.localScale }
@@ -245,7 +265,6 @@ Item {
                             localScale: root.localScale
                             text: "Notifications"
                             checked: PrefsService.hoverNotifications
-                            defaultValue: false
                             onToggled: { PrefsService.hoverNotifications = checked; PrefsService.saveConfig() }
                         }
                         SettingsDivider { localScale: root.localScale }
@@ -253,7 +272,6 @@ Item {
                             localScale: root.localScale
                             text: "Clipboard"
                             checked: PrefsService.hoverClipboard
-                            defaultValue: false
                             onToggled: { PrefsService.hoverClipboard = checked; PrefsService.saveConfig() }
                         }
                         SettingsDivider { localScale: root.localScale }
@@ -261,7 +279,6 @@ Item {
                             localScale: root.localScale
                             text: "Wallpaper Picker"
                             checked: PrefsService.hoverWallpaper
-                            defaultValue: false
                             onToggled: { PrefsService.hoverWallpaper = checked; PrefsService.saveConfig() }
                         }
                         SettingsDivider { localScale: root.localScale }
@@ -270,7 +287,6 @@ Item {
                             text: "Hover Open Delay"
                             description: "Time before a popup opens when hovered."
                             from: 0; to: 1000; stepSize: 50; value: PrefsService.hoverOpenDelay
-                            defaultValue: 150
                             onValueChanged: { if (value !== PrefsService.hoverOpenDelay) { PrefsService.hoverOpenDelay = value; PrefsService.saveConfig() } }
                             valueSuffix: "ms"
                         }

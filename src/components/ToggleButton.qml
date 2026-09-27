@@ -9,10 +9,14 @@ Item {
     property bool checked: false
     
     property var defaultValue: undefined
+    property bool useOverrideReset: false
+    property bool overrideResetVisible: false
     readonly property bool _hasDefault: defaultValue !== undefined
     readonly property bool _isDefault: _hasDefault && checked === defaultValue
+    readonly property bool _showReset: useOverrideReset ? overrideResetVisible : (_hasDefault && !_isDefault)
     
     signal toggled()
+    signal resetTriggered()
 
     width: parent ? parent.width : 400
     height: Math.round(description !== "" ? (52 * localScale) : (40 * localScale))
@@ -24,6 +28,19 @@ Item {
         radius: Math.round(8 * localScale)
         color: toggleMouse.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04) : "transparent"
         Behavior on color { ColorAnimation { duration: Anim.fast; easing.type: Anim.linear } }
+    }
+
+    HoverHandler {
+        id: toggleMouse
+        cursorShape: Qt.PointingHandCursor
+    }
+    
+    MouseArea {
+        anchors.fill: parent
+        onClicked: {
+            root.checked = !root.checked
+            root.toggled()
+        }
     }
 
     Column {
@@ -88,7 +105,7 @@ Item {
     // Reset to default
     Rectangle {
         id: rstBtn
-        visible: root._hasDefault && !root._isDefault
+        visible: root._showReset
         width: Math.round(22 * localScale)
         height: Math.round(22 * localScale)
         radius: Math.round(6 * localScale)
@@ -107,21 +124,13 @@ Item {
         MouseArea {
             anchors.fill: parent
             onClicked: {
-                root.checked = root.defaultValue
-                root.toggled()
+                if (root.useOverrideReset) {
+                    root.resetTriggered()
+                } else {
+                    root.checked = root.defaultValue
+                    root.toggled()
+                }
             }
-        }
-    }
-
-    HoverHandler {
-        id: toggleMouse
-        cursorShape: Qt.PointingHandCursor
-    }
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            root.checked = !root.checked
-            root.toggled()
         }
     }
 }

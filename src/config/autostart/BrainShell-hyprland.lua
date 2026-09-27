@@ -13,6 +13,12 @@ hl.layer_rule({
     no_anim = true,
 })
 
+hl.layer_rule({
+    match        = { namespace = "selection" },
+    no_anim      = true,
+    ignore_alpha = 1,
+})
+
 local kb_path = os.getenv("HOME") .. "/.config/Brain_Shell/Brain_ShellKeybinds.lua"
 local f = io.open(kb_path, "r")
 if f then

@@ -57,6 +57,9 @@ QtObject {
     property int hoverOpenDelay: 150
     property int hoverCloseDelay: 300
 
+    property bool enableOsd: true
+    property real osdDuration: 2.5
+
     property bool dynamicThemeOverride: false
     property bool darkMode: true
     property real bgOpacity: 1.0
@@ -134,6 +137,9 @@ QtObject {
             if (o.hoverOpenDelay !== undefined) root.hoverOpenDelay = o.hoverOpenDelay
             if (o.hoverCloseDelay !== undefined) root.hoverCloseDelay = o.hoverCloseDelay
 
+            if (o.enableOsd !== undefined) root.enableOsd = o.enableOsd
+            if (o.osdDuration !== undefined) root.osdDuration = o.osdDuration
+
             if (o.dynamicThemeOverride !== undefined) root.dynamicThemeOverride = o.dynamicThemeOverride
             if (o.darkMode !== undefined) root.darkMode = o.darkMode
             if (o.bgOpacity !== undefined) root.bgOpacity = o.bgOpacity
@@ -184,6 +190,8 @@ QtObject {
     onHoverWallpaperChanged: if (_loaded) saveConfig()
     onHoverOpenDelayChanged: if (_loaded) saveConfig()
     onHoverCloseDelayChanged: if (_loaded) saveConfig()
+    onEnableOsdChanged: if (_loaded) saveConfig()
+    onOsdDurationChanged: if (_loaded) saveConfig()
     onDynamicThemeOverrideChanged: if (_loaded) saveConfig()
     onDarkModeChanged: if (_loaded) saveConfig()
     onBgOpacityChanged: { if (bgOpacity >= 0.95 && bgBlur) { bgBlur = false } if (_loaded) saveConfig() }
@@ -231,6 +239,8 @@ QtObject {
             hoverWallpaper: root.hoverWallpaper,
             hoverOpenDelay: root.hoverOpenDelay,
             hoverCloseDelay: root.hoverCloseDelay,
+            enableOsd: root.enableOsd,
+            osdDuration: root.osdDuration,
             dynamicThemeOverride: root.dynamicThemeOverride,
             darkMode: root.darkMode,
             bgOpacity: root.bgOpacity,

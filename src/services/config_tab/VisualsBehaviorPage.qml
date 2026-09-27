@@ -286,6 +286,32 @@ Item {
                         }
                     }
                 }
+
+                SettingsDivider { localScale: root.localScale }
+
+                ToggleButton {
+                    localScale: root.localScale
+                    text: "QuickControl OSD"
+                    description: "Automatically pop out QuickControl when volume/brightness changes."
+                    checked: PrefsService.enableOsd
+                    defaultValue: true
+                    onToggled: { PrefsService.enableOsd = checked; PrefsService.saveConfig() }
+                }
+
+                SettingsDivider { localScale: root.localScale }
+
+                SettingsSlider {
+                    localScale: root.localScale
+                    text: "OSD Duration"
+                    description: "Time the OSD stays open before automatically closing."
+                    from: 0.5; to: 5.0; stepSize: 0.1; value: PrefsService.osdDuration
+                    defaultValue: 2.5
+                    onValueChanged: { if (Math.abs(value - PrefsService.osdDuration) > 0.01) { PrefsService.osdDuration = value; PrefsService.saveConfig() } }
+                    valueSuffix: "s"
+                    opacity: PrefsService.enableOsd ? 1.0 : 0.4
+                    enabled: PrefsService.enableOsd
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
+                }
             }
 
             // Appearance

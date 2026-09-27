@@ -40,7 +40,7 @@ ShellRoot {
 
     Timer {
         id: osdCloseTimer
-        interval: 2500
+        interval: Math.max(100, Math.min(5000, PrefsService.osdDuration * 1000))
         repeat: false
         onTriggered: {
             if (SurfaceState.activeContent === "quick" && !Popups.quickPinned && !Popups.quickTriggerHovered) {
@@ -50,7 +50,7 @@ ShellRoot {
     }
 
     function _triggerOsd() {
-        if (_isBooting) return;
+        if (_isBooting || !PrefsService.enableOsd) return;
         if (SurfaceState.activeContent === "none" || SurfaceState.activeContent === "notifications" || SurfaceState.activeContent === "quick") {
             if (SurfaceState.activeContent !== "quick") SurfaceState.open("rightCenter", "quick")
             osdCloseTimer.restart()

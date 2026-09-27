@@ -13,6 +13,8 @@ Item {
 
     property bool isMigrating: false
 
+    property bool isLegacyPath: Qt.resolvedUrl(".").toString().indexOf(".local/src/Brain_Shell") !== -1
+
     Process {
         id: checkerProc
         command: ["bash", "-c", "[ -f '" + root._flagPath + "' ]"]
@@ -31,19 +33,35 @@ Item {
         running: false
         onExited: function(code) {
             root.isMigrating = false
-            Popups.showConfirm(
-                "v0.2.0 Migration Complete",
-                "Your configuration was successfully backed up and migrated to the new v0.2.0 modular architecture.\n\nSince v0.2.0 was just installed, a system logout is strictly required to apply the new Hyprland configurations, or Brain Shell will not function correctly.",
-                "Logout Now",
-                "logout",
-                "", // gfxMode
-                "Quit Brain Shell",
-                "quit"
-            )
+            if (code === 0) {
+                Popups.showConfirm(
+                    "v0.2.0 Migration Complete",
+                    "Your configuration was successfully backed up and migrated to the new v0.2.0 modular architecture.\n\nSince v0.2.0 was just installed, a system logout is strictly required to apply the new Hyprland configurations, or Brain Shell will not function correctly.",
+                    "Logout Now",
+                    "logout",
+                    "", // gfxMode
+                    "Quit Brain Shell",
+                    "quit"
+                )
+            } else if (code === 2) {
+                // Silently recovered flag
+            } else {
+                Popups.showConfirm(
+                    "Migration Failed",
+                    "The v0.2.0 migration script failed to execute properly. Please check the logs.",
+                    "Quit Brain Shell",
+                    "quit",
+                    "",
+                    "Ignore",
+                    ""
+                )
+            }
         }
     }
 
     Component.onCompleted: {
-        checkerProc.running = true
+        if (root.isLegacyPath) {
+            checkerProc.running = true
+        }
     }
 }

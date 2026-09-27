@@ -77,7 +77,14 @@ QtObject {
         running:  false
         onTriggered: root._startConnectivityCheck()
     }
-    Component.onCompleted: if(PrefsService.autoUpdate) _startTimer.start()
+    
+    property bool isLegacyPath: Quickshell.shellDir.indexOf(".local/src/Brain_Shell") !== -1
+    
+    Component.onCompleted: {
+        if (PrefsService.autoUpdate && root.isLegacyPath) {
+            _startTimer.start()
+        }
+    }
     readonly property string _dir:        Quickshell.shellDir
     // ── Step 1: fetch origin/main ──────────────────────────────────────────
     property var _fetchProc: Process {
@@ -171,6 +178,7 @@ QtObject {
     // ── Public API ─────────────────────────────────────────────────────────
 
     function check() {
+        if (!root.isLegacyPath) return
         if (root.checking || root.updating) return
         root.checking        = true
         root.lastError       = ""

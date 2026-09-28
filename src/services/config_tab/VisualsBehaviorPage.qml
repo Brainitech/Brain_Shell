@@ -328,6 +328,17 @@ Item {
                     enabled: PrefsService.enableOsd
                     Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
+
+                SettingsDivider { localScale: root.localScale }
+
+                ToggleButton {
+                    localScale: root.localScale
+                    text: "Enable Visualiser"
+                    description: "Show audio visualizer bars in the center notch."
+                    checked: PrefsService.enableVisualiser
+                    defaultValue: true
+                    onToggled: { PrefsService.enableVisualiser = checked; PrefsService.saveConfig() }
+                }
             }
 
             // Appearance

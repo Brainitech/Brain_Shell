@@ -102,7 +102,7 @@ Item {
 		? _items[_carouselIndex] : "title"
 
 		var list = ["title"]
-		if (root.player !== null || CavaService.audioActive) list.push("music")
+		if (PrefsService.enableVisualiser && (root.player !== null || CavaService.audioActive)) list.push("music")
 		if (ClockState.timerStarted)                   list.push("timer")
 		if (ClockState.swStarted)                      list.push("stopwatch")
 		if (ShellState.screenRecord && !ScreenRecService.recording) list.push("record_setup")
@@ -146,6 +146,13 @@ Item {
 		target: CavaService
 		function onAudioActiveChanged() {
 			_rebuildItems(CavaService.audioActive ? "music" : null)
+		}
+	}
+
+	Connections {
+		target: PrefsService
+		function onEnableVisualiserChanged() {
+			_rebuildItems(null)
 		}
 	}
 
@@ -360,6 +367,7 @@ Item {
 
 					Item {
 						id: barsArea
+						visible: PrefsService.enableVisualiser
 						anchors {
 							left:        parent.left
 							leftMargin:  parent.artPad + parent.artSize + Math.round(5 * localScale)

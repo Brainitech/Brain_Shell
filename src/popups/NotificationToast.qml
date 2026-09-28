@@ -15,6 +15,12 @@ Item {
 	property bool showing:       false
 	property var  current:       null
 	property var  queue:         []
+	property string cAppName:    ""
+	property string cAppIcon:    ""
+	property string cSummary:    ""
+	property string cBody:       ""
+	property int    cUrgency:    1
+	property var    cActions:    []
 
 	Connections {
 		target: SurfaceState
@@ -49,6 +55,12 @@ Item {
 
 	function startShow(n) {
 		root.current       = n
+		root.cAppName      = n?.appName ?? ""
+		root.cAppIcon      = n?.appIcon ?? ""
+		root.cSummary      = n?.summary ?? ""
+		root.cBody         = n?.body ?? ""
+		root.cUrgency      = n?.urgency ?? 1
+		root.cActions      = n?.actions ?? []
 		root.showing       = false
 		
 		slideInTimer.restart()
@@ -145,7 +157,7 @@ Item {
 			radius: Math.round(2 * root.localScale)
 			color: {
 				if (!root.current) return "#ABB2BF"
-				switch (root.current.urgency) {
+				switch (root.cUrgency) {
 					case NotificationUrgency.Critical: return "#e06c75"
 					case NotificationUrgency.Low:      return Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25)
 					default:                           return "#ABB2BF"
@@ -198,7 +210,7 @@ Item {
 							id:           toastIcon
 							anchors.fill: parent
 							source: {
-								var ic = root.current?.appIcon ?? ""
+								var ic = root.cAppIcon
 								if (ic === "") return ""
 								if (ic.startsWith("/")) return "file://" + ic
 								if (!Quickshell.hasThemeIcon(ic)) return ""
@@ -217,7 +229,7 @@ Item {
 							visible:      toastIcon.status !== Image.Ready
 							Text {
 								anchors.centerIn: parent
-								text:           (root.current?.appName ?? "?").charAt(0).toUpperCase()
+								text:           (root.cAppName !== "" ? root.cAppName : "?").charAt(0).toUpperCase()
 								color:          Theme.text
 								font.pixelSize: Math.round(9 * root.localScale) | 0
 								font.bold:      true
@@ -228,7 +240,7 @@ Item {
 					Text {
 						width:                  parent.width - Math.round(16 * root.localScale) - Math.round(24 * root.localScale) - parent.spacing * 2
 						anchors.verticalCenter: parent.verticalCenter
-						text:                   root.current?.appName ?? ""
+						text:                   root.cAppName
 						color:                  Theme.subtext
 						font.pixelSize:         Math.round(11 * root.localScale) | 0
 						elide:                  Text.ElideRight
@@ -237,7 +249,7 @@ Item {
 
 				Text {
 					width:            parent.width
-					text:             root.current?.summary ?? ""
+					text:             root.cSummary
 					color:            Theme.text
 					font.pixelSize:   Math.round(13 * root.localScale) | 0
 					font.bold:        true
@@ -249,7 +261,7 @@ Item {
 
 				Text {
 					width:            parent.width
-					text:             root.current?.body ?? ""
+					text:             root.cBody
 					color:            Theme.subtext
 					font.pixelSize:   Math.round(12 * root.localScale) | 0
 					wrapMode:         Text.WordWrap
@@ -265,7 +277,7 @@ Item {
 					visible:    (root.current?.actions?.length ?? 0) > 0
 
 					Repeater {
-						model: root.current?.actions ?? []
+						model: root.cActions
 						delegate: Item {
 							required property var modelData
 							width:  actionLbl.width + Math.round(20 * root.localScale)

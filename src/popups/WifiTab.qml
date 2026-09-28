@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Io
 import "../"
 import "../components"
+import "../services"
 
 // WifiTab
 // Connect → attempt without password → if "secret" in stderr → expand field inline.
@@ -550,8 +551,57 @@ Item {
             Column {
                 id: contentCol; width: flick.width; height: implicitHeight; spacing: Math.round(4 * localScale)
 
+                Item {
+                    width: parent.width; height: visible ? ethCol.implicitHeight + Math.round(12 * localScale) : 0
+                    visible: NetworkService.ethernet
+
+                    Column {
+                        id: ethCol
+                        width: parent.width - Math.round(2 * localScale)
+                        x: Math.round(1 * localScale)
+                        spacing: Math.round(4 * localScale)
+
+                        Text { text: "ETHERNET"; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold; font.letterSpacing: 1.2; color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5) }
+
+                        Rectangle {
+                            width: parent.width; height: Math.round(48 * localScale)
+                            radius: Math.round(Theme.cornerRadius * localScale)
+                            color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.07)
+                            border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
+                            border.width: Math.max(1, Math.round(1 * localScale))
+
+                            Row {
+                                anchors { left: parent.left; leftMargin: Math.round(12 * localScale); right: parent.right; rightMargin: Math.round(10 * localScale); verticalCenter: parent.verticalCenter }
+                                spacing: Math.round(10 * localScale)
+                                Text {
+                                    text: ""
+                                    font.pixelSize: Math.round(18 * localScale)
+                                    color: Theme.active
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                                Column {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    spacing: Math.round(3 * localScale)
+                                    Text {
+                                        text: NetworkService.ethernetName !== "" ? NetworkService.ethernetName : "Wired Connection"
+                                        font.pixelSize: Math.round(13 * localScale)
+                                        font.weight: Font.Medium
+                                        color: Theme.text
+                                        width: Math.round(170 * localScale); elide: Text.ElideRight
+                                    }
+                                    Text {
+                                        text: "Connected"
+                                        font.pixelSize: Math.round(10 * localScale)
+                                        color: Theme.active
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Item { width: parent.width; height: visible ? sLbl1.implicitHeight + Math.round(4 * localScale) : 0; visible: root._current !== null
-                    Text { id: sLbl1; text: "CONNECTED"; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold; font.letterSpacing: 1.2; color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5) } }
+                    Text { id: sLbl1; text: "WI-FI"; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold; font.letterSpacing: 1.2; color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5) } }
 
                 NetworkRow { visible: root._current !== null; width: parent.width - Math.round(2 * localScale); x: Math.round(1 * localScale); net: root._current ?? { ssid: "", signal: 0, secured: false, inUse: true }; isCurrent: true }
 

@@ -60,7 +60,7 @@ Item {
     Row {
         id: row
         anchors.centerIn: parent
-        spacing: Math.round(4 * localScale)
+        spacing: Math.round(8 * localScale)
 
         // WiFi/ethernet icon — opens to wifi tab
         Text {

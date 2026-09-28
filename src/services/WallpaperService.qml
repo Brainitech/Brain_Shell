@@ -25,12 +25,12 @@ QtObject {
     property var    tempWalls:   []
     property string currentWall:  ""
     property string previewWall:  ""
-    property string scheme:       "content"
+    property string scheme:       "smart"
     property bool   applying:     false
     property string wallpaperDir: "~/Pictures/Wallpapers"
 
     readonly property var schemes: [
-        "content", "tonal-spot", "fidelity", "fruit-salad", "neutral", "monochrome"
+        "content", "tonal-spot", "fidelity", "fruit-salad", "neutral", "monochrome", "expressive", "rainbow", "vibrant", "smart"
     ]
 
     // Emitted when the full apply pipeline exits cleanly (exitCode === 0).

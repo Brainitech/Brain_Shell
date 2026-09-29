@@ -78,34 +78,12 @@ Item {
     
     Behavior on height { NumberAnimation { duration: Anim.fast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
 
-    // Background Hover Highlight
-    Rectangle {
-        anchors.fill: parent
-        radius: Math.round(8 * localScale)
-        color: rowMouse.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05) : "transparent"
-        Behavior on color { ColorAnimation { duration: Anim.fast; easing.type: Anim.linear } }
-    }
 
     Item {
         id: baseRow
         width: parent.width
         height: Math.round(root.description !== "" ? (52 * root.localScale) : (40 * root.localScale))
 
-        HoverHandler { id: rowMouse; cursorShape: Qt.PointingHandCursor }
-        MouseArea {
-            anchors.fill: parent
-            onClicked: {
-                if (root._hasExpandable) {
-                    root.expanded = !root.expanded
-                    if (root.expanded && root.inputType === "text") {
-                        _txtInput.text = root.inputText
-                        _txtInput.forceActiveFocus()
-                    }
-                } else {
-                    root.clicked()
-                }
-            }
-        }
 
         Column {
             anchors {
@@ -180,12 +158,28 @@ Item {
             height: Math.round(24 * localScale)
             radius: Math.round(6 * localScale)
             color: root.swatchColor !== "" ? root.swatchColor : (root.expanded ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15) 
-                 : ((rowMouse.hovered ? (root.destructive ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.15) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)) : (root.destructive ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.05) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)))))
+                 : ((actionMouse.hovered ? (root.destructive ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.15) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)) : (root.destructive ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.05) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)))))
             Behavior on color { ColorAnimation { duration: Anim.fast; easing.type: Anim.linear } }
             
             border.color: root.swatchColor !== "" ? Theme.border : (root.expanded ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
                         : (root.destructive ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.5) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)))
             border.width: 1
+
+            HoverHandler { id: actionMouse; cursorShape: Qt.PointingHandCursor }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    if (root._hasExpandable) {
+                        root.expanded = !root.expanded
+                        if (root.expanded && root.inputType === "text") {
+                            _txtInput.text = root.inputText
+                            _txtInput.forceActiveFocus()
+                        }
+                    } else {
+                        root.clicked()
+                    }
+                }
+            }
 
             Text {
                 id: btnLabel
@@ -268,9 +262,12 @@ Item {
         Rectangle {
             visible: root.inputType === "text"
             anchors { left: parent.left; leftMargin: Math.round(20 * localScale); right: parent.right; rightMargin: Math.round(12 * localScale); top: parent.top; bottom: parent.bottom; bottomMargin: Math.round(12 * localScale) }
-            color: root._isInvalid ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.08) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+            
+            HoverHandler { id: txtHover; cursorShape: Qt.IBeamCursor }
+
+            color: root._isInvalid ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.08) : (txtHover.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04))
             border.color: root._isInvalid ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.5) 
-                        : (_txtInput.activeFocus ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1))
+                        : (_txtInput.activeFocus ? Theme.active : (txtHover.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.2) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)))
             border.width: 1
             radius: Math.round(8 * localScale)
             Behavior on border.color { ColorAnimation { duration: Anim.fast } }

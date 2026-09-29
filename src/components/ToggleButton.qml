@@ -21,26 +21,10 @@ Item {
     width: parent ? parent.width : 400
     height: Math.round(description !== "" ? (52 * localScale) : (40 * localScale))
 
-    // Background Hover Highlight
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 0
-        radius: Math.round(8 * localScale)
-        color: toggleMouse.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04) : "transparent"
-        Behavior on color { ColorAnimation { duration: Anim.fast; easing.type: Anim.linear } }
-    }
+
 
     HoverHandler {
         id: toggleMouse
-        cursorShape: Qt.PointingHandCursor
-    }
-    
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            root.checked = !root.checked
-            root.toggled()
-        }
     }
 
     Column {
@@ -81,11 +65,20 @@ Item {
         height: Math.round(22 * localScale)
         radius: height / 2
         
-        color: root.checked ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
+        color: root.checked ? (switchHover.hovered ? Qt.lighter(Theme.active, 1.1) : Theme.active) : (switchHover.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.15) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1))
         Behavior on color { ColorAnimation { duration: Anim.fast; easing.type: Anim.linear } }
         
         border.color: root.checked ? Qt.darker(Theme.active, 1.2) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.2)
         border.width: Math.max(1, Math.round(1 * localScale))
+
+        HoverHandler { id: switchHover; cursorShape: Qt.PointingHandCursor }
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                root.checked = !root.checked
+                root.toggled()
+            }
+        }
 
         // Switch Handle
         Rectangle {

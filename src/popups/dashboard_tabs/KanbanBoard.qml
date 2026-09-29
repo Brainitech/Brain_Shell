@@ -917,7 +917,7 @@ Item {
             }
             border.width: 1
             Behavior on border.color { ColorAnimation { duration: Anim.mediumFast} }
-            implicitHeight: body.implicitHeight + Math.round(18 * localScale)
+            implicitHeight: Math.max(body.implicitHeight + Math.round(18 * localScale), isDelConfirm ? Math.round(86 * localScale) : 0)
 
             // Drag direction tint
             Rectangle {
@@ -1095,6 +1095,8 @@ Item {
 
                 Column {
                     anchors.centerIn: parent; spacing: Math.round(10 * localScale)
+                    scale: Math.min(1.0, (parent.width - Math.round(12 * localScale)) / Math.round(136 * localScale))
+                    
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "Delete task?"; color: Theme.text; font.pixelSize: Math.round(12 * localScale); font.weight: Font.Medium

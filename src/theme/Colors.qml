@@ -22,6 +22,7 @@ QtObject {
     property color border:     internalLoader.border
     property color iconFont:   internalLoader.iconFont
     property color error:      PrefsService.darkMode ? "#f87171" : "#cc0000"
+    property color errorSolid: "#d9534f"
 
     // --- Workspace Visuals ---
     property color wsBackground: "#20000000"

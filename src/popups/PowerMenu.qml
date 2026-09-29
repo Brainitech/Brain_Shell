@@ -120,7 +120,7 @@ Column {
             readonly property bool isSelected: root.selectedIndex === index
             
             color: (hov.hovered || isSelected)
-                        ? (modelData.danger ? "#4d2020" : Theme.active)
+                        ? (modelData.danger ? Qt.rgba(Theme.errorSolid.r, Theme.errorSolid.g, Theme.errorSolid.b, 0.75) : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.75))
                         : "transparent"
 
             Behavior on color { ColorAnimation { duration: Anim.color} }
@@ -132,14 +132,14 @@ Column {
                 Text {
                     text:           modelData.icon
                     font.pixelSize: Math.round(16 * localScale)
-                    color:          modelData.danger && (hov.hovered || isSelected) ? Theme.error : (hov.hovered || isSelected)?"#000000":Theme.text
+                    color:          modelData.danger && (hov.hovered || isSelected) ? "white" : (hov.hovered || isSelected)?"#000000":Theme.text
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
                 Text {
                     text:           modelData.label
                     font.pixelSize: Math.round(13 * localScale)
-                    color:          modelData.danger && (hov.hovered || isSelected) ? Theme.error : (hov.hovered || isSelected)?"#000000":Theme.text
+                    color:          modelData.danger && (hov.hovered || isSelected) ? "white" : (hov.hovered || isSelected)?"#000000":Theme.text
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }

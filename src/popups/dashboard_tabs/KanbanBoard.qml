@@ -1112,7 +1112,7 @@ Item {
                         }
                         Rectangle {
                             width: Math.round(64 * localScale); height: Math.round(24 * localScale); radius: Math.round(6 * localScale)
-                            color: cfH.hovered ? Theme.error : Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.7)
+                            color: cfH.hovered ? Qt.lighter(Theme.errorSolid, 1.2) : Theme.errorSolid
                             Behavior on color { ColorAnimation { duration: Anim.superFast} }
                             Text { anchors.centerIn: parent; text: "Delete"; font.pixelSize: Math.round(11 * localScale); font.weight: Font.Bold; color: "white" }
                             HoverHandler { id: cfH; cursorShape: Qt.PointingHandCursor }

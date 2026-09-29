@@ -207,6 +207,7 @@ PanelWindow {
                         default:                return "⚠️"
                     }
                 }
+                color: Theme.text
                 font.pixelSize: Math.round(32 * localScale)
             }
 
@@ -262,7 +263,7 @@ PanelWindow {
                     width:  Math.round(130 * localScale)
                     height: Math.round(38 * localScale)
                     radius: Math.round(Theme.cornerRadius * localScale)
-                    color:  confirmHov.hovered ? Theme.error : Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.7)
+                    color:  confirmHov.hovered ? Qt.lighter(Theme.errorSolid, 1.2) : Theme.errorSolid
                     Behavior on color { ColorAnimation { duration: Anim.color} }
 
                     Text {

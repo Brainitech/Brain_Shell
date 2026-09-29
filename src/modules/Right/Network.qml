@@ -34,7 +34,7 @@ Item {
 
     readonly property color _netColor: {
         if (!_ethernet && _signal <= 0) return Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.28)
-        if (_connectivity === "none")   return "#f87171"
+        if (_connectivity === "none")   return Theme.error
         if (_limited)                   return "#f5c47a"
         return hov.hovered ? Theme.active : Theme.text
     }

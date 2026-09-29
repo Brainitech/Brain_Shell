@@ -132,14 +132,14 @@ Column {
                 Text {
                     text:           modelData.icon
                     font.pixelSize: Math.round(16 * localScale)
-                    color:          modelData.danger && (hov.hovered || isSelected) ? "#ff6b6b" : (hov.hovered || isSelected)?"#000000":Theme.text
+                    color:          modelData.danger && (hov.hovered || isSelected) ? Theme.error : (hov.hovered || isSelected)?"#000000":Theme.text
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
                 Text {
                     text:           modelData.label
                     font.pixelSize: Math.round(13 * localScale)
-                    color:          modelData.danger && (hov.hovered || isSelected) ? "#ff6b6b" : (hov.hovered || isSelected)?"#000000":Theme.text
+                    color:          modelData.danger && (hov.hovered || isSelected) ? Theme.error : (hov.hovered || isSelected)?"#000000":Theme.text
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }

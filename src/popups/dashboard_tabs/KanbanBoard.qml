@@ -377,12 +377,12 @@ Item {
                             // Clear column button
                             Rectangle {
                                 width: Math.round(22 * localScale); height: Math.round(22 * localScale); radius: Math.round(6 * localScale)
-                                color: clrColH.hovered ? Qt.rgba(248/255,113/255,113/255,0.15) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
-                                border.color: clrColH.hovered ? Qt.rgba(248/255,113/255,113/255,0.3) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
+                                color: clrColH.hovered ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.15) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
+                                border.color: clrColH.hovered ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.3) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
                                 border.width: 1
                                 visible: colItem.cTasks.length > 0
                                 Behavior on color { ColorAnimation { duration: Anim.fast} }
-                                Text { anchors.centerIn: parent; text: "🗑"; color: clrColH.hovered ? "#f87171" : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4); font.pixelSize: Math.round(11 * localScale) }
+                                Text { anchors.centerIn: parent; text: "🗑"; color: clrColH.hovered ? Theme.error : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4); font.pixelSize: Math.round(11 * localScale) }
                                 HoverHandler { id: clrColH; cursorShape: Qt.PointingHandCursor }
                                 MouseArea {
                                     anchors.fill: parent
@@ -1070,11 +1070,11 @@ Item {
                         // ✕ delete
                         Rectangle {
                             width: Math.round(20 * localScale); height: Math.round(20 * localScale); radius: Math.round(5 * localScale)
-                            color: dH.hovered ? Qt.rgba(248/255,113/255,113/255,0.20) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
+                            color: dH.hovered ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.20) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
                             Behavior on color { ColorAnimation { duration: Anim.superFast} }
                             Text {
                                 anchors.centerIn: parent; text: "✕"; font.pixelSize: Math.round(10 * localScale)
-                                color: Qt.rgba(248/255,113/255,113/255, dH.hovered ? 1.0 : 0.60)
+                                color: Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, dH.hovered ? 1.0 : 0.60)
                                 Behavior on color { ColorAnimation { duration: Anim.superFast} }
                             }
                             HoverHandler { id: dH; cursorShape: Qt.PointingHandCursor }
@@ -1112,7 +1112,7 @@ Item {
                         }
                         Rectangle {
                             width: Math.round(64 * localScale); height: Math.round(24 * localScale); radius: Math.round(6 * localScale)
-                            color: cfH.hovered ? "#cc3a3a" : "#993030"
+                            color: cfH.hovered ? Theme.error : Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.7)
                             Behavior on color { ColorAnimation { duration: Anim.superFast} }
                             Text { anchors.centerIn: parent; text: "Delete"; font.pixelSize: Math.round(11 * localScale); font.weight: Font.Bold; color: "white" }
                             HoverHandler { id: cfH; cursorShape: Qt.PointingHandCursor }

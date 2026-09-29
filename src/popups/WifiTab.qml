@@ -366,10 +366,10 @@ Item {
                     visible: netRow.isCurrent; width: Math.round(28 * localScale); height: Math.round(28 * localScale); anchors.verticalCenter: parent.verticalCenter
                     Rectangle {
                         anchors.fill: parent; radius: Math.round(6 * localScale)
-                        color: fH.hovered ? Qt.rgba(248/255,113/255,113/255,0.15) : netRow.isForgetPending ? Qt.rgba(248/255,113/255,113/255,0.10) : "transparent"
+                        color: fH.hovered ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.15) : netRow.isForgetPending ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.10) : "transparent"
                         Behavior on color { ColorAnimation { duration: Anim.fast} }
                     }
-                    Text { anchors.centerIn: parent; text: "󰗼"; font.pixelSize: Math.round(13 * localScale); color: (fH.hovered || netRow.isForgetPending) ? "#f87171" : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.3); Behavior on color { ColorAnimation { duration: Anim.fast} } }
+                    Text { anchors.centerIn: parent; text: "󰗼"; font.pixelSize: Math.round(13 * localScale); color: (fH.hovered || netRow.isForgetPending) ? Theme.error : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.3); Behavior on color { ColorAnimation { duration: Anim.fast} } }
                     HoverHandler { id: fH; cursorShape: Qt.PointingHandCursor }
                     MouseArea { anchors.fill: parent; onClicked: root._forgetSsid = netRow.isForgetPending ? "" : netRow.net.ssid }
                 }
@@ -413,8 +413,8 @@ Item {
                 Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
                 Rectangle {
                     anchors { fill: parent; leftMargin: Math.round(10 * localScale); rightMargin: Math.round(10 * localScale) }
-                    radius: Math.round(8 * localScale); color: Qt.rgba(248/255,113/255,113/255,0.07)
-                    border.color: Qt.rgba(248/255,113/255,113/255,0.22); border.width: Math.max(1, Math.round(1 * localScale))
+                    radius: Math.round(8 * localScale); color: Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.07)
+                    border.color: Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.22); border.width: Math.max(1, Math.round(1 * localScale))
                     Row {
                         anchors.centerIn: parent; spacing: Math.round(12 * localScale)
                         Text { anchors.verticalCenter: parent.verticalCenter; text: "Forget this network?"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.55) }
@@ -427,9 +427,9 @@ Item {
                         }
                         Rectangle {
                             width: Math.round(54 * localScale); height: Math.round(24 * localScale); radius: Math.round(6 * localScale)
-                            color: ffH.hovered ? Qt.rgba(248/255,113/255,113/255,0.35) : Qt.rgba(248/255,113/255,113/255,0.18)
+                            color: ffH.hovered ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.35) : Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.18)
                             Behavior on color { ColorAnimation { duration: Anim.superFast} }
-                            Text { anchors.centerIn: parent; text: "Forget"; font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium; color: "#f87171" }
+                            Text { anchors.centerIn: parent; text: "Forget"; font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium; color: Theme.error }
                             HoverHandler { id: ffH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root._forget(netRow.net.ssid) }
                         }
@@ -506,12 +506,12 @@ Item {
 
                 Rectangle {
                     width: Math.round(32 * localScale); height: Math.round(32 * localScale); radius: Math.round(8 * localScale)
-                    color: wfPwrH.hovered ? (root._wifiEnabled ? Qt.rgba(248/255,113/255,113/255,0.18) : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
+                    color: wfPwrH.hovered ? (root._wifiEnabled ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.18) : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
                     border.color: root._wifiEnabled ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.10) : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30)
                     border.width: Math.max(1, Math.round(1 * localScale))
                     Behavior on color        { ColorAnimation { duration: Anim.color} }
                     Behavior on border.color { ColorAnimation { duration: Anim.color} }
-                    Text { anchors.centerIn: parent; text: "⏻"; font.pixelSize: Math.round(14 * localScale); color: root._wifiEnabled ? (wfPwrH.hovered ? "#f87171" : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.32)) : Theme.active; Behavior on color { ColorAnimation { duration: Anim.color} } }
+                    Text { anchors.centerIn: parent; text: "⏻"; font.pixelSize: Math.round(14 * localScale); color: root._wifiEnabled ? (wfPwrH.hovered ? Theme.error : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.32)) : Theme.active; Behavior on color { ColorAnimation { duration: Anim.color} } }
                     HoverHandler { id: wfPwrH; cursorShape: Qt.PointingHandCursor }
                     MouseArea { anchors.fill: parent; onClicked: root._setWifiEnabled(!root._wifiEnabled) }
                 }

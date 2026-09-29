@@ -14,6 +14,7 @@ QtObject {
     property color icon:       Colors.icon
     property color border:     Colors.border
     property color iconFont:   Colors.iconFont
+    property color error:      Colors.error
 
     property color wsBackground: Colors.wsBackground
     property color wsActive:     Colors.wsActive

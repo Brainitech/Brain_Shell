@@ -44,7 +44,7 @@ QtObject {
     // ── Parser ────────────────────────────────────────────────────────────────
     function _adjustLightMode() {
         if (!PrefsService.darkMode && !root.overrideMode) {
-            root.background = Qt.darker(root.background, 1.06)
+            root.background = Qt.darker(root.background, 1.12)
             root.border = Qt.rgba(root.text.r, root.text.g, root.text.b, 0.25)
             root.subtext = Qt.rgba(root.text.r, root.text.g, root.text.b, 0.75)
             root.iconFont = root.active

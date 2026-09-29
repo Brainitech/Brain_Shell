@@ -357,7 +357,7 @@ Item {
                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.07)
                 : _rH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04) : "transparent"
             border.color: br._savedDupe
-                ? Qt.rgba(248/255, 113/255, 113/255, 0.35)
+                ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.35)
                 : br.isCapturing
                     ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.20)
                     : "transparent"
@@ -435,7 +435,7 @@ Item {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                 text:           br._b ? br._b.label : br.action
                 font.pixelSize: Math.round(12 * localScale)
-                color:          br._savedDupe ? "#f87171" : (br._isUnbound ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.35) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.68))
+                color:          br._savedDupe ? Theme.error : (br._isUnbound ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.35) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.68))
                 Behavior on color { ColorAnimation { duration: Anim.color} }
             }
 
@@ -449,7 +449,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text:           "⚠ " + KeybindService.conflictsWith(br.action)
                     font.pixelSize: Math.round(9 * localScale)
-                    color:          Qt.rgba(248/255, 113/255, 113/255, 0.75)
+                    color:          Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.75)
                 }
 
 				// Clear bind
@@ -574,7 +574,7 @@ Item {
                         width:  Math.max(Math.round(120 * localScale), _capT.implicitWidth + Math.round(18 * localScale))
                         color:  Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08)
                         border.color: br._hasConflict
-                            ? Qt.rgba(248/255, 113/255, 113/255, 0.55)
+                            ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.55)
                             : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b,
                                       br.capturedKey !== "" ? 0.40 : 0.18)
                         border.width: 1
@@ -585,7 +585,7 @@ Item {
                             anchors.centerIn: parent
                             font.pixelSize: Math.round(10 * localScale); font.family: "JetBrains Mono"
                             color: br._hasConflict
-                                ? "#f87171"
+                                ? Theme.error
                                 : br.capturedKey !== ""
                                     ? Theme.active
                                     : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.45)
@@ -622,7 +622,7 @@ Item {
                     anchors { left: parent.left; leftMargin: Math.round(2 * localScale); verticalCenter: parent.verticalCenter }
                     text:           "⚠  Conflicts with: " + br._conflictLabel
                     font.pixelSize: Math.round(10 * localScale)
-                    color:          "#f87171"
+                    color:          Theme.error
                 }
             }
         }

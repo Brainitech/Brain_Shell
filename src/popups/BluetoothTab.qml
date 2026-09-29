@@ -310,7 +310,7 @@ Item {
                 : rowHov.hovered && !dRow.isPaired ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04) : "transparent"
             border.color: dRow.isConnected
                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
-                : dRow.isRemovePending ? Qt.rgba(248/255,113/255,113/255,0.22) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06)
+                : dRow.isRemovePending ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.22) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06)
             border.width: Math.max(1, Math.round(1 * localScale))
             Behavior on color        { ColorAnimation { duration: Anim.color} }
             Behavior on border.color { ColorAnimation { duration: Anim.color} }
@@ -384,8 +384,8 @@ Item {
                 Item {
                     visible: dRow.isPaired && !dRow.inAction && !dRow.inRemove
                     width: Math.round(28 * localScale); height: Math.round(28 * localScale); anchors.verticalCenter: parent.verticalCenter
-                    Rectangle { anchors.fill: parent; radius: Math.round(7 * localScale); color: rmH.hovered ? Qt.rgba(248/255,113/255,113/255,0.20) : dRow.isRemovePending ? Qt.rgba(248/255,113/255,113/255,0.12) : "transparent"; Behavior on color { ColorAnimation { duration: Anim.fast} } }
-                    Text { anchors.centerIn: parent; text: "󰗼"; font.pixelSize: Math.round(13 * localScale); color: (rmH.hovered || dRow.isRemovePending) ? "#f87171" : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25); Behavior on color { ColorAnimation { duration: Anim.fast} } }
+                    Rectangle { anchors.fill: parent; radius: Math.round(7 * localScale); color: rmH.hovered ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.20) : dRow.isRemovePending ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.12) : "transparent"; Behavior on color { ColorAnimation { duration: Anim.fast} } }
+                    Text { anchors.centerIn: parent; text: "󰗼"; font.pixelSize: Math.round(13 * localScale); color: (rmH.hovered || dRow.isRemovePending) ? Theme.error : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25); Behavior on color { ColorAnimation { duration: Anim.fast} } }
                     HoverHandler { id: rmH; cursorShape: Qt.PointingHandCursor }
                     MouseArea { anchors.fill: parent; onClicked: { root._pairingMac = ""; root._removeMac = dRow.isRemovePending ? "" : dRow.device.mac } }
                 }
@@ -442,7 +442,7 @@ Item {
                 Behavior on opacity { NumberAnimation { duration: Anim.color} }
                 Rectangle {
                     anchors { fill: parent; leftMargin: Math.round(8 * localScale); rightMargin: Math.round(8 * localScale) }
-                    radius: Math.round(8 * localScale); color: Qt.rgba(248/255,113/255,113/255,0.06); border.color: Qt.rgba(248/255,113/255,113/255,0.22); border.width: Math.max(1, Math.round(1 * localScale))
+                    radius: Math.round(8 * localScale); color: Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.06); border.color: Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.22); border.width: Math.max(1, Math.round(1 * localScale))
                     Row {
                         anchors.centerIn: parent; spacing: Math.round(12 * localScale)
                         Text { anchors.verticalCenter: parent.verticalCenter; text: "Remove this device?"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.5) }
@@ -451,8 +451,8 @@ Item {
                             HoverHandler { id: cxH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root._removeMac = "" }
                         }
-                        Rectangle { width: Math.round(64 * localScale); height: Math.round(24 * localScale); radius: Math.round(6 * localScale); color: rxH.hovered ? Qt.rgba(248/255,113/255,113/255,0.40) : Qt.rgba(248/255,113/255,113/255,0.18); Behavior on color { ColorAnimation { duration: Anim.superFast} }
-                            Text { anchors.centerIn: parent; text: "Remove"; font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium; color: "#f87171" }
+                        Rectangle { width: Math.round(64 * localScale); height: Math.round(24 * localScale); radius: Math.round(6 * localScale); color: rxH.hovered ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.40) : Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.18); Behavior on color { ColorAnimation { duration: Anim.superFast} }
+                            Text { anchors.centerIn: parent; text: "Remove"; font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium; color: Theme.error }
                             HoverHandler { id: rxH; cursorShape: Qt.PointingHandCursor }
                             MouseArea { anchors.fill: parent; onClicked: root._remove(dRow.device.mac) }
                         }
@@ -527,11 +527,11 @@ Item {
                 // Power toggle
                 Rectangle {
                     width: Math.round(32 * localScale); height: Math.round(32 * localScale); radius: Math.round(8 * localScale)
-                    color: pwrH.hovered ? (root._btPowered ? Qt.rgba(248/255,113/255,113/255,0.18) : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
+                    color: pwrH.hovered ? (root._btPowered ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b,0.18) : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
                     border.color: root._btPowered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.10) : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30); border.width: Math.max(1, Math.round(1 * localScale))
                     Behavior on color        { ColorAnimation { duration: Anim.color} }
                     Behavior on border.color { ColorAnimation { duration: Anim.color} }
-                    Text { anchors.centerIn: parent; text: "⏻"; font.pixelSize: Math.round(14 * localScale); color: root._btPowered ? (pwrH.hovered ? "#f87171" : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.32)) : Theme.active; Behavior on color { ColorAnimation { duration: Anim.color} } }
+                    Text { anchors.centerIn: parent; text: "⏻"; font.pixelSize: Math.round(14 * localScale); color: root._btPowered ? (pwrH.hovered ? Theme.error : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.32)) : Theme.active; Behavior on color { ColorAnimation { duration: Anim.color} } }
                     HoverHandler { id: pwrH; cursorShape: Qt.PointingHandCursor }
                     MouseArea { anchors.fill: parent; onClicked: root._setPower(!root._btPowered) }
                 }

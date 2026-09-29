@@ -74,9 +74,9 @@ Item {
                 width:  clearRow.implicitWidth + Math.round(14 * localScale)
                 height: Math.round(26 * localScale); radius: Math.round(8 * localScale)
                 color: clearH.hovered
-                    ? Qt.rgba(248/255, 113/255, 113/255, 0.18)
+                    ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.18)
                     : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
-                border.color: Qt.rgba(248/255, 113/255, 113/255, clearH.hovered ? 0.38 : 0.12)
+                border.color: Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, clearH.hovered ? 0.38 : 0.12)
                 border.width: 1
                 Behavior on color        { ColorAnimation { duration: Anim.mediumFast} }
                 Behavior on border.color { ColorAnimation { duration: Anim.mediumFast} }
@@ -87,12 +87,12 @@ Item {
                     spacing: Math.round(5 * localScale)
                     Text {
                         text: "󰩺"; font.pixelSize: Math.round(12 * localScale)
-                        color: Qt.rgba(248/255, 113/255, 113/255, 0.80)
+                        color: Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.80)
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Text {
                         text: "Clear"; font.pixelSize: Math.round(10 * localScale)
-                        color: Qt.rgba(248/255, 113/255, 113/255, 0.80)
+                        color: Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.80)
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
@@ -520,7 +520,7 @@ component ActionBtn: Rectangle {
     width: 26; height: 26; radius: 7
 
     color: ab.danger
-        ? (aH.hovered ? Qt.rgba(248/255, 113/255, 113/255, 0.20) : "transparent")
+        ? (aH.hovered ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.20) : "transparent")
         : ab.active
             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
             : (aH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.11) : "transparent")
@@ -541,7 +541,7 @@ component ActionBtn: Rectangle {
         text:           ab.icon
         font.pixelSize: 13
         color: ab.danger
-            ? (aH.hovered ? "#f87171" : Qt.rgba(248/255, 113/255, 113/255, 0.50))
+            ? (aH.hovered ? Theme.error : Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.50))
             : ab.active
                 ? Theme.active
                 : (aH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.88) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.38))

@@ -119,7 +119,7 @@ Item {
 
             Text {
                 text: root.text
-                color: root.destructive ? "#f87171" : Theme.text
+                color: root.destructive ? Theme.error : Theme.text
                 font.pixelSize: Math.round(13 * localScale)
             }
 
@@ -180,11 +180,11 @@ Item {
             height: Math.round(24 * localScale)
             radius: Math.round(6 * localScale)
             color: root.swatchColor !== "" ? root.swatchColor : (root.expanded ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15) 
-                 : (rowMouse.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)))
+                 : ((rowMouse.hovered ? (root.destructive ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.15) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)) : (root.destructive ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.05) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)))))
             Behavior on color { ColorAnimation { duration: Anim.fast; easing.type: Anim.linear } }
             
             border.color: root.swatchColor !== "" ? Theme.border : (root.expanded ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
-                        : (root.destructive ? Qt.rgba(248/255, 113/255, 113/255, 0.3) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)))
+                        : (root.destructive ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.5) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)))
             border.width: 1
 
             Text {
@@ -192,7 +192,7 @@ Item {
                 visible: root.swatchColor === ""
                 anchors.centerIn: parent
                 text: root._hasExpandable ? (root.expanded ? "Close" : root.buttonText) : root.buttonText
-                color: root.expanded ? Theme.active : (root.destructive ? "#fca5a5" : Theme.text)
+                color: root.expanded ? Theme.active : (root.destructive ? Theme.error : Theme.text)
                 font.pixelSize: Math.round(11 * localScale)
                 font.weight: Font.Medium
             }
@@ -268,8 +268,8 @@ Item {
         Rectangle {
             visible: root.inputType === "text"
             anchors { left: parent.left; leftMargin: Math.round(20 * localScale); right: parent.right; rightMargin: Math.round(12 * localScale); top: parent.top; bottom: parent.bottom; bottomMargin: Math.round(12 * localScale) }
-            color: root._isInvalid ? Qt.rgba(248/255, 113/255, 113/255, 0.08) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
-            border.color: root._isInvalid ? Qt.rgba(248/255, 113/255, 113/255, 0.5) 
+            color: root._isInvalid ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.08) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+            border.color: root._isInvalid ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.5) 
                         : (_txtInput.activeFocus ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1))
             border.width: 1
             radius: Math.round(8 * localScale)
@@ -282,7 +282,7 @@ Item {
                 anchors.leftMargin: Math.round(10 * root.localScale)
                 anchors.rightMargin: Math.round(10 * root.localScale)
                 verticalAlignment: TextInput.AlignVCenter
-                color: root._isInvalid ? "#f87171" : Theme.text
+                color: root._isInvalid ? Theme.error : Theme.text
                 font.pixelSize: Math.round(12 * root.localScale)
                 font.family: "JetBrains Mono"
                 selectionColor: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)

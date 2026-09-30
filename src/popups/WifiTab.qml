@@ -326,7 +326,12 @@ Item {
                     text: "Password required"; font.pixelSize: Math.round(10 * localScale)
                     color: Qt.rgba(245/255,196/255,122/255,0.80)
                 }
-                Text { visible: netRow.isCurrent; text: "Connected"; font.pixelSize: Math.round(10 * localScale); color: Theme.active }
+                Text {
+                    visible: netRow.isCurrent;
+                    text: NetworkService.connectivity === "portal" ? "Action Needed" : NetworkService.connectivity === "none" || NetworkService.connectivity === "limited" ? "No Internet" : "Connected"
+                    font.pixelSize: Math.round(10 * localScale)
+                    color: NetworkService.connectivity === "full" ? Theme.active : Qt.rgba(245/255,196/255,122/255,1.0)
+                }
             }
 
             Row {
@@ -590,9 +595,9 @@ Item {
                                         width: Math.round(170 * localScale); elide: Text.ElideRight
                                     }
                                     Text {
-                                        text: "Connected"
+                                        text: NetworkService.connectivity === "portal" ? "Action Needed" : NetworkService.connectivity === "none" || NetworkService.connectivity === "limited" ? "No Internet" : "Connected"
                                         font.pixelSize: Math.round(10 * localScale)
-                                        color: Theme.active
+                                        color: NetworkService.connectivity === "full" ? Theme.active : Qt.rgba(245/255,196/255,122/255,1.0)
                                     }
                                 }
                             }

@@ -34,11 +34,13 @@
 
 ---
 
-> **Note:** Brain_Shell is currently in its `v0.2.0` release, a ground-up architecture overhaul. While the shell is far more stable and feature-complete than v0.1.1, you may still encounter bugs. Please report them via GitHub Issues or Join our [Discord](https://discord.gg/BV8UduvABx).
+> **Note:** Brain_Shell is currently in its `v0.2.0` release, a ground-up architecture overhaul. While the shell is far more stable and feature-complete than `v0.1.1`, you may still encounter bugs. Please report them via GitHub Issues or Join our [Discord](https://discord.gg/BV8UduvABx).
 >
 > **Platform Scope:** Brain_Shell is currently built for **Hyprland**, and officially supported on **Arch Linux** and **NixOS**. Other distros may work, but aren't guaranteed yet, support for additional Wayland compositors is a core focus going forward. See [Roadmap](#roadmap).
 >
 > **AI Assistance Notice:** Certain elements of this project (including architectural planning, codebase audits, GitHub workflows, debugging, and large-scale cleanups) were developed with the assistance of AI tools.
+>
+> **License Notice:** As of `v0.2.0`, the project license has been migrated from **MIT** to the **GNU Affero General Public License v3.0 (AGPLv3)**.
 
 ---
 
@@ -583,4 +585,4 @@ Brain_Shell is actively developed and welcomes contributions!
 
 ## License
 
-This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU Affero General Public License v3.0 (AGPLv3) – see the [LICENSE](LICENSE) file for details.

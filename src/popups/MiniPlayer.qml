@@ -34,7 +34,7 @@ Item {
     width: parent.width
     height: contentCol.height + Math.round(24 * localScale)
 
-    property bool isOpen: Popups.miniPlayerOpen && !ShellState.screenRecord
+    property bool isOpen: Popups.miniPlayerOpen && !(ShellState.screenRecord && !ScreenRecService.recording)
     opacity: isOpen ? 1 : 0
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }

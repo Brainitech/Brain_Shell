@@ -36,6 +36,8 @@ QtObject {
     property color errorSolid: Colors.errorSolid
     property color card:       Colors.card
     property color cardHover:  Colors.cardHover
+    readonly property color netUpload:   Colors.netUpload
+    readonly property color netDownload: Colors.netDownload
 
     property color wsBackground: Colors.wsBackground
     property color wsActive:     Colors.wsActive

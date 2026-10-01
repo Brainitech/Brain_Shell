@@ -56,7 +56,7 @@ Item {
                 width:      parent.width
                 label:      "↑ Upload"
                 value:      root.service.upSpeed
-                valueColor: "#90ef90"
+                valueColor: Theme.netUpload
             }
 
             StatRow {
@@ -64,7 +64,7 @@ Item {
                 width:      parent.width
                 label:      "↓ Download"
                 value:      root.service.downSpeed
-                valueColor: "#a6d0f7"
+                valueColor: Theme.netDownload
             }
         }
     }

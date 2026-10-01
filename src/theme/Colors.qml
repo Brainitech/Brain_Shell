@@ -44,6 +44,10 @@ QtObject {
     property color card:       PrefsService.darkMode ? Qt.rgba(1, 1, 1, 0.045) : Qt.rgba(0, 0, 0, 0.045)
     property color cardHover:  PrefsService.darkMode ? Qt.rgba(1, 1, 1, 0.085) : Qt.rgba(0, 0, 0, 0.085)
 
+    // Network stats rate colors
+    readonly property color netUpload:   PrefsService.darkMode ? "#90ef90" : "#15803d"
+    readonly property color netDownload: PrefsService.darkMode ? "#a6d0f7" : "#1d4ed8"
+
     // --- Workspace Visuals ---
     property color wsBackground: "#20000000"
     property color wsActive:     text

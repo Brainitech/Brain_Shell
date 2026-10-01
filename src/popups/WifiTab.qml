@@ -282,7 +282,7 @@ Item {
                 model: 4
                 delegate: Rectangle {
                     required property int index
-                    width: Math.round(3 * localScale); height: Math.round((4 + index * 3) * localScale); radius: Math.max(1, Math.round(1 * localScale)); anchors.bottom: parent?.bottom
+                    width: Math.round(3 * localScale); height: Math.round((4 + index * 3) * localScale); radius: Math.max(1, Math.round(1 * localScale)); anchors.bottom: parent ? parent.bottom : undefined
                     readonly property bool lit: {
                         switch (index) {
                             case 0: return barsRoot.signal > 0
@@ -307,7 +307,7 @@ Item {
         readonly property bool isConnecting:    root._connectingTo === net.ssid
         readonly property bool needsPassword:   !!root._needsPassword[net.ssid]
         property bool _showPass: false
-        width: parent?.width ?? 0
+        width: parent ? parent.width : 0
         height: baseRow.height + expandArea.height
 
         Rectangle {
@@ -483,7 +483,13 @@ Item {
                             verticalAlignment: TextInput.AlignVCenter; color: Theme.text; font.pixelSize: Math.round(12 * localScale)
                             echoMode: netRow._showPass ? TextInput.Normal : TextInput.Password
                             selectionColor: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35); clip: true
+                            onActiveFocusChanged: Popups.isInputFocused = activeFocus
                             Keys.onReturnPressed: { if (text.length > 0) root._connectWithPassword(netRow.net.ssid, text) }
+                            Keys.onEscapePressed: function(event) {
+                                event.accepted = true
+                                netRow.isExpanded = false
+                                passInput.text = ""
+                            }
                         }
 
                         Item {

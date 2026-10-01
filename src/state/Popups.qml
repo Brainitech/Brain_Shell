@@ -77,6 +77,10 @@ QtObject {
     property string dashboardPage:      "home"
     property bool   tasksInteractionActive: false
 
+    // ── Input & Modal Interaction Shielding ───────────────────────────────────
+    property bool   isInputFocused: false
+    readonly property bool isInputActive: isInputFocused || tasksInteractionActive || colorPickerActive
+
     // ── Audio popup — per-page state ─────────────────────────────────────────
     property string audioPage: "output"
 
@@ -147,6 +151,7 @@ QtObject {
 
     function closeAll() {
         SurfaceState.close()
+        isInputFocused      = false
         miniPlayerOpen      = false
         audioPinned         = false
         networkPinned       = false

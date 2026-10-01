@@ -114,6 +114,11 @@ Item {
                                     clip: true; maximumLength: 32
                                     text: root._ssid
                                     onTextChanged: { root._ssid = text; root._dirty = true }
+                                    onActiveFocusChanged: Popups.isInputFocused = activeFocus
+                                    Keys.onEscapePressed: function(event) {
+                                        event.accepted = true
+                                        root.forceActiveFocus()
+                                    }
                                 }
                             }
                         }
@@ -137,6 +142,11 @@ Item {
                                     clip: true; maximumLength: 63
                                     text: root._password
                                     onTextChanged: { root._password = text; root._dirty = true }
+                                    onActiveFocusChanged: Popups.isInputFocused = activeFocus
+                                    Keys.onEscapePressed: function(event) {
+                                        event.accepted = true
+                                        root.forceActiveFocus()
+                                    }
                                 }
                             }
                             Item {

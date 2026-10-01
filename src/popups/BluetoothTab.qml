@@ -318,7 +318,7 @@ Item {
         readonly property bool isPairingOpen:   root._pairingMac  === device.mac
         readonly property bool isRemovePending: root._removeMac   === device.mac
 
-        width: parent?.width ?? 0
+        width: parent ? parent.width : 0
         height: baseRow.height + expandArea.height
 
         Rectangle {
@@ -425,7 +425,7 @@ Item {
                     }
 
                     Item {
-                        width: Math.round(24 * localScale); height: Math.round(28 * localScale); anchors.verticalCenter: parent?.verticalCenter
+                        width: Math.round(24 * localScale); height: Math.round(28 * localScale); anchors.verticalCenter: parent ? parent.verticalCenter : undefined
                         Rectangle { anchors.fill: parent; radius: Math.round(6 * localScale); color: pinH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.10) : dRow.isPairingOpen ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.12) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04); border.color: dRow.isPairingOpen ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.09); border.width: Math.max(1, Math.round(1 * localScale)); Behavior on color { ColorAnimation { duration: Anim.fast} } }
                         Text { anchors.centerIn: parent; text: "󰌾"; font.pixelSize: Math.round(12 * localScale); color: dRow.isPairingOpen ? Theme.active : pinH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.7) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.28); Behavior on color { ColorAnimation { duration: Anim.fast} } }
                         HoverHandler { id: pinH; cursorShape: Qt.PointingHandCursor }
@@ -506,7 +506,13 @@ Item {
                                 font.pixelSize: Math.round(12 * localScale); font.family: "JetBrains Mono"
                                 inputMethodHints: Qt.ImhDigitsOnly; maximumLength: 8
                                 selectionColor: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35); clip: true
+                                onActiveFocusChanged: Popups.isInputFocused = activeFocus
                                 Keys.onReturnPressed: root._pair(dRow.device.mac, text)
+                                Keys.onEscapePressed: function(event) {
+                                    event.accepted = true
+                                    dRow.isPairingOpen = false
+                                    pinInput.text = ""
+                                }
                             }
                         }
                         Rectangle {

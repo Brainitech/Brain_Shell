@@ -404,7 +404,9 @@ Item {
                                     WallpaperService.previewWall = walls[idx]
                                     wallGrid.positionViewAtIndex(idx, ListView.Center)
                                 }
-                                Keys.onEscapePressed: {
+                                onActiveFocusChanged: Popups.isInputFocused = activeFocus
+                                Keys.onEscapePressed: function(event) {
+                                    event.accepted = true
                                     if (searchInput.text !== "") {
                                         var target = WallpaperService.previewWall !== ""
                                             ? WallpaperService.previewWall : WallpaperService.currentWall
@@ -413,7 +415,9 @@ Item {
                                         searchInput.text = ""
                                         wallGrid.forceLayout()
                                         wallGrid.positionViewAtIndex(idx, ListView.Center)
-                                    } else { Popups.closeAll() }
+                                    } else {
+                                        SurfaceState.close()
+                                    }
                                 }
                             }
                         }
@@ -451,7 +455,9 @@ Item {
                                     content.folderMode = false
                                     searchInput.forceActiveFocus()
                                 }
-                                Keys.onEscapePressed: {
+                                onActiveFocusChanged: Popups.isInputFocused = activeFocus
+                                Keys.onEscapePressed: function(event) {
+                                    event.accepted = true
                                     content.folderMode = false
                                     searchInput.forceActiveFocus()
                                 }

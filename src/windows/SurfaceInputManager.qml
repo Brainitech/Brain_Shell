@@ -42,6 +42,27 @@ Item {
     required property bool isBottomRightHovered
     focus: SurfaceState.activeSurface !== "none" || (screenRecord && !screenRecording)
 
+    // --- INPUT & EVENT SHIELDING ---
+    readonly property bool hasActiveTextInput: parent && parent.activeFocusItem !== null && parent.activeFocusItem !== undefined && typeof parent.activeFocusItem.cursorPosition === "number"
+    readonly property bool isInputActive: Popups.isInputActive || hasActiveTextInput
+
+    function pinActiveSurface() {
+        if (SurfaceState.activeContent === "dashboard") Popups.dashboardPinned = true;
+        else if (SurfaceState.activeContent === "wallpaper") Popups.wallpaperPinned = true;
+        else if (SurfaceState.activeContent === "network") Popups.networkPinned = true;
+        else if (SurfaceState.activeContent === "archMenu") Popups.archMenuPinned = true;
+        else if (SurfaceState.activeContent === "clipboard") Popups.clipboardPinned = true;
+        else if (SurfaceState.activeContent === "audio") Popups.audioPinned = true;
+        else if (SurfaceState.activeContent === "quick") Popups.quickPinned = true;
+        else if (SurfaceState.activeContent === "notifications") Popups.notificationsPinned = true;
+    }
+
+    onIsInputActiveChanged: {
+        if (isInputActive) {
+            pinActiveSurface()
+        }
+    }
+
     // --- GLOBAL HOVER MANAGER ---
     property bool _anyTriggerHovered: Popups.dashboardTriggerHovered || Popups.archMenuTriggerHovered || Popups.audioTriggerHovered || Popups.networkTriggerHovered || Popups.notificationsTriggerHovered || Popups.wallpaperTriggerHovered || Popups.quickTriggerHovered || Popups.clipboardTriggerHovered
     
@@ -77,6 +98,7 @@ Item {
         id: hoverOpenTimer
         interval: Popups.hoverOpenDelay
         onTriggered: {
+            if (inputManager.isInputActive) return;
             if (Date.now() - SurfaceState.lastCloseTime < 400) return;
             if (Popups.dashboardTriggerHovered && Popups.dashboardAllowHover) { Popups.closeAll(); SurfaceState.open("top", "dashboard") }
             else if (Popups.archMenuTriggerHovered && Popups.archMenuAllowHover) { Popups.closeAll(); SurfaceState.open("leftCenter", "archMenu") }
@@ -93,6 +115,7 @@ Item {
         id: hoverCloseTimer
         interval: Popups.hoverCloseDelay
         onTriggered: {
+            if (inputManager.isInputActive) return;
             if (!_anyTriggerHovered && !_activeSurfaceHovered && !Popups.colorPickerActive) {
                 if (SurfaceState.activeContent === "dashboard" && Popups.dashboardPinned) return;
                 if (SurfaceState.activeContent === "archMenu" && Popups.archMenuPinned) return;
@@ -244,7 +267,7 @@ Item {
         target: Hyprland
         function onRawEvent(event) {
             if (event.name === "workspace" || event.name === "activemonitor" || event.name === "activespecial" || event.name === "openwindow") {
-                if (SurfaceState.activeContent === "dashboard" && Popups.dashboardPage === "kanban" && Popups.tasksInteractionActive) return;
+                if (inputManager.isInputActive) return;
                 Popups.miniPlayerOpen = false
                 SurfaceState.close()
             }

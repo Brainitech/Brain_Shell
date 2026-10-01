@@ -311,8 +311,13 @@ Item {
                     root.inputAccepted(text)
                     root.expanded = false
                 }
-                Keys.onEscapePressed: {
+                onActiveFocusChanged: Popups.isInputFocused = activeFocus
+
+                Keys.onEscapePressed: function(event) {
+                    event.accepted = true
+                    text = root.inputText
                     root.expanded = false
+                    root.forceActiveFocus()
                 }
             }
         }

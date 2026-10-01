@@ -487,7 +487,10 @@ Item {
 
                                     Keys.onReturnPressed: function(ev) { commit(); ev.accepted = true }
                                     Keys.onEscapePressed: function(ev) { colItem.draftOpen = false; text = ""; ev.accepted = true; root.forceActiveFocus() }
-                                    onActiveFocusChanged: if (!activeFocus && colItem.draftOpen) commit()
+                                    onActiveFocusChanged: {
+                                        Popups.isInputFocused = activeFocus
+                                        if (!activeFocus && colItem.draftOpen) commit()
+                                    }
                                 }
                             }
                         }
@@ -956,7 +959,12 @@ Item {
                     wrapMode:       TextInput.WordWrap
                     selectionColor: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)
                     onEditingFinished: { var t = text.trim(); if (t !== "") root._patchTask(card.taskData.id, "title", t) }
-                    onActiveFocusChanged: { root._interactionCount += activeFocus ? 1 : -1; root._evalInteraction() }
+                    onActiveFocusChanged: { root._interactionCount += activeFocus ? 1 : -1; root._evalInteraction(); Popups.isInputFocused = activeFocus }
+                    Keys.onEscapePressed: function(event) {
+                        event.accepted = true
+                        text = card.taskData.title
+                        root.forceActiveFocus()
+                    }
                 }
 
                 // Badges row

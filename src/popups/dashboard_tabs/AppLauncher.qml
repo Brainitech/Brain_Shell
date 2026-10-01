@@ -333,7 +333,10 @@ Item {
                                 root.launch(root.filtered[root.selIndex])
                         }
 
-                        Keys.onEscapePressed: {
+                        onActiveFocusChanged: Popups.isInputFocused = activeFocus
+
+                        Keys.onEscapePressed: function(event) {
+                            event.accepted = true
                             if (text !== "") {
                                 text = ""
                             } else {

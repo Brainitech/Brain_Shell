@@ -29,6 +29,7 @@ import "../../"
 RowLayout {
     id: root
     property real localScale: 1.0
+    visible: trayRow.count > 0
 
     ListView {
         id: trayRow
@@ -38,6 +39,12 @@ RowLayout {
         
         property bool isOpen: false
         property int activeMenuIndex: -1
+        
+        onCountChanged: {
+            if (count === 0) {
+                isOpen = false
+            }
+        }
         
         onIsOpenChanged: {
             if (!isOpen) {

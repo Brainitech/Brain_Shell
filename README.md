@@ -27,8 +27,8 @@
 ## Showcase
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/93a0697e-c531-4510-b2f0-a59a4b6072b4" controls="controls" muted="muted" style="max-width: 100%; height: auto;">
-    <a href="https://github.com/user-attachments/assets/93a0697e-c531-4510-b2f0-a59a4b6072b4">Click here to view the preview video.</a>
+  <video src="https://github.com/user-attachments/assets/8f70458b-a628-4636-b08a-70b188b54f06" controls="controls" muted="muted" style="max-width: 100%; height: auto;">
+    <a href="https://github.com/user-attachments/assets/8f70458b-a628-4636-b08a-70b188b54f06">Click here to view the preview video.</a>
   </video>
 </div>
 

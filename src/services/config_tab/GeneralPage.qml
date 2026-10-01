@@ -60,13 +60,13 @@ Item {
 
             SettingsGroup {
                 localScale: root.localScale
-                title: "System Preferences"
-                description: "Global shell behavior and options."
+                title: "Workspace & Focus Mode"
+                description: "Window rules, shell concealment, and workspace expansion."
 
                 ToggleButton {
                     localScale: root.localScale
                     text: "Boot into Focus Mode"
-                    description: "Start the shell with notches hidden for a expanded workspace."
+                    description: "Start the shell with notches hidden for an expanded workspace."
                     checked: PrefsService.bootFocusMode
                     onCheckedChanged: {
                         if (checked !== PrefsService.bootFocusMode) {
@@ -79,7 +79,7 @@ Item {
                 ToggleButton {
                     localScale: root.localScale
                     text: "Allow notches to expand on hover in focus mode"
-                    description: "When disabled, notches cannot be shown in focus mode."
+                    description: "When disabled, notches cannot be revealed via hover while in focus mode."
                     checked: PrefsService.focusModeHoverExpand
                     onCheckedChanged: {
                         if (checked !== PrefsService.focusModeHoverExpand) {
@@ -88,65 +88,81 @@ Item {
                         }
                     }
                 }
+            }
+
+            SettingsGroup {
+                localScale: root.localScale
+                title: "Navigation & Default Views"
+                description: "Initial tabs selected when launching shell panels."
+
+                SettingsButton {
+                    localScale: root.localScale
+                    text: "Default Dashboard Tab"
+                    description: "Initial view opened when launching the dashboard."
+                    inputType: "options"
+                    options: ["Home", "System", "Tasks", "Apps", "Config"]
+                    selectedOption: PrefsService.defaultDashboardTab
+                    buttonText: selectedOption
+                    onOptionSelected: function(opt) {
+                        PrefsService.defaultDashboardTab = opt
+                        PrefsService.saveConfig()
+                    }
+                }
                 SettingsDivider { localScale: root.localScale }
+                SettingsButton {
+                    localScale: root.localScale
+                    text: "Default Audio Tab"
+                    description: "Initial view opened when launching the audio panel."
+                    inputType: "options"
+                    options: ["Output", "Input", "Mixers"]
+                    selectedOption: PrefsService.defaultAudioTab
+                    buttonText: selectedOption
+                    onOptionSelected: function(opt) {
+                        PrefsService.defaultAudioTab = opt
+                        PrefsService.saveConfig()
+                    }
+                }
+            }
+
+            SettingsGroup {
+                localScale: root.localScale
+                title: "Top Bar Widgets"
+                description: "Visibility and active modules in the top notch bar."
+
                 ToggleButton {
                     localScale: root.localScale
-                    text: "Auto-check for Updates"
-                    description: "Periodically check the remote repository for shell updates."
-                    checked: PrefsService.autoUpdate
+                    text: "Always Show Battery Percentage"
+                    description: "Keep numeric battery percentage visible at all times."
+                    checked: PrefsService.alwaysShowBatteryPercentage
                     onCheckedChanged: {
-                        if (checked !== PrefsService.autoUpdate) {
-                            PrefsService.autoUpdate = checked
+                        if (checked !== PrefsService.alwaysShowBatteryPercentage) {
+                            PrefsService.alwaysShowBatteryPercentage = checked
                             PrefsService.saveConfig()
                         }
                     }
                 }
                 SettingsDivider { localScale: root.localScale }
-                    SettingsButton {
-                        localScale: root.localScale
-                        text: "Default Dashboard Tab"
-                        description: "Which view opens when you launch the dashboard via click/hover."
-                        inputType: "options"
-                        options: ["Home", "System", "Tasks", "Apps", "Config"]
-                        selectedOption: PrefsService.defaultDashboardTab
-                        buttonText: selectedOption
-                        onOptionSelected: function(opt) {
-                            PrefsService.defaultDashboardTab = opt
-                            PrefsService.saveConfig()
-                        }
-                    }
-                SettingsDivider { localScale: root.localScale }
-                    SettingsButton {
-                        localScale: root.localScale
-                        text: "Default Audio Tab"
-                        description: "Which view opens when you launch the audio popup via click/hover."
-                        inputType: "options"
-                        options: ["Output", "Input", "Mixers"]
-                        selectedOption: PrefsService.defaultAudioTab
-                        buttonText: selectedOption
-                        onOptionSelected: function(opt) {
-                            PrefsService.defaultAudioTab = opt
-                            PrefsService.saveConfig()
-                        }
-                    }
-            }
-
-            SettingsGroup {
-                localScale: root.localScale
-                title: "Media & Capture"
-                description: "Settings for screen recording."
-
-                SettingsButton {
+                ToggleButton {
                     localScale: root.localScale
-                    text: "Save Directory"
-                    description: "Directory for saved media files."
-                    inputType: "text"
-                    buttonText: inputText !== "" ? inputText : "Browse..."
-                    inputText: PrefsService.screenrecSaveDir
-                    validateAs: "dir"
-                    onInputAccepted: function(txt) {
-                        if (txt === "") return
-                        PrefsService.screenrecSaveDir = txt
+                    text: "Always Show Volume Percentage"
+                    description: "Keep numeric volume percentage visible at all times."
+                    checked: PrefsService.alwaysShowVolumePercentage
+                    onCheckedChanged: {
+                        if (checked !== PrefsService.alwaysShowVolumePercentage) {
+                            PrefsService.alwaysShowVolumePercentage = checked
+                            PrefsService.saveConfig()
+                        }
+                    }
+                }
+                SettingsDivider { localScale: root.localScale }
+                ToggleButton {
+                    localScale: root.localScale
+                    text: "Center Notch Visualizer"
+                    description: "Show audio visualizer bars in the center notch."
+                    checked: PrefsService.enableVisualiser
+                    defaultValue: true
+                    onToggled: {
+                        PrefsService.enableVisualiser = checked
                         PrefsService.saveConfig()
                     }
                 }
@@ -155,6 +171,7 @@ Item {
             SettingsGroup {
                 localScale: root.localScale
                 title: "Date & Time"
+                description: "Clock presentation and time display preferences."
 
                 ToggleButton {
                     localScale: root.localScale
@@ -172,30 +189,38 @@ Item {
 
             SettingsGroup {
                 localScale: root.localScale
-                title: "Top Bar Widgets"
-                description: "Customize the visibility of widget elements in the top bar."
+                title: "Media & Recording"
+                description: "Capture directories and media file handling."
+
+                SettingsButton {
+                    localScale: root.localScale
+                    text: "Save Directory"
+                    description: "Directory for saved recordings and snapshots."
+                    inputType: "text"
+                    buttonText: inputText !== "" ? inputText : "Browse..."
+                    inputText: PrefsService.screenrecSaveDir
+                    validateAs: "dir"
+                    onInputAccepted: function(txt) {
+                        if (txt === "") return
+                        PrefsService.screenrecSaveDir = txt
+                        PrefsService.saveConfig()
+                    }
+                }
+            }
+
+            SettingsGroup {
+                localScale: root.localScale
+                title: "System & Maintenance"
+                description: "Shell updates and background synchronization."
 
                 ToggleButton {
                     localScale: root.localScale
-                    text: "Always Show Battery Percentage"
-                    description: "Keep the battery percentage visible at all times."
-                    checked: PrefsService.alwaysShowBatteryPercentage
+                    text: "Auto-check for Updates"
+                    description: "Periodically check the remote repository for shell updates."
+                    checked: PrefsService.autoUpdate
                     onCheckedChanged: {
-                        if (checked !== PrefsService.alwaysShowBatteryPercentage) {
-                            PrefsService.alwaysShowBatteryPercentage = checked
-                            PrefsService.saveConfig()
-                        }
-                    }
-                }
-                SettingsDivider { localScale: root.localScale }
-                ToggleButton {
-                    localScale: root.localScale
-                    text: "Always Show Volume Percentage"
-                    description: "Keep the volume percentage visible at all times."
-                    checked: PrefsService.alwaysShowVolumePercentage
-                    onCheckedChanged: {
-                        if (checked !== PrefsService.alwaysShowVolumePercentage) {
-                            PrefsService.alwaysShowVolumePercentage = checked
+                        if (checked !== PrefsService.autoUpdate) {
+                            PrefsService.autoUpdate = checked
                             PrefsService.saveConfig()
                         }
                     }

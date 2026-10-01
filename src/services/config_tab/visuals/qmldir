@@ -1,0 +1,6 @@
+AnimationControls AnimationControls.qml
+AppearanceControls AppearanceControls.qml
+ColorStudioModal ColorStudioModal.qml
+PopupBehaviorControls PopupBehaviorControls.qml
+SizingControls SizingControls.qml
+ThemePresetGrid ThemePresetGrid.qml

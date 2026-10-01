@@ -93,7 +93,7 @@ PanelWindow {
     function confirm() {
         const powerScript = Quickshell.shellDir + "/src/scripts/PowerControl.sh"
         const gfxScript   = Quickshell.shellDir + "/src/scripts/GfxSwitch.sh"
-        const restartQs   = "nohup bash -c 'sleep 0.5; pkill qs; qs' >/dev/null 2>&1 &"
+        const restartQs   = "nohup bash -c 'sleep 0.3; pkill -x quickshell 2>/dev/null; pkill -x qs 2>/dev/null; sleep 0.3; if command -v qs &>/dev/null; then qs -p \"" + Quickshell.shellDir + "\"; else quickshell -p \"" + Quickshell.shellDir + "\"; fi' >/dev/null 2>&1 &"
 
         Popups.actionConfirmed(Popups.confirmAction)
 

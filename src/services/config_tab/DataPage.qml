@@ -141,7 +141,7 @@ Item {
                     description: "Force rescan of installed applications."
                     buttonText: "Rebuild"
                     onClicked: {
-                        _proc.pendingCmd = ["bash", "-c", "nohup bash -c 'sleep 0.5; pkill qs; qs' >/dev/null 2>&1 &"] 
+                        _proc.pendingCmd = ["bash", "-c", "nohup bash -c 'sleep 0.3; pkill -x quickshell 2>/dev/null; pkill -x qs 2>/dev/null; sleep 0.3; if command -v qs &>/dev/null; then qs -p \"" + Quickshell.shellDir + "\"; else quickshell -p \"" + Quickshell.shellDir + "\"; fi' >/dev/null 2>&1 &"] 
                         _proc.running = true
                     }
                 }

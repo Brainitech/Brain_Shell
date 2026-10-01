@@ -63,7 +63,7 @@ Item {
         }
         height: innerCol.height + Math.round(16 * localScale)
         radius: Math.round(Theme.cornerRadius * localScale)
-        color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+        color: Theme.card
         border.color: Theme.border
         border.width: 1
 

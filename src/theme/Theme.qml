@@ -34,6 +34,8 @@ QtObject {
     property color iconFont:   Colors.iconFont
     property color error:      Colors.error
     property color errorSolid: Colors.errorSolid
+    property color card:       Colors.card
+    property color cardHover:  Colors.cardHover
 
     property color wsBackground: Colors.wsBackground
     property color wsActive:     Colors.wsActive

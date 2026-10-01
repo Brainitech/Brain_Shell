@@ -735,11 +735,11 @@ StatCard {
                     color: on
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
                         : bH.hovered
-                            ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
-                            : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+                            ? Theme.cardHover
+                            : Theme.card
                     border.color: on
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30)
-                        : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.10)
+                        : Qt.rgba(Theme.border.r, Theme.border.g, Theme.border.b, 0.35)
                     border.width: 1
                     Behavior on color        { ColorAnimation { duration: Anim.color} }
                     Behavior on border.color { ColorAnimation { duration: Anim.color} }

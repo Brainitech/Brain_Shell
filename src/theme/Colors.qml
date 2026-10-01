@@ -41,6 +41,8 @@ QtObject {
     property color iconFont:   internalLoader.iconFont
     property color error:      PrefsService.darkMode ? "#f87171" : "#cc0000"
     property color errorSolid: "#d9534f"
+    property color card:       PrefsService.darkMode ? Qt.rgba(1, 1, 1, 0.045) : Qt.rgba(0, 0, 0, 0.045)
+    property color cardHover:  PrefsService.darkMode ? Qt.rgba(1, 1, 1, 0.085) : Qt.rgba(0, 0, 0, 0.085)
 
     // --- Workspace Visuals ---
     property color wsBackground: "#20000000"

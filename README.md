@@ -34,11 +34,12 @@
 
 ---
 
-> **Note:** Brain_Shell is currently in its `v0.2.0` release, a ground-up architecture overhaul. While the shell is far more stable and feature-complete than `v0.1.1`, you may still encounter bugs. Please report them via GitHub Issues or Join our [Discord](https://discord.gg/BV8UduvABx).
+> [!NOTE]
+> **v0.2.0 Release:** This is a ground-up architecture overhaul. While far more stable than `v0.1.1`, you may still encounter bugs. Please report them via GitHub Issues or Join our [Discord](https://discord.gg/BV8UduvABx).
 >
-> **Platform Scope:** Brain_Shell is currently built for **Hyprland**, and officially supported on **Arch Linux** and **NixOS**. Other distros may work, but aren't guaranteed yet, support for additional Wayland compositors is a core focus going forward. See [Roadmap](#roadmap).
+> **Platform Scope:** Brain_Shell is currently built for **Hyprland**, and officially supported on **Arch Linux** and **NixOS**. Other distros may work, but aren't guaranteed yet. See [Roadmap](#roadmap).
 >
-> **AI Assistance Notice:** Certain elements of this project (including architectural planning, codebase audits, GitHub workflows, debugging, and large-scale cleanups) were developed with the assistance of AI tools.
+> **AI Assistance Notice:** Certain elements of this project _(like architectural planning, codebase audits, GitHub workflows, debugging, and large-scale cleanups)_ were developed with the assistance of AI tools.
 >
 > **License Notice:** As of `v0.2.0`, the project license has been migrated from **MIT** to the **GNU Affero General Public License v3.0 (AGPLv3)**.
 
@@ -144,8 +145,8 @@ _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire ar
 
 > [!IMPORTANT]
 > **Matugen is required** for dynamic color generation. Brain_Shell will not function correctly without it.
-
-> **Note:** The dependencies below are for the currently supported compositor, **Hyprland**. Requirements for additional compositors will be documented as support for them lands - Have a look at the [Roadmap](#roadmap).
+>
+> The dependencies below are for the currently supported compositor, **Hyprland**. Requirements for additional compositors will be documented as support for them lands - Have a look at the [Roadmap](#roadmap).
 
 ### Core Dependencies
 
@@ -232,6 +233,10 @@ _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire ar
 
 ### Installation Commands (Manual)
 
+> [!IMPORTANT]
+> **Brain_Shell** is a **standalone shell** designed to run on top of an existing compositor configuration.
+> However, a default Hyprland template is provided for users setting up their environment directly from a TTY.
+
 <details>
 <summary><b>Arch Linux (yay / paru)</b></summary>
 
@@ -305,6 +310,7 @@ environment.variables.QT_QPA_PLATFORMTHEME = "qt6ct";
 
 ## Installation
 
+> [!WARNING]
 > **Notes for Existing Users**
 >
 > 1. If you installed Brain_Shell via the installer, **v0.2.0 will be pulled in automatically** through the auto-update mechanism, a manual reinstall is **not required**.
@@ -312,6 +318,7 @@ environment.variables.QT_QPA_PLATFORMTHEME = "qt6ct";
 
 ### One line installer
 
+> [!TIP]
 > **Automated Setup:** The installation script verifies system prerequisites, creates a timestamped backup of your Hyprland configuration in `~/.config/hypr/backups/`, installs dependencies via your package manager, and registers Brain_Shell in your autostart.
 
 ```bash
@@ -415,7 +422,7 @@ systemctl --user start hyprpolkitagent
 wl-paste --type text --watch cliphist store &
 wl-paste --type image --watch cliphist store &
 hyprctl reload
-quickshell -p ~/path/to/Brain_Shell &
+qs -p ~/path/to/Brain_Shell &
 ```
 
 ---
@@ -514,6 +521,7 @@ rm -rf ~/.config/Brain_Shell
 
 - [ ] niri support
 - [ ] Sway support
+- [ ] Other Compositor support
 - [ ] Full multi-monitor / mixed-DPI scaling support
 - [ ] Broader distribution support (Fedora, Debian/Ubuntu, openSUSE)
 

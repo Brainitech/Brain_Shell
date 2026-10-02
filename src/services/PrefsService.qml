@@ -195,6 +195,7 @@ QtObject {
     onScreenrecAudioMicChanged: if (_loaded) saveConfig()
     onScreenrecAudioSystemChanged: if (_loaded) saveConfig()
     onScreenrecFramerateChanged: if (_loaded) saveConfig()
+    onScreenrecBackendChanged: if (_loaded) saveConfig()
     onScreenrecSaveDirChanged: if (_loaded) saveConfig()
     onHotspotSsidChanged: if (_loaded) saveConfig()
     onHotspotPasswordChanged: if (_loaded) saveConfig()

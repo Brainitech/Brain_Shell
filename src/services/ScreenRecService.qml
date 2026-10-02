@@ -20,7 +20,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
+import Quickshell.Hyprland   // focusedMonitor for fullscreen capture
 import "../"
 
 // ScreenRecService — owns all screen recording state.
@@ -61,6 +61,41 @@ QtObject {
         return b ? b.binary : "wf-recorder"
     }
 
+    // Which backend binaries are actually installed. The options panel dims the
+    // ones that are missing, and startRecording() refuses to launch them rather
+    // than silently producing nothing.
+    property var backendAvailable: ({})
+    readonly property bool selectedBackendAvailable:
+        root.backendAvailable[PrefsService.screenrecBackend] !== false
+
+    function backendLabelFor(id) {
+        var b = root.backends.find(function(x) { return x.id === id })
+        return b ? b.label : id
+    }
+
+    property var _probeProc: Process {
+        running: true
+        command: ["bash", "-c",
+            "for b in wf-recorder gpu-screen-recorder wl-screenrec; do " +
+            "command -v \"$b\" >/dev/null 2>&1 && echo \"$b 1\" || echo \"$b 0\"; done"]
+        stdout: StdioCollector {
+            id: probeOut
+            onStreamFinished: {
+                var map = {}
+                var byBinary = {}
+                for (var i = 0; i < root.backends.length; i++)
+                    byBinary[root.backends[i].binary] = root.backends[i].id
+                var lines = probeOut.text.trim().split("\n")
+                for (var j = 0; j < lines.length; j++) {
+                    var parts = lines[j].trim().split(" ")
+                    if (parts.length === 2 && byBinary[parts[0]] !== undefined)
+                        map[byBinary[parts[0]]] = parts[1] === "1"
+                }
+                root.backendAvailable = map
+            }
+        }
+    }
+
     // ── Display helpers ───────────────────────────────────────────────────────
     readonly property var _captureIcons:  ({ screen: "󰍹", window: "󱂬", region: "󰩭" })
     readonly property var _captureLabels: ({ screen: "Screen", window: "Window", region: "Region" })
@@ -72,21 +107,6 @@ QtObject {
         if (PrefsService.screenrecAudioMic)                return "Mic"
         if (PrefsService.screenrecAudioSystem)             return "Sys"
         return "Non"
-    }
-
-    // ── Escape to cancel ──────────────────────────────────────────────────────
-    // Bound non-consuming in the generated keybinds, so Escape still reaches
-    // whatever app is focused; we only react while setup is actually open.
-    // This replaces grabbing exclusive keyboard focus for the setup strip,
-    // which used to block all typing.
-    property var _cancelShortcut: GlobalShortcut {
-        appid: "quickshell"
-        name:  "screenrecCancel"
-        onPressed: {
-            if (root.recording || !ShellState.screenRecord) return
-            if (root.optionsExpanded) root.optionsExpanded = false
-            else                      root.cancelSetup()
-        }
     }
 
     // ── Expansion state ─────────────────────────
@@ -329,9 +349,16 @@ QtObject {
         
         var fps = PrefsService.screenrecFramerate > 0 ? PrefsService.screenrecFramerate : 30
         var file = root._currentFile.replace(/'/g, "'\\''")
-        var mkdir = "mkdir -p '" + saveDir.replace(/'/g, "'\\''") + "' && "
+        // exec: the backend replaces this bash, so _recProc.processId is the
+        // recorder itself and _signalBackend() can SIGINT it directly.
+        var mkdir = "mkdir -p '" + saveDir.replace(/'/g, "'\\''") + "' && exec "
         var hasAudio = (PrefsService.screenrecAudioMic || PrefsService.screenrecAudioSystem)
                        && root._resolvedAudioDevice !== ""
+        // Fullscreen capture must name an output: wl-screenrec requires --output
+        // whenever more than one display is connected, and gpu-screen-recorder's
+        // "screen" target grabs the first enumerated monitor rather than the
+        // focused one. Both take the Hyprland monitor name.
+        var monitor = Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : ""
 
         if (PrefsService.screenrecBackend === "gsr") {
             var gsr = "gpu-screen-recorder -f " + fps + " -k h264 -cursor yes -o '" + file + "'"
@@ -340,9 +367,11 @@ QtObject {
                 var parts = root._pendingGeometry.split(" ")
                 gsr += " -w region -region '" + parts[1] + "+" + parts[0].replace(",", "+") + "'"
             } else {
-                gsr += " -w screen"
+                gsr += " -w " + (monitor !== "" ? "'" + monitor + "'" : "screen")
             }
-            if (hasAudio) gsr += " -a " + root._resolvedAudioDevice
+            // gpu-screen-recorder only accepts PulseAudio/PipeWire nodes under a
+            // "device:" prefix; a bare node name is rejected or records silence.
+            if (hasAudio) gsr += " -a 'device:" + root._resolvedAudioDevice + "'"
             return mkdir + gsr
         }
 
@@ -350,6 +379,8 @@ QtObject {
             var wlsr = "wl-screenrec -f '" + file + "' --max-fps " + fps
             if (root._pendingGeometry !== "")
                 wlsr += " -g '" + root._pendingGeometry + "'"
+            else if (monitor !== "")
+                wlsr += " --output '" + monitor + "'"
             if (hasAudio)
                 wlsr += " --audio --audio-device " + root._resolvedAudioDevice
             return mkdir + wlsr
@@ -390,6 +421,17 @@ QtObject {
     }
 
     function startRecording() {
+        // Refuse rather than launch a backend that is not installed: the process
+        // would exit instantly and the only feedback would be the generic
+        // "Recording Failed" toast after the fact.
+        if (!root.selectedBackendAvailable) {
+            _notifyProc.command = ["notify-send", "--app-name", "ScreenRec",
+                "--icon", "dialog-error", "-u", "critical", "Recording Backend Missing",
+                root.backendBinary + " is not installed. Pick another backend or install it."]
+            _notifyProc.running = false
+            _notifyProc.running = true
+            return
+        }
         root.optionsExpanded = false
         root._pendingGeometry = ""
         root._discarding      = false
@@ -417,20 +459,25 @@ QtObject {
         }
     }
 
+    // SIGINT the recorder directly by pid. _buildCmd() execs the backend so it
+    // replaces the bash wrapper, making _recProc.processId the backend itself.
+    // pkill by name cannot work here: Linux caps /proc/pid/comm at 15 chars, so
+    // "gpu-screen-recorder" (19) never matches, and pkill -f would also hit
+    // unrelated command lines containing the binary name.
+    function _signalBackend() {
+        if (_recProc.processId) _recProc.signal(2)   // SIGINT
+    }
+
     function stopRecording() {
-        _sigProc.command = ["bash", "-c", "pkill -INT " + root.backendBinary]
-        _sigProc.running = false
-        _sigProc.running = true
+        root._signalBackend()
     }
 
     function discardRecording() {
         root._discarding = true
         var fileToDelete = root._currentFile
-        // Kill wf-recorder; _recProc.onExited will see _discarding=true and skip
-        // the saved notification. The timer below handles delete + notify.
-        _sigProc.command = ["bash", "-c", "pkill -INT " + root.backendBinary]
-        _sigProc.running = false
-        _sigProc.running = true
+        // Interrupt the backend; _recProc.onExited will see _discarding=true and
+        // skip the saved notification. The timer below handles delete + notify.
+        root._signalBackend()
         _discardTimer.fileToDelete = fileToDelete
         _discardTimer.restart()
     }

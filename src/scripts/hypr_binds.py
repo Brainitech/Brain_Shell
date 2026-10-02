@@ -29,7 +29,7 @@ def main():
         desc = b.get("description", "")
         
         # Omit Brain Shell bindings
-        if "qs ipc" in arg or "brain_shell" in arg.lower() or "brain-shell" in arg.lower():
+        if "qs ipc" in arg or "quickshell ipc" in arg or "brain_shell" in arg.lower() or "brain-shell" in arg.lower():
             continue
         if "brain shell" in desc.lower() or "brain_shell" in desc.lower() or "brain-shell" in desc.lower():
             continue

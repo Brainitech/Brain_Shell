@@ -76,7 +76,11 @@ log_info "Detected distribution: $DISTRO"
 echo ""
 
 echo "# CORE RUNTIME"
-check_command "quickshell"
+if command -v quickshell &> /dev/null || command -v qs &> /dev/null; then
+    log_installed "quickshell/qs"
+else
+    log_missing "quickshell/qs"
+fi
 check_command "hyprland"
 check_command "hyprctl"
 

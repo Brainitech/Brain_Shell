@@ -599,7 +599,7 @@ if os.path.isfile(kb_lua):
     try:
         with open(kb_lua) as f:
             content = f.read()
-        for m in re.finditer(r'hl\.bind\s*\(\s*["\']([^"\']+)["\']\s*,\s*hl\.dsp\.exec_cmd\([^)]*qs ipc', content):
+        for m in re.finditer(r'hl\.bind\s*\(\s*["\']([^"\']+)["\']\s*,\s*hl\.dsp\.exec_cmd\([^)]*(?:qs|quickshell)\s+ipc', content):
             combo = m.group(1).strip()
             parts = [p.strip() for p in combo.split("+")]
             key = parts[-1].lower()
@@ -616,7 +616,7 @@ for i, hb in enumerate(hypr_binds):
     arg = hb.get("arg", "")
     hb_desc = hb.get("description", "")
 
-    if "qs ipc" in arg or "brain_shell" in arg.lower() or "brain-shell" in arg.lower():
+    if "qs ipc" in arg or "quickshell ipc" in arg or "brain_shell" in arg.lower() or "brain-shell" in arg.lower():
         consumed_bind_indices.add(i)
         continue
     if "brain shell" in hb_desc.lower() or "brain_shell" in hb_desc.lower() or "brain-shell" in hb_desc.lower():
@@ -741,7 +741,7 @@ echo ""
 
 if [[ -f "/tmp/bs_keybind_skipped" ]]; then
     log_warn "Keybind conflict check skipped (Hyprland not running)."
-    log_info "Please run 'qs ipc call dashboard-config' after booting to resolve overlaps."
+    log_info "Please run 'qs ipc -p $REPO_DIR call dashboard-config' after booting to resolve overlaps."
     rm -f "/tmp/bs_keybind_skipped"
     echo ""
 fi

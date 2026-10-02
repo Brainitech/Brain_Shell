@@ -107,7 +107,7 @@ QtObject {
             var b = root._hyprBinds[i]
             if (b.submap !== "") continue  // ignore submaps
             if (b.mouse)         continue  // ignore mouse binds
-            if (b.arg && b.arg.indexOf("qs ipc") >= 0) continue // standard shell binds
+            if (b.arg && (b.arg.indexOf("qs ipc") >= 0 || b.arg.indexOf("quickshell ipc") >= 0)) continue // standard shell binds
             if (b.description && b.description.toLowerCase().indexOf("brain shell") >= 0) continue // modular lua binds
             
             if (b.modmask === mask && (b.key || "").toLowerCase() === k) {

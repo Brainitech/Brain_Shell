@@ -16,9 +16,11 @@ nix run .
 
 ### Using Arch Linux
 Make sure you have all the required dependencies installed (see `CI.yml` or `install.sh` for the full list, including `hyprland`, `qt6-declarative`, `quickshell-git`, etc.).
-You can test the shell by executing it with `quickshell`:
+You can test the shell by executing it with `qs`:
 ```bash
-quickshell shell.qml
+qs -p .
+# or
+qs
 ```
 
 ## 2. The Git Workflow

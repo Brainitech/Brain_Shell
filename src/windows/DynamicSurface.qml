@@ -94,6 +94,8 @@ PanelWindow {
         Region { x: 0; y: 0; width: surfaceShape.leftNotchWidth; height: surfaceShape.leftNotchHeight }
         Region { x: root.width / 2 - surfaceShape.centerNotchWidth / 2; y: 0; width: surfaceShape.centerNotchWidth; height: surfaceShape.centerNotchHeight }
         Region { x: root.width - surfaceShape.rightNotchWidth; y: 0; width: surfaceShape.rightNotchWidth; height: surfaceShape.rightNotchHeight }
+        // Top Center 1px fallback region (active when borderWidth === 0 or focusMode)
+        Region { x: Math.round(root.width / 2 - (160 * root.localScale) / 2); y: 0; width: Math.round(160 * root.localScale); height: 1 }
         
         // Side Notches
         Region { x: 0; y: root.height / 2 - (surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * root.localScale)) / 2; width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : Math.max(1, surfaceShape.frameThickness); height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * root.localScale) }
@@ -102,6 +104,25 @@ PanelWindow {
         // Bottom Notches
         Region { x: root.width / 2 - (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * root.localScale)) / 2; y: root.height - (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : Math.max(1, surfaceShape.frameThickness)); width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * root.localScale); height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : Math.max(1, surfaceShape.frameThickness) }
         Region { x: root.width - (surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * root.localScale)); y: root.height - (surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : Math.max(1, surfaceShape.frameThickness)); width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * root.localScale); height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : Math.max(1, surfaceShape.frameThickness) }
+    }
+
+    // --- TOP CENTER 1PX FALLBACK TRIGGER ---
+    Item {
+        id: topCenterTapTrigger
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        width: Math.round(160 * root.localScale)
+        height: 1
+        visible: !SurfaceState.isTopExpanded && (Theme.borderWidth === 0 || ShellState.focusMode)
+        z: 9999
+
+        TapHandler {
+            onTapped: {
+                Popups.closeAll()
+                SurfaceState.open("top", "dashboard")
+                Popups.dashboardPinned = true
+            }
+        }
     }
 
     // --- VECTOR GEOMETRY ---
@@ -123,6 +144,13 @@ PanelWindow {
         visible: ShellState.focusMode
         z: -1
         HoverHandler { id: fmCenterHov; onHoveredChanged: Popups.dashboardTriggerHovered = hovered }
+        TapHandler {
+            onTapped: {
+                Popups.closeAll()
+                SurfaceState.open("top", "dashboard")
+                Popups.dashboardPinned = true
+            }
+        }
     }
     Item {
         id: fmRightTrigger

@@ -18,6 +18,7 @@
 
 import QtQuick
 import QtQuick.Effects
+import Quickshell
 import Quickshell.Io
 import "../../"
 import "../../components"
@@ -30,6 +31,13 @@ StatCard {
 
     property real localScale: 1.0
     property string avatarPath: ""
+    readonly property string _resolvedAvatarPath: {
+        if (!root.avatarPath || root.avatarPath === "") return ""
+        var p = root.avatarPath
+        if (p.startsWith("file://")) p = p.substring(7)
+        if (p.startsWith("~")) p = p.replace(/^~/, Quickshell.env("HOME"))
+        return p
+    }
 
     property string _user:   ""
     property string _wm:     ""
@@ -109,10 +117,10 @@ StatCard {
 
             Image {
                 anchors.fill: parent
-                source:   root.avatarPath !== "" ? ("file://" + root.avatarPath) : ""
+                source:   root._resolvedAvatarPath !== "" ? ("file://" + root._resolvedAvatarPath) : ""
                 fillMode: Image.PreserveAspectCrop
                 smooth:   true
-                visible:  root.avatarPath !== ""
+                visible:  root._resolvedAvatarPath !== ""
                 layer.enabled: true
                 layer.effect: MultiEffect {
                     maskEnabled:      true
@@ -127,7 +135,7 @@ StatCard {
                 text:           "󰀄"
                 font.pixelSize: Math.round(28 * localScale)
                 color:          Theme.active
-                visible:        root.avatarPath === ""
+                visible:        root._resolvedAvatarPath === ""
             }
         }
 

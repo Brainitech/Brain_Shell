@@ -64,7 +64,7 @@ QtObject {
     property var listProc: Process {
         command: [
             "bash", "-c",
-            "find " + root.wallpaperDir + " -maxdepth 1 -type f " +
+            "find '" + root.wallpaperDir.replace(/^~/, Quickshell.env("HOME")).replace(/'/g, "'\\''") + "' -maxdepth 1 -type f " +
             "\\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' " +
             "-o -iname '*.gif' -o -iname '*.webp' \\) | sort"
         ]

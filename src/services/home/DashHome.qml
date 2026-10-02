@@ -48,9 +48,13 @@ Item {
 
     function _updateAvatar() {
         if (PrefsService.customAvatarPath !== "") {
-            root._avatarPath = PrefsService.customAvatarPath
+            var p = PrefsService.customAvatarPath
+            if (p.startsWith("~")) p = p.replace(/^~/, Quickshell.env("HOME"))
+            root._avatarPath = p
         } else if (root._staticJpg !== "") {
             root._avatarPath = root._staticJpg
+        } else {
+            root._avatarPath = ""
         }
     }
     

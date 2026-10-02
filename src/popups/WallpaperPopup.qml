@@ -450,7 +450,8 @@ Item {
                                 selectionColor:    Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.35)
                                 clip:              true
                                 Keys.onReturnPressed: {
-                                    WallpaperService.wallpaperDir = dirInput.text
+                                    if (dirInput.text.trim() === "") return
+                                    WallpaperService.wallpaperDir = dirInput.text.trim()
                                     WallpaperService.refresh()
                                     content.folderMode = false
                                     searchInput.forceActiveFocus()

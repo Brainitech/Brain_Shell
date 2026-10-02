@@ -33,6 +33,7 @@ Item {
     property var options: []
     property string selectedOption: ""
     property string inputText: ""
+    property string placeholder: ""
     
     property string validateAs: ""
     property bool _isInvalid: false
@@ -60,12 +61,13 @@ Item {
             return
         }
         var expandedTxt = txt.replace(/^~/, Quickshell.env("HOME"))
+        var safePath = expandedTxt.replace(/'/g, "'\\''")
         
         if (root.validateAs === "image") {
-            _valProc.command = ["bash", "-c", "if [ -f '" + expandedTxt + "' ] && [[ '" + expandedTxt.toLowerCase() + "' =~ \\.(png|jpg|jpeg|svg|webp|bmp)$ ]]; then echo 1; else echo 0; fi"]
+            _valProc.command = ["bash", "-c", "if [ -f '" + safePath + "' ] && [[ '" + safePath.toLowerCase() + "' =~ \\.(png|jpg|jpeg|svg|webp|bmp)$ ]]; then echo 1; else echo 0; fi"]
         } else {
             var flag = root.validateAs === "dir" ? "-d" : "-f"
-            _valProc.command = ["bash", "-c", "if [ " + flag + " '" + expandedTxt + "' ]; then echo 1; else echo 0; fi"]
+            _valProc.command = ["bash", "-c", "if [ " + flag + " '" + safePath + "' ]; then echo 1; else echo 0; fi"]
         }
         
         _valProc.running = false
@@ -290,6 +292,18 @@ Item {
             radius: Math.round(8 * localScale)
             Behavior on border.color { ColorAnimation { duration: Anim.fast } }
             Behavior on color { ColorAnimation { duration: Anim.fast } }
+
+            Text {
+                visible: _txtInput.text === "" && root.placeholder !== ""
+                anchors.fill: parent
+                anchors.leftMargin: Math.round(10 * root.localScale)
+                anchors.rightMargin: Math.round(10 * root.localScale)
+                verticalAlignment: Text.AlignVCenter
+                text: root.placeholder
+                color: Theme.subtext
+                font.pixelSize: Math.round(12 * root.localScale)
+                font.family: "JetBrains Mono"
+            }
 
             TextInput {
                 id: _txtInput

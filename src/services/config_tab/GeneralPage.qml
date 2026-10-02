@@ -46,7 +46,8 @@ Item {
                 SettingsButton {
                     localScale: root.localScale
                     text: "Custom Avatar"
-                    description: "Custom profile picture. Leave blank to use wallpaper."
+                    description: "Image file path (~/ or absolute). Leave blank to use wallpaper."
+                    placeholder: "~/Pictures/avatar.png"
                     inputType: "text"
                     validateAs: "image"
                     inputText: PrefsService.customAvatarPath
@@ -195,7 +196,8 @@ Item {
                 SettingsButton {
                     localScale: root.localScale
                     text: "Save Directory"
-                    description: "Directory for saved recordings and snapshots."
+                    description: "Directory path (~/ or absolute) for recordings and snapshots."
+                    placeholder: "~/Videos/screen_recordings"
                     inputType: "text"
                     buttonText: inputText !== "" ? inputText : "Browse..."
                     inputText: PrefsService.screenrecSaveDir

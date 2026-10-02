@@ -284,12 +284,13 @@ QtObject {
     }
 
     function _buildCmd() {
+        var saveDir = PrefsService.screenrecSaveDir.replace(/^~/, Quickshell.env("HOME")).replace(/\/+$/, "")
         var ts  = Qt.formatDateTime(new Date(), "yyyyMMdd_HHmmss")
-        root._currentFile = PrefsService.screenrecSaveDir + "/" + ts + ".mp4"
+        root._currentFile = saveDir + "/" + ts + ".mp4"
         
         var fps = PrefsService.screenrecFramerate > 0 ? PrefsService.screenrecFramerate : 30
         
-        var cmd = "mkdir -p '" + PrefsService.screenrecSaveDir + "' && " +
+        var cmd = "mkdir -p '" + saveDir.replace(/'/g, "'\\''") + "' && " +
                   "wf-recorder -c libx264" +
                   " -x yuv420p" +
                   " -r " + fps +                   // Configurable FPS
@@ -300,7 +301,7 @@ QtObject {
                   " -p colorspace=bt709" +         // Tags the correct HD color matrix
                   " -p color_primaries=bt709" +
                   " -p color_trc=bt709" +
-                  " -f " + root._currentFile
+                  " -f '" + root._currentFile.replace(/'/g, "'\\''") + "'"
                   
         if (root._pendingGeometry !== "")
             cmd += " -g '" + root._pendingGeometry + "'"

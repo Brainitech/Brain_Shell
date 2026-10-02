@@ -67,7 +67,7 @@ _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire ar
 
 - **Clipboard Keyboard Navigation:** Full keyboard navigation: Arrow Up/Down with visual row highlighting, Enter to copy, Delete/Backspace to remove, P to pin/unpin, Escape to close all without touching the mouse
 
-- **Theme & Visuals:** Manual Matugen color override, screen color picker tile, dark/light mode tile, blur and opacity controls
+- **Theme & Visuals Studio:** 12 popular theme presets with 5-swatch palette previews, independent text/background color overrides, manual Matugen color override, screen color picker tile, dark/light mode tile, blur and opacity controls
 
 - **Better Updater:** Release-based updates with in-app Patch Notes preview
 
@@ -103,7 +103,7 @@ _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire ar
 
 - **Fluid Interface & Animations:** A responsive UI that automatically scales to fit your monitor's resolution, smoother than a perfectly timed parry. Features configurable animation speeds and styles.
 
-- **Dynamic Theming & Wallpapers:** System colors automatically adapt to your active wallpaper. Includes a built-in wallpaper manager and a manual color picker for custom themes.
+- **Dynamic Theming & Presets:** System colors automatically adapt to your active wallpaper, backed by 12 popular theme presets, independent color overrides, and an integrated color studio.
 
 - **System Dashboard:** A unified hub for quick settings, media controls, user profile access, and built-in time tools (alarms, timers, and stopwatches).
 

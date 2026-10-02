@@ -295,7 +295,7 @@ QtObject {
                   " -x yuv420p" +
                   " -r " + fps +                   // Configurable FPS
                   " -p preset=fast" +              // Faster encoding speed
-                  " -p crf=26" +                   // Lower quality/smaller size
+                  " -p crf=20" +                   // Balanced quality/medium size
                   " -p profile=main" +             // Maximum web/Discord compatibility
                   " -p color_range=tv" +           // Fixes washed out blacks/whites
                   " -p colorspace=bt709" +         // Tags the correct HD color matrix

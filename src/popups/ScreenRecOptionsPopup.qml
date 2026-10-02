@@ -39,8 +39,9 @@ Item {
     
     readonly property int targetCardH: targetTileH + Math.round(16 * localScale)
     readonly property int bottomCardH: (audioFpsTileH * 2) + gap + Math.round(16 * localScale)
+    readonly property int backendCardH: audioFpsTileH + Math.round(16 * localScale)
 
-    height: targetCardH + gap + bottomCardH
+    height: targetCardH + gap + bottomCardH + gap + backendCardH
 
     property bool isOpen: ScreenRecService.optionsExpanded && !ScreenRecService.recording
     opacity: isOpen ? 1 : 0
@@ -96,7 +97,7 @@ Item {
             padding: root.gap
             anchors.top: targetCard.bottom; anchors.topMargin: root.gap
             anchors.left: parent.left
-            anchors.bottom: parent.bottom
+            height: root.bottomCardH
             width: (parent.width - root.gap) / 2
 
             Column {
@@ -116,7 +117,7 @@ Item {
             padding: root.gap
             anchors.top: targetCard.bottom; anchors.topMargin: root.gap
             anchors.right: parent.right
-            anchors.bottom: parent.bottom
+            height: root.bottomCardH
             width: (parent.width - root.gap) / 2
 
             Column {
@@ -126,6 +127,34 @@ Item {
 
                 TglBtn { width: parent.width; height: root.audioFpsTileH; label: "60 FPS"; on: PrefsService.screenrecFramerate === 60; onToggled: PrefsService.screenrecFramerate = 60 }
                 TglBtn { width: parent.width; height: root.audioFpsTileH; label: "30 FPS"; on: PrefsService.screenrecFramerate === 30; onToggled: PrefsService.screenrecFramerate = 30 }
+            }
+        }
+
+        // Backend Card
+        StatCard {
+            id: backendCard
+            localScale: root.localScale
+            padding: root.gap
+            anchors.top: audioCard.bottom; anchors.topMargin: root.gap
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: root.backendCardH
+
+            Row {
+                anchors.centerIn: parent
+                spacing: root.gap
+
+                Repeater {
+                    model: ScreenRecService.backends
+                    delegate: TglBtn {
+                        required property var modelData
+                        width: root.tileW
+                        height: root.audioFpsTileH
+                        label: modelData.label
+                        on: PrefsService.screenrecBackend === modelData.id
+                        onToggled: PrefsService.screenrecBackend = modelData.id
+                    }
+                }
             }
         }
     }

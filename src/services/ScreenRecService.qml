@@ -20,6 +20,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import "../"
 
 // ScreenRecService — owns all screen recording state.
@@ -45,6 +46,21 @@ QtObject {
     
     
 
+    // ── Backends ──────────────────────────────────────────────────────────────
+    // wf-recorder is the default; the other two are useful when it struggles
+    // (gpu-screen-recorder for GPU encoding, wl-screenrec as a lighter
+    // alternative). The chosen binary is also what stop/discard signals.
+    readonly property var backends: [
+        { id: "wf",   label: "wf-recorder",  binary: "wf-recorder" },
+        { id: "gsr",  label: "GPU Recorder", binary: "gpu-screen-recorder" },
+        { id: "wlsr", label: "wl-screenrec", binary: "wl-screenrec" },
+    ]
+
+    readonly property string backendBinary: {
+        var b = root.backends.find(function(x) { return x.id === PrefsService.screenrecBackend })
+        return b ? b.binary : "wf-recorder"
+    }
+
     // ── Display helpers ───────────────────────────────────────────────────────
     readonly property var _captureIcons:  ({ screen: "󰍹", window: "󱂬", region: "󰩭" })
     readonly property var _captureLabels: ({ screen: "Screen", window: "Window", region: "Region" })
@@ -56,6 +72,21 @@ QtObject {
         if (PrefsService.screenrecAudioMic)                return "Mic"
         if (PrefsService.screenrecAudioSystem)             return "Sys"
         return "Non"
+    }
+
+    // ── Escape to cancel ──────────────────────────────────────────────────────
+    // Bound non-consuming in the generated keybinds, so Escape still reaches
+    // whatever app is focused; we only react while setup is actually open.
+    // This replaces grabbing exclusive keyboard focus for the setup strip,
+    // which used to block all typing.
+    property var _cancelShortcut: GlobalShortcut {
+        appid: "quickshell"
+        name:  "screenrecCancel"
+        onPressed: {
+            if (root.recording || !ShellState.screenRecord) return
+            if (root.optionsExpanded) root.optionsExpanded = false
+            else                      root.cancelSetup()
+        }
     }
 
     // ── Expansion state ─────────────────────────
@@ -260,10 +291,13 @@ QtObject {
             root._teardownNullSink()
 
             if (!root._discarding && savedFile !== "") {
-                // Normal stop — notify with interactive action buttons.
+                // The backend exiting is not proof it worked — a missing binary
+                // or an unsupported codec dies immediately and writes nothing.
+                // Check the file actually landed before claiming "Saved".
                 // FILE/"$FILE" expands $HOME correctly inside bash.
                 _notifyProc.command = ["bash", "-c",
                     "FILE=\"" + savedFile + "\"; " +
+                    "if [ -s \"$FILE\" ]; then " +
                     "DIR=\"$(dirname \"$FILE\")\"; " +
                     "ACTION=$(notify-send" +
                     " --app-name 'ScreenRec'" +
@@ -275,7 +309,12 @@ QtObject {
                     "case \"$ACTION\" in" +
                     "  view) xdg-open \"$DIR\" ;;" +
                     "  open) mpv \"$FILE\" ;;" +
-                    "esac"]
+                    "esac; " +
+                    "else " +
+                    "notify-send --app-name 'ScreenRec' --icon 'dialog-error' -u critical" +
+                    " 'Recording Failed'" +
+                    " \"" + root.backendBinary + " did not produce a file. Check that it is installed and supports your GPU/codec.\"; " +
+                    "fi"]
                 _notifyProc.running = false
                 _notifyProc.running = true
             }
@@ -289,8 +328,34 @@ QtObject {
         root._currentFile = saveDir + "/" + ts + ".mp4"
         
         var fps = PrefsService.screenrecFramerate > 0 ? PrefsService.screenrecFramerate : 30
-        
-        var cmd = "mkdir -p '" + saveDir.replace(/'/g, "'\\''") + "' && " +
+        var file = root._currentFile.replace(/'/g, "'\\''")
+        var mkdir = "mkdir -p '" + saveDir.replace(/'/g, "'\\''") + "' && "
+        var hasAudio = (PrefsService.screenrecAudioMic || PrefsService.screenrecAudioSystem)
+                       && root._resolvedAudioDevice !== ""
+
+        if (PrefsService.screenrecBackend === "gsr") {
+            var gsr = "gpu-screen-recorder -f " + fps + " -k h264 -cursor yes -o '" + file + "'"
+            if (root._pendingGeometry !== "") {
+                // "X,Y WxH" -> WxH+X+Y
+                var parts = root._pendingGeometry.split(" ")
+                gsr += " -w region -region '" + parts[1] + "+" + parts[0].replace(",", "+") + "'"
+            } else {
+                gsr += " -w screen"
+            }
+            if (hasAudio) gsr += " -a " + root._resolvedAudioDevice
+            return mkdir + gsr
+        }
+
+        if (PrefsService.screenrecBackend === "wlsr") {
+            var wlsr = "wl-screenrec -f '" + file + "' --max-fps " + fps
+            if (root._pendingGeometry !== "")
+                wlsr += " -g '" + root._pendingGeometry + "'"
+            if (hasAudio)
+                wlsr += " --audio --audio-device " + root._resolvedAudioDevice
+            return mkdir + wlsr
+        }
+
+        var cmd = mkdir +
                   "wf-recorder -c libx264" +
                   " -x yuv420p" +
                   " -r " + fps +                   // Configurable FPS
@@ -301,15 +366,15 @@ QtObject {
                   " -p colorspace=bt709" +         // Tags the correct HD color matrix
                   " -p color_primaries=bt709" +
                   " -p color_trc=bt709" +
-                  " -f '" + root._currentFile.replace(/'/g, "'\\''") + "'"
-                  
+                  " -f '" + file + "'"
+
         if (root._pendingGeometry !== "")
             cmd += " -g '" + root._pendingGeometry + "'"
-            
+
         // Use --audio=DEVICE (matches wf-recorder working script convention)
-        if ((PrefsService.screenrecAudioMic || PrefsService.screenrecAudioSystem) && root._resolvedAudioDevice !== "")
+        if (hasAudio)
             cmd += " --audio=" + root._resolvedAudioDevice
-        
+
         return cmd
     }
 
@@ -353,7 +418,7 @@ QtObject {
     }
 
     function stopRecording() {
-        _sigProc.command = ["bash", "-c", "pkill -INT wf-recorder"]
+        _sigProc.command = ["bash", "-c", "pkill -INT " + root.backendBinary]
         _sigProc.running = false
         _sigProc.running = true
     }
@@ -363,7 +428,7 @@ QtObject {
         var fileToDelete = root._currentFile
         // Kill wf-recorder; _recProc.onExited will see _discarding=true and skip
         // the saved notification. The timer below handles delete + notify.
-        _sigProc.command = ["bash", "-c", "pkill -INT wf-recorder"]
+        _sigProc.command = ["bash", "-c", "pkill -INT " + root.backendBinary]
         _sigProc.running = false
         _sigProc.running = true
         _discardTimer.fileToDelete = fileToDelete

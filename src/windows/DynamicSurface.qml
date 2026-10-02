@@ -66,7 +66,13 @@ PanelWindow {
     
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "brain-shell-frame"
-    WlrLayershell.keyboardFocus: (SurfaceState.activeSurface !== "none" || (ShellState.screenRecord && !ScreenRecService.recording)) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    // Record setup deliberately does NOT take keyboard focus: it is a passive
+    // strip, not a text surface, and grabbing the keyboard for it meant you
+    // could not type into any window until you hit Record or Escape. Its
+    // Escape-to-cancel runs through the non-consuming "quickshell:screenrecCancel"
+    // global shortcut instead (see ScreenRecService), which leaves every other
+    // key — and every other bind — alone.
+    WlrLayershell.keyboardFocus: SurfaceState.activeSurface !== "none" ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     Region {
         id: fullRegion

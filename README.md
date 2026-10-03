@@ -27,8 +27,7 @@
 ## Showcase
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/8f70458b-a628-4636-b08a-70b188b54f06" controls="controls" muted="muted" style="max-width: 100%; height: auto;">
-    <a href="https://github.com/user-attachments/assets/8f70458b-a628-4636-b08a-70b188b54f06">Click here to view the preview video.</a>
+  <video src="Video Removed To Be added Later" controls="controls" muted="muted" style="max-width: 100%; height: auto;">
   </video>
 </div>
 
@@ -104,6 +103,8 @@ _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire ar
 - **Fluid Interface & Animations:** A responsive UI that automatically scales to fit your monitor's resolution, smoother than a perfectly timed parry. Features configurable animation speeds and styles.
 
 - **Dynamic Theming & Presets:** System colors automatically adapt to your active wallpaper, backed by 12 popular theme presets, independent color overrides, and an integrated color studio.
+
+- **Keyboard & GUI Driven:** The best of both worlds. Full keyboard navigation when you want speed, and a clean GUI mouse based control for both situations.
 
 - **System Dashboard:** A unified hub for quick settings, media controls, user profile access, and built-in time tools (alarms, timers, and stopwatches).
 
@@ -204,9 +205,9 @@ _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire ar
 
 - **lm_sensors** - CPU temperature & fan monitoring
 - **rfkill** - Airplane mode control
-- **envycontrol** - GPU switching (NVIDIA/Intel)
+- **[envycontrol](https://github.com/bayasdev/envycontrol)** - GPU switching (NVIDIA/Intel hybrid laptops)
 - **auto-cpufreq** - CPU frequency scaling
-- **nbfc-linux** - Laptop fan control
+- **[nbfc-linux](https://github.com/nbfc-linux/nbfc-linux)** - Laptop fan control
 
 </details>
 
@@ -424,6 +425,46 @@ wl-paste --type image --watch cliphist store &
 hyprctl reload
 qs -p ~/path/to/Brain_Shell &
 ```
+
+---
+
+### Hardware Configuration (Optional)
+
+If your setup utilizes hybrid graphics or laptop fan control, additional configuration is required after installing the optional packages:
+
+#### Laptop Fan Control ([nbfc-linux](https://github.com/nbfc-linux/nbfc-linux))
+
+Enables real-time fan monitoring and quiet/auto/max profile switching in the Dashboard (`FanPanel`):
+
+```bash
+#Enable and start the background service:
+sudo systemctl enable --now nbfc_service
+
+#Find and apply your laptop's profile:**
+# Search for recommended configurations matching your laptop model
+nbfc config --recommend
+
+# Apply the chosen model profile and start fan control
+nbfc config -s "<Profile_Name>"
+nbfc start
+
+#Verify status:
+nbfc status
+```
+
+> [!IMPORTANT]
+> If the above steps don't work, visit the official [nbfc-linux's](https://github.com/nbfc-linux/nbfc-linux) github page.
+
+#### Hybrid GPU Switching ([envycontrol](https://github.com/bayasdev/envycontrol))
+
+Enables GPU power mode switching (`Integrated`, `Hybrid`, `Dedicated`) in the Dashboard (`PowerPanel`):
+
+- **Prerequisites:** Laptops with hybrid NVIDIA graphics (NVIDIA Optimus) and an active polkit agent (e.g., `hyprpolkitagent`).
+- **Behavior:** Switching modes in the Dashboard triggers root authorization via `pkexec` and **automatically initiates a reboot** to apply the necessary display manager and driver/kernel module changes.
+- **Verify status manually:**
+  ```bash
+  sudo envycontrol --query
+  ```
 
 ---
 

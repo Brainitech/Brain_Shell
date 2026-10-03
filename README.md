@@ -27,7 +27,7 @@
 ## Showcase
 
 <div align="center">
-  <video src="Video Removed To Be added Later" controls="controls" muted="muted" style="max-width: 100%; height: auto;">
+  <video src="https://github.com/user-attachments/assets/b1c2a981-3180-4b46-85d4-a0c5700b54e3" controls="controls" muted="muted" style="max-width: 100%; height: auto;">
   </video>
 </div>
 

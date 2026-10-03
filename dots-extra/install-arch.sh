@@ -295,6 +295,11 @@ fi
 AUR_DEPS+=(
     auto-cpufreq
     grimblast-git
+
+    # Optional screen-recording backends. wf-recorder (repo, above) is the
+    # default; these are selectable alternatives in the recorder options.
+    gpu-screen-recorder
+    wl-screenrec
 )
 
 if [[ "$AUR_HELPER" == "none" ]]; then

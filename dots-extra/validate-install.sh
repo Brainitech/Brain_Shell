@@ -121,6 +121,9 @@ echo ""
 echo "# SCREEN RECORDING & MEDIA"
 check_command "wf-recorder"
 check_command "cava"
+# Optional alternative recording backends (selectable in recorder options)
+check_optional "gpu-screen-recorder"
+check_optional "wl-screenrec"
 check_command "grimblast"
 
 echo ""

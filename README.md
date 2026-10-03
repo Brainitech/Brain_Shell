@@ -190,7 +190,9 @@ _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire ar
 <details>
 <summary><b>Screen Capture & Utilities</b></summary>
 
-- **wf-recorder** - Screen recording (Wayland)
+- **wf-recorder** - Screen recording (Wayland, default backend)
+- **gpu-screen-recorder** - Optional recording backend (GPU encoding)
+- **wl-screenrec** - Optional recording backend (lightweight)
 - **grimblast** - Screenshot utility (Wayland)
 - **cava** - Audio visualizer
 - **slurp** - Region/window selection

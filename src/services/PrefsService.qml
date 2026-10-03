@@ -50,6 +50,7 @@ QtObject {
     property bool screenrecAudioMic: false
     property bool screenrecAudioSystem: false
     property int screenrecFramerate: 30
+    property string screenrecBackend: "wf"   // wf | gsr | wlsr
     property string screenrecSaveDir: Quickshell.env("HOME") + "/Videos/screen_recordings"
 
     // Network (Hotspot)
@@ -135,6 +136,7 @@ QtObject {
             if (o.screenrecAudioMic !== undefined) root.screenrecAudioMic = o.screenrecAudioMic
             if (o.screenrecAudioSystem !== undefined) root.screenrecAudioSystem = o.screenrecAudioSystem
             if (o.screenrecFramerate !== undefined) root.screenrecFramerate = o.screenrecFramerate
+            if (o.screenrecBackend !== undefined) root.screenrecBackend = o.screenrecBackend
             if (o.screenrecSaveDir !== undefined) root.screenrecSaveDir = o.screenrecSaveDir
             if (o.hotspotSsid !== undefined) root.hotspotSsid = o.hotspotSsid
             if (o.hotspotPassword !== undefined) root.hotspotPassword = o.hotspotPassword
@@ -193,6 +195,7 @@ QtObject {
     onScreenrecAudioMicChanged: if (_loaded) saveConfig()
     onScreenrecAudioSystemChanged: if (_loaded) saveConfig()
     onScreenrecFramerateChanged: if (_loaded) saveConfig()
+    onScreenrecBackendChanged: if (_loaded) saveConfig()
     onScreenrecSaveDirChanged: if (_loaded) saveConfig()
     onHotspotSsidChanged: if (_loaded) saveConfig()
     onHotspotPasswordChanged: if (_loaded) saveConfig()
@@ -243,6 +246,7 @@ QtObject {
             screenrecAudioMic: root.screenrecAudioMic,
             screenrecAudioSystem: root.screenrecAudioSystem,
             screenrecFramerate: root.screenrecFramerate,
+            screenrecBackend: root.screenrecBackend,
             screenrecSaveDir: root.screenrecSaveDir,
             hotspotSsid: root.hotspotSsid,
             hotspotPassword: root.hotspotPassword,

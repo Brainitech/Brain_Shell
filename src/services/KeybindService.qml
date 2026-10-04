@@ -98,11 +98,55 @@ QtObject {
         return mask
     }
 
+    function _isModKey(key) {
+        if (!key) return false
+        var u = key.toUpperCase().trim()
+        return u === "SUPER_L" || u === "SUPER_R" ||
+               u === "ALT_L"   || u === "ALT_R"   ||
+               u === "CONTROL_L" || u === "CONTROL_R" ||
+               u === "SHIFT_L" || u === "SHIFT_R" ||
+               u === "SUPER"   || u === "ALT"     ||
+               u === "CTRL"    || u === "SHIFT"
+    }
+
+    function _modForModKey(key) {
+        if (!key) return ""
+        var u = key.toUpperCase().trim()
+        if (u === "SUPER_L" || u === "SUPER_R" || u === "SUPER") return "SUPER"
+        if (u === "ALT_L" || u === "ALT_R" || u === "ALT" || u === "ALTGR") return "ALT"
+        if (u === "CONTROL_L" || u === "CONTROL_R" || u === "CTRL_L" || u === "CTRL_R" || u === "CTRL") return "CTRL"
+        if (u === "SHIFT_L" || u === "SHIFT_R" || u === "SHIFT") return "SHIFT"
+        return ""
+    }
+
+    function _normalizeKey(key) {
+        if (!key) return ""
+        var s = key.trim()
+        var u = s.toUpperCase()
+        if (u === "UNKNOWN")                                      return ""
+        if (u === "SUPER_L" || u === "SUPER")                     return "SUPER_L"
+        if (u === "SUPER_R")                                      return "SUPER_R"
+        if (u === "ALT_L" || u === "ALT")                         return "Alt_L"
+        if (u === "ALT_R" || u === "ALTGR")                       return "Alt_R"
+        if (u === "CONTROL_L" || u === "CTRL_L" || u === "CTRL") return "Control_L"
+        if (u === "CONTROL_R" || u === "CTRL_R")                  return "Control_R"
+        if (u === "SHIFT_L" || u === "SHIFT")                     return "Shift_L"
+        if (u === "SHIFT_R")                                      return "Shift_R"
+        return u
+    }
+
+    function _effectiveMods(mods, key) {
+        if ((!mods || mods === "") && root._isModKey(key)) {
+            return root._modForModKey(key)
+        }
+        return mods || ""
+    }
+
     // Returns a short description of the conflicting Hyprland bind, or "".
     // Own shell binds (arg contains "qs ipc") are filtered out.
     function wouldConflictHypr(action, mods, key) {
-        var mask = _modsToMask(mods)
-        var k    = key.toLowerCase()
+        var mask = _modsToMask(root._effectiveMods(mods, key))
+        var k    = root._normalizeKey(key).toLowerCase()
         for (var i = 0; i < root._hyprBinds.length; i++) {
             var b = root._hyprBinds[i]
             if (b.submap !== "") continue  // ignore submaps
@@ -126,8 +170,8 @@ QtObject {
         var ks = Object.keys(root.keybinds)
         for (var i = 0; i < ks.length; i++) {
             var b = root.keybinds[ks[i]]
-            if (!b) continue
-            var combo = root._modsToMask(b.mods) + "+" + (b.key || "").toUpperCase()
+            if (!b || !b.key || b.key === "") continue
+            var combo = root._modsToMask(root._effectiveMods(b.mods, b.key)) + "+" + root._normalizeKey(b.key).toUpperCase()
             if (!m[combo]) m[combo] = [ks[i]]
             else           m[combo] = m[combo].concat([ks[i]])
         }
@@ -136,15 +180,16 @@ QtObject {
 
     function isDuplicate(action) {
         var b = root.keybinds[action]
-        if (!b) return false
-        var combo = root._modsToMask(b.mods) + "+" + (b.key || "").toUpperCase()
+        if (!b || !b.key || b.key === "") return false
+        var combo = root._modsToMask(root._effectiveMods(b.mods, b.key)) + "+" + root._normalizeKey(b.key).toUpperCase()
         return !!(root._comboMap[combo] && root._comboMap[combo].length > 1)
     }
 
     function conflictsWith(action) {
         var b = root.keybinds[action]
-        if (!b) return ""
-        var list = root._comboMap[root._modsToMask(b.mods) + "+" + (b.key || "").toUpperCase()]
+        if (!b || !b.key || b.key === "") return ""
+        var combo = root._modsToMask(root._effectiveMods(b.mods, b.key)) + "+" + root._normalizeKey(b.key).toUpperCase()
+        var list = root._comboMap[combo]
         if (!list || list.length < 2) return ""
         for (var i = 0; i < list.length; i++) {
             if (list[i] !== action) {
@@ -156,13 +201,14 @@ QtObject {
     }
 
     function wouldConflict(action, mods, key) {
-        var mask = root._modsToMask(mods)
-        var k = (key || "").toUpperCase()
+        if (!key || key === "") return ""
+        var mask = root._modsToMask(root._effectiveMods(mods, key))
+        var k = root._normalizeKey(key).toUpperCase()
         var ks = Object.keys(root.keybinds)
         for (var i = 0; i < ks.length; i++) {
             if (ks[i] === action) continue
             var b = root.keybinds[ks[i]]
-            if (b && root._modsToMask(b.mods) === mask && (b.key || "").toUpperCase() === k)
+            if (b && b.key && root._modsToMask(root._effectiveMods(b.mods, b.key)) === mask && root._normalizeKey(b.key).toUpperCase() === k)
                 return b.label || ks[i]
         }
         return ""
@@ -190,7 +236,7 @@ QtObject {
                         var s = sk[j]
                         if (!merged[s]) continue
                         if (saved[s].mods !== undefined) merged[s].mods = saved[s].mods
-                        if (saved[s].key  !== undefined) merged[s].key  = saved[s].key
+                        if (saved[s].key  !== undefined) merged[s].key  = root._normalizeKey(saved[s].key)
                     }
                 } catch(e) {}
                 root.keybinds = merged
@@ -207,8 +253,10 @@ QtObject {
         for (var i = 0; i < ks.length; i++) {
             var k = ks[i]
             if (!defs[k]) continue
-            if (root.keybinds[k].mods !== defs[k].mods || root.keybinds[k].key !== defs[k].key)
-                out[k] = { mods: root.keybinds[k].mods, key: root.keybinds[k].key }
+            var b = root.keybinds[k]
+            if (!b || !b.key || b.key === "" || b.key.toUpperCase() === "UNKNOWN") continue
+            if (b.mods !== defs[k].mods || b.key !== defs[k].key)
+                out[k] = { mods: b.mods, key: b.key }
         }
         var json = JSON.stringify(out, null, 2)
         _saveProc.command = ["bash", "-c",
@@ -252,7 +300,7 @@ QtObject {
         var old = root.keybinds[action]
         if (!old) return
         var m = newMods.toUpperCase().trim()
-        var k = newKey.toUpperCase().trim()
+        var k = root._normalizeKey(newKey)
         if (k === "") return
         if (root.wouldConflict(action, m, k) !== "") return
         var copy     = Object.assign({}, root.keybinds)
@@ -303,7 +351,7 @@ QtObject {
         var ks = Object.keys(root.keybinds)
         for (var i = 0; i < ks.length; i++) {
             var k = ks[i]; var b = root.keybinds[k]
-            if (!b || b.mods === undefined || !b.key) continue
+            if (!b || b.mods === undefined || !b.key || b.key === "" || b.key.toUpperCase() === "UNKNOWN") continue
             var g = b.group || "Other"
             if (!groups[g]) { groups[g] = []; order.push(g) }
             var entry = { k: k, mods: b.mods, key: b.key, label: b.label }
@@ -347,9 +395,15 @@ QtObject {
             var entries = data.groups[g]
             for (var ei = 0; ei < entries.length; ei++) {
                 var e = entries[ei]
-                var luaBindStr = (e.mods !== "") ? (e.mods + " + " + e.key) : e.key
+                var isModOnly = (e.mods === "" && root._isModKey(e.key))
+                var luaBindStr = isModOnly
+                    ? (root._modForModKey(e.key) + " + " + e.key)
+                    : ((e.mods !== "") ? (e.mods + " + " + e.key) : e.key)
                 var descLabel = (e.label || e.k).replace(/"/g, "\\\"")
-                lines.push("hl.bind(\"" + luaBindStr + "\", hl.dsp.exec_cmd(\"qs ipc -p \" .. shell .. \" call " + e.k + " toggle\"), { description = \"Brain Shell: " + descLabel + "\" })")
+                var opts = isModOnly
+                    ? "{ description = \"Brain Shell: " + descLabel + "\", release = true }"
+                    : "{ description = \"Brain Shell: " + descLabel + "\" }"
+                lines.push("hl.bind(\"" + luaBindStr + "\", hl.dsp.exec_cmd(\"qs ipc -p \" .. shell .. \" call " + e.k + " toggle\"), " + opts + ")")
             }
             lines.push("")
         }
@@ -385,19 +439,18 @@ QtObject {
             var entries = data.groups[g]
             for (var ei = 0; ei < entries.length; ei++) {
                 var e = entries[ei]
-                // Hyprland .conf format drops the '+' symbol between modifiers
-                var confMods = e.mods.replace(/\s*\+\s*/g, " ")
+                var isModOnly = (e.mods === "" && root._isModKey(e.key))
+                var confMods = isModOnly
+                    ? root._modForModKey(e.key)
+                    : e.mods.replace(/\s*\+\s*/g, " ")
+                var bindDirective = isModOnly ? "bindr" : "bind"
                 var cmd = "qs ipc -p " + root._shellDir + " call " + e.k + " toggle"
-                lines.push("bind = " + confMods + ", " + e.key + ", exec, " + cmd)
+                lines.push(bindDirective + " = " + confMods + ", " + e.key + ", exec, " + cmd)
             }
             lines.push("")
         }
         return lines.join("\n")
     }
-
-    // ── Auto-include in hyprland configs ──────────────────────────────────────
-    // (Legacy direct injection removed; Brain Shell now sources binds automatically
-    //  via its isolated startup files generated by the installer.)
 
     Component.onCompleted: _loadProc.running = true
 }

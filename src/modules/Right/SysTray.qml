@@ -39,16 +39,43 @@ RowLayout {
         
         property bool isOpen: false
         property int activeMenuIndex: -1
+        property real targetContentX: 0
+
+        NumberAnimation {
+            id: scrollAnim
+            target: trayRow
+            property: "contentX"
+            duration: Anim.fast
+            easing.type: Anim.outCubic
+        }
+
+        onMovementStarted: {
+            scrollAnim.stop()
+        }
+
+        onMovementEnded: {
+            targetContentX = trayRow.contentX
+        }
         
         onCountChanged: {
             if (count === 0) {
                 isOpen = false
+            }
+            var viewWidth = isOpen ? Math.min(calculatedWidth, Layout.maximumWidth) : width
+            var maxScroll = Math.max(0, calculatedWidth - viewWidth)
+            if (trayRow.contentX > maxScroll) {
+                scrollAnim.stop()
+                trayRow.contentX = maxScroll
+                targetContentX = maxScroll
             }
         }
         
         onIsOpenChanged: {
             if (!isOpen) {
                 activeMenuIndex = -1
+                scrollAnim.stop()
+                trayRow.contentX = 0
+                targetContentX = 0
             }
         }
         
@@ -76,9 +103,45 @@ RowLayout {
         clip: true
         interactive: true
         boundsBehavior: Flickable.StopAtBounds
+        cacheBuffer: Math.round(200 * localScale)
 
         Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic} }
         Behavior on Layout.preferredWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic} }
+
+        WheelHandler {
+            id: trayWheel
+            target: null
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            orientation: Qt.Vertical
+            onWheel: function(event) {
+                if (event.angleDelta.y === 0) return
+                if (trayRow.activeMenuIndex !== -1) {
+                    trayRow.activeMenuIndex = -1
+                }
+
+                var viewWidth = trayRow.isOpen ? Math.min(trayRow.calculatedWidth, trayRow.Layout.maximumWidth) : trayRow.width
+                var totalWidth = Math.max(trayRow.contentWidth, trayRow.calculatedWidth)
+                var maxScroll = Math.max(0, totalWidth - viewWidth)
+                if (maxScroll <= 0) return
+
+                var itemStep = Math.round(26 * localScale) + trayRow.spacing
+                var step = -(event.angleDelta.y / 120.0) * itemStep
+                if (Math.abs(step) < 1) {
+                    step = event.angleDelta.y > 0 ? -1 : 1
+                }
+
+                var base = scrollAnim.running ? trayRow.targetContentX : trayRow.contentX
+                var newTarget = Math.max(0, Math.min(maxScroll, base + step))
+
+                if (newTarget !== trayRow.contentX) {
+                    trayRow.targetContentX = newTarget
+                    scrollAnim.stop()
+                    scrollAnim.from = trayRow.contentX
+                    scrollAnim.to = trayRow.targetContentX
+                    scrollAnim.restart()
+                }
+            }
+        }
 
         model: SystemTray.items
         delegate: Item {

@@ -215,7 +215,7 @@ PACMAN_DEPS=(
     python wl-clipboard slurp xdg-user-dirs
 
     # Screen recording
-    wf-recorder cava
+    wf-recorder cava gpu-screen-recorder
 
     # Wallpaper / theming
     imagemagick awww matugen
@@ -295,6 +295,10 @@ fi
 AUR_DEPS+=(
     auto-cpufreq
     grimblast-git
+
+    # Optional screen-recording backends. wf-recorder (repo, above) is the
+    # default; these are selectable alternatives in the recorder options.
+    wl-screenrec
 )
 
 if [[ "$AUR_HELPER" == "none" ]]; then

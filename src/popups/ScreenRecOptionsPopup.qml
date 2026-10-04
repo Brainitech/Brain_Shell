@@ -39,10 +39,12 @@ Item {
     
     readonly property int targetCardH: targetTileH + Math.round(16 * localScale)
     readonly property int bottomCardH: (audioFpsTileH * 2) + gap + Math.round(16 * localScale)
+    readonly property int backendCardH: audioFpsTileH + Math.round(16 * localScale)
 
-    height: targetCardH + gap + bottomCardH
+    height: targetCardH + gap + bottomCardH + gap + backendCardH
 
     property bool isOpen: ScreenRecService.optionsExpanded && !ScreenRecService.recording
+    onIsOpenChanged: { if (isOpen) ScreenRecService.probeBackends() }
     opacity: isOpen ? 1 : 0
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
@@ -96,7 +98,7 @@ Item {
             padding: root.gap
             anchors.top: targetCard.bottom; anchors.topMargin: root.gap
             anchors.left: parent.left
-            anchors.bottom: parent.bottom
+            height: root.bottomCardH
             width: (parent.width - root.gap) / 2
 
             Column {
@@ -116,7 +118,7 @@ Item {
             padding: root.gap
             anchors.top: targetCard.bottom; anchors.topMargin: root.gap
             anchors.right: parent.right
-            anchors.bottom: parent.bottom
+            height: root.bottomCardH
             width: (parent.width - root.gap) / 2
 
             Column {
@@ -128,6 +130,36 @@ Item {
                 TglBtn { width: parent.width; height: root.audioFpsTileH; label: "30 FPS"; on: PrefsService.screenrecFramerate === 30; onToggled: PrefsService.screenrecFramerate = 30 }
             }
         }
+
+        // Backend Card
+        StatCard {
+            id: backendCard
+            localScale: root.localScale
+            padding: root.gap
+            anchors.top: audioCard.bottom; anchors.topMargin: root.gap
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: root.backendCardH
+
+            Row {
+                anchors.centerIn: parent
+                spacing: root.gap
+
+                Repeater {
+                    model: ScreenRecService.backends
+                    delegate: TglBtn {
+                        required property var modelData
+                        width: root.tileW
+                        height: root.audioFpsTileH
+                        label: modelData.label
+                        labelSize: 10
+                        available: ScreenRecService.backendAvailable[modelData.id] !== false
+                        on: PrefsService.screenrecBackend === modelData.id
+                        onToggled: PrefsService.screenrecBackend = modelData.id
+                    }
+                }
+            }
+        }
     }
 
     component TglBtn: Rectangle {
@@ -136,9 +168,13 @@ Item {
         property string icon: ""
         property string label: ""
         property string layoutMode: "vertical"
+        property int labelSize: 11
+        property bool available: true
         signal toggled()
 
         radius: Math.round(10 * localScale)
+        opacity: available ? 1.0 : 0.4
+        Behavior on opacity { NumberAnimation { duration: Anim.fast } }
         color: on
             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
             : bH.hovered
@@ -199,11 +235,17 @@ Item {
                 }
             }
 
-            // FPS tiles
+            // FPS / backend tiles — margins keep the label clear of the status
+            // dot in the top-right corner, which longer names used to run under.
             Text {
                 visible: btn.icon === ""
-                anchors.centerIn: parent
-                text: btn.label; font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium
+                anchors.fill: parent
+                anchors.leftMargin:  Math.round(8 * localScale)
+                anchors.rightMargin: Math.round(8 * localScale)
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment:   Text.AlignVCenter
+                elide: Text.ElideRight
+                text: btn.label; font.pixelSize: Math.round(btn.labelSize * localScale); font.weight: Font.Medium
                 color: btn.on ? Theme.text : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
                 Behavior on color { ColorAnimation { duration: Anim.color} }
             }

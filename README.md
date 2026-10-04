@@ -58,7 +58,7 @@ _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire ar
 
 - **QuickControl OSD:** Pops out automatically when volume/brightness change via hotkeys
 
-- **Screen Recording & Screenshot Overhaul:** Target selection, audio toggles, framerate selection, and a unified Capture tile.
+- **Screen Recording & Screenshot Overhaul:** Target selection, audio toggles, framerate selection, selectable backends (wf-recorder, gpu-screen-recorder, wl-screenrec), and a unified Capture tile.
 
 - **System Tray Overhaul:** Native dropdown menus with proper Wayland positioning
 
@@ -117,6 +117,8 @@ _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire ar
 - **Interactive Notch:** A sleek drop-down area at the top of your screen that houses quick media controls, an audio visualizer, and other handy, glanceable tools.
 
 - **Live Settings Configuration:** Adjust layout dimensions, visual behavior, and data preferences on the fly without restarting the shell. (More customization options are planned for future updates).
+
+- **Screen Recording & Capture:** Fully integrated screenshot and screen recording tools with support for region/window selection, audio inclusion, configurable FPS, and multiple encoding backends (wf-recorder, gpu-screen-recorder, wl-screenrec).
 
 - **Intelligent Keybinds:** A visual keybind editor equipped with live conflict detection to prevent overlapping shortcuts.
 
@@ -191,7 +193,9 @@ _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire ar
 <details>
 <summary><b>Screen Capture & Utilities</b></summary>
 
-- **wf-recorder** - Screen recording (Wayland)
+- **wf-recorder** - Screen recording (Wayland, default backend)
+- **gpu-screen-recorder** - Optional recording backend (GPU encoding)
+- **wl-screenrec** - Optional recording backend (lightweight)
 - **grimblast** - Screenshot utility (Wayland)
 - **cava** - Audio visualizer
 - **slurp** - Region/window selection

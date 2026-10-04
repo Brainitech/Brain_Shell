@@ -20,6 +20,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland   // focusedMonitor for fullscreen capture
 import "../"
 
 // ScreenRecService — owns all screen recording state.
@@ -44,6 +45,61 @@ QtObject {
     
     
     
+
+    // ── Backends ──────────────────────────────────────────────────────────────
+    // wf-recorder is the default; the other two are useful when it struggles
+    // (gpu-screen-recorder for GPU encoding, wl-screenrec as a lighter
+    // alternative). The chosen binary is also what stop/discard signals.
+    readonly property var backends: [
+        { id: "wf",   label: "wf-recorder",  binary: "wf-recorder" },
+        { id: "gsr",  label: "GPU Recorder", binary: "gpu-screen-recorder" },
+        { id: "wlsr", label: "wl-screenrec", binary: "wl-screenrec" },
+    ]
+
+    readonly property string backendBinary: {
+        var b = root.backends.find(function(x) { return x.id === PrefsService.screenrecBackend })
+        return b ? b.binary : "wf-recorder"
+    }
+
+    // Which backend binaries are actually installed. The options panel dims the
+    // ones that are missing, and startRecording() refuses to launch them rather
+    // than silently producing nothing.
+    property var backendAvailable: ({})
+    readonly property bool selectedBackendAvailable:
+        root.backendAvailable[PrefsService.screenrecBackend] !== false
+
+    function backendLabelFor(id) {
+        var b = root.backends.find(function(x) { return x.id === id })
+        return b ? b.label : id
+    }
+
+    function probeBackends() {
+        _probeProc.running = false
+        _probeProc.running = true
+    }
+
+    property var _probeProc: Process {
+        running: true
+        command: ["bash", "-c",
+            "for b in wf-recorder gpu-screen-recorder wl-screenrec; do " +
+            "command -v \"$b\" >/dev/null 2>&1 && echo \"$b 1\" || echo \"$b 0\"; done"]
+        stdout: StdioCollector {
+            id: probeOut
+            onStreamFinished: {
+                var map = {}
+                var byBinary = {}
+                for (var i = 0; i < root.backends.length; i++)
+                    byBinary[root.backends[i].binary] = root.backends[i].id
+                var lines = probeOut.text.trim().split("\n")
+                for (var j = 0; j < lines.length; j++) {
+                    var parts = lines[j].trim().split(" ")
+                    if (parts.length === 2 && byBinary[parts[0]] !== undefined)
+                        map[byBinary[parts[0]]] = parts[1] === "1"
+                }
+                root.backendAvailable = map
+            }
+        }
+    }
 
     // ── Display helpers ───────────────────────────────────────────────────────
     readonly property var _captureIcons:  ({ screen: "󰍹", window: "󱂬", region: "󰩭" })
@@ -259,11 +315,25 @@ QtObject {
             // Always tear down the null sink (no-op when mic-only or no-audio)
             root._teardownNullSink()
 
-            if (!root._discarding && savedFile !== "") {
-                // Normal stop — notify with interactive action buttons.
+            if (root._discarding && savedFile !== "") {
+                _notifyProc.command = ["bash", "-c",
+                    "rm -f \"" + savedFile + "\" && " +
+                    "notify-send" +
+                    " --app-name 'ScreenRec'" +
+                    " --icon 'video-x-generic'" +
+                    " 'Recording Discarded'" +
+                    " 'The recording was deleted.'"]
+                _notifyProc.running = false
+                _notifyProc.running = true
+                root._discarding = false
+            } else if (!root._discarding && savedFile !== "") {
+                // The backend exiting is not proof it worked — a missing binary
+                // or an unsupported codec dies immediately and writes nothing.
+                // Check the file actually landed before claiming "Saved".
                 // FILE/"$FILE" expands $HOME correctly inside bash.
                 _notifyProc.command = ["bash", "-c",
                     "FILE=\"" + savedFile + "\"; " +
+                    "if [ -s \"$FILE\" ]; then " +
                     "DIR=\"$(dirname \"$FILE\")\"; " +
                     "ACTION=$(notify-send" +
                     " --app-name 'ScreenRec'" +
@@ -275,11 +345,16 @@ QtObject {
                     "case \"$ACTION\" in" +
                     "  view) xdg-open \"$DIR\" ;;" +
                     "  open) mpv \"$FILE\" ;;" +
-                    "esac"]
+                    "esac; " +
+                    "else " +
+                    "rm -f \"$FILE\"; " +
+                    "notify-send --app-name 'ScreenRec' --icon 'dialog-error' -u critical" +
+                    " 'Recording Failed'" +
+                    " \"" + root.backendBinary + " did not produce a file. Check that it is installed and supports your GPU/codec.\"; " +
+                    "fi"]
                 _notifyProc.running = false
                 _notifyProc.running = true
             }
-            // Discard path: _discardTimer handles file deletion + notification
         }
     }
 
@@ -289,8 +364,45 @@ QtObject {
         root._currentFile = saveDir + "/" + ts + ".mp4"
         
         var fps = PrefsService.screenrecFramerate > 0 ? PrefsService.screenrecFramerate : 30
-        
-        var cmd = "mkdir -p '" + saveDir.replace(/'/g, "'\\''") + "' && " +
+        var file = root._currentFile.replace(/'/g, "'\\''")
+        // exec: the backend replaces this bash, so _recProc.processId is the
+        // recorder itself and _signalBackend() can SIGINT it directly.
+        var mkdir = "mkdir -p '" + saveDir.replace(/'/g, "'\\''") + "' && exec "
+        var hasAudio = (PrefsService.screenrecAudioMic || PrefsService.screenrecAudioSystem)
+                       && root._resolvedAudioDevice !== ""
+        // Fullscreen capture must name an output: wl-screenrec requires --output
+        // whenever more than one display is connected, and gpu-screen-recorder's
+        // "screen" target grabs the first enumerated monitor rather than the
+        // focused one. Both take the Hyprland monitor name.
+        var monitor = Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : (Hyprland.monitors.length > 0 ? Hyprland.monitors[0].name : "")
+
+        if (PrefsService.screenrecBackend === "gsr") {
+            var gsr = "gpu-screen-recorder -f " + fps + " -k h264 -cursor yes -o '" + file + "'"
+            if (root._pendingGeometry !== "") {
+                // "X,Y WxH" -> WxH+X+Y
+                var parts = root._pendingGeometry.split(" ")
+                gsr += " -w region -region '" + parts[1] + "+" + parts[0].replace(",", "+") + "'"
+            } else {
+                gsr += " -w " + (monitor !== "" ? "'" + monitor + "'" : "screen")
+            }
+            // gpu-screen-recorder only accepts PulseAudio/PipeWire nodes under a
+            // "device:" prefix; a bare node name is rejected or records silence.
+            if (hasAudio) gsr += " -a 'device:" + root._resolvedAudioDevice + "'"
+            return mkdir + gsr
+        }
+
+        if (PrefsService.screenrecBackend === "wlsr") {
+            var wlsr = "env -u LIBVA_DRIVER_NAME wl-screenrec -f '" + file + "' -b '2 MB' --max-fps " + fps
+            if (root._pendingGeometry !== "")
+                wlsr += " -g '" + root._pendingGeometry + "'"
+            else if (monitor !== "")
+                wlsr += " --output '" + monitor + "'"
+            if (hasAudio)
+                wlsr += " --audio --audio-device '" + root._resolvedAudioDevice + "'"
+            return mkdir + wlsr
+        }
+
+        var cmd = mkdir +
                   "wf-recorder -c libx264" +
                   " -x yuv420p" +
                   " -r " + fps +                   // Configurable FPS
@@ -301,15 +413,15 @@ QtObject {
                   " -p colorspace=bt709" +         // Tags the correct HD color matrix
                   " -p color_primaries=bt709" +
                   " -p color_trc=bt709" +
-                  " -f '" + root._currentFile.replace(/'/g, "'\\''") + "'"
-                  
+                  " -f '" + file + "'"
+
         if (root._pendingGeometry !== "")
             cmd += " -g '" + root._pendingGeometry + "'"
-            
+
         // Use --audio=DEVICE (matches wf-recorder working script convention)
-        if ((PrefsService.screenrecAudioMic || PrefsService.screenrecAudioSystem) && root._resolvedAudioDevice !== "")
+        if (hasAudio)
             cmd += " --audio=" + root._resolvedAudioDevice
-        
+
         return cmd
     }
 
@@ -325,6 +437,17 @@ QtObject {
     }
 
     function startRecording() {
+        // Refuse rather than launch a backend that is not installed: the process
+        // would exit instantly and the only feedback would be the generic
+        // "Recording Failed" toast after the fact.
+        if (!root.selectedBackendAvailable) {
+            _notifyProc.command = ["notify-send", "--app-name", "ScreenRec",
+                "--icon", "dialog-error", "-u", "critical", "Recording Backend Missing",
+                root.backendBinary + " is not installed. Pick another backend or install it."]
+            _notifyProc.running = false
+            _notifyProc.running = true
+            return
+        }
         root.optionsExpanded = false
         root._pendingGeometry = ""
         root._discarding      = false
@@ -352,53 +475,32 @@ QtObject {
         }
     }
 
+    // SIGINT the recorder directly by pid. _buildCmd() execs the backend so it
+    // replaces the bash wrapper, making _recProc.processId the backend itself.
+    // pkill by name cannot work here: Linux caps /proc/pid/comm at 15 chars, so
+    // "gpu-screen-recorder" (19) never matches, and pkill -f would also hit
+    // unrelated command lines containing the binary name.
+    function _signalBackend() {
+        if (_recProc.processId) _recProc.signal(2)   // SIGINT
+    }
+
     function stopRecording() {
-        _sigProc.command = ["bash", "-c", "pkill -INT wf-recorder"]
-        _sigProc.running = false
-        _sigProc.running = true
+        root._signalBackend()
     }
 
     function discardRecording() {
         root._discarding = true
-        var fileToDelete = root._currentFile
-        // Kill wf-recorder; _recProc.onExited will see _discarding=true and skip
-        // the saved notification. The timer below handles delete + notify.
-        _sigProc.command = ["bash", "-c", "pkill -INT wf-recorder"]
-        _sigProc.running = false
-        _sigProc.running = true
-        _discardTimer.fileToDelete = fileToDelete
-        _discardTimer.restart()
+        // Interrupt the backend; _recProc.onExited will see _discarding=true
+        // and handle deleting the file and showing the discarded notification.
+        root._signalBackend()
     }
 
-    property var _discardTimer: Timer {
-        property string fileToDelete: ""
-        interval: 800
-        onTriggered: {
-            if (fileToDelete !== "") {
-                var f = fileToDelete
-                _discardDeleteProc.command = ["bash", "-c",
-                    "rm -f \"" + f + "\" && " +
-                    "notify-send" +
-                    " --app-name 'ScreenRec'" +
-                    " --icon 'video-x-generic'" +
-                    " 'Recording Discarded'" +
-                    " 'The recording was deleted.'"]
-                _discardDeleteProc.running = false
-                _discardDeleteProc.running = true
-                fileToDelete        = ""
-                root._discarding    = false
-            }
-        }
-    }
-
-    property var _discardDeleteProc: Process { command: []; running: false }
 
     function cancelSetup() {
         root.optionsExpanded = false
         ShellState.screenRecord = false
     }
 
-    property var _sigProc: Process { command: []; running: false }
 
     // ── Cava — runs during recording, source mirrors wf-recorder's audio ──────
     property var _cavaRecProc: Process {

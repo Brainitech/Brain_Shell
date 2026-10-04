@@ -396,6 +396,8 @@ if ! command -v quickshell &>/dev/null && ! command -v qs &>/dev/null; then
 - grimblast
 - slurp
 - wf-recorder
+- gpu-screen-recorder   (optional backend)
+- wl-screenrec          (optional backend)
 - cava
 - wtype
 - cliphist

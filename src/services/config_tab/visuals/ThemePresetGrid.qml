@@ -257,7 +257,7 @@ Item {
                                         spacing: Math.round(3 * root.localScale)
 
                                         Repeater {
-                                            model: [presetDelegate.dark.bg, presetDelegate.dark.active, presetDelegate.dark.text]
+                                            model: [presetDelegate.dark.border, presetDelegate.dark.active, presetDelegate.dark.text]
                                             delegate: Rectangle {
                                                 required property var modelData
                                                 width: Math.round(9 * root.localScale)
@@ -279,7 +279,7 @@ Item {
                                         spacing: Math.round(3 * root.localScale)
 
                                         Repeater {
-                                            model: [presetDelegate.light.bg, presetDelegate.light.active, presetDelegate.light.text]
+                                            model: [presetDelegate.light.border, presetDelegate.light.active, presetDelegate.light.text]
                                             delegate: Rectangle {
                                                 required property var modelData
                                                 width: Math.round(9 * root.localScale)

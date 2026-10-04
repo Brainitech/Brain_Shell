@@ -73,6 +73,11 @@ QtObject {
         return b ? b.label : id
     }
 
+    function probeBackends() {
+        _probeProc.running = false
+        _probeProc.running = true
+    }
+
     property var _probeProc: Process {
         running: true
         command: ["bash", "-c",
@@ -310,7 +315,18 @@ QtObject {
             // Always tear down the null sink (no-op when mic-only or no-audio)
             root._teardownNullSink()
 
-            if (!root._discarding && savedFile !== "") {
+            if (root._discarding && savedFile !== "") {
+                _notifyProc.command = ["bash", "-c",
+                    "rm -f \"" + savedFile + "\" && " +
+                    "notify-send" +
+                    " --app-name 'ScreenRec'" +
+                    " --icon 'video-x-generic'" +
+                    " 'Recording Discarded'" +
+                    " 'The recording was deleted.'"]
+                _notifyProc.running = false
+                _notifyProc.running = true
+                root._discarding = false
+            } else if (!root._discarding && savedFile !== "") {
                 // The backend exiting is not proof it worked — a missing binary
                 // or an unsupported codec dies immediately and writes nothing.
                 // Check the file actually landed before claiming "Saved".
@@ -331,6 +347,7 @@ QtObject {
                     "  open) mpv \"$FILE\" ;;" +
                     "esac; " +
                     "else " +
+                    "rm -f \"$FILE\"; " +
                     "notify-send --app-name 'ScreenRec' --icon 'dialog-error' -u critical" +
                     " 'Recording Failed'" +
                     " \"" + root.backendBinary + " did not produce a file. Check that it is installed and supports your GPU/codec.\"; " +
@@ -338,7 +355,6 @@ QtObject {
                 _notifyProc.running = false
                 _notifyProc.running = true
             }
-            // Discard path: _discardTimer handles file deletion + notification
         }
     }
 
@@ -358,7 +374,7 @@ QtObject {
         // whenever more than one display is connected, and gpu-screen-recorder's
         // "screen" target grabs the first enumerated monitor rather than the
         // focused one. Both take the Hyprland monitor name.
-        var monitor = Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : ""
+        var monitor = Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : (Hyprland.monitors.length > 0 ? Hyprland.monitors[0].name : "")
 
         if (PrefsService.screenrecBackend === "gsr") {
             var gsr = "gpu-screen-recorder -f " + fps + " -k h264 -cursor yes -o '" + file + "'"
@@ -376,13 +392,13 @@ QtObject {
         }
 
         if (PrefsService.screenrecBackend === "wlsr") {
-            var wlsr = "wl-screenrec -f '" + file + "' --max-fps " + fps
+            var wlsr = "env -u LIBVA_DRIVER_NAME wl-screenrec -f '" + file + "' -b '2 MB' --max-fps " + fps
             if (root._pendingGeometry !== "")
                 wlsr += " -g '" + root._pendingGeometry + "'"
             else if (monitor !== "")
                 wlsr += " --output '" + monitor + "'"
             if (hasAudio)
-                wlsr += " --audio --audio-device " + root._resolvedAudioDevice
+                wlsr += " --audio --audio-device '" + root._resolvedAudioDevice + "'"
             return mkdir + wlsr
         }
 
@@ -474,43 +490,17 @@ QtObject {
 
     function discardRecording() {
         root._discarding = true
-        var fileToDelete = root._currentFile
-        // Interrupt the backend; _recProc.onExited will see _discarding=true and
-        // skip the saved notification. The timer below handles delete + notify.
+        // Interrupt the backend; _recProc.onExited will see _discarding=true
+        // and handle deleting the file and showing the discarded notification.
         root._signalBackend()
-        _discardTimer.fileToDelete = fileToDelete
-        _discardTimer.restart()
     }
 
-    property var _discardTimer: Timer {
-        property string fileToDelete: ""
-        interval: 800
-        onTriggered: {
-            if (fileToDelete !== "") {
-                var f = fileToDelete
-                _discardDeleteProc.command = ["bash", "-c",
-                    "rm -f \"" + f + "\" && " +
-                    "notify-send" +
-                    " --app-name 'ScreenRec'" +
-                    " --icon 'video-x-generic'" +
-                    " 'Recording Discarded'" +
-                    " 'The recording was deleted.'"]
-                _discardDeleteProc.running = false
-                _discardDeleteProc.running = true
-                fileToDelete        = ""
-                root._discarding    = false
-            }
-        }
-    }
-
-    property var _discardDeleteProc: Process { command: []; running: false }
 
     function cancelSetup() {
         root.optionsExpanded = false
         ShellState.screenRecord = false
     }
 
-    property var _sigProc: Process { command: []; running: false }
 
     // ── Cava — runs during recording, source mirrors wf-recorder's audio ──────
     property var _cavaRecProc: Process {

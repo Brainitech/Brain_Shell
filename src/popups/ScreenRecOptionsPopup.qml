@@ -44,6 +44,7 @@ Item {
     height: targetCardH + gap + bottomCardH + gap + backendCardH
 
     property bool isOpen: ScreenRecService.optionsExpanded && !ScreenRecService.recording
+    onIsOpenChanged: { if (isOpen) ScreenRecService.probeBackends() }
     opacity: isOpen ? 1 : 0
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }

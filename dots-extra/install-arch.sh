@@ -215,7 +215,7 @@ PACMAN_DEPS=(
     python wl-clipboard slurp xdg-user-dirs
 
     # Screen recording
-    wf-recorder cava
+    wf-recorder cava gpu-screen-recorder
 
     # Wallpaper / theming
     imagemagick awww matugen
@@ -298,7 +298,6 @@ AUR_DEPS+=(
 
     # Optional screen-recording backends. wf-recorder (repo, above) is the
     # default; these are selectable alternatives in the recorder options.
-    gpu-screen-recorder
     wl-screenrec
 )
 

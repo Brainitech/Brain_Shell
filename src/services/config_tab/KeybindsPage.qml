@@ -46,6 +46,7 @@ Item {
     readonly property bool hasPending: Object.keys(_pending).length > 0
 
     function _addPending(action, mods, key) {
+        if (!key || key === "" || key.toUpperCase() === "UNKNOWN") return
         var copy = Object.assign({}, _pending)
         copy[action] = { mods: mods, key: key }
         _pending = copy
@@ -62,6 +63,7 @@ Item {
         for (var i = 0; i < ks.length; i++) {
             var m = _pending[ks[i]].mods
             var k = _pending[ks[i]].key
+            if (!k || k === "" || k.toUpperCase() === "UNKNOWN") continue
             if (m === "" && k === "") {
                 KeybindService.unbindBinding(ks[i])
             } else {
@@ -304,6 +306,9 @@ Item {
         property string _liveMods:    ""
         property string capturedMods: ""
         property string capturedKey:  ""
+        property int    _lastModKey:  0
+        property int    _lastModScan: 0
+        property bool   _hadNonMod:   false
 
         // Derived from service + pending
         readonly property var    _b:         KeybindService.keybinds[action]
@@ -318,13 +323,15 @@ Item {
         }
         readonly property string _bindText: {
             if (!br._b || br._b.key === "") return "Unbound"
-            return br._b.mods ? br._b.mods + " + " + br._b.key : br._b.key
+            var k = br._displayKey(br._b.key)
+            return br._b.mods ? br._b.mods + " + " + k : k
         }
         // Show pending value in the pill when set
         readonly property string _pillText: {
             if (br._isPending) {
                 if (br.pendingCombo.key === "") return "Unbound"
-                return br.pendingCombo.mods ? br.pendingCombo.mods + " + " + br.pendingCombo.key : br.pendingCombo.key
+                var k = br._displayKey(br.pendingCombo.key)
+                return br.pendingCombo.mods ? br.pendingCombo.mods + " + " + k : k
             }
             return br._bindText
 		}
@@ -334,16 +341,20 @@ Item {
 
         // Live conflict: service binds → pending map → Hyprland binds (in that order)
         readonly property string _conflictLabel: {
-            if (!br.capturedKey) return ""
+            if (!br.capturedKey || br.capturedKey.toUpperCase() === "UNKNOWN") return ""
             var c = KeybindService.wouldConflict(br.action, br.capturedMods, br.capturedKey)
             if (c !== "") return c
             // Cross-check against other pending entries
-            var combo = br.capturedMods + "+" + br.capturedKey
+            var myEffMods = KeybindService._effectiveMods(br.capturedMods, br.capturedKey)
+            var myKey = KeybindService._normalizeKey(br.capturedKey).toUpperCase()
+            var combo = KeybindService._modsToMask(myEffMods) + "+" + myKey
             var pkeys = Object.keys(root._pending)
             for (var i = 0; i < pkeys.length; i++) {
                 if (pkeys[i] === br.action) continue
                 var p = root._pending[pkeys[i]]
-                if (p.mods + "+" + p.key === combo) {
+                var pEffMods = KeybindService._effectiveMods(p.mods, p.key)
+                var pKey = KeybindService._normalizeKey(p.key).toUpperCase()
+                if (KeybindService._modsToMask(pEffMods) + "+" + pKey === combo) {
                     var lbl = KeybindService.keybinds[pkeys[i]]
                     return (lbl ? lbl.label : pkeys[i]) + " (pending)"
                 }
@@ -360,6 +371,9 @@ Item {
             if (isCapturing) {
                 br._pressedMods = 0
                 br._liveMods    = ""
+                br._lastModKey  = 0
+                br._lastModScan = 0
+                br._hadNonMod   = false
                 br.capturedMods = ""
                 br.capturedKey  = ""
                 KeybindService.loadHyprBinds()   // refresh for conflict detection
@@ -392,34 +406,65 @@ Item {
 
             Keys.onPressed: function(event) {
                 event.accepted = true
-                if (_isMod(event.key)) {
-                    br._liveMods = _mods(event.modifiers)
+                if (br._isMod(event.key)) {
+                    br._lastModKey  = (event.key === Qt.Key_Multi_key) ? Qt.Key_Control : event.key
+                    br._lastModScan = event.nativeScanCode
+                    br._liveMods    = br._mods(event.modifiers)
                     return
                 }
+                br._hadNonMod   = true
                 br._pressedMods = event.modifiers
-                br._liveMods    = _mods(event.modifiers)
+                br._liveMods    = br._mods(event.modifiers)
             }
 
             Keys.onReleased: function(event) {
                 event.accepted = true
-                if (_isMod(event.key)) {
-                    if (!br.capturedKey) br._liveMods = _mods(event.modifiers)
+                var key = event.key
+                var scan = event.nativeScanCode
+
+                // Check for solo modifier release
+                // On Wayland, modifier release events often report event.key as 0 (Qt.Key_unknown)
+                var isModRelease = br._isMod(key) || (key === 0 && br._lastModKey !== 0)
+                if (isModRelease) {
+                    var targetKey = (key !== 0 && key !== Qt.Key_unknown) ? key : br._lastModKey
+                    if (targetKey === Qt.Key_Multi_key) targetKey = Qt.Key_Control
+                    var targetScan = (scan !== 0) ? scan : br._lastModScan
+
+                    if (!br._hadNonMod && br._isSoloMod(event, targetKey) && br.capturedKey === "") {
+                        var modKey = br._modKeyName(targetKey, targetScan)
+                        if (modKey !== "") {
+                            var m = ""
+                            var k = modKey
+                            br.capturedMods = m
+                            br.capturedKey  = k
+                            if (KeybindService.wouldConflict(br.action, m, k) === ""
+                                && KeybindService.wouldConflictHypr(br.action, m, k) === ""
+                                && !_hasPendingConflict(m, k)) {
+                                br.captureAccepted(m, k)
+                                br.releaseCapture()
+                            }
+                            return
+                        }
+                    }
+                    if (!br.capturedKey) br._liveMods = br._mods(event.modifiers)
                     return
                 }
+
                 // Bare Escape = cancel without saving
-                if (event.key === Qt.Key_Escape && br._pressedMods === Qt.NoModifier) {
+                if (key === Qt.Key_Escape && br._pressedMods === Qt.NoModifier) {
                     br.releaseCapture()
                     return
                 }
-                var k = _keyName(event)
-                if (k !== "") {
-                    var m = _mods(br._pressedMods)
+
+                // Non-modifier key release
+                var k = br._keyName(event)
+                if (k !== "" && k.toUpperCase() !== "UNKNOWN") {
+                    var m = br._mods(br._pressedMods)
                     br.capturedMods = m
                     br.capturedKey  = k
-                    // Auto-accept when valid: has mods, no service conflict,
+                    // Auto-accept when valid: no service conflict,
                     // no pending-map conflict, no Hyprland conflict
-                    if (m !== ""
-                        && KeybindService.wouldConflict(br.action, m, k) === ""
+                    if (KeybindService.wouldConflict(br.action, m, k) === ""
                         && KeybindService.wouldConflictHypr(br.action, m, k) === ""
                         && !_hasPendingConflict(m, k)) {
                         br.captureAccepted(m, k)
@@ -431,12 +476,16 @@ Item {
 
             // Returns true if mods+key collides with any OTHER pending entry
             function _hasPendingConflict(mods, key) {
-                var combo = mods + "+" + key
+                var myEffMods = KeybindService._effectiveMods(mods, key)
+                var myKey = KeybindService._normalizeKey(key).toUpperCase()
+                var combo = KeybindService._modsToMask(myEffMods) + "+" + myKey
                 var pkeys = Object.keys(root._pending)
                 for (var i = 0; i < pkeys.length; i++) {
                     if (pkeys[i] === br.action) continue
                     var p = root._pending[pkeys[i]]
-                    if (p.mods + "+" + p.key === combo) return true
+                    var pEffMods = KeybindService._effectiveMods(p.mods, p.key)
+                    var pKey = KeybindService._normalizeKey(p.key).toUpperCase()
+                    if (KeybindService._modsToMask(pEffMods) + "+" + pKey === combo) return true
                 }
                 return false
             }
@@ -608,8 +657,8 @@ Item {
                                     ? Theme.active
                                     : Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.45)
                             text: {
-                                if (br.capturedKey !== "")
-                                    return (br.capturedMods ? br.capturedMods + " + " : "") + br.capturedKey
+                                if (br.capturedKey !== "" && br.capturedKey.toUpperCase() !== "UNKNOWN")
+                                    return (br.capturedMods ? br.capturedMods + " + " : "") + br._displayKey(br.capturedKey)
                                 if (br._liveMods !== "")
                                     return br._liveMods + " + ?"
                                 return "Press a key..."
@@ -652,7 +701,63 @@ Item {
                    k === Qt.Key_Super_L  || k === Qt.Key_Super_R  ||
                    k === Qt.Key_Hyper_L  || k === Qt.Key_Hyper_R  ||
                    k === Qt.Key_AltGr    || k === Qt.Key_CapsLock ||
-                   k === Qt.Key_NumLock  || k === Qt.Key_ScrollLock
+                   k === Qt.Key_NumLock  || k === Qt.Key_ScrollLock ||
+                   k === Qt.Key_Multi_key
+        }
+
+        function _modKeyName(k, scan) {
+            if (k === Qt.Key_Super_L || k === Qt.Key_Meta) {
+                if (scan === 126 || scan === 134) return "SUPER_R"
+                return "SUPER_L"
+            }
+            if (k === Qt.Key_Super_R)                     return "SUPER_R"
+            if (k === Qt.Key_Alt) {
+                if (scan === 100 || scan === 108) return "Alt_R"
+                return "Alt_L"
+            }
+            if (k === Qt.Key_AltGr)                       return "Alt_R"
+            if (k === Qt.Key_Control || k === Qt.Key_Multi_key) {
+                if (scan === 97 || scan === 105) return "Control_R"
+                return "Control_L"
+            }
+            if (k === Qt.Key_Shift) {
+                if (scan === 54 || scan === 62) return "Shift_R"
+                return "Shift_L"
+            }
+            return ""
+        }
+
+        function _isSoloMod(event, targetKey) {
+            var k = targetKey || event.key
+            var mods = event.modifiers
+            if (k === Qt.Key_Super_L || k === Qt.Key_Super_R || k === Qt.Key_Meta) {
+                return (mods & (Qt.ShiftModifier | Qt.ControlModifier | Qt.AltModifier)) === 0
+            }
+            if (k === Qt.Key_Alt || k === Qt.Key_AltGr) {
+                return (mods & (Qt.ShiftModifier | Qt.ControlModifier | Qt.MetaModifier)) === 0
+            }
+            if (k === Qt.Key_Control || k === Qt.Key_Multi_key) {
+                return (mods & (Qt.ShiftModifier | Qt.AltModifier | Qt.MetaModifier)) === 0
+            }
+            if (k === Qt.Key_Shift) {
+                return (mods & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier)) === 0
+            }
+            return false
+        }
+
+        function _displayKey(k) {
+            if (!k) return ""
+            var u = k.toUpperCase()
+            if (u === "UNKNOWN")                    return ""
+            if (u === "SUPER_L" || u === "SUPER")   return "SUPER"
+            if (u === "SUPER_R")                    return "SUPER_R"
+            if (u === "ALT_L" || u === "ALT")       return "ALT"
+            if (u === "ALT_R" || u === "ALTGR")     return "ALT_R"
+            if (u === "CONTROL_L" || u === "CTRL")  return "CTRL"
+            if (u === "CONTROL_R")                  return "CTRL_R"
+            if (u === "SHIFT_L" || u === "SHIFT")   return "SHIFT"
+            if (u === "SHIFT_R")                    return "SHIFT_R"
+            return k
         }
 
         function _mods(flags) {
@@ -666,7 +771,7 @@ Item {
 
         function _keyName(event) {
             var k = event.key
-            if (_isMod(k)) return ""
+            if (k === 0 || k === Qt.Key_unknown || _isMod(k)) return ""
             if (k >= Qt.Key_A && k <= Qt.Key_Z)    return String.fromCharCode(k)
             if (k >= Qt.Key_0 && k <= Qt.Key_9)    return String.fromCharCode(k)
             if (k >= Qt.Key_F1 && k <= Qt.Key_F35) return "F" + (k - Qt.Key_F1 + 1)
@@ -710,7 +815,12 @@ Item {
             m[Qt.Key_MediaPrevious]  = "XF86AudioPrev"
             m[Qt.Key_MonBrightnessUp]   = "XF86MonBrightnessUp"
             m[Qt.Key_MonBrightnessDown] = "XF86MonBrightnessDown"
-            return m[k] || (event.text !== "" ? event.text.toUpperCase() : "Unknown")
+            if (m[k]) return m[k]
+            if (event.text && event.text !== "") {
+                var t = event.text.toUpperCase()
+                if (t >= " " && t <= "~") return t
+            }
+            return ""
         }
 
         HoverHandler { id: _rH; enabled: !br.isCapturing }

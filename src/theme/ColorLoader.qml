@@ -21,7 +21,7 @@ import Quickshell.Io
 import "../"
 
 // ============================================================
-// ColorsLoader — watches ~/.cache/brain-shell/colors.json
+// ColorsLoader — watches ~/.config/Brain_Shell/matugen/colors.json
 // and exposes parsed color properties.
 // ============================================================
 

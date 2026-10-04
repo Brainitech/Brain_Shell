@@ -12,7 +12,8 @@
         pkgs = import nixpkgs { inherit system; };
       in {
         packages.default = pkgs.stdenv.mkDerivation {
-          name = "brain-shell";
+          pname = "brain-shell";
+          version = "0.2.0";
           src = ./.;
           phases = [ "installPhase" ];
           installPhase = ''

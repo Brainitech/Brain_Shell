@@ -44,57 +44,9 @@
 
 ---
 
-## What's New in v0.2.0
+## What's New
 
-_v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire architecture from the ground up (and yes, it took long enough). Here's what came out of it:_
-
-- **Dynamic Surface Architecture:** Replaced the old individual TopBar/Border/Popup window model with a unified `DynamicSurface` engine - popups now render inline instead of spawning separate Wayland windows
-
-- **Global Animation Engine:** Added 6 new easing curves and animation styles with a live speed multiplier, all configurable from Settings
-
-- **Context-Aware UI Scaling:** Resolved inconsistent sizing across different displays - popups and modules now dynamically calculate their dimensions to scale relative to your active monitor.
-
-- **Notch Mini Player:** Embedded media widget with album art, track info, and playback controls, live inside the notch
-
-- **QuickControl OSD:** Pops out automatically when volume/brightness change via hotkeys
-
-- **Screen Recording & Screenshot Overhaul:** Target selection, audio toggles, framerate selection, selectable backends (wf-recorder, gpu-screen-recorder, wl-screenrec), and a unified Capture tile.
-
-- **System Tray Overhaul:** Native dropdown menus with proper Wayland positioning
-
-- **App Launcher Enhancements:** Native QML desktop entry resolution with frecency-based sorting
-
-- **Clipboard Keyboard Navigation:** Full keyboard navigation: Arrow Up/Down with visual row highlighting, Enter to copy, Delete/Backspace to remove, P to pin/unpin, Escape to close all without touching the mouse
-
-- **Theme & Visuals Studio:** 12 popular theme presets with 5-swatch palette previews, independent text/background color overrides, manual Matugen color override, screen color picker tile, dark/light mode tile, blur and opacity controls
-
-- **Better Updater:** Release-based updates with in-app Patch Notes preview
-
-- **Power Menu:** Full keyboard navigation support via Arrow Up/Down and Enter.
-
-- **OS-Based Icon:** Distro-dependent OS icon in the system menu
-
-- **Performance:** Better resource usage overall
-
-- **Installer Ecosystem Overhaul:** TTY/GUI detection, hardware probing, keybind conflict resolution, and AUR bootstrap fixes
-
----
-
-## Notable Fixes
-
-- **Smoother UI:** A brand new dynamic surface architecture eliminates choppy popups and delivers perfectly fluid, unified animations.
-
-- **Better Theme Persistence:** Enhanced theme persistence for Hyprland borders.
-
-- **UI Scaling:** Proper resolution based scaling ensures the sizes look just right.
-
-- **Multi-Monitor Scaling Inconsistency:** Partially resolved via the new `localScale` architecture.
-
-- **Top Bar Clipping:** Resolved by replacing the legacy TopBar with the new DynamicSurface.
-
-- **Shutdown Menu State Issues:** Resolved - power actions now route cleanly through systemctl/loginctl with confirmation dialogs.
-
-- **NixOS & Flakes Broken:** Experimental NixOS support has been added and stabilized.
+For a complete breakdown of new features, architectural improvements, and bug fixes in v0.2.0, see [CHANGELOG.md](CHANGELOG.md) or the [GitHub Releases](https://github.com/Brainitech/Brain_Shell/releases) page.
 
 ---
 
@@ -324,7 +276,7 @@ environment.variables.QT_QPA_PLATFORMTHEME = "qt6ct";
 ### One line installer
 
 > [!TIP]
-> **Automated Setup:** The installation script verifies system prerequisites, creates a timestamped backup of your Hyprland configuration in `~/.config/hypr/backups/`, installs dependencies via your package manager, and registers Brain_Shell in your autostart.
+> **Automated Setup:** The installation script verifies system prerequisites, creates a timestamped backup of your Hyprland configuration in `~/.config/hypr/`, installs dependencies via your package manager, and registers Brain_Shell in your autostart.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh | bash
@@ -382,6 +334,21 @@ Run the rebuild command targeting the flake.
 
 ```bash
 sudo nixos-rebuild switch --flake /etc/nixos/
+```
+
+### 4. Initialize User Configuration & Autostart
+
+The NixOS flake module installs system dependencies and enables core services, but user-level autostarts and configuration files must be initialized:
+
+```bash
+# Run the installer script to initialize ~/.config/Brain_Shell and Hyprland autostart
+curl -fsSL https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh | bash
+```
+
+Once initialized, launch your Hyprland session:
+
+```bash
+start-hyprland
 ```
 
 ---
@@ -464,7 +431,8 @@ nbfc status
 Enables GPU power mode switching (`Integrated`, `Hybrid`, `Dedicated`) in the Dashboard (`PowerPanel`):
 
 - **Prerequisites:** Laptops with hybrid NVIDIA graphics (NVIDIA Optimus) and an active polkit agent (e.g., `hyprpolkitagent`).
-- **Behavior:** Switching modes in the Dashboard triggers root authorization via `pkexec` and **automatically initiates a reboot** to apply the necessary display manager and driver/kernel module changes.
+  > [!WARNING]
+  > **Behavior:** Switching modes in the Dashboard triggers root authorization via `pkexec` and **automatically initiates a reboot** to apply the necessary display manager and driver/kernel module changes.
 - **Verify status manually:**
   ```bash
   sudo envycontrol --query
@@ -567,7 +535,6 @@ rm -rf ~/.config/Brain_Shell
 - [ ] niri support
 - [ ] Sway support
 - [ ] Other Compositor support
-- [ ] Full multi-monitor / mixed-DPI scaling support
 - [ ] Broader distribution support (Fedora, Debian/Ubuntu, openSUSE)
 
 #### Customization & Ecosystem
@@ -591,7 +558,8 @@ rm -rf ~/.config/Brain_Shell
 If you encounter an unlisted issue, capture debug output by running `qs -p ~/.local/src/Brain_Shell` in a terminal or inspecting systemd logs, then file a report on GitHub Issues.
 
 - **Keybind Conflict Detection Failure:** The conflict detector may fail or incorrectly map binds in certain edge cases.
-- **Lua Keybind Resolution:** Hyprland Lua keybinds that lack explicit descriptions are currently falling back and being read generically as "Lua Bind".
+- **Lua Keybind Resolution:** Hyprland Lua keybinds that lack explicit descriptions are currently falling back and being read generically as the line number in the code.
+- **Context Aware Multi-Monitor Behavior:** On a multi-monitor setup, the shell behaves the same on all monitors.
 
 ---
 
@@ -609,11 +577,11 @@ Brain_Shell is actively developed and welcomes contributions!
 ## Special Thanks
 
 - **[Hyprland Community](https://github.com/hyprwm):** For creating an exceptional Wayland compositor and fostering an amazing community
-- **[Quickshell Contributors](https://github.com/quickshell/quickshell):** For the powerful QML framework that powers this shell
+- **[Quickshell Contributors](https://git.outfoxxed.me/quickshell):** For the powerful QML framework that powers this shell
 - **[Matugen Team](https://github.com/InioX/matugen):** For Material You color generation technology
 - **[Wayland Project](https://wayland.freedesktop.org):** For the modern display protocol foundation
 - **[Caelestia Shell](https://github.com/caelestia-dots/shell)** & **[AX-Shell](https://github.com/Axenide/ax-shell):** For the inspiration
-- **[Dhruv Nair](https://github.com/Nair3019):** For the pre-alpha testing and post-release loyalty.
+- **[Dhruv Nair](https://github.com/Nair3091):** For the pre-alpha testing and post-release loyalty.
 - **[NotCandy001](https://github.com/notcandy001):** For the installer
 - **[SiriKedas](https://github.com/sirikedas):** For the new architecture Idea and time.
 - **All the Testers & Contributors:** For their time put into testing and suggesting fixes.

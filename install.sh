@@ -65,7 +65,7 @@ if [[ -f /etc/os-release ]]; then
     # shellcheck disable=SC1091
     source /etc/os-release
     case "${ID:-}" in
-        arch|manjaro|garuda|cachyos|endeavouros)
+        arch|manjaro|garuda|cachyos|endeavouros|artix)
             log_ok "Distro: ${ID} (Arch-based)"
             DISTRO_TYPE="arch"
             ;;

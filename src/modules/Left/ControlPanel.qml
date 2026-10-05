@@ -61,6 +61,10 @@ IconBtn {
                     rootBtn.text = ""
                     rootBtn.textColor = "#00fde8"
                     rootBtn.fontSize = defaultSize
+                } else if (osId === "artix") {
+                    rootBtn.text = ""
+                    rootBtn.textColor = "#00fde8"
+                    rootBtn.fontSize = smallSize 
                 } else {
                     rootBtn.text = ""
                     rootBtn.textColor = "#dfe7ec"

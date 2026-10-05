@@ -34,7 +34,7 @@
 ---
 
 > [!NOTE]
-> **v0.2.0 Release:** This is a ground-up architecture overhaul. While far more stable than `v0.1.1`, you may still encounter bugs. Please report them via GitHub Issues or Join our [Discord](https://discord.gg/BV8UduvABx).
+> **v0.2.0 Release:** This is a ground-up architecture overhaul. While far more stable than `v0.1.1`, you may still encounter bugs. Please report them via GitHub Issues or Join our [Discord](https://discord.gg/aGbUM8PUts).
 >
 > **Platform Scope:** Brain_Shell is currently built for **Hyprland**, and officially supported on **Arch Linux** and **NixOS**. Other distros may work, but aren't guaranteed yet. See [Roadmap](#roadmap).
 >

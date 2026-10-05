@@ -9,7 +9,7 @@ hl.on("hyprland.start", function()
 end)
 
 hl.layer_rule({
-    match   = { namespace = "quickshell" },
+    match   = { namespace = "^brain-shell.*" },
     no_anim = true,
 })
 

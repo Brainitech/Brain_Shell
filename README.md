@@ -27,7 +27,7 @@
 ## Showcase
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/b1c2a981-3180-4b46-85d4-a0c5700b54e3" controls="controls" style="max-width: 100%; height: auto;">
+  <video src="https://github.com/user-attachments/assets/f78da771-15b9-4131-bc6a-92169ad0ccd9" controls="controls" style="max-width: 100%; height: auto;">
   </video>
 </div>
 

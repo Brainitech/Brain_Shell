@@ -73,6 +73,9 @@ if [[ -f /etc/os-release ]]; then
             log_ok "Distro: NixOS"
             DISTRO_TYPE="nix"
             ;;
+        omarchy)
+            die "Omarchy is too opinonated for Brain_Shell. While it works fine, try installing it via the manual method after disabling the default omarchy_shell."
+            ;;
         *)
             die "Unsupported distro: ${ID:-unknown}. Supported: Arch-based, NixOS."
             ;;

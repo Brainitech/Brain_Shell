@@ -73,7 +73,7 @@
             kitty
             qt6.qtmultimedia
             qt6.qt5compat
-            rfkill
+            util-linux
             mpv-mpris
             mpd-mpris
             ranger

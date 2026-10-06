@@ -1,5 +1,24 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import QtQuick.Effects
+import Quickshell
 import Quickshell.Io
 import "../../"
 import "../../components"
@@ -10,7 +29,15 @@ StatCard {
     id: root
     padding: 0
 
+    property real localScale: 1.0
     property string avatarPath: ""
+    readonly property string _resolvedAvatarPath: {
+        if (!root.avatarPath || root.avatarPath === "") return ""
+        var p = root.avatarPath
+        if (p.startsWith("file://")) p = p.substring(7)
+        if (p.startsWith("~")) p = p.replace(/^~/, Quickshell.env("HOME"))
+        return p
+    }
 
     property string _user:   ""
     property string _wm:     ""
@@ -58,25 +85,25 @@ StatCard {
 
     Row {
         anchors {
-            left:           parent.left;  leftMargin:  16
-            right:          parent.right; rightMargin: 16
+            left:           parent.left;  leftMargin:  Math.round(16 * localScale)
+            right:          parent.right; rightMargin: Math.round(16 * localScale)
             verticalCenter: parent.verticalCenter
         }
-        spacing: 18
+        spacing: Math.round(18 * localScale)
 
         // Circular avatar
         Item {
-            width: 72; height: 72
+            width: Math.round(72 * localScale); height: Math.round(72 * localScale)
             anchors.verticalCenter: parent.verticalCenter
 
             Rectangle {
                 anchors.fill: parent
                 radius: width / 2
                 gradient: Gradient {
-                    GradientStop { position: 0.0; color: Qt.rgba(166/255,208/255,247/255,0.22) }
-                    GradientStop { position: 1.0; color: Qt.rgba(80/255,130/255,190/255,0.14) }
+                    GradientStop { position: 0.0; color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22) }
+                    GradientStop { position: 1.0; color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.10) }
                 }
-                border.color: Qt.rgba(166/255,208/255,247/255,0.22)
+                border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
                 border.width: 1
             }
 
@@ -90,10 +117,10 @@ StatCard {
 
             Image {
                 anchors.fill: parent
-                source:   root.avatarPath !== "" ? ("file://" + root.avatarPath) : ""
+                source:   root._resolvedAvatarPath !== "" ? ("file://" + root._resolvedAvatarPath) : ""
                 fillMode: Image.PreserveAspectCrop
                 smooth:   true
-                visible:  root.avatarPath !== ""
+                visible:  root._resolvedAvatarPath !== ""
                 layer.enabled: true
                 layer.effect: MultiEffect {
                     maskEnabled:      true
@@ -106,46 +133,46 @@ StatCard {
             Text {
                 anchors.centerIn: parent
                 text:           "󰀄"
-                font.pixelSize: 28
+                font.pixelSize: Math.round(28 * localScale)
                 color:          Theme.active
-                visible:        root.avatarPath === ""
+                visible:        root._resolvedAvatarPath === ""
             }
         }
 
         // Text stats
         Column {
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 10
+            spacing: Math.round(10 * localScale)
 
             Text {
                 text:           root._user
-                font.pixelSize: 17; font.weight: Font.DemiBold
+                font.pixelSize: Math.round(17 * localScale); font.weight: Font.DemiBold
                 color:          Theme.active
             }
 
             Row {
-                spacing: 8
+                spacing: Math.round(8 * localScale)
                 Text {
-                    text: "󰣇"; font.pixelSize: 12; color: Theme.active
+                    text: "󰣇"; font.pixelSize: Math.round(12 * localScale); color: Theme.active
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Text {
-                    text: root._wm; font.pixelSize: 12
-                    color: Qt.rgba(205/255,214/255,244/255,0.55)
+                    text: root._wm; font.pixelSize: Math.round(12 * localScale)
+                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.55)
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
 
             Row {
-                spacing: 8
+                spacing: Math.round(8 * localScale)
                 Text {
-                    text: "󰔚"; font.pixelSize: 12; color: Theme.active
+                    text: "󰔚"; font.pixelSize: Math.round(12 * localScale); color: Theme.active
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Text {
-                    text: root._uptime; font.pixelSize: 12
+                    text: root._uptime; font.pixelSize: Math.round(12 * localScale)
                     font.family: "JetBrains Mono"
-                    color: Qt.rgba(205/255,214/255,244/255,0.55)
+                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.55)
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }

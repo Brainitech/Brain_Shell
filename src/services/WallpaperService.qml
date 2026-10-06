@@ -1,3 +1,21 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 pragma Singleton
 import QtQuick
 import Quickshell
@@ -18,19 +36,19 @@ QtObject {
     id: root
 
     // ── Config path — src/user_data/wallpaper.json (relative to this file) ──────
-	readonly property string configPath: Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data/wallpaper.json"
+	readonly property string configPath: ShellState.userDataDir + "/wallpaper.json"
 
     // ── State ─────────────────────────────────────────────────────────────────
     property var    wallpapers:   []
     property var    tempWalls:   []
     property string currentWall:  ""
     property string previewWall:  ""
-    property string scheme:       "content"
+    property string scheme:       "smart"
     property bool   applying:     false
     property string wallpaperDir: "~/Pictures/Wallpapers"
 
     readonly property var schemes: [
-        "content", "tonal-spot", "fidelity", "fruit-salad", "neutral", "monochrome"
+        "content", "tonal-spot", "fidelity", "fruit-salad", "neutral", "monochrome", "expressive", "rainbow", "vibrant", "smart"
     ]
 
     // Emitted when the full apply pipeline exits cleanly (exitCode === 0).
@@ -46,7 +64,7 @@ QtObject {
     property var listProc: Process {
         command: [
             "bash", "-c",
-            "find " + root.wallpaperDir + " -maxdepth 1 -type f " +
+            "find '" + root.wallpaperDir.replace(/^~/, Quickshell.env("HOME")).replace(/'/g, "'\\''") + "' -maxdepth 1 -type f " +
             "\\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' " +
             "-o -iname '*.gif' -o -iname '*.webp' \\) | sort"
         ]
@@ -57,12 +75,29 @@ QtObject {
             }
         }
         onExited: function() {
-            // Push everything to the UI at once
             root.wallpapers = root.tempWalls
         }
     }
 
-    // ── Config read — runs on startup, then calls refresh() ──────────────────
+    property var _themeConn: Connections {
+        target: Theme
+        function onActiveChanged() { root.updateBorders(); }
+        function onBorderChanged() { root.updateBorders(); }
+    }
+
+    property var _prefsConn: Connections {
+        target: PrefsService
+        function onDarkModeChanged() {
+            if (root.currentWall !== "") {
+                root.apply(root.currentWall);
+            }
+        }
+        function onDynamicThemeOverrideChanged() {
+            root.updateBorders();
+        }
+    }
+
+    // ── Config read — runs on startup, then calls refresh() ────────────ww──────
     property string _cfgBuf: ""
     property var readConfigProc: Process {
         command: ["bash", "-c", "cat '" + root.configPath + "' 2>/dev/null"]
@@ -117,8 +152,9 @@ QtObject {
             "&& (if [[ \"" + path + "\" == *.gif ]]; then " +
             "rm -f ~/.curr_wall_static.jpg; magick \"" + path + "[0]\" ~/.curr_wall_static.jpg || true; " +
             "else ln -sf \"" + path + "\" ~/.curr_wall_static.jpg; fi) " +
-            "&& matugen image \"$(readlink -f ~/.curr_wall_static.jpg)\" -c \"" + Quickshell.shellDir + "/src/config/matugen.toml\" --source-color-index 0 --type scheme-" + root.scheme + " " +
-            "&& matugen image \"$(readlink -f ~/.curr_wall_static.jpg)\" --source-color-index 0 --type scheme-" + root.scheme + " || true"
+            (PrefsService.dynamicThemeOverride ? "" :
+            "&& matugen image \"$(readlink -f ~/.curr_wall_static.jpg)\" -c \"" + Quickshell.shellDir + "/src/config/matugen.toml\" -m " + (PrefsService.darkMode ? "dark" : "light") + " --source-color-index 0 --type scheme-" + root.scheme + " " +
+            "&& matugen image \"$(readlink -f ~/.curr_wall_static.jpg)\" -m " + (PrefsService.darkMode ? "dark" : "light") + " --source-color-index 0 --type scheme-" + root.scheme) + " || true"
         ]
         applyProc.running = true
     }
@@ -136,24 +172,22 @@ QtObject {
         }
     }
 
-    // New function to update borders based on config provider
     function updateBorders() {
-        // Strip '#' from the colors (assuming QML hex format #RRGGBB)
-        let primary = String(Theme.active).replace('#', '')
-        
+        let colStr = PrefsService.dynamicThemeOverride ? String(Theme.border) : String(Theme.active)
+        let cleanCol = colStr.replace('#', '')
 
         // Build command based on config provider
         if (ShellState.configProvider === "lua") {
             // Using hl.config with RGB strings in Lua
             borderUpdateProc.command = [
                 "bash", "-c",
-                "hyprctl eval 'hl.config({ general = { [\"col.active_border\"] = { colors = { \"rgb(" + primary + ")\" } } } })'"
+                "hyprctl eval 'hl.config({ general = { [\"col.active_border\"] = { colors = { \"rgb(" + cleanCol + ")\" } } } })'"
             ]
         } else {
             // Using hyprctl keyword for .conf
             borderUpdateProc.command = [
                 "bash", "-c",
-                "hyprctl keyword general:col.active_border \"rgb(" + primary + ")\""
+                "hyprctl keyword general:col.active_border \"rgb(" + cleanCol + ")\""
             ]
         }
         

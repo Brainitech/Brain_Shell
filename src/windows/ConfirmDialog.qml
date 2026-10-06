@@ -1,3 +1,21 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -5,14 +23,13 @@ import Quickshell.Io
 import "../"
 import "../services/"
 
-// Unified confirmation modal — replaces GfxWarning.qml.
 // Driven entirely by Popups.confirm* props.
 // Call Popups.showConfirm() to open, Popups.cancelConfirm() to close.
 //
 // Supported confirmAction values — all routed through scripts/PowerControl.sh:
-//   "shutdown"        → hyprshutdown --post-cmd "systemctl poweroff"
-//   "reboot"          → hyprshutdown --post-cmd "systemctl reboot"
-//   "logout"          → hyprshutdown
+//   "shutdown"        → systemctl poweroff
+//   "reboot"          → systemctl reboot
+//   "logout"          → loginctl terminate-user $USER
 //   "lock"            → loginctl lock-session
 //   "suspend"         → systemctl suspend
 //   "gpu-switch-envy" → pkexec scripts/GfxSwitch.sh <mode>, then systemctl reboot
@@ -21,6 +38,7 @@ import "../services/"
 
 PanelWindow {
     id: root
+    readonly property real localScale: Math.max(0.75, Math.min(1.5, (screen ? screen.height : 1080.0) / 1080.0))
 
     color: "transparent"
 
@@ -31,6 +49,13 @@ PanelWindow {
 
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+
+    Region {
+        id: confirmBlurReg
+        item: confirmBox
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? confirmBlurReg : null
 
     // ── Processes ─────────────────────────────────────────────────────────────
     Process {
@@ -68,6 +93,9 @@ PanelWindow {
     function confirm() {
         const powerScript = Quickshell.shellDir + "/src/scripts/PowerControl.sh"
         const gfxScript   = Quickshell.shellDir + "/src/scripts/GfxSwitch.sh"
+        const restartQs   = "nohup bash -c 'sleep 0.3; pkill -x quickshell 2>/dev/null; pkill -x qs 2>/dev/null; sleep 0.3; if command -v qs &>/dev/null; then qs -p \"" + Quickshell.shellDir + "\"; else quickshell -p \"" + Quickshell.shellDir + "\"; fi' >/dev/null 2>&1 &"
+
+        Popups.actionConfirmed(Popups.confirmAction)
 
         switch (Popups.confirmAction) {
             case "shutdown":
@@ -95,6 +123,41 @@ PanelWindow {
                 proc.pendingCmd = ["systemctl", "suspend"]
                 proc.running = true
                 break
+            case "reset_shell":
+                Popups.cancelConfirm()
+                proc.pendingCmd = ["bash", "-c", "rm '" + ShellState.userDataDir + "/shell_prefs.json' && " + restartQs]
+                proc.running = true
+                break
+            case "reset_wallpaper":
+                Popups.cancelConfirm()
+                proc.pendingCmd = ["bash", "-c", "rm '" + ShellState.userDataDir + "/wallpaper.json' && " + restartQs]
+                proc.running = true
+                break
+            case "clear_tasks":
+                Popups.cancelConfirm()
+                proc.pendingCmd = ["bash", "-c", "rm '" + ShellState.userDataDir + "/tasks.json' && " + restartQs]
+                proc.running = true
+                break
+            case "wipe_cliphist":
+                Popups.cancelConfirm()
+                proc.pendingCmd = ["bash", "-c", "rm '" + ShellState.userDataDir + "/clipboard_pins.json' && cliphist wipe && " + restartQs]
+                proc.running = true
+                break
+            case "clear_frecency":
+                Popups.cancelConfirm()
+                proc.pendingCmd = ["bash", "-c", "rm '" + ShellState.userDataDir + "/app_frecency.json' && " + restartQs]
+                proc.running = true
+                break
+            case "clear_cache":
+                Popups.cancelConfirm()
+                proc.pendingCmd = ["bash", "-c", "rm -rf ~/.cache/quickshell/* && " + restartQs]
+                proc.running = true
+                break
+            case "factory_reset":
+                Popups.cancelConfirm()
+                proc.pendingCmd = ["bash", "-c", "rm -rf '" + ShellState.userDataDir + "'/*.json && " + restartQs]
+                proc.running = true
+                break
             case "gpu-switch-envy":
                 // Capture mode BEFORE cancelConfirm() clears Popups state.
                 const gfxMode   = Popups.confirmGfxMode
@@ -117,16 +180,23 @@ PanelWindow {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: if (!Popups.confirmRunning) root.cancel()
+            onClicked: {
+                if (!Popups.confirmRunning) {
+                    if (Popups.confirmCancelAction !== "quit") {
+                        root.cancel()
+                    }
+                }
+            }
         }
     }
 
     // ── Confirm dialog ────────────────────────────────────────────────────────
     Rectangle {
+        id: confirmBox
         anchors.centerIn: parent
-        width:  360
-        height: col.implicitHeight + 48
-        radius: Theme.notchRadius
+        width:  Math.round(360 * localScale)
+        height: col.implicitHeight + Math.round(48 * localScale)
+        radius: Math.round(Theme.cornerRadius * localScale)
         color:  Theme.background
         visible: Popups.confirmOpen && !Popups.confirmRunning
 
@@ -138,11 +208,11 @@ PanelWindow {
                 top:         parent.top
                 left:        parent.left
                 right:       parent.right
-                topMargin:   24
-                leftMargin:  24
-                rightMargin: 24
+                topMargin:   Math.round(24 * localScale)
+                leftMargin:  Math.round(24 * localScale)
+                rightMargin: Math.round(24 * localScale)
             }
-            spacing: 16
+            spacing: Math.round(16 * localScale)
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -155,61 +225,70 @@ PanelWindow {
                         default:                return "⚠️"
                     }
                 }
-                font.pixelSize: 32
+                color: Theme.text
+                font.pixelSize: Math.round(32 * localScale)
             }
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           Popups.confirmTitle
                 color:          Theme.text
-                font.pixelSize: 15
+                font.pixelSize: Math.round(15 * localScale)
                 font.bold:      true
             }
 
             Text {
                 width:          parent.width
                 text:           Popups.confirmMessage
-                color:          Qt.rgba(1, 1, 1, 0.65)
-                font.pixelSize: 12
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.65)
+                font.pixelSize: Math.round(12 * localScale)
                 wrapMode:       Text.WordWrap
-                textFormat:     Text.RichText
-                lineHeight:     1.4
+                horizontalAlignment: Text.AlignHCenter
             }
 
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 10
+                spacing: Math.round(10 * localScale)
 
                 Rectangle {
-                    width:  130
-                    height: 38
-                    radius: Theme.cornerRadius
-                    color:  cancelHov.hovered ? Qt.rgba(1, 1, 1, 0.1) : Qt.rgba(1, 1, 1, 0.05)
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    width:  Math.round(130 * localScale)
+                    height: Math.round(38 * localScale)
+                    radius: Math.round(Theme.cornerRadius * localScale)
+                    color:  cancelHov.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.05)
+                    Behavior on color { ColorAnimation { duration: Anim.color} }
 
                     Text {
                         anchors.centerIn: parent
-                        text:           "Cancel"
+                        text:           Popups.confirmCancelLabel
                         color:          Theme.text
-                        font.pixelSize: 13
+                        font.pixelSize: Math.round(13 * localScale)
                     }
 
                     HoverHandler { id: cancelHov; cursorShape: Qt.PointingHandCursor }
-                    MouseArea { anchors.fill: parent; onClicked: root.cancel() }
+                    MouseArea { 
+                        anchors.fill: parent; 
+                        onClicked: {
+                            if (Popups.confirmCancelAction === "quit") {
+                                Qt.quit()
+                            } else {
+                                root.cancel()
+                            }
+                        }
+                    }
                 }
 
                 Rectangle {
-                    width:  130
-                    height: 38
-                    radius: Theme.cornerRadius
-                    color:  confirmHov.hovered ? "#cc3a3a" : "#993030"
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    width:  Math.round(130 * localScale)
+                    height: Math.round(38 * localScale)
+                    radius: Math.round(Theme.cornerRadius * localScale)
+                    color:  confirmHov.hovered ? Qt.lighter(Theme.errorSolid, 1.2) : Theme.errorSolid
+                    Behavior on color { ColorAnimation { duration: Anim.color} }
 
                     Text {
                         anchors.centerIn: parent
                         text:           Popups.confirmLabel
                         color:          "white"
-                        font.pixelSize: 13
+                        font.pixelSize: Math.round(13 * localScale)
                         font.bold:      true
                     }
 
@@ -223,9 +302,9 @@ PanelWindow {
     // ── Processing card ───────────────────────────────────────────────────────
     Rectangle {
         anchors.centerIn: parent
-        width:  300
-        height: processingCol.implicitHeight + 56
-        radius: Theme.notchRadius
+        width:  Math.round(300 * localScale)
+        height: processingCol.implicitHeight + Math.round(56 * localScale)
+        radius: Math.round(Theme.cornerRadius * localScale)
         color:  Theme.background
         visible: Popups.confirmRunning
 
@@ -237,42 +316,42 @@ PanelWindow {
                 top:         parent.top
                 left:        parent.left
                 right:       parent.right
-                topMargin:   28
-                leftMargin:  24
-                rightMargin: 24
+                topMargin:   Math.round(28 * localScale)
+                leftMargin:  Math.round(24 * localScale)
+                rightMargin: Math.round(24 * localScale)
             }
-            spacing: 18
+            spacing: Math.round(18 * localScale)
 
             Canvas {
                 id: spinnerCanvas
                 anchors.horizontalCenter: parent.horizontalCenter
-                width:  40
-                height: 40
+                width:  Math.round(40 * localScale)
+                height: Math.round(40 * localScale)
                 transformOrigin: Item.Center
 
                 RotationAnimator {
                     target:      spinnerCanvas
                     from:        0
                     to:          360
-                    duration:    900
+                    duration: Anim.megaSlow
                     loops:       Animation.Infinite
                     running:     Popups.confirmRunning
-                    easing.type: Easing.Linear
+                    easing.type: Anim.linear
                 }
 
                 onPaint: {
                     var ctx = getContext("2d")
                     ctx.clearRect(0, 0, width, height)
-                    var cx = width / 2, cy = height / 2, r = 16
+                    var cx = width / 2, cy = height / 2, r = Math.round(16 * localScale)
                     ctx.beginPath()
                     ctx.arc(cx, cy, r, 0, 2 * Math.PI)
-                    ctx.strokeStyle = "rgba(255,255,255,0.1)"
-                    ctx.lineWidth   = 3
+                    ctx.strokeStyle = Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
+                    ctx.lineWidth   = Math.round(3 * localScale)
                     ctx.stroke()
                     ctx.beginPath()
                     ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI)
-                    ctx.strokeStyle = "white"
-                    ctx.lineWidth   = 3
+                    ctx.strokeStyle = Theme.text
+                    ctx.lineWidth   = Math.round(3 * localScale)
                     ctx.lineCap     = "round"
                     ctx.stroke()
                 }
@@ -284,7 +363,7 @@ PanelWindow {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           "Applying Changes"
                 color:          Theme.text
-                font.pixelSize: 15
+                font.pixelSize: Math.round(15 * localScale)
                 font.bold:      true
             }
 
@@ -293,10 +372,9 @@ PanelWindow {
                 width:          parent.width
                 text:           "Switching to <b>" + Popups.confirmGfxMode + "</b> graphics mode.<br>"
                                 + "Your system will reboot when finished."
-                color:          Qt.rgba(1, 1, 1, 0.55)
-                font.pixelSize: 12
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.55)
+                font.pixelSize: Math.round(12 * localScale)
                 wrapMode:       Text.WordWrap
-                textFormat:     Text.RichText
                 lineHeight:     1.5
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -305,14 +383,14 @@ PanelWindow {
                 anchors.horizontalCenter: parent.horizontalCenter
                 width:  parent.width
                 height: 1
-                color:  Qt.rgba(1, 1, 1, 0.07)
+                color:  Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
             }
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           "Do not turn off your computer."
-                color:          Qt.rgba(1, 1, 1, 0.3)
-                font.pixelSize: 11
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.3)
+                font.pixelSize: Math.round(11 * localScale)
                 horizontalAlignment: Text.AlignHCenter
             }
         }
@@ -323,6 +401,12 @@ PanelWindow {
         anchors.fill: parent
         focus: root.visible
         Keys.onReturnPressed: root.confirm()
-        Keys.onEscapePressed: root.cancel()
+        Keys.onEscapePressed: {
+            if (Popups.confirmCancelAction === "quit") {
+                Qt.quit()
+            } else {
+                root.cancel()
+            }
+        }
     }
 }

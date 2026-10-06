@@ -1,114 +1,96 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import "../shapes"
 import "../services"
 import "../components"
 import "../"
 
-PopupWindow {
-	id: root
+Item {
+    id: root
 
-	required property var anchorWindow
+    property real localScale: 1.0
 
-	readonly property int fw: Theme.cornerRadius
-	readonly property int fh: Theme.cornerRadius
+        
+    readonly property var pageHeights: ({
+        "power":       Math.round(270 * root.localScale),
+        "performance": Math.round(190 * root.localScale),
+        "stats":       Math.round(250 * root.localScale)
+    })
+    readonly property var pageWidths: ({
+        "power":       Math.round(220 * root.localScale),
+        "performance": Math.round(260 * root.localScale),
+        "stats":       Math.round(390 * root.localScale)
+    })
 
-	readonly property var pageHeights: ({
-		"power":       270,
-		"performance": 190,
-		"stats":       250
-	})
-	readonly property var pageWidths: ({
-		"power":       220,
-		"performance": 260,
-		"stats":       390
-	})
+    readonly property int contentWidth:  pageWidths[page]  ?? Math.round(220 * root.localScale)
+    readonly property int contentHeight: pageHeights[page] ?? Math.round(220 * root.localScale)
+    readonly property int popupWidth: contentWidth
+    readonly property int popupHeight: contentHeight
 
-	readonly property int contentWidth:  pageWidths[page]  ?? 220
-	readonly property int contentHeight: pageHeights[page] ?? 220
+    property string page: "power"
 
-	property string page: "power"
+    onOpacityChanged: {
+        if (opacity === 1) {
+            if (page === "power") powerMenuRef.forceActiveFocus()
+            else forceActiveFocus()
+        }
+    }
+    Keys.onEscapePressed: SurfaceState.close()
+    MouseArea {
+        anchors.fill: parent
+        onClicked: Popups.archMenuPinned = true
+    }
 
-	color:   "transparent"
-	visible: slide.windowVisible
-	mask: Region { item: maskProxy }
+    Item {
+        id: slide
+        anchors.fill: parent
+        clip: true
 
-	implicitWidth:  (pageWidths["stats"]  ?? 220) + fw
-	implicitHeight: (pageHeights["stats"] ?? 220) + fh * 2
+        Item {
+            anchors {
+                fill:         parent
+                leftMargin:   Math.round(8 * root.localScale)
+                rightMargin:  Math.round(8 * root.localScale)
+                topMargin:    Math.round(8 * root.localScale)
+                bottomMargin: Math.round(8 * root.localScale)
+            }
+            
+            //── Page content ──────────────────────────────────────────
+            Item {
+                anchors.centerIn: parent
+                width:  root.contentWidth - Math.round(16 * root.localScale)
+                height: root.contentHeight - Math.round(16 * root.localScale)
+                clip:   true
 
-	anchor.window:  anchorWindow
-	anchor.gravity: Edges.Right
-	anchor.rect: Qt.rect(
-		0,
-		anchorWindow.height / 2,
-		anchorWindow.width,
-		implicitHeight
-	)
-	
-	Item {
-		id:      maskProxy
-		x:       0
-		y:       (root.implicitHeight - sizer.height) / 2-root.fh
-		width:   sizer.width
-		height:  sizer.height
-	}
-	
-	PopupSlide {
-		id: slide
-		anchors.fill: parent
-		edge:             "left"
-		hoverEnabled:     false
-		triggerHovered:   Popups.archMenuTriggerHovered
-		open:             Popups.archMenuOpen
-		onCloseRequested: Popups.archMenuOpen = false
+                PopupPage {
+                    localScale: root.localScale
+                    anchors.fill: parent
+                    visible: root.page === "power"
 
-		Item {
-			id: sizer
-			anchors.left:           parent.left
-			anchors.verticalCenter: parent.verticalCenter
-			clip: true
-
-			width:  root.contentWidth  + root.fw
-			height: root.contentHeight + root.fh * 2
-
-			Behavior on width  { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
-			Behavior on height { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
-
-			PopupShape {
-				id: bg
-				anchors.fill: parent
-				attachedEdge: "left"
-				color:        Theme.background
-				radius:       Theme.cornerRadius
-				flareWidth:   root.fw
-				flareHeight:  root.fh
-			}
-
-			Item {
-				anchors {
-					fill:         parent
-					leftMargin:   root.fw - 4
-					rightMargin:  8
-					topMargin:    root.fh + 6
-					bottomMargin: root.fh + 6
-				}
-					//── Page content ──────────────────────────────────────────
-					Item {
-						width:  parent.width
-						height: parent.height
-						clip:   true
-
-						PopupPage {
-							anchors.fill: parent
-							visible: root.page === "power"
-
-							PowerMenu {
-								width: parent.width
-							}
-						}
-				}
-			}
-		}
-	}
+                    PowerMenu {
+                        id: powerMenuRef
+                        localScale: root.localScale
+                        width: parent.width
+                    }
+                }
+            }
+        }
+    }
 }

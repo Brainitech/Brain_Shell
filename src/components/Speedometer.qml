@@ -1,3 +1,21 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import "../"
 
@@ -13,6 +31,10 @@ Item {
 
     property string label:       ""
     property real   percent:     0.0       // 0.0 – 100.0
+    property real   _animatedPercent: percent
+    Behavior on _animatedPercent {
+        NumberAnimation { duration: 450; easing.type: Easing.OutCubic }
+    }
     property string centerText:  "0%"
     property string bottomText:  ""
     property bool   active:      true
@@ -30,8 +52,8 @@ Item {
         text:           root.label
         font.pixelSize: Math.max(7, Math.round(11 * root.size))
         font.weight:    Font.Medium
-        color:          root.active ? Qt.rgba(1,1,1,0.55) : Qt.rgba(1,1,1,0.2)
-        Behavior on color { ColorAnimation { duration: 200 } }
+        color:          root.active ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.55) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.2)
+        Behavior on color { ColorAnimation { duration: Anim.normal} }
     }
 
     // ── Arc canvas ────────────────────────────────────────────────────────────
@@ -63,19 +85,19 @@ Item {
             // Track
             ctx.beginPath()
             ctx.arc(arc.cx, arc.cy, arc.radius, sa, sa + sw, false)
-            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.08)
+            ctx.strokeStyle = Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
             ctx.lineWidth   = arc.thickness
             ctx.lineCap     = "round"
             ctx.stroke()
 
             // Fill
-            var fillPct = root.active ? Math.max(0, Math.min(1, root.percent / 100)) : 0
+            var fillPct = root.active ? Math.max(0, Math.min(1, root._animatedPercent / 100)) : 0
             if (fillPct > 0) {
                 ctx.beginPath()
                 ctx.arc(arc.cx, arc.cy, arc.radius, sa, sa + sw * fillPct, false)
                 ctx.strokeStyle = root.active
                     ? Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 1)
-                    : Qt.rgba(1, 1, 1, 0.15)
+                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.15)
                 ctx.lineWidth   = arc.thickness
                 ctx.lineCap     = "round"
                 ctx.stroke()
@@ -84,7 +106,7 @@ Item {
 
         Connections {
             target: root
-            function onPercentChanged()      { arc.requestPaint() }
+            function on_AnimatedPercentChanged() { arc.requestPaint() }
             function onActiveChanged()       { arc.requestPaint() }
             function onAccentColorChanged()  { arc.requestPaint() }
             function onSizeChanged()         { arc.requestPaint() }
@@ -103,7 +125,7 @@ Item {
             anchors.verticalCenterOffset: Math.round(6 * root.size)
             spacing:  Math.round(2 * root.size)
             opacity:  root.active ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { NumberAnimation { duration: Anim.normal} }
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -117,7 +139,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text:           root.bottomText
                 font.pixelSize: Math.max(6, Math.round(9 * root.size))
-                color:          Qt.rgba(1, 1, 1, 0.4)
+                color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.4)
                 visible:        root.bottomText !== ""
             }
         }
@@ -129,9 +151,9 @@ Item {
             text:           "Off"
             font.pixelSize: Math.max(8, Math.round(13 * root.size))
             font.weight:    Font.Medium
-            color:          Qt.rgba(1, 1, 1, 0.25)
+            color:          Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
             opacity:        root.active ? 0 : 1
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { NumberAnimation { duration: Anim.normal} }
         }
     }
 }

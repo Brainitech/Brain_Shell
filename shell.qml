@@ -1,48 +1,23 @@
-import Quickshell
-import QtQuick
-import "./src/windows"
-import "./src/popups"
-import "./src/"
+//@ pragma UseQApplication
 
-ShellRoot {
-    // Force-instantiate lazy singletons that need startup behavior
-    property var _keybinds:   KeybindService
-    property var _updater:    UpdateService
-    property var _ipc:        IpcManager
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
-    Variants {
-        model: Quickshell.screens
+import "src/windows"
 
-        delegate: Component {
-            Scope {
-                required property var modelData
-
-                // ── Windows ──────────────────────────────────────
-                TopBar    { id: topBar;        screen: modelData }
-
-                Border    { id: leftBorder;    screen: modelData; edge: "left"   }
-                Border    { id: rightBorder;   screen: modelData; edge: "right"  }
-                Border    { id: bottomBorder;  screen: modelData; edge: "bottom" }
-
-                // ── Overlays ─────────────────────────────────────
-                // Dismisses all popups on click-outside or Escape
-                PopupDismiss { screen: modelData }
-
-                // GPU mode change confirmation modal
-                ConfirmDialog { screen: modelData }
-
-                // Shell update notification
-                UpdatePopup { screen: modelData }
-
-                // ── All popups ───────────────────────────────────
-                // Add new popups in src/popups/PopupLayer.qml only
-                PopupLayer {
-                    topBar:       topBar
-                    leftBorder:   leftBorder
-                    rightBorder:  rightBorder
-                    bottomBorder: bottomBorder
-                }
-            }
-        }
-    }
-}
+ShellHost {}

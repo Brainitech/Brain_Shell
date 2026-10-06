@@ -1,150 +1,260 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import Quickshell
-import Quickshell.Wayland
+import "../theme"
+import "../state"
 import "../services"
+import "../components"
 import "../"
 
-// ScreenRecOptionsPopup — minimal dropdown under the center notch.
-//
-// No checkboxes, no radio dots. Selection shown by background highlight only.
-// Window sized exactly to content — no mask, no dead space.
-
-PopupWindow {
+Item {
     id: root
+    property real localScale: 1.0
 
-    required property var anchorWindow
+    // Metrics
+    readonly property int gap: Math.round(8 * localScale)
+    
+    width: ScreenRecService.popupTargetWidth > 0 ? ScreenRecService.popupTargetWidth : Math.round(340 * localScale)
+    
+    readonly property int tileW: Math.floor((width - (gap * 2) - Math.round(16 * localScale) - (gap * 2)) / 3)
+    readonly property int targetTileH: Math.round(54 * localScale)
+    readonly property int audioFpsTileH: Math.round(42 * localScale)
+    
+    readonly property int targetCardH: targetTileH + Math.round(16 * localScale)
+    readonly property int bottomCardH: (audioFpsTileH * 2) + gap + Math.round(16 * localScale)
+    readonly property int backendCardH: audioFpsTileH + Math.round(16 * localScale)
 
-    readonly property int _padH: 5
-    readonly property int _padV: 5
+    height: targetCardH + gap + bottomCardH + gap + backendCardH
 
-    implicitWidth:  optCol.implicitWidth + _padH * 2
-    implicitHeight: optCol.implicitHeight + _padV * 2
+    property bool isOpen: ScreenRecService.optionsExpanded && !ScreenRecService.recording
+    onIsOpenChanged: { if (isOpen) ScreenRecService.probeBackends() }
+    opacity: isOpen ? 1 : 0
+    visible: opacity > 0
+    Behavior on opacity { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
 
-    anchor.window:     root.anchorWindow
-    anchor.gravity:    Edges.Bottom
-    anchor.adjustment: PopupAdjustment.None
-    anchor.rect: Qt.rect(
-       ScreenRecService.popupTargetX + (ScreenRecService.popupTargetWidth / 2),
-        25,
-        root.implicitWidth,
-        Theme.notchHeight
-    )
+    property real expandOffset: opacity === 1 ? 0 : -Math.round(20 * localScale)
+    Behavior on expandOffset { NumberAnimation { duration: Anim.mediumFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
 
-    color:   "transparent"
-    visible: ScreenRecService.openStrip !== ""
-
-    HoverHandler {
-        onHoveredChanged: {
-            if (hovered) ScreenRecService.keepStripOpen()
-            else         ScreenRecService.scheduleStripClose()
-        }
+    function withAlpha(col, a) {
+        if (!col) return "transparent";
+        return Qt.rgba(col.r, col.g, col.b, a);
     }
 
-    Rectangle {
+    Item {
         anchors.fill: parent
-        radius:       Theme.cornerRadius - 6
-        color:        Theme.background
-        border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15)
-        border.width: 1
-    }
+        anchors.leftMargin: root.gap
+        anchors.rightMargin: root.gap
+        transform: Translate { y: root.expandOffset }
 
-    Column {
-        id: optCol
-        x:       _padH
-        y:       _padV
-        spacing: 2
-
-        // Capture — radio (one active at a time)
-        Repeater {
-            model: ScreenRecService.openStrip === "capture"
-                   ? ["screen", "window", "region"] : []
-            delegate: OptionRow {
-                required property string modelData
-                required property int    index
-                _icon:     ScreenRecService._captureIcons[modelData]  ?? ""
-                _label:    ScreenRecService._captureLabels[modelData] ?? ""
-                _selected: ScreenRecService.captureTarget === modelData
-                onClicked: ScreenRecService.captureTarget = modelData
+        MouseArea { anchors.fill: parent }
+        HoverHandler {
+            onHoveredChanged: {
+                if (hovered) ScreenRecService.keepExpanded()
+                else ScreenRecService.scheduleClose()
             }
         }
 
-        // Audio — checkboxes (independent)
-        Repeater {
-            model: ScreenRecService.openStrip === "audio"
-                   ? ["mic", "system", "none"] : []
-            delegate: OptionRow {
-                required property string modelData
-                required property int    index
+        // Target Card
+        StatCard {
+            id: targetCard
+            localScale: root.localScale
+            padding: root.gap
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: root.targetCardH
 
-                readonly property var _icons:  ({ mic: "󰍬", system: "󰕾", none: "󰖁" })
-                readonly property var _labels: ({ mic: "Mic", system: "System", none: "No Audio" })
+            Row {
+                anchors.centerIn: parent
+                spacing: root.gap
 
-                _icon:    _icons[modelData]  ?? ""
-                _label:   _labels[modelData] ?? ""
-                _selected: {
-                    if (modelData === "none")   return !ScreenRecService.audioMic && !ScreenRecService.audioSystem
-                    if (modelData === "mic")    return ScreenRecService.audioMic
-                    return ScreenRecService.audioSystem
-                }
+                TglBtn { width: root.tileW; height: root.targetTileH; icon: "󰍹"; label: "Screen"; on: PrefsService.screenrecCaptureTarget === "screen"; onToggled: PrefsService.screenrecCaptureTarget = "screen" }
+                TglBtn { width: root.tileW; height: root.targetTileH; icon: "󱂬"; label: "Window"; on: PrefsService.screenrecCaptureTarget === "window"; onToggled: PrefsService.screenrecCaptureTarget = "window" }
+                TglBtn { width: root.tileW; height: root.targetTileH; icon: "󰩭"; label: "Region"; on: PrefsService.screenrecCaptureTarget === "region"; onToggled: PrefsService.screenrecCaptureTarget = "region" }
+            }
+        }
 
-                onClicked: {
-                    if (modelData === "none") {
-                        ScreenRecService.audioMic    = false
-                        ScreenRecService.audioSystem = false
-                    } else if (modelData === "mic") {
-                        ScreenRecService.audioMic = !ScreenRecService.audioMic
-                    } else {
-                        ScreenRecService.audioSystem = !ScreenRecService.audioSystem
+        // Audio Card
+        StatCard {
+            id: audioCard
+            localScale: root.localScale
+            padding: root.gap
+            anchors.top: targetCard.bottom; anchors.topMargin: root.gap
+            anchors.left: parent.left
+            height: root.bottomCardH
+            width: (parent.width - root.gap) / 2
+
+            Column {
+                anchors.centerIn: parent
+                width: parent.width - Math.round(16 * localScale)
+                spacing: root.gap
+
+                TglBtn { width: parent.width; height: root.audioFpsTileH; layoutMode: "horizontal"; icon: "󰍬"; label: "Mic"; on: PrefsService.screenrecAudioMic; onToggled: PrefsService.screenrecAudioMic = !PrefsService.screenrecAudioMic }
+                TglBtn { width: parent.width; height: root.audioFpsTileH; layoutMode: "horizontal"; icon: "󰓃"; label: "System"; on: PrefsService.screenrecAudioSystem; onToggled: PrefsService.screenrecAudioSystem = !PrefsService.screenrecAudioSystem }
+            }
+        }
+
+        // FPS Card
+        StatCard {
+            id: fpsCard
+            localScale: root.localScale
+            padding: root.gap
+            anchors.top: targetCard.bottom; anchors.topMargin: root.gap
+            anchors.right: parent.right
+            height: root.bottomCardH
+            width: (parent.width - root.gap) / 2
+
+            Column {
+                anchors.centerIn: parent
+                width: parent.width - Math.round(16 * localScale)
+                spacing: root.gap
+
+                TglBtn { width: parent.width; height: root.audioFpsTileH; label: "60 FPS"; on: PrefsService.screenrecFramerate === 60; onToggled: PrefsService.screenrecFramerate = 60 }
+                TglBtn { width: parent.width; height: root.audioFpsTileH; label: "30 FPS"; on: PrefsService.screenrecFramerate === 30; onToggled: PrefsService.screenrecFramerate = 30 }
+            }
+        }
+
+        // Backend Card
+        StatCard {
+            id: backendCard
+            localScale: root.localScale
+            padding: root.gap
+            anchors.top: audioCard.bottom; anchors.topMargin: root.gap
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: root.backendCardH
+
+            Row {
+                anchors.centerIn: parent
+                spacing: root.gap
+
+                Repeater {
+                    model: ScreenRecService.backends
+                    delegate: TglBtn {
+                        required property var modelData
+                        width: root.tileW
+                        height: root.audioFpsTileH
+                        label: modelData.label
+                        labelSize: 10
+                        available: ScreenRecService.backendAvailable[modelData.id] !== false
+                        on: PrefsService.screenrecBackend === modelData.id
+                        onToggled: PrefsService.screenrecBackend = modelData.id
                     }
                 }
             }
         }
     }
 
-    // ── Option row — highlight only, no dots or checkboxes ────────────────────
-    component OptionRow: Item {
-        id: row
+    component TglBtn: Rectangle {
+        id: btn
+        property bool on: false
+        property string icon: ""
+        property string label: ""
+        property string layoutMode: "vertical"
+        property int labelSize: 11
+        property bool available: true
+        signal toggled()
 
-        property string _icon:     ""
-        property string _label:    ""
-        property bool   _selected: false
-
-        signal clicked()
-
-        implicitWidth:  8 + 14 + 6 + _lbl.implicitWidth + 12
-        implicitHeight: 26
+        radius: Math.round(10 * localScale)
+        opacity: available ? 1.0 : 0.4
+        Behavior on opacity { NumberAnimation { duration: Anim.fast } }
+        color: on
+            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
+            : bH.hovered
+                ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
+                : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.04)
+        border.color: on
+            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30)
+            : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.10)
+        border.width: 1
+        Behavior on color        { ColorAnimation { duration: Anim.color} }
+        Behavior on border.color { ColorAnimation { duration: Anim.color} }
 
         Rectangle {
+            anchors { top: parent.top; right: parent.right; margins: Math.round(8 * localScale) }
+            width: Math.round(6 * localScale); height: Math.round(6 * localScale); radius: width / 2
+            color: btn.on ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.18)
+            Behavior on color { ColorAnimation { duration: Anim.color} }
+        }
+
+        Item {
             anchors.fill: parent
-            radius:       5
-            color: row._selected
-                   ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
-                   : rH.hovered ? Qt.rgba(1, 1, 1, 0.07) : "transparent"
-            Behavior on color { ColorAnimation { duration: 100 } }
+            
+            //Target tiles
+            Column {
+                visible: btn.icon !== "" && btn.layoutMode === "vertical"
+                anchors.centerIn: parent
+                spacing: Math.round(4 * localScale)
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: btn.icon; font.pixelSize: Math.round(15 * localScale)
+                    color: btn.on ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.40)
+                    Behavior on color { ColorAnimation { duration: Anim.color} }
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: btn.label; font.pixelSize: Math.round(10 * localScale); font.weight: Font.Medium
+                    color: btn.on ? Theme.text : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
+                    Behavior on color { ColorAnimation { duration: Anim.color} }
+                }
+            }
+
+            // Audio tiles
+            Row {
+                visible: btn.icon !== "" && btn.layoutMode === "horizontal"
+                anchors.centerIn: parent
+                spacing: Math.round(8 * localScale)
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: btn.icon; font.pixelSize: Math.round(15 * localScale)
+                    color: btn.on ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.40)
+                    Behavior on color { ColorAnimation { duration: Anim.color} }
+                }
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: btn.label; font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium
+                    color: btn.on ? Theme.text : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
+                    Behavior on color { ColorAnimation { duration: Anim.color} }
+                }
+            }
+
+            // FPS / backend tiles — margins keep the label clear of the status
+            // dot in the top-right corner, which longer names used to run under.
+            Text {
+                visible: btn.icon === ""
+                anchors.fill: parent
+                anchors.leftMargin:  Math.round(8 * localScale)
+                anchors.rightMargin: Math.round(8 * localScale)
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment:   Text.AlignVCenter
+                elide: Text.ElideRight
+                text: btn.label; font.pixelSize: Math.round(btn.labelSize * localScale); font.weight: Font.Medium
+                color: btn.on ? Theme.text : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
+                Behavior on color { ColorAnimation { duration: Anim.color} }
+            }
         }
 
-        Row {
-            anchors { left: parent.left; leftMargin: 8; verticalCenter: parent.verticalCenter }
-            spacing: 6
-
-            Text {
-                text:           row._icon
-                font.pixelSize: 13
-                color:          row._selected ? Theme.active : Qt.rgba(1, 1, 1, 0.45)
-                anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 100 } }
-            }
-            Text {
-                id:             _lbl
-                text:           row._label
-                font.pixelSize: 12
-                color:          row._selected ? Theme.active : Qt.rgba(1, 1, 1, 0.70)
-                anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 100 } }
-            }
+        HoverHandler { id: bH; cursorShape: Qt.PointingHandCursor }
+        MouseArea { 
+            anchors.fill: parent
+            onClicked: btn.toggled()
         }
-
-        HoverHandler { id: rH; cursorShape: Qt.PointingHandCursor }
-        MouseArea { anchors.fill: parent; onClicked: row.clicked() }
     }
 }

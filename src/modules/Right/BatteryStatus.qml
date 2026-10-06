@@ -1,0 +1,177 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import QtQuick
+import Quickshell.Services.UPower
+import "../../windows"
+import "../../"
+
+// Config:
+//showPercentage: bool — always show % beside icon (default: false = hover only)
+
+Item {
+    id: root
+
+    property real localScale: 1.0
+    property bool showPercentage: false
+
+    // ── UPower data ──────────────────────────────────────────────────────────
+    readonly property var  bat:      UPower.displayDevice
+    visible: bat.ready && bat.isLaptopBattery
+    readonly property real pct:      bat.ready ? Math.round(bat.percentage * 100) : 0
+    readonly property bool charging: bat.ready
+                                     ? (bat.state === UPowerDeviceState.Charging ||
+                                        bat.state === UPowerDeviceState.PendingCharge ||
+                                        bat.state === UPowerDeviceState.FullyCharged)
+                                     : false
+    readonly property bool full:     bat.ready
+                                     ? bat.state === UPowerDeviceState.FullyCharged
+                                     : false
+
+    implicitWidth:  statusRow.implicitWidth + Math.round(6 * localScale)
+    implicitHeight: statusRow.implicitHeight
+
+    // ── Warning tracker ──────────────────────────────────────────────────────
+    // warnedLevels stores which thresholds have fired this discharge cycle.
+    // Resets when charging begins.
+    property var warnedLevels: []
+
+    function checkWarning() {
+        if (charging) {
+            warnedLevels = []
+            return
+        }
+        var thresholds = [5, 10, 20,30]
+        for (var i = 0; i < thresholds.length; i++) {
+            var lvl = thresholds[i]
+            if (pct <= lvl && warnedLevels.indexOf(lvl) < 0) {
+                warnedLevels = warnedLevels.concat([lvl])
+                warningWindow.warnLevel = lvl
+                warningWindow.visible   = true
+                break
+            }
+        }
+    }
+
+    onPctChanged:      checkWarning()
+    onChargingChanged: {
+        if (charging) warnedLevels = []
+        checkWarning()
+    }
+
+    // ── Nerd Font icons ──────────────────────────────────────────────────────
+    function staticIcon(p) {
+        if (p > 90) return "󰁹"
+        if (p > 80) return "󰂂"
+        if (p > 70) return "󰂁"
+        if (p > 60) return "󰂀"
+        if (p > 50) return "󰁿"
+        if (p > 40) return "󰁾"
+        if (p > 30) return "󰁽"
+        if (p > 20) return "󰁼"
+        if (p > 10) return "󰁻"
+        return "󰁺"
+    }
+
+    // Charging animation frames (low → full)
+    readonly property var chargeFrames: ["󰢜","󰂆","󰂇","󰂈","󰂉","󰂊","󰂋","󰂅"]
+    property int chargeFrame: 0
+
+    Timer {
+        interval: 650
+        running:  root.charging && !root.full
+        repeat:   true
+        onTriggered: root.chargeFrame = (root.chargeFrame + 1) % root.chargeFrames.length
+    }
+
+    readonly property string icon: {
+        if (full)     return "󰂄"
+        if (charging) return chargeFrames[chargeFrame % chargeFrames.length]
+        return staticIcon(pct)
+    }
+
+    // ── Color ─────────────────────────────────────────────────────────────────
+    readonly property color iconColor: {
+        if (full)      return Theme.active
+        if (charging)  return Theme.active
+        if (pct <= 5)  return "#ff4444"
+        if (pct <= 10) return "#ff6b00"
+        if (pct <= 20) return "#ffcc00"
+        if (pct <= 30) return "#ff9900"
+        return Theme.text
+    }
+
+    // ── Display ───────────────────────────────────────────────────────────────
+    Row {
+        id: statusRow
+        spacing: Math.round(4 * localScale)
+        anchors.centerIn: parent
+
+        Text {
+            id: iconText
+            text:                   root.icon
+            color:                  root.iconColor
+            font.pixelSize:         Math.round(16 * localScale)
+            anchors.verticalCenter: parent.verticalCenter
+
+            // Pulse when critically low and discharging
+            SequentialAnimation on opacity {
+                id: pulseAnim
+                running:  root.pct <= 10 && !root.charging
+                loops:    Animation.Infinite
+                NumberAnimation { to: 0.2; duration: Anim.extraSlow; easing.type: Anim.inOutSine}
+                NumberAnimation { to: 1.0; duration: Anim.extraSlow; easing.type: Anim.inOutSine}
+            }
+
+            // Snap back when animation stops
+            Connections {
+                target: pulseAnim
+                function onRunningChanged() {
+                    if (!pulseAnim.running) iconText.opacity = 1.0
+                }
+            }
+        }
+        
+        Item {
+            id: pctWrapper
+            property bool show: root.showPercentage || hov.hovered
+            implicitWidth: show ? pctText.implicitWidth + Math.round(2 * localScale) : 0
+            implicitHeight: pctText.implicitHeight
+            clip: true
+            anchors.verticalCenter: parent.verticalCenter
+            Behavior on implicitWidth { NumberAnimation { duration: Anim.transition; easing.type: Anim.inOutCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
+
+            Text {
+                id: pctText
+                text:           root.pct + "%"
+                color:          hov.hovered ? Theme.active : Theme.text
+                font.pixelSize: Math.round(12 * localScale)
+                anchors.verticalCenter: parent.verticalCenter
+                Behavior on color { ColorAnimation { duration: Anim.color} }
+            }
+        }
+    }
+
+    HoverHandler { id: hov }
+
+    // ── Warning window ────────────────────────────────────────────────────────
+    BatteryWarning {
+        id:      warningWindow
+        visible: false
+    }
+}

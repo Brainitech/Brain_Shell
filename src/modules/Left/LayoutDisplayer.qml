@@ -1,3 +1,21 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -24,8 +42,10 @@ import "../../"
 Item {
     id: root
 
-    implicitWidth:  26
-    implicitHeight: 26
+    property real localScale: 1.0
+
+    implicitWidth:  Math.round(26 * localScale)
+    implicitHeight: Math.round(26 * localScale)
 
     // ── State ────────────────────────────────────────────────────────────────
 
@@ -84,8 +104,6 @@ Item {
 
         // Quickshell emits (name, data) for raw events
         function onRawEvent(event) {
-			// console.log("RawEvent_name: "+ event.name)
-			// console.log("RawEvent_data: "+ event.data)
             refresh()  // Refresh on every event; the proc will ignore if still running
         }
     }
@@ -130,11 +148,11 @@ Item {
     Rectangle {
         id: bg
         anchors.fill: parent
-        radius: 6
-        color: mouseArea.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
+        radius: Math.round(6 * localScale)
+        color: mouseArea.containsMouse ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08) : "transparent"
 
         Behavior on color {
-            ColorAnimation { duration: 120 }
+            ColorAnimation { duration: Anim.color}
         }
 
         MouseArea {
@@ -157,21 +175,21 @@ Item {
             anchors.centerIn: parent
             text: root.currentLayout !== "" ? layoutSymbol(root.currentLayout) : "…"
             font.family: "JetBrainsMono Nerd Font"
-            font.pixelSize: 14
-            color: "#cdd6f4"
+            font.pixelSize: Math.round(14 * localScale)
+            color: Theme.text
 
             // Brief scale-pop on symbol change
             Behavior on text {
                 SequentialAnimation {
                     NumberAnimation {
                         target: icon; property: "scale"
-                        to: 0.6; duration: 80
-                        easing.type: Easing.InQuad
+                        to: 0.6; duration: Anim.superFast
+                        easing.type: Anim.inQuad
                     }
                     NumberAnimation {
                         target: icon; property: "scale"
-                        to: 1.0; duration: 120
-                        easing.type: Easing.OutBack
+                        to: 1.0; duration: Anim.color
+                        easing.type: Anim.outBack; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
                     }
                 }
             }

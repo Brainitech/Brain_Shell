@@ -1,178 +1,187 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
-import "../shapes"
 import "../components"
 import "../"
 
-PanelWindow {
+Item {
     id: root
+    Keys.onEscapePressed: SurfaceState.close()
+    onOpacityChanged: if (opacity === 1) forceActiveFocus()
+    
+    // Physical state properties injected by DynamicSurface
+    property var screen
+    property real localScale: 1.0
 
-    readonly property int popupWidth:  Theme.networkPopupWidth   // 480
-    readonly property int popupHeight: 648
-    readonly property int fw:          Theme.notchRadius
-    readonly property int fh:          Theme.notchRadius
-
+    readonly property int popupWidth:  Math.round(Theme.networkPopupWidth * root.localScale)
+    readonly property int popupHeight: Math.round(648 * root.localScale)
+        
     property string page: Popups.networkPage
 
-    anchors.right: true
-    anchors.top:   true
-
-    // Window height = popup content only — sizer starts at y:0
-    implicitWidth:  popupWidth + fw
-    implicitHeight: popupHeight
-
-    exclusionMode: ExclusionMode.Ignore
-    color:         "transparent"
-
-    WlrLayershell.layer:         WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-
-    // Mask tracks sizer — limits input region to visible content only
-    mask: Region { item: maskProxy }
+    MouseArea {
+        anchors.fill: parent
+        z: -1
+        onClicked: Popups.networkPinned = true
+    }
 
     Item {
-        id: maskProxy
-        x:      root.implicitWidth - sizer.width
-        y:      0
-        width:  sizer.width
-        height: sizer.height
-    }
-
-    // ── Visibility gate ───────────────────────────────────────────────────────
-    property bool windowVisible: false
-    visible: windowVisible
-
-    Connections {
-        target: Popups
-        function onNetworkOpenChanged() {
-            if (Popups.networkOpen) {
-                closeTimer.stop()
-                root.windowVisible = true
-                // Use requested page if set, otherwise default to wifi
-                root.page = (Popups.networkPage && Popups.networkPage !== "")
-                    ? Popups.networkPage : "wifi"
-            } else {
-                closeTimer.restart()
-            }
-        }
-
-        function onNetworkPageChanged() {
-            root.page = Popups.networkPage
-        }
-    }
-
-    Timer {
-        id: closeTimer
-        interval: Theme.animDuration + 20
-        onTriggered: { if (!Popups.networkOpen) root.windowVisible = false }
-    }
-
-    // ── Sizer — clip container, grows downward from y:0 ──────────────────────
-    Item {
-        id: sizer
-        anchors.right: parent.right
-        anchors.rightMargin: Theme.borderWidth
-        y: 0
-        clip: true
-
-        width: Popups.networkOpen
-               ? root.popupWidth + 9
-               : Theme.rNotchMinWidth + root.fw
-
-        height: Popups.networkOpen ? root.popupHeight : 0
-
-        Behavior on width  { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
-        Behavior on height { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
-
-        PopupShape {
-            anchors.fill: parent
-            attachedEdge: "right"
-            color:        Theme.background
-            radius:       Theme.cornerRadius
-            flareWidth:   root.fw
-            flareHeight:  root.fh
-        }
-        
-        Keys.onEscapePressed: Popups.networkOpen = false
+        id: hoverContainer
+        anchors.fill: parent
 
         Item {
-            id: contentArea
-            anchors {
-                fill:         parent
-                topMargin:    Theme.notchHeight
-                leftMargin:   root.fw
-                rightMargin:  root.fw/2
-                bottomMargin: root.fh + Theme.cornerRadius
-            }
-
-            opacity: Popups.networkOpen ? 1 : 0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Popups.networkOpen
-                        ? Theme.animDuration * 0.5
-                        : Theme.animDuration * 0.15
-                }
-            }
-
-            // ── Tab page area ─────────────────────────────────────────────────
+            id: sizer
+            anchors.fill: parent
+            clip: true
+    
+            
+    
             Item {
-                id: tabContent
+                id: contentArea
                 anchors {
-                    top:    parent.top
-                    left:   parent.left
-                    right:  parent.right
-                    bottom: tabBar.top
+                    fill:         parent
+                    topMargin:    Math.round(8 * root.localScale)
+                    leftMargin:   Math.round(8 * root.localScale)
+                    rightMargin:  Math.round(8 * root.localScale)
+                    bottomMargin: Math.round(8 * root.localScale)
                 }
-
-                Loader {
+    
+                opacity: (SurfaceState.activeContent === "network") ? 1 : 0
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: (SurfaceState.activeContent === "network")
+                            ? Anim.transition * 0.5
+                            : Anim.transition * 0.15
+                    }
+                }
+    
+                Column {
                     anchors.fill: parent
-                    active:       root.page === "wifi"
-                    source:       "WifiTab.qml"
-                }
+                    spacing: 0
 
-                Loader {
-                    anchors.fill: parent
-                    active:       root.page === "bluetooth"
-                    source:       "BluetoothTab.qml"
-                }
+                    // ── Tab bar ───────────────────────────────────────────────────────
+                    TabSwitcher {
+                        id: tabBar
+                        localScale: root.localScale || 1.0
+                        width: parent.width
+                        orientation: "horizontal"
+                        currentPage: root.page
+                        model: [
+                            { key: "wifi",      icon: "󰤨", label: "Wi-Fi"     },
+                            { key: "bluetooth", icon: "󰂯", label: "Bluetooth" },
+                            { key: "vpn",       icon: "󰦝", label: "VPN"       },
+                            { key: "hotspot",   icon: "󰀃", label: "Hotspot"   },
+                        ]
+                        onPageChanged: function(key) { Popups.networkPage = key }
+                    }
 
-                // VPN — WireGuard connections
-                Loader {
-                    anchors.fill: parent
-                    active:       root.page === "vpn"
-                    source:       "VPNTab.qml"
-                }
+                    // ── Tab page area ─────────────────────────────────────────────────
+                    Item {
+                        id: tabContent
+                        clip: true
+                        width: parent.width
+                        height: parent.height - tabBar.height
+                        
+                        property int pageIdx: Math.max(0, ["wifi", "bluetooth", "vpn", "hotspot"].indexOf(root.page))
+                        property int oldIdx: pageIdx
+                        property int newIdx: pageIdx
+                        property real progress: 1.0
+                        
+                        NumberAnimation {
+                            id: progressAnim
+                            target: tabContent
+                            property: "progress"
+                            from: 0.0
+                            to: 1.0
+                            duration: Anim.style === "none" ? 0 : Anim.slow
+                            easing.type: Anim.outExpo; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
+                        }
+                        
+                        onPageIdxChanged: {
+                            oldIdx = newIdx;
+                            newIdx = pageIdx;
+                            progress = 0.0;
+                            if (Anim.style !== "none") progressAnim.restart();
+                            else progress = 1.0;
+                        }
 
-                // Hotspot — virtual AP interface
-                Loader {
-                    anchors.fill: parent
-                    active:       root.page === "hotspot"
-                    source:       "HotspotTab.qml"
-                }
-            }
-
-            // ── Tab bar — lifted by cornerRadius from the popup bottom ────────
-            TabSwitcher {
-                id: tabBar
-                anchors {
-                    left:         parent.left
-                    right:        parent.right
-                    bottom:       parent.bottom
-                    bottomMargin: -16
-                }
-                orientation: "horizontal"
-                width:        parent.width
-                currentPage:  root.page
-                model: [
-                    { key: "wifi",      icon: "󰤨", label: "Wi-Fi"     },
-                    { key: "bluetooth", icon: "󰂯", label: "Bluetooth" },
-                    { key: "vpn",       icon: "󰦝", label: "VPN"       },
-                    { key: "hotspot",   icon: "󰀃", label: "Hotspot"   },
-                ]
-                onPageChanged: function(key) { Popups.networkPage = key }
+                        component NetworkTab: Loader {
+                            property int myIdx
+                            property string sourceFile
+                            
+                            property bool isIncoming: myIdx === tabContent.newIdx
+                            property bool isOutgoing: myIdx === tabContent.oldIdx
+                            property int slideDir: tabContent.newIdx > tabContent.oldIdx ? 1 : -1
+                            property real parallaxFactor: Anim.style === "parallax" ? 0.3 : 1.0
+                            
+                            width: parent.width; height: parent.height
+                            
+                            x: {
+                                if (Anim.style === "none" || Anim.style === "fade" || Anim.style === "scale" || Anim.style === "rise") return 0;
+                                if (isIncoming) {
+                                    return slideDir * width * (1.0 - tabContent.progress);
+                                } else if (isOutgoing) {
+                                    return -slideDir * width * parallaxFactor * tabContent.progress;
+                                } else {
+                                    return myIdx < tabContent.newIdx ? -width : width;
+                                }
+                            }
+                            
+                            opacity: {
+                                if (Anim.style === "none" || Anim.style === "slide") return 1.0;
+                            if (Anim.style === "scale" || Anim.style === "rise") { if (isIncoming) return tabContent.progress; if (isOutgoing) return 1.0 - tabContent.progress; return 0.0; }
+                                if (isIncoming) return tabContent.progress;
+                                if (isOutgoing) return 1.0 - tabContent.progress;
+                                return 0.0;
+                            }
+                            
+                            active: isIncoming || (isOutgoing && tabContent.progress < 1.0)
+                            
+                            y: {
+                                if (Anim.style === "rise") {
+                                    if (isIncoming) return 30 * (1.0 - tabContent.progress);
+                                    if (isOutgoing) return -30 * tabContent.progress;
+                                }
+                                return 0;
+                            }
+                            
+                            scale: {
+                                if (Anim.style === "scale" || Anim.style === "rise") {
+                                    if (isIncoming) return 0.95 + 0.05 * tabContent.progress;
+                                    if (isOutgoing) return 1.0 + 0.05 * tabContent.progress;
+                                }
+                                return 1.0;
+                            }
+                            
+                            visible: active
+                            
+                            source: sourceFile
+                            onLoaded: item.localScale = root.localScale
+                        }
+                        
+                        NetworkTab { myIdx: 0; sourceFile: "WifiTab.qml" }
+                        NetworkTab { myIdx: 1; sourceFile: "BluetoothTab.qml" }
+                        NetworkTab { myIdx: 2; sourceFile: "VPNTab.qml" }
+                        NetworkTab { myIdx: 3; sourceFile: "HotspotTab.qml" }
+                    }
             }
         }
     }
+}
 }

@@ -1,127 +1,75 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
 import "../components"
-import "../shapes/"
 import "../services/"
 import "../"
 
-PopupWindow {
+Item {
     id: root
+    onOpacityChanged: if (opacity === 1) forceActiveFocus()
+    Keys.onEscapePressed: SurfaceState.close()
 
-    required property var anchorWindow
+    property real localScale: 1.0
 
-    readonly property int popupWidth:   Theme.notificationsWidth
-    readonly property int maxHeight:    700
-    readonly property int fw:           Theme.notchRadius
-    readonly property int fh:           Theme.notchRadius
-    readonly property int animDuration: Theme.animDuration
+    readonly property int popupWidth:   Math.round(Theme.notificationsWidth * root.localScale)
+    readonly property int maxHeight:    Math.round(700 * root.localScale)
+            readonly property int animDuration: Anim.transition
 
-    // Fixed — never zero, never dynamic
-    implicitWidth:  popupWidth +fw
+    implicitWidth:  popupWidth
     implicitHeight: maxHeight
 
-    anchor.window: root.anchorWindow
-    anchor.rect: Qt.rect(
-        (anchorWindow.width - Theme.notificationsWidth / 2)-(fw/2),
-        0,
-        Theme.notificationsWidth,
-        Theme.notchHeight
+
+
+    // ── Content ─────────────────────────────────────────
+    property int targetHeight: Math.min(
+        Math.round(700 * root.localScale),
+        notifList.height + Math.round(Theme.popupPadding * 2 * root.localScale) + Math.round(8 * root.localScale)
     )
-    anchor.gravity:    Edges.Bottom
-    anchor.adjustment: PopupAdjustment.None
-    
+
     Item {
-    id:      maskProxy
-    x:       root.implicitWidth - sizer.width-root.fw
-    y:       -root.fh
-    width:   sizer.width
-    height:  sizer.height
-    }
+        anchors.fill: parent
+        anchors.topMargin: Math.round(8 * root.localScale)
+        anchors.leftMargin: Math.round(8 * root.localScale)
+        anchors.rightMargin: Math.round(8 * root.localScale)
+        anchors.bottomMargin: Math.round(8 * root.localScale)
 
-    color:   "transparent"
-    visible: windowVisible
-    mask: Region { item: maskProxy }
-
-    // ── Visibility gate ───────────────────────────────────────
-    // Window stays alive until the close animation finishes.
-    property bool windowVisible: false
-
-    Connections {
-        target: Popups
-        function onNotificationsOpenChanged() {
-            if (Popups.notificationsOpen) {
-                root.windowVisible = true
-            } else {
-                closeTimer.restart()
-            }
-        }
-    }
-
-    Timer {
-        id:       closeTimer
-        interval: root.animDuration + 20
-        onTriggered: root.windowVisible = false
-    }
-    
-    // ── Sizer ─────────────────────────────────────────────────
-    // Anchored top-right so it grows leftward + downward from
-    // the right notch — mirroring how Dashboard grows from center.
-    Item {
-        id:            sizer
-        anchors.top:   parent.top
-        anchors.right: parent.right
-        clip:          true
-
-        // Width: rNotchMinWidth → notificationsWidth  (+ fw for flare region)
-        width: Popups.notificationsOpen
-               ? Theme.notificationsWidth + root.fw
-               : Theme.rNotchMinWidth + root.fw
-
-        // Height: fh (invisible sliver) → full content height
-        height: Popups.notificationsOpen
-                ? notifList.height + Theme.popupPadding * 2 + root.fh
-                : root.fh
-
-        Behavior on width  { NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic } }
-        Behavior on height { NumberAnimation { duration: root.animDuration; easing.type: Easing.InOutCubic } }
-
-        // ── Background ─────────────────────────────────────────
-        PopupShape {
+        MouseArea { 
             anchors.fill: parent
-            attachedEdge: "right"
-            color:        Theme.background
-            radius:       Theme.cornerRadius
-            flareWidth:   root.fw
-            flareHeight:  root.fh
+            onClicked: {
+                SurfaceState.open("right", "notifications")
+                Popups.notificationsPinned = true
+            }
         }
 
-        // ── Content ────────────────────────────────────────────
-        // Inset clear of the flare region.
-        // Fades in slowly after expansion, fades out fast on close.
-        Item {
-            anchors {
-                fill:         parent
-                topMargin:    root.fh + 4
-                leftMargin:   root.fw + 4
-                rightMargin:  4
-                bottomMargin: 4
+        opacity: (SurfaceState.activeContent === "notifications") ? 1 : 0
+        Behavior on opacity {
+            NumberAnimation {
+                duration: (SurfaceState.activeContent === "notifications") ? root.animDuration * 0.5 : root.animDuration * 0.15
             }
+        }
 
-            opacity: Popups.notificationsOpen ? 1 : 0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Popups.notificationsOpen
-                              ? root.animDuration * 0.5
-                              : root.animDuration * 0.15
-                }
-            }
-
-            NotificationList {
-                id:    notifList
-                width: parent.width
-            }
+        NotificationList {
+            id:    notifList
+            localScale: root.localScale
+            width: parent.width
         }
     }
 }

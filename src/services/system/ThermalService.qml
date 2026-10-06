@@ -1,3 +1,21 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import Quickshell.Io
 
@@ -19,6 +37,7 @@ QtObject {
     id: root
 
     property bool   active:     true
+    property bool   hasNvidia:  false
     property real   cpuTemp:    0
     property real   gpuTemp:    0
     property int    fan1Rpm:    0
@@ -36,6 +55,13 @@ QtObject {
         stdout: StdioCollector {
             onStreamFinished: root._parse(text)
         }
+    }
+
+    // ── Nvidia check ──────────────────────────────────────────────────────────
+    property var _nvCheckProc: Process {
+        command: ["sh", "-c", "command -v nvidia-smi"]
+        running: true
+        onExited: (code) => { root.hasNvidia = (code === 0) }
     }
 
     // ── nvidia-smi GPU temp ───────────────────────────────────────────────────
@@ -68,8 +94,10 @@ QtObject {
     function _run() {
         _proc.running   = false
         _proc.running   = true
-        _nvProc.running = false
-        _nvProc.running = true
+        if (root.hasNvidia) {
+            _nvProc.running = false
+            _nvProc.running = true
+        }
     }
 
     function _parse(text) {

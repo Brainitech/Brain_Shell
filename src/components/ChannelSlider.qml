@@ -1,0 +1,138 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import QtQuick
+import Quickshell
+import "../"
+
+Item {
+    id: col
+    property real localScale: 1.0
+    property string label:  ""
+    property string icon:   ""
+    property real   value:  0.0
+    property bool   muted:  false
+    property bool   active: false
+
+    readonly property int trackHeight: Math.round(180 * localScale)
+    readonly property int barW:        Math.round(22 * localScale)
+
+    signal volumeChanged(real value)
+    signal muteToggled()
+
+    implicitWidth:  inner.implicitWidth
+    implicitHeight: inner.implicitHeight
+
+    readonly property string pctText: active ? Math.round(value * 100) + "%" : "--%"
+
+    Column {
+        id: inner
+        anchors.horizontalCenter: parent.horizontalCenter
+        spacing: Math.round(12 * localScale)
+
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text:           col.pctText
+            color:          col.muted ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25) : Theme.text
+            font.pixelSize: Math.round(13 * localScale)
+            font.bold:      true
+            Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
+        }
+
+        Item {
+            anchors.horizontalCenter: parent.horizontalCenter
+            width:  col.barW
+            height: col.trackHeight
+
+            Rectangle {
+                id: track
+                anchors.fill: parent
+                radius: width / 2
+                color:  Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08)
+
+                Rectangle {
+                    anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
+                    height: Math.max(radius * 2, parent.height * col.value)
+                    radius: parent.radius
+                    color:  col.muted ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.15) : Theme.active
+                    Behavior on color  { ColorAnimation  { duration: Anim.mediumFast} }
+                    Behavior on height { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape:  Qt.SizeVerCursor
+                    function calc(my) {
+                        return Math.max(0.0, Math.min(1.0, 1.0 - (my / track.height)))
+                    }
+                    onPressed:         col.volumeChanged(calc(mouseY))
+                    onPositionChanged: if (pressed) col.volumeChanged(calc(mouseY))
+                }
+
+                WheelHandler {
+                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                    onWheel: function(event) {
+                        var step = 0.05
+                        var delta = event.angleDelta.y > 0 ? step : -step
+                        col.volumeChanged(Math.max(0.0, Math.min(1.0, col.value + delta)))
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            anchors.horizontalCenter: parent.horizontalCenter
+            width:  col.barW + Math.round(16 * localScale)
+            height: Math.round(28 * localScale)
+            radius: Math.round(Theme.cornerRadius * localScale)
+            color:  col.muted
+                        ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.2)
+                        : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.06)
+            Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
+
+            Text {
+                anchors.centerIn: parent
+                text:           col.icon
+                font.pixelSize: Math.round(14 * localScale)
+                color:          col.muted ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.55)
+                Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
+            }
+
+            Rectangle {
+                anchors.fill: parent; radius: parent.radius
+                color: muteHov.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05) : "transparent"
+                Behavior on color { ColorAnimation { duration: Anim.fast} }
+            }
+
+            HoverHandler { id: muteHov }
+            MouseArea { anchors.fill: parent; onClicked: col.muteToggled()}
+        }
+
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text:            col.label
+            color:           Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.3)
+            font.pixelSize:  Math.round(10 * localScale)
+            font.capitalization: Font.AllUppercase
+            font.letterSpacing: 1
+            elide:           Text.ElideRight
+            width:           col.barW + Math.round(50 * localScale)
+            horizontalAlignment: Text.AlignHCenter
+        }
+    }
+}

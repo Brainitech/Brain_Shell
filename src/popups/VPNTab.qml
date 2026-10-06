@@ -1,3 +1,21 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import Quickshell.Io
 import "../"
@@ -18,6 +36,8 @@ import "../components"
 
 Item {
     id: root
+
+    property real localScale: 1.0
 
     // ── State ─────────────────────────────────────────────────────────────────
     property var    _connections:  []     // [{name, active, busy}]
@@ -201,7 +221,7 @@ Item {
     // ── nmcli monitor — debounced refresh ─────────────────────────────────────
     Process {
         id: monitorProc
-        running: Popups.networkOpen
+        running: (SurfaceState.activeContent === "network")
         command: ["nmcli", "monitor"]
         stdout: SplitParser {
             onRead: function(data) { monitorDebounce.restart() }
@@ -216,7 +236,7 @@ Item {
 
     // Also poll every 8s while popup is open to catch external changes
     Timer {
-        interval: 8000; repeat: true; running: Popups.networkOpen
+        interval: 8000; repeat: true; running: (SurfaceState.activeContent === "network")
         onTriggered: root._refresh()
     }
 
@@ -332,9 +352,9 @@ Item {
 
     // Reset on popup open
     Connections {
-        target: Popups
-        function onNetworkOpenChanged() {
-            if (Popups.networkOpen && root.visible)
+        target: SurfaceState
+        function onActiveContentChanged() {
+            if ((SurfaceState.activeContent === "network") && root.visible)
                 root._refresh()
         }
     }
@@ -351,45 +371,45 @@ Item {
 
         // Header
         Item {
-            width: parent.width; height: 40
+            width: parent.width; height: Math.round(40 * localScale)
 
             Text {
-                anchors { left: parent.left; leftMargin: 2; verticalCenter: parent.verticalCenter }
-                text: "VPN"; font.pixelSize: 15; font.weight: Font.Bold; color: Theme.text
+                anchors { left: parent.left; leftMargin: Math.round(2 * localScale); verticalCenter: parent.verticalCenter }
+                text: "VPN"; font.pixelSize: Math.round(15 * localScale); font.weight: Font.Bold; color: Theme.text
             }
 
             Row {
                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                spacing: 8
+                spacing: Math.round(8 * localScale)
 
                 // Kill switch toggle
                 Rectangle {
-                    height: 28; radius: 14
-                    width: ksRow.implicitWidth + 18
+                    height: Math.round(28 * localScale); radius: Math.round(14 * localScale)
+                    width: ksRow.implicitWidth + Math.round(18 * localScale)
                     color: root._killSwitch
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.18)
-                        : ksH.hovered ? Qt.rgba(1,1,1,0.08) : Qt.rgba(1,1,1,0.04)
+                        : ksH.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04)
                     border.color: root._killSwitch
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.40)
-                        : Qt.rgba(1,1,1,0.10)
-                    border.width: 1
-                    Behavior on color        { ColorAnimation { duration: 130 } }
-                    Behavior on border.color { ColorAnimation { duration: 130 } }
+                        : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.10)
+                    border.width: Math.max(1, Math.round(1 * localScale))
+                    Behavior on color        { ColorAnimation { duration: Anim.color} }
+                    Behavior on border.color { ColorAnimation { duration: Anim.color} }
 
                     Row {
-                        id: ksRow; anchors.centerIn: parent; spacing: 6
+                        id: ksRow; anchors.centerIn: parent; spacing: Math.round(6 * localScale)
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "󰒃"; font.pixelSize: 13
-                            color: root._killSwitch ? Theme.active : Qt.rgba(1,1,1,0.40)
-                            Behavior on color { ColorAnimation { duration: 130 } }
+                            text: "󰒃"; font.pixelSize: Math.round(13 * localScale)
+                            color: root._killSwitch ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.40)
+                            Behavior on color { ColorAnimation { duration: Anim.color} }
                         }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Kill Switch"; font.pixelSize: 11; font.weight: Font.Medium
-                            color: root._killSwitch ? Theme.active : Qt.rgba(1,1,1,0.45)
-                            Behavior on color { ColorAnimation { duration: 130 } }
+                            text: "Kill Switch"; font.pixelSize: Math.round(11 * localScale); font.weight: Font.Medium
+                            color: root._killSwitch ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.45)
+                            Behavior on color { ColorAnimation { duration: Anim.color} }
                         }
                     }
 
@@ -399,22 +419,22 @@ Item {
 
                 // Refresh
                 Rectangle {
-                    width: 32; height: 32; radius: 8
-                    color: rfH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15) : Qt.rgba(1,1,1,0.05)
+                    width: Math.round(32 * localScale); height: Math.round(32 * localScale); radius: Math.round(8 * localScale)
+                    color: rfH.hovered ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.15) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05)
                     border.color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.28)
-                    border.width: 1
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    border.width: Math.max(1, Math.round(1 * localScale))
+                    Behavior on color { ColorAnimation { duration: Anim.color} }
 
                     Text {
-                        id: rfIcon; anchors.centerIn: parent; text: "󰑐"; font.pixelSize: 15
+                        id: rfIcon; anchors.centerIn: parent; text: "󰑐"; font.pixelSize: Math.round(15 * localScale)
                         color: root._loading
                             ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.4)
                             : Theme.active
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: Anim.mediumFast} }
                         RotationAnimator {
-                            target: rfIcon; from: 0; to: 360; duration: 900
+                            target: rfIcon; from: 0; to: 360; duration: Anim.megaSlow
                             loops: Animation.Infinite; running: root._loading
-                            easing.type: Easing.Linear
+                            easing.type: Anim.linear
                         }
                     }
                     HoverHandler { id: rfH; cursorShape: Qt.PointingHandCursor }
@@ -423,25 +443,25 @@ Item {
             }
         }
 
-        Rectangle { width: parent.width; height: 1; color: Qt.rgba(1,1,1,0.07) }
-        Item      { width: parent.width; height: 8 }
+        Rectangle { width: parent.width; height: 1; color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.07) }
+        Item      { width: parent.width; height: Math.round(8 * localScale) }
 
         // Connection list
         Flickable {
-            width: parent.width; height: parent.height - 49
+            width: parent.width; height: parent.height - Math.round(49 * localScale)
             contentWidth: width; contentHeight: conCol.height
             clip: true; boundsBehavior: Flickable.StopAtBounds
 
             Column {
-                id: conCol; width: parent.width; height: implicitHeight; spacing: 6
+                id: conCol; width: parent.width; height: implicitHeight; spacing: Math.round(6 * localScale)
 
                 // Active section
                 Item {
-                    width: parent.width; height: visible ? aLbl.implicitHeight + 4 : 0
+                    width: parent.width; height: visible ? aLbl.implicitHeight + Math.round(4 * localScale) : 0
                     visible: root._connections.some(function(c) { return c.active })
                     Text {
                         id: aLbl; text: "ACTIVE"
-                        font.pixelSize: 9; font.weight: Font.Bold; font.letterSpacing: 1.2
+                        font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold; font.letterSpacing: 1.2
                         color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5)
                     }
                 }
@@ -450,24 +470,24 @@ Item {
                     model: root._connections.filter(function(c) { return c.active })
                     delegate: VPNRow {
                         required property var modelData
-                        width: conCol.width - 2; x: 1; con: modelData
+                        width: conCol.width - Math.round(2 * localScale); x: Math.round(1 * localScale); con: modelData
                     }
                 }
 
                 Item {
-                    width: parent.width; height: 6
+                    width: parent.width; height: Math.round(6 * localScale)
                     visible: root._connections.some(function(c) { return c.active })
                           && root._connections.some(function(c) { return !c.active })
                 }
 
                 // Available section
                 Item {
-                    width: parent.width; height: visible ? iLbl.implicitHeight + 4 : 0
+                    width: parent.width; height: visible ? iLbl.implicitHeight + Math.round(4 * localScale) : 0
                     visible: root._connections.some(function(c) { return !c.active })
                     Text {
                         id: iLbl; text: "AVAILABLE"
-                        font.pixelSize: 9; font.weight: Font.Bold; font.letterSpacing: 1.2
-                        color: Qt.rgba(1,1,1,0.25)
+                        font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold; font.letterSpacing: 1.2
+                        color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25)
                     }
                 }
 
@@ -475,27 +495,27 @@ Item {
                     model: root._connections.filter(function(c) { return !c.active })
                     delegate: VPNRow {
                         required property var modelData
-                        width: conCol.width - 2; x: 1; con: modelData
+                        width: conCol.width - Math.round(2 * localScale); x: Math.round(1 * localScale); con: modelData
                     }
                 }
 
                 // Empty state
                 Item {
-                    width: parent.width; height: 180
+                    width: parent.width; height: Math.round(180 * localScale)
                     visible: !root._loading && root._connections.length === 0
                     Column {
-                        anchors.centerIn: parent; spacing: 12
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "󰦝"; font.pixelSize: 36; color: Qt.rgba(1,1,1,0.08) }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "No WireGuard connections"; font.pixelSize: 13; color: Qt.rgba(1,1,1,0.2) }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Import a config to get started:"; font.pixelSize: 10; color: Qt.rgba(1,1,1,0.14); horizontalAlignment: Text.AlignHCenter }
+                        anchors.centerIn: parent; spacing: Math.round(12 * localScale)
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "󰦝"; font.pixelSize: Math.round(36 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08) }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "No WireGuard connections"; font.pixelSize: Math.round(13 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.2) }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Import a config to get started:"; font.pixelSize: Math.round(10 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.14); horizontalAlignment: Text.AlignHCenter }
                         Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            width: codeText.implicitWidth + 24; height: 26; radius: 6
-                            color: Qt.rgba(1,1,1,0.05); border.color: Qt.rgba(1,1,1,0.10); border.width: 1
+                            width: codeText.implicitWidth + Math.round(24 * localScale); height: Math.round(26 * localScale); radius: Math.round(6 * localScale)
+                            color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.05); border.color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.10); border.width: Math.max(1, Math.round(1 * localScale))
                             Text {
                                 id: codeText; anchors.centerIn: parent
                                 text: "nmcli con import type wireguard file <conf>"
-                                font.pixelSize: 9; font.family: "JetBrains Mono"
+                                font.pixelSize: Math.round(9 * localScale); font.family: "JetBrains Mono"
                                 color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5)
                             }
                         }
@@ -504,25 +524,25 @@ Item {
 
                 // Loading state
                 Item {
-                    width: parent.width; height: 80
+                    width: parent.width; height: Math.round(80 * localScale)
                     visible: root._loading && root._connections.length === 0
                     Column {
-                        anchors.centerIn: parent; spacing: 8
+                        anchors.centerIn: parent; spacing: Math.round(8 * localScale)
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: "○"; font.pixelSize: 20; color: Theme.active
+                            text: "○"; font.pixelSize: Math.round(20 * localScale); color: Theme.active
                             SequentialAnimation on opacity {
                                 running: root._loading && root._connections.length === 0
                                 loops:   Animation.Infinite
-                                NumberAnimation { to: 0.15; duration: 550 }
-                                NumberAnimation { to: 1.0;  duration: 550 }
+                                NumberAnimation { to: 0.15; duration: Anim.verySlow}
+                                NumberAnimation { to: 1.0;  duration: Anim.verySlow}
                             }
                         }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Loading…"; font.pixelSize: 11; color: Qt.rgba(1,1,1,0.25) }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Loading…"; font.pixelSize: Math.round(11 * localScale); color: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25) }
                     }
                 }
 
-                Item { width: parent.width; height: 8 }
+                Item { width: parent.width; height: Math.round(8 * localScale) }
             }
         }
     }
@@ -531,7 +551,7 @@ Item {
     component VPNRow: Item {
         id: vRow
         required property var con   // { name, active, busy }
-        height: 54
+        height: Math.round(54 * localScale)
 
         property bool _wasActive: false
         onConChanged: {
@@ -541,84 +561,84 @@ Item {
 
         // Card background
         Rectangle {
-            id: card; anchors.fill: parent; radius: Theme.cornerRadius
+            id: card; anchors.fill: parent; radius: Math.round(Theme.cornerRadius * localScale)
             color: vRow.con.active
                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08)
-                : vHov.hovered ? Qt.rgba(1,1,1,0.04) : "transparent"
+                : vHov.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.04) : "transparent"
             border.color: vRow.con.active
                 ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.22)
-                : Qt.rgba(1,1,1,0.07)
-            border.width: 1
-            Behavior on color        { ColorAnimation { duration: 200 } }
-            Behavior on border.color { ColorAnimation { duration: 200 } }
+                : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.07)
+            border.width: Math.max(1, Math.round(1 * localScale))
+            Behavior on color        { ColorAnimation { duration: Anim.normal} }
+            Behavior on border.color { ColorAnimation { duration: Anim.normal} }
 
             SequentialAnimation {
                 id: pulseAnim; running: false
-                ColorAnimation { target: card; to: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30); duration: 160 }
-                ColorAnimation { target: card; to: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08); duration: 500; easing.type: Easing.OutCubic }
+                ColorAnimation { target: card; to: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30); duration: Anim.mediumFast}
+                ColorAnimation { target: card; to: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.08); duration: Anim.verySlow; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod}
             }
         }
 
         Row {
-            anchors { left: parent.left; leftMargin: 12; verticalCenter: parent.verticalCenter }
-            spacing: 12
+            anchors { left: parent.left; leftMargin: Math.round(12 * localScale); verticalCenter: parent.verticalCenter }
+            spacing: Math.round(12 * localScale)
 
             // Shield glyph
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "󰦝"; font.pixelSize: 20
+                text: "󰦝"; font.pixelSize: Math.round(20 * localScale)
                 color: vRow.con.active
                     ? Theme.active
                     : vRow.con.busy
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.5)
-                        : Qt.rgba(1,1,1,0.28)
-                Behavior on color { ColorAnimation { duration: 200 } }
+                        : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.28)
+                Behavior on color { ColorAnimation { duration: Anim.normal} }
             }
 
             Column {
-                anchors.verticalCenter: parent.verticalCenter; spacing: 4
+                anchors.verticalCenter: parent.verticalCenter; spacing: Math.round(4 * localScale)
 
                 Text {
-                    text: vRow.con.name; font.pixelSize: 13
+                    text: vRow.con.name; font.pixelSize: Math.round(13 * localScale)
                     font.weight: vRow.con.active ? Font.Medium : Font.Normal
-                    color: vRow.con.active ? Theme.text : Qt.rgba(1,1,1,0.65)
-                    width: 160; elide: Text.ElideRight
+                    color: vRow.con.active ? Theme.text : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.65)
+                    width: Math.round(160 * localScale); elide: Text.ElideRight
                 }
                 Text {
-                    font.pixelSize: 10
+                    font.pixelSize: Math.round(10 * localScale)
                     text: vRow.con.busy
                         ? (vRow.con.active ? "Disconnecting…" : "Connecting…")
                         : vRow.con.active ? "Connected" : "Disconnected"
                     color: vRow.con.busy
                         ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.60)
-                        : vRow.con.active ? Theme.active : Qt.rgba(1,1,1,0.32)
-                    Behavior on color { ColorAnimation { duration: 200 } }
+                        : vRow.con.active ? Theme.active : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.32)
+                    Behavior on color { ColorAnimation { duration: Anim.normal} }
                 }
             }
         }
 
         // Right: spinner or status dot
         Item {
-            anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter }
-            width: 28; height: 28
+            anchors { right: parent.right; rightMargin: Math.round(12 * localScale); verticalCenter: parent.verticalCenter }
+            width: Math.round(28 * localScale); height: Math.round(28 * localScale)
 
             Text {
                 anchors.centerIn: parent; visible: vRow.con.busy
-                text: "○"; font.pixelSize: 16; color: Theme.active
+                text: "○"; font.pixelSize: Math.round(16 * localScale); color: Theme.active
                 SequentialAnimation on opacity {
                     running: vRow.con.busy; loops: Animation.Infinite
-                    NumberAnimation { to: 0.15; duration: 450 }
-                    NumberAnimation { to: 1.0;  duration: 450 }
+                    NumberAnimation { to: 0.15; duration: Anim.slower}
+                    NumberAnimation { to: 1.0;  duration: Anim.slower}
                 }
             }
 
             Rectangle {
                 anchors.centerIn: parent; visible: !vRow.con.busy
-                width: 10; height: 10; radius: 5
+                width: Math.round(10 * localScale); height: Math.round(10 * localScale); radius: Math.round(5 * localScale)
                 color: vRow.con.active
                     ? Theme.active
-                    : vHov.hovered ? Qt.rgba(1,1,1,0.35) : Qt.rgba(1,1,1,0.18)
-                Behavior on color { ColorAnimation { duration: 200 } }
+                    : vHov.hovered ? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.35) : Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.18)
+                Behavior on color { ColorAnimation { duration: Anim.normal} }
             }
         }
 

@@ -1,3 +1,21 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import Quickshell.Io
 
@@ -19,6 +37,13 @@ QtObject {
 
     property bool   active:   true
     property string envyMode: "integrated"
+    property bool hasNvidia: false
+
+    property var _nvCheckProc: Process {
+        command: ["sh", "-c", "command -v nvidia-smi"]
+        running: true
+        onExited: (code) => { root.hasNvidia = (code === 0) }
+    }
 
     property QtObject igpu: QtObject {
         property real   freqPercent: 0.0
@@ -105,7 +130,7 @@ QtObject {
 
     property var _nvTimer: Timer {
         interval: 1000
-        running:  root.active && root.envyMode !== "integrated"
+        running:  root.active && root.envyMode !== "integrated" && root.hasNvidia
         repeat:   true
         onTriggered: {
             _nvProc.running = false
@@ -126,7 +151,7 @@ QtObject {
     Component.onCompleted: {
         _actProc.running = true
         _maxProc.running = true
-        if (envyMode !== "integrated")
+        if (envyMode !== "integrated" && root.hasNvidia)
             _nvProc.running = true
     }
 }

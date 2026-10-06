@@ -1,45 +1,68 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import Quickshell
-import Quickshell.Wayland
 import Quickshell.Services.Notifications
-import "../shapes/"
 import "../services/"
 import "../"
 
-PopupWindow {
-	id: root
+Item {
+    id: root
+    property real localScale: 1.0
 
-	required property var anchorWindow
+        
+    readonly property int toastWidth: Math.round(Theme.notificationToastWidth * localScale) + Math.round(10 * localScale)
 
-	readonly property int toastWidth: Theme.notificationToastWidth+(fw/2)
-	readonly property int fw: Theme.notchRadius
-	readonly property int fh: Theme.notchRadius
 
-	implicitWidth:  toastWidth + fw
-	implicitHeight: 180
-
-	anchor.window: root.anchorWindow
-	anchor.rect: Qt.rect(
-		root.anchorWindow.width - toastWidth/2-fw+1,
-		-Theme.notchHeight-20,
-		toastWidth,
-		Theme.notchHeight
-	)
-	anchor.gravity:    Edges.Bottom
-	anchor.adjustment: PopupAdjustment.None
-
-	color:   "transparent"
-	visible: windowVisible
-
-	property bool windowVisible: false
 	property bool showing:       false
 	property var  current:       null
 	property var  queue:         []
+	property string cAppName:    ""
+	property string cAppIcon:    ""
+	property string cSummary:    ""
+	property string cBody:       ""
+	property int    cUrgency:    1
+	property var    cActions:    []
+
+	Connections {
+		target: SurfaceState
+		function _handleInterrupt() {
+			if ((SurfaceState.activeContent === "notifications") || (SurfaceState.activeContent === "network")) {
+				root.queue = []
+				if (root.showing || root.current) {
+					autoTimer.stop()
+					root.showing = false
+					Popups.notificationToastOpen = false
+					root.current = null
+				}
+			}
+		}
+		function onActiveContentChanged() {
+			_handleInterrupt()
+		}
+	}
 
 	Connections {
 		target: NotificationService
 		function onNotificationAdded(n) {
 			if (!n || !n.tracked) return
+			if ((SurfaceState.activeContent === "notifications") || (SurfaceState.activeContent === "network")) return
 			if (root.current === null) {
 				root.startShow(n)
 			} else {
@@ -50,8 +73,14 @@ PopupWindow {
 
 	function startShow(n) {
 		root.current       = n
+		root.cAppName      = n?.appName ?? ""
+		root.cAppIcon      = n?.appIcon ?? ""
+		root.cSummary      = n?.summary ?? ""
+		root.cBody         = n?.body ?? ""
+		root.cUrgency      = n?.urgency ?? 1
+		root.cActions      = n?.actions ?? []
 		root.showing       = false
-		root.windowVisible = true
+		
 		slideInTimer.restart()
 		Popups.notificationToastOpen = false
 	}
@@ -75,15 +104,20 @@ PopupWindow {
 		onTriggered: { root.showing = true; Popups.notificationToastOpen = true; autoTimer.restart() }
 	}
 
-	Timer {
+	NumberAnimation {
 		id:          autoTimer
-		interval:    5000
-		onTriggered: root.startDismiss()
+		target:      progressBar
+		property:    "width"
+		from:        root.toastWidth - Math.round(10 * root.localScale)
+		to:          0
+		duration:    5000
+		easing.type: Anim.linear
+		onFinished:  root.startDismiss()
 	}
 
 	Timer {
 		id:       slideOutTimer
-		interval: Theme.animDuration + 20
+		interval: Anim.transition + 20
 		onTriggered: {
 			if (root.queue.length > 0) {
 				const next = root.queue[0]
@@ -91,55 +125,59 @@ PopupWindow {
 				root.startShow(next)
 			} else {
 				root.current       = null
-				root.windowVisible = false
 			}
 		}
 	}
 
 	// ── Card ───────────────────────────────────────────────────
+	property int targetHeight: root.showing ? (cardCol.y + cardCol.implicitHeight + Math.round(24 * root.localScale) ) : 0
+
 	Item {
 		id:            card
-		anchors.right: parent.right
-		anchors.top:   parent.top
-		clip:           true
+		anchors.fill:  parent
+		clip:          true
 
-
-		width: root.showing 
-		? root.toastWidth + root.fw 
-		: root.fw
-
-		height: root.showing 
-		? (cardCol.y + cardCol.implicitHeight + 24 + root.fh) 
-		: root.fh
-
-		Behavior on width  { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
-		Behavior on height { NumberAnimation { duration: Theme.animDuration; easing.type: Easing.InOutCubic } }
-
-		PopupShape {
-			anchors.fill: parent
-			attachedEdge: "right"
-			color:        Theme.background
-			radius:       Theme.cornerRadius
-			flareWidth:   root.fw
-			flareHeight:  root.fh
+		TapHandler {
+			acceptedButtons: Qt.RightButton | Qt.MiddleButton
+			onTapped: root.startDismiss()
 		}
+
+		TapHandler {
+			acceptedButtons: Qt.LeftButton
+			onTapped: {
+				if (root.current) {
+					if (typeof root.current.invokeDefaultAction === "function") root.current.invokeDefaultAction()
+					else if (typeof root.current.invokeDefault === "function") root.current.invokeDefault()
+					else if (root.current.actions) {
+						for (var i = 0; i < root.current.actions.length; i++) {
+							if (root.current.actions[i].id === "default") {
+								root.current.actions[i].invoke()
+								break
+							}
+						}
+					}
+				}
+				root.startDismiss()
+			}
+		}
+
 
 		Rectangle {
 			anchors {
 				right:        parent.right
 				top:          parent.top
 				bottom:       parent.bottom
-				topMargin:    fh*1.2
-				bottomMargin: fh*1.2
-				rightMargin:  root.fw
+				topMargin:    0
+				bottomMargin: 0
+				rightMargin:  0
 			}
-			width:  3
-			radius: 2
+			width:  Math.round(3 * root.localScale)
+			radius: Math.round(2 * root.localScale)
 			color: {
 				if (!root.current) return "#ABB2BF"
-				switch (root.current.urgency) {
+				switch (root.cUrgency) {
 					case NotificationUrgency.Critical: return "#e06c75"
-					case NotificationUrgency.Low:      return Qt.rgba(1,1,1,0.25)
+					case NotificationUrgency.Low:      return Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.25)
 					default:                           return "#ABB2BF"
 				}
 			}
@@ -148,136 +186,90 @@ PopupWindow {
 		Item {
 			anchors.fill: parent
 			opacity: root.showing ? 1 : 0
-			Behavior on opacity { NumberAnimation { duration: 150 } }
+			Behavior on opacity { NumberAnimation { duration: Anim.mediumFast} }
 			Rectangle {
 				id: progressBar
 				anchors {
 					right:       parent.right
-					rightMargin: root.fw
+					rightMargin: 0
 					bottom:      cardCol.bottom
-					bottomMargin: -10
+					bottomMargin: Math.round(-10 * root.localScale)
 				}
-				height:  2
-				radius:  1
+				height:  Math.round(2 * root.localScale)
+				radius:  Math.round(1 * root.localScale)
 				color:   Theme.active
 				opacity: 0.5
-
-				property bool running: false
-
-				// Use toastWidth so the bar stays within the visible body, not the flare
-				width: running ? 0 : root.toastWidth - 10
-				Behavior on width {
-					enabled: progressBar.running
-					NumberAnimation { duration: 5000; easing.type: Easing.Linear }
-				}
-
-				Connections {
-					target: root
-					function onShowingChanged() {
-						if (root.showing) {
-							progressBar.running = false
-							progressTick.restart()
-						} else {
-							progressBar.running = false
-						}
-					}
-				}
-
-				Timer {
-					id:          progressTick
-					interval:    16
-					onTriggered: progressBar.running = true
-				}
 			}
 
 			Column {
 				id: cardCol
 				anchors {
-					left:       parent.left;  leftMargin:  14
-					right:      parent.right; rightMargin: root.fw + 6
+					left:       parent.left;  leftMargin:  Math.round(14 * root.localScale)
+					right:      parent.right; rightMargin: Math.round(14 * root.localScale)
 
 				}
-				spacing: 2
-				bottomPadding: 10
-				y: root.fh + 6
+				spacing: Math.round(2 * root.localScale)
+				bottomPadding: Math.round(10 * root.localScale)
+				y: 0 + Math.round(6 * root.localScale)
 				// No fixed height — sizes to content
 
 				Row {
 					id:      headerRow
 					width:   parent.width
-					height: 40
-					spacing: 8
+					height: Math.round(40 * root.localScale)
+					spacing: Math.round(8 * root.localScale)
 
 					Item {
-						width:  16
-						height: 16
+						width:  Math.round(16 * root.localScale)
+						height: Math.round(16 * root.localScale)
 						anchors.verticalCenter: parent.verticalCenter
 
 						Image {
 							id:           toastIcon
 							anchors.fill: parent
 							source: {
-								var ic = root.current?.appIcon ?? ""
+								var ic = root.cAppIcon
 								if (ic === "") return ""
 								if (ic.startsWith("/")) return "file://" + ic
+								if (!Quickshell.hasThemeIcon(ic)) return ""
 								return "image://icon/" + ic
 							}
 							fillMode:          Image.PreserveAspectFit
 							smooth:            true
 							visible:           status === Image.Ready
-							sourceSize.width:  16
-							sourceSize.height: 16
+							sourceSize.width:  Math.round(16 * root.localScale) | 0
+							sourceSize.height: Math.round(16 * root.localScale) | 0
 						}
 						Rectangle {
 							anchors.fill: parent
 							radius:       width / 2
-							color:        Qt.rgba(1,1,1,0.1)
+							color:        Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.1)
 							visible:      toastIcon.status !== Image.Ready
 							Text {
 								anchors.centerIn: parent
-								text:           (root.current?.appName ?? "?").charAt(0).toUpperCase()
+								text:           (root.cAppName !== "" ? root.cAppName : "?").charAt(0).toUpperCase()
 								color:          Theme.text
-								font.pixelSize: 9
+								font.pixelSize: Math.round(9 * root.localScale) | 0
 								font.bold:      true
 							}
 						}
 					}
 
 					Text {
-						width:                  parent.width - 16 - 24 - parent.spacing * 2
+						width:                  parent.width - Math.round(16 * root.localScale) - Math.round(24 * root.localScale) - parent.spacing * 2
 						anchors.verticalCenter: parent.verticalCenter
-						text:                   root.current?.appName ?? ""
+						text:                   root.cAppName
 						color:                  Theme.subtext
-						font.pixelSize:         11
+						font.pixelSize:         Math.round(11 * root.localScale) | 0
 						elide:                  Text.ElideRight
-					}
-
-					Item {
-						width:  20
-						height: 20
-						anchors.verticalCenter: parent.verticalCenter
-						Rectangle {
-							anchors.fill: parent
-							radius:       width / 2
-							color:        xHover.containsMouse ? Qt.rgba(1,1,1,0.12) : "transparent"
-							Behavior on color { ColorAnimation { duration: 100 } }
-						}
-						Text {
-							anchors.centerIn: parent
-							text:             "✕"
-							color:            Theme.subtext
-							font.pixelSize:   9
-						}
-						HoverHandler { id: xHover }
-						TapHandler   { onTapped: root.startDismiss() }
 					}
 				}
 
 				Text {
 					width:            parent.width
-					text:             root.current?.summary ?? ""
+					text:             root.cSummary
 					color:            Theme.text
-					font.pixelSize:   13
+					font.pixelSize:   Math.round(13 * root.localScale) | 0
 					font.bold:        true
 					wrapMode:         Text.WordWrap
 					maximumLineCount: 2
@@ -287,9 +279,9 @@ PopupWindow {
 
 				Text {
 					width:            parent.width
-					text:             root.current?.body ?? ""
+					text:             root.cBody
 					color:            Theme.subtext
-					font.pixelSize:   12
+					font.pixelSize:   Math.round(12 * root.localScale) | 0
 					wrapMode:         Text.WordWrap
 					maximumLineCount: 2
 					elide:            Text.ElideRight
@@ -298,30 +290,30 @@ PopupWindow {
 				}
 
 				Row {
-					spacing:    6
-					topPadding: 2
+					spacing:    Math.round(6 * root.localScale)
+					topPadding: Math.round(2 * root.localScale)
 					visible:    (root.current?.actions?.length ?? 0) > 0
 
 					Repeater {
-						model: root.current?.actions ?? []
+						model: root.cActions
 						delegate: Item {
 							required property var modelData
-							width:  actionLbl.width + 20
-							height: 24
+							width:  actionLbl.width + Math.round(20 * root.localScale)
+							height: Math.round(24 * root.localScale)
 							Rectangle {
 								anchors.fill: parent
-								radius:       4
+								radius:       Math.round(4 * root.localScale)
 								color:        actHover.containsMouse
-								? Qt.rgba(1,1,1,0.18)
-								: Qt.rgba(1,1,1,0.08)
-								Behavior on color { ColorAnimation { duration: 100 } }
+								? Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.18)
+								: Qt.rgba(Theme.text.r,Theme.text.g,Theme.text.b,0.08)
+								Behavior on color { ColorAnimation { duration: Anim.fast} }
 							}
 							Text {
 								id:               actionLbl
 								anchors.centerIn: parent
 								text:             modelData?.text ?? ""
 								color:            Theme.text
-								font.pixelSize:   11
+								font.pixelSize:   Math.round(11 * root.localScale) | 0
 							}
 							HoverHandler { id: actHover }
 							TapHandler {
@@ -330,6 +322,19 @@ PopupWindow {
 									root.startDismiss()
 								}
 							}
+						}
+					}
+				}
+			}
+
+			HoverHandler {
+				id: toastHover
+				onHoveredChanged: {
+					if (hovered) {
+						autoTimer.pause()
+					} else {
+						if (root.showing) {
+							autoTimer.resume()
 						}
 					}
 				}

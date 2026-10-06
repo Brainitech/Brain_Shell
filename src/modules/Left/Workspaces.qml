@@ -1,3 +1,21 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
@@ -6,6 +24,7 @@ import "../../"
 Rectangle {
     id: root
     
+    property real localScale: 1.0
     // ── Config Provider ────────────────────────────────────────────────
     property string configProvider: ShellState.configProvider
     
@@ -29,11 +48,11 @@ Rectangle {
 
     // --- 1. Capsule Container ---
     color: Theme.wsBackground
-    radius: Theme.wsRadius
+    radius: Math.round(Theme.wsRadius * localScale)
 
     // Auto-size
-    width: workspaceRow.width + (Theme.wsPadding * 2)
-    height: Theme.wsDotSize + (Theme.wsPadding * 2)
+    width: workspaceRow.width + Math.round(Theme.wsPadding * 2 * localScale)
+    height: Math.round(Theme.wsDotSize * localScale) + Math.round(Theme.wsPadding * 2 * localScale)
 
     // --- 2. LOGIC: Raw Event Listener ---
     property bool isScratchpad: false
@@ -69,7 +88,6 @@ Rectangle {
                 idx = (idx - 1 + occupied.length) % occupied.length;
             }
             
-            //Hyprland.dispatch(`workspace ${occupied[idx]}`);
             root.dispatchWorkspace(occupied[idx]);
         }
     }   
@@ -78,8 +96,6 @@ Rectangle {
         
         // Quickshell emits (name, data) for raw events
         function onRawEvent(event) {
-		//	console.log("RawEvent_name: "+ event.name)
-		//	console.log("RawEvent_data: "+ event.data)
             // 1. Handle Scratchpad Toggle
             if (event.name === "activespecial" || event.name === "activespecialv2") {
                 // Event data format: "workspaceName,monitorName"
@@ -102,15 +118,15 @@ Rectangle {
     Row {
         id: workspaceRow
         anchors.centerIn: parent
-        spacing: Theme.wsSpacing
+        spacing: Math.round(Theme.wsSpacing * localScale)
 
         // Logic: Fade out dots when Scratchpad is active
         opacity: root.isScratchpad ? 0 : 1
         scale:   root.isScratchpad ? 0.8 : 1
         visible: opacity > 0 
 
-        Behavior on opacity { NumberAnimation { duration: 200 } }
-        Behavior on scale   { NumberAnimation { duration: 200 } }
+        Behavior on opacity { NumberAnimation { duration: Anim.normal} }
+        Behavior on scale   { NumberAnimation { duration: Anim.normal} }
 
         Repeater {
             model: 10 
@@ -123,9 +139,9 @@ Rectangle {
                 property bool isUrgent:   ws !== undefined && ws.urgent
 
 
-                height: Theme.wsDotSize
+                height: Math.round(Theme.wsDotSize * localScale)
                 radius: height / 2
-                width: isActive ? Theme.wsActiveWidth : Theme.wsDotSize
+                width: isActive ? Math.round(Theme.wsActiveWidth * localScale) : Math.round(Theme.wsDotSize * localScale)
                 
                 color: {
                     if (isActive)   return Theme.wsActive
@@ -134,8 +150,8 @@ Rectangle {
                     return Theme.wsEmpty
                 }
 
-                Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
-                Behavior on color { ColorAnimation { duration: 200 } }
+                Behavior on width { NumberAnimation { duration: Anim.normal; easing.type: Anim.outBack; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
+                Behavior on color { ColorAnimation { duration: Anim.normal} }
 
                 // --- Urgent pulse ---
                 SequentialAnimation {
@@ -146,15 +162,15 @@ Rectangle {
                         target:   dot
                         property: "scale"
                         to:       1.35
-                        duration: 400
-                        easing.type: Easing.InOutSine
+                        duration: Anim.slower
+                        easing.type: Anim.inOutSine
                     }
                     NumberAnimation {
                         target:   dot
                         property: "scale"
                         to:       1.0
-                        duration: 400
-                        easing.type: Easing.InOutSine
+                        duration: Anim.slower
+                        easing.type: Anim.inOutSine
                     }
                 }
 
@@ -166,7 +182,6 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    //onClicked: Hyprland.dispatch(`workspace ${index + 1}`)
                     onClicked: root.dispatchWorkspace(index + 1)
                 }
             }
@@ -185,18 +200,17 @@ Rectangle {
         visible: opacity > 0
         opacity: root.isScratchpad ? 1 : 0
         
-        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on opacity { NumberAnimation { duration: Anim.normal} }
         
         Text {
             anchors.centerIn: parent
             text: "" 
-            color: "#FFFFFF"
-            font.pixelSize: 14
+            color: Theme.text
+            font.pixelSize: Math.round(14 * localScale)
         }
         
         MouseArea {
             anchors.fill: parent
-            //onClicked: Hyprland.dispatch("togglespecialworkspace magic")
             onClicked:  root.dispatchWorkspace("magic", true)
         }
     }

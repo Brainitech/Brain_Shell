@@ -1,3 +1,21 @@
+/*
+ * Brain Shell
+ * Copyright (C) 2026 Venkat Saahit Kamu (Brainitech)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import QtQuick
 import Quickshell.Io
 import "../../"
@@ -17,16 +35,25 @@ import "../../"
 //   string currentMode  — "integrated" | "hybrid" | "nvidia"
 //   bool   busy         — true while a switch command is running
 //   function switchMode(mode)
-//   function executeSwitch(mode)  — called by ConfirmDialog
 
 QtObject {
     id: root
 
     property string currentMode: "integrated"
-    property bool   busy:        false
+    property bool available: false
+
+    property var _checkProc: Process {
+        command: ["sh", "-c", "command -v envycontrol"]
+        running: true
+        onExited: (code) => { 
+            root.available = (code === 0) 
+            if (root.available) {
+                _queryProc.running = true
+            }
+        }
+    }
 
     // Pending mode — held until we confirm the switch succeeded
-    property string _pendingMode: ""
 
     // ── Query current mode ────────────────────────────────────────────────────
     property var _queryProc: Process {
@@ -35,13 +62,17 @@ QtObject {
         stdout: StdioCollector {
             onStreamFinished: {
                 var mode = text.trim().toLowerCase()
-                if (mode !== "") root.currentMode = mode
+                if (mode === "integrated" || mode === "hybrid" || mode === "nvidia") {
+                    root.currentMode = mode
+                } else {
+                    root.currentMode = "integrated"
+                }
             }
         }
     }
 
     function switchMode(mode) {
-        if (mode === root.currentMode || root.busy) return
+        if (!root.available || mode === root.currentMode || root.busy) return
         Popups.closeAll()
         Popups.showConfirm(
             "Switch GPU Mode",
@@ -50,10 +81,5 @@ QtObject {
             "gpu-switch-envy",
             mode
         )
-    }
-
-
-    Component.onCompleted: {
-        _queryProc.running = true
     }
 }

@@ -74,7 +74,7 @@
             qt6.qtmultimedia
             qt6.qt5compat
             util-linux
-            mpv-mpris
+            mpvScripts.mpris
             mpd-mpris
             ranger
           ];

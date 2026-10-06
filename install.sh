@@ -197,7 +197,7 @@ if [[ "$IS_OMARCHY" == "true" ]]; then
             log_info "Skipping automatic disable. Please follow the README to disable it manually."
         else
             log_info "Disabling omarchy-shell..."
-            if sudo sed -i 's/.*hl\.exec_cmd("omarchy-shell-launch").*/-- hl.exec_cmd("omarchy-shell-launch")/' "$OMARCHY_AUTOSTART"; then
+            if sudo sed -i '/omarchy-shell/ s/^\([[:space:]]*\)\(--[[:space:]]*\)\?/\1-- /' "$OMARCHY_AUTOSTART"; then
                 log_ok "omarchy-shell successfully disabled in $OMARCHY_AUTOSTART."
             else
                 log_warn "Failed to disable automatically. Please follow the README to do it manually."

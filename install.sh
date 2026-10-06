@@ -197,10 +197,10 @@ if [[ "$IS_OMARCHY" == "true" ]]; then
             log_info "Skipping automatic disable. Please follow the README to disable it manually."
         else
             log_info "Disabling omarchy-shell..."
-            sudo sed -i --follow-symlinks '/omarchy-shell/!b; /^[[:space:]]*--/b; s/^[[:space:]]*/&-- /' "$OMARCHY_AUTOSTART" 2>/dev/null || \
-            sudo sed -i '/omarchy-shell/!b; /^[[:space:]]*--/b; s/^[[:space:]]*/&-- /' "$OMARCHY_AUTOSTART"
+            sudo sed -i --follow-symlinks '/omarchy-launch-shell/!b; /^[[:space:]]*--/b; s/^[[:space:]]*/&-- /' "$OMARCHY_AUTOSTART" 2>/dev/null || \
+            sudo sed -i '/omarchy-launch-shell/!b; /^[[:space:]]*--/b; s/^[[:space:]]*/&-- /' "$OMARCHY_AUTOSTART"
             
-            if grep -q "^[[:space:]]*--.*omarchy-shell" "$OMARCHY_AUTOSTART" 2>/dev/null; then
+            if grep -q "^[[:space:]]*--.*omarchy-launch-shell" "$OMARCHY_AUTOSTART" 2>/dev/null; then
                 log_ok "omarchy-shell successfully disabled in $OMARCHY_AUTOSTART."
             else
                 log_warn "Failed to comment out line (File might be protected or line missing)."

@@ -191,16 +191,20 @@ if [[ "$IS_OMARCHY" == "true" ]]; then
     log_warn "Omarchy OS detected. omarchy-shell conflicts with Brain_Shell's Notification and Wallpaper Manager."
     OMARCHY_AUTOSTART="/usr/share/omarchy/default/hypr/autostart.lua"
     if [[ -f "$OMARCHY_AUTOSTART" ]]; then
-        read -p "  Do you want to automatically disable omarchy-shell? (Requires sudo) [Y/n] " -n 1 -r
+        read -p "  Do you want to automatically disable omarchy-shell? (Requires sudo) [Y/n] " -n 1 -r < /dev/tty
         echo ""
         if [[ $REPLY =~ ^[Nn]$ ]]; then
             log_info "Skipping automatic disable. Please follow the README to disable it manually."
         else
             log_info "Disabling omarchy-shell..."
-            if sudo sed -i '/omarchy-shell/ s/^\([[:space:]]*\)\(--[[:space:]]*\)\?/\1-- /' "$OMARCHY_AUTOSTART"; then
+            sudo sed -i --follow-symlinks '/omarchy-shell/!b; /^[[:space:]]*--/b; s/^[[:space:]]*/&-- /' "$OMARCHY_AUTOSTART" 2>/dev/null || \
+            sudo sed -i '/omarchy-shell/!b; /^[[:space:]]*--/b; s/^[[:space:]]*/&-- /' "$OMARCHY_AUTOSTART"
+            
+            if grep -q "^[[:space:]]*--.*omarchy-shell" "$OMARCHY_AUTOSTART" 2>/dev/null; then
                 log_ok "omarchy-shell successfully disabled in $OMARCHY_AUTOSTART."
             else
-                log_warn "Failed to disable automatically. Please follow the README to do it manually."
+                log_warn "Failed to comment out line (File might be protected or line missing)."
+                log_info "Please check $OMARCHY_AUTOSTART manually."
             fi
         fi
         echo ""

@@ -291,6 +291,11 @@ The installer automatically:
 - ✓ Updates your Hyprland config to auto-start Brain_Shell.
 - ✓ Provides a default Hyprland template for users with no previous Hyprland install.
 
+> [!IMPORTANT]
+> If you're on `OMARCHY` then disable the `omarchy-shell` startup line located in `/usr/share/omarchy/default/hypr/autostart.lua`
+> Comment out the line `hl.exec_cmd("omarchy-shell-launch")`
+> Failing to do this will interfere with `Brain_Shell`'s Notification and Wallpaper Manager
+
 ---
 
 ### NixOS

@@ -65,6 +65,10 @@ IconBtn {
                     rootBtn.text = ""
                     rootBtn.textColor = "#00fde8"
                     rootBtn.fontSize = smallSize 
+                } else if (osId === "omarchy") {
+                    rootBtn.text = ""
+                    rootBtn.textColor = "#6ad17d"
+                    rootBtn.fontSize = smallSize
                 } else {
                     rootBtn.text = ""
                     rootBtn.textColor = "#dfe7ec"

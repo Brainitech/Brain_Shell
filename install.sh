@@ -74,7 +74,9 @@ if [[ -f /etc/os-release ]]; then
             DISTRO_TYPE="nix"
             ;;
         omarchy)
-            die "Omarchy is too opinonated for Brain_Shell. While it works fine, try installing it via the manual method after disabling the default omarchy_shell."
+            log_ok "Distro: ${ID} (Omarchy) detected."
+            DISTRO_TYPE="arch"
+            IS_OMARCHY="true"
             ;;
         *)
             die "Unsupported distro: ${ID:-unknown}. Supported: Arch-based, NixOS."
@@ -184,6 +186,30 @@ step 5 "Done"
 echo ""
 log_ok "Brain Shell v0.2.0 installed successfully."
 echo ""
+
+if [[ "$IS_OMARCHY" == "true" ]]; then
+    log_warn "Omarchy OS detected. omarchy-shell conflicts with Brain_Shell's Notification and Wallpaper Manager."
+    OMARCHY_AUTOSTART="/usr/share/omarchy/default/hypr/autostart.lua"
+    if [[ -f "$OMARCHY_AUTOSTART" ]]; then
+        read -p "  Do you want to automatically disable omarchy-shell? (Requires sudo) [Y/n] " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Nn]$ ]]; then
+            log_info "Skipping automatic disable. Please follow the README to disable it manually."
+        else
+            log_info "Disabling omarchy-shell..."
+            if sudo sed -i 's/.*hl\.exec_cmd("omarchy-shell-launch").*/-- hl.exec_cmd("omarchy-shell-launch")/' "$OMARCHY_AUTOSTART"; then
+                log_ok "omarchy-shell successfully disabled in $OMARCHY_AUTOSTART."
+            else
+                log_warn "Failed to disable automatically. Please follow the README to do it manually."
+            fi
+        fi
+        echo ""
+    else
+        log_warn "Could not find $OMARCHY_AUTOSTART. Please check the README to disable it manually."
+        echo ""
+    fi
+fi
+
 
 echo -e "  ${BOLD}Next Steps:${NC}"
 if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]] && command -v hyprctl &>/dev/null && hyprctl activeworkspace &>/dev/null; then

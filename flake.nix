@@ -230,7 +230,7 @@ EOF
                 # Only manage Hyprland config declaratively when HM owns Hyprland.
                 # Otherwise init_user_dir.sh handles injection on first brain-shell launch.
                 wayland.windowManager.hyprland = lib.mkIf (cfg.hyprland.enable && hmHyprlandEnabled) {
-                  extraConfig = if isLua then ''
+                  extraConfig = (if isLua then ''
                     -- >>> Brain Shell Autostart & Integration >>>
                     local bs = os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua"
                     local f = io.open(bs, "r")
@@ -240,7 +240,7 @@ EOF
                     # >>> Brain Shell Autostart & Integration >>>
                     source = ~/.config/Brain_Shell/BrainShell-hyprland.conf
                     # <<< Brain Shell Autostart & Integration <<<
-                  '';
+                  '');
                 };
               }
             );

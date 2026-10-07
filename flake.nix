@@ -196,8 +196,7 @@ EOF
                 configType = lib.mkOption {
                   type = lib.types.enum [ "hyprlang" "lua" ];
                   default = "lua";
-                  description = ''
-                    Hyprland configuration format in use.
+                  description ="Hyprland configuration format in use.";
                 };
               };
             };
@@ -220,17 +219,10 @@ EOF
                 hmHyprlandEnabled = config.wayland.windowManager.hyprland.enable or false;
                 isLua = cfg.hyprland.configType == "lua";
                 
-                brainShellExtraConfig = if isLua then ''
-                  -- >>> Brain Shell Autostart & Integration >>>
-                  local bs = os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua"
-                  local f = io.open(bs, "r")
-                  if f then f:close(); dofile(bs) end
-                  -- <<< Brain Shell Autostart & Integration <<<
-                '' else ''
-                  # >>> Brain Shell Autostart & Integration >>>
-                  source = ~/.config/Brain_Shell/BrainShell-hyprland.conf
-                  # <<< Brain Shell Autostart & Integration <<<
-                '';
+               brainShellExtraConfig = if isLua then
+                  "-- >>> Brain Shell Autostart & Integration >>>\nlocal bs = os.getenv(\"HOME\") .. \"/.config/Brain_Shell/BrainShell-hyprland.lua\"\nlocal f = io.open(bs, \"r\")\nif f then f:close(); dofile(bs) end\n-- <<< Brain Shell Autostart & Integration <<<"
+                else
+                  "# >>> Brain Shell Autostart & Integration >>>\nsource = ~/.config/Brain_Shell/BrainShell-hyprland.conf\n# <<< Brain Shell Autostart & Integration <<<"; 
               in {
                 home.packages = [ cfg.package ] ++ cfg.extraPackages;
 

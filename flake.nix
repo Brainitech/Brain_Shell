@@ -211,7 +211,9 @@ EOF
                 in
                 if isLua then {
                   # use new lua format
-                  exec_once = [ "brain-shell" ]; 
+                  hl.on("hyprland.start", function()
+                    exec_once = [ "brain-shell" ]; 
+                  end)
                 } else {
                   # use older hyprlang format
                   "exec-once" = [ "brain-shell" ];

@@ -195,12 +195,9 @@ EOF
 
                 configType = lib.mkOption {
                   type = lib.types.enum [ "hyprlang" "lua" ];
-                  default = "hyprlang";
+                  default = "lua";
                   description = ''
                     Hyprland configuration format in use.
-                    Set to "lua" if your hyprland config is written in Lua (Hyprland 0.55+).
-                    Set to "hyprlang" (default) for the standard .conf format.
-                  '';
                 };
               };
             };

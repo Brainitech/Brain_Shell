@@ -190,7 +190,7 @@ EOF
                 enable = lib.mkOption {
                   type = lib.types.bool;
                   default = true;
-                  description = "Whether to automatically add Brain Shell to Hyprland autostart (exec-once).";
+                  description = "Whether to automatically add Brain Shell to Hyprland autostart (exec_once).";
                 };
               };
             };
@@ -204,9 +204,19 @@ EOF
             config = lib.mkIf cfg.enable {
               home.packages = [ cfg.package ] ++ cfg.extraPackages;
 
-              wayland.windowManager.hyprland.settings.exec-once = lib.mkIf cfg.hyprland.enable [
-                "brain-shell"
-              ];
+              wayland.windowManager.hyprland.settings = lib.mkIf cfg.hyprland.enable (
+                let
+                  # Is home manager using lua?
+                  isLua = (config.wayland.windowManager.hyprland.configType or "hyprlang") == "lua";
+                in
+                if isLua then {
+                  # use new lua format
+                  exec_once = [ "brain-shell" ]; 
+                } else {
+                  # use older hyprlang format
+                  "exec-once" = [ "brain-shell" ];
+                }
+              );
             };
           };
 

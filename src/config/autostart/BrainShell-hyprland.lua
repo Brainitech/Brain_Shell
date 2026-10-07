@@ -2,7 +2,7 @@
 hl.on("hyprland.start", function()
     hl.exec_cmd("awww-daemon")
     hl.exec_cmd("hypridle")
-    hl.exec_cmd("quickshell -p " .. os.getenv("HOME") .. "/.local/src/Brain_Shell")
+    hl.exec_cmd("command -v brain-shell >/dev/null 2>&1 && brain-shell || quickshell -p " .. os.getenv("HOME") .. "/.local/src/Brain_Shell")
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")

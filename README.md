@@ -223,46 +223,6 @@ yay -S --needed auto-cpufreq
 
 </details>
 
-<details>
-<summary><b>NixOS (configuration.nix)</b></summary>
-
-Add the following packages to your `environment.systemPackages` inside `configuration.nix`:
-
-```nix
-# Note: The following packages are ONLY required if you do not use the provided flake module.
-# The flake module `brain-shell.nixosModules.default` automatically encapsulates these.
-environment.systemPackages = with pkgs; [
-  quickshell hyprland qt6.qtbase qt6.qtdeclarative qt6.qtwayland qt6.qtmultimedia qt6.qt5compat qt6Packages.qt6ct
-  pipewire wireplumber networkmanager bluez brightnessctl upower libnotify polkit python3 wl-clipboard slurp
-  xdg-user-dirs wtype imagemagick wf-recorder cava playerctl awww matugen lm_sensors hyprlock hypridle hyprsunset
-  xdg-desktop-portal-hyprland xdg-desktop-portal-gtk cliphist git hyprpolkitagent grimblast kitty rfkill mpv-mpris mpd-mpris
-];
-```
-
-Ensure the required Wayland and system services are enabled:
-
-```nix
-programs.hyprland.enable = true;
-services.pipewire = {
-  enable = true;
-  alsa.enable = true;
-  pulse.enable = true;
-};
-services.blueman.enable = true;
-services.upower.enable = true;
-xdg.portal = {
-  enable = true;
-  extraPortals = [ pkgs.xdg-desktop-portal-hyprland pkgs.xdg-desktop-portal-gtk ];
-};
-fonts.packages = with pkgs; [
-  nerd-fonts.jetbrains-mono
-  nerd-fonts.symbols-only
-];
-environment.variables.QT_QPA_PLATFORMTHEME = "qt6ct";
-```
-
-</details>
-
 ---
 
 ## Installation
@@ -294,13 +254,18 @@ The installer automatically:
 > [!IMPORTANT]
 > If you're on `OMARCHY` then disable the `omarchy-shell` startup line located in `/usr/share/omarchy/default/hypr/autostart.lua`
 > Comment out the line `hl.exec_cmd("omarchy-shell-launch")`
-> Failing to do this will interfere with `Brain_Shell`'s Notification and Wallpaper Manager
+> Failing to do this will interfere with `Brain_Shell`'s Notification and Wallpaper Manager.
+> The Installer should already do this if it detects Omarchy.
 
 ---
 
-### NixOS
+### NixOS & Home Manager
 
-### 1. Create or edit `/etc/nixos/flake.nix`
+Brain_Shell provides official, declarative NixOS and Home Manager flake modules with automatic first-launch state initialization and bundled runtime dependencies.
+
+#### NixOS System Module
+
+**1. Add Brain_Shell to `/etc/nixos/flake.nix`:**
 
 ```nix
 {
@@ -313,7 +278,7 @@ The installer automatically:
   };
 
   outputs = { nixpkgs, brain-shell, ... }: {
-    # Replace "hostname" with whatever your actual hostname is
+    # Replace "hostname" with your actual hostname
     nixosConfigurations.hostname = nixpkgs.lib.nixosSystem {
       modules = [
         brain-shell.nixosModules.default
@@ -324,33 +289,59 @@ The installer automatically:
 }
 ```
 
-### 2. Enable it in `/etc/nixos/configuration.nix`
+**2. Enable the module in `/etc/nixos/configuration.nix`:**
 
 ```nix
 programs.brain-shell.enable = true;
-
-# Note: If this is a fresh install, ensure flakes are enabled:
-nix.settings.experimental-features = [ "nix-command" "flakes" ];
 ```
 
-### 3. Rebuild the system
-
-Run the rebuild command targeting the flake.
+**3. Rebuild your system:**
 
 ```bash
 sudo nixos-rebuild switch --flake /etc/nixos/
 ```
 
-### 4. Initialize User Configuration & Autostart
+The NixOS module enables Hyprland, required audio/bluetooth/portal services, Nerd Fonts, and places the `brain-shell` package on your system `$PATH`. On first launch, Brain_Shell automatically self-initializes mutable user state in `~/.config/Brain_Shell`.
 
-The NixOS flake module installs system dependencies and enables core services, but user-level autostarts and configuration files must be initialized:
+#### Home Manager Module
 
-```bash
-# Run the installer script to initialize ~/.config/Brain_Shell and Hyprland autostart
-curl -fsSL https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh | bash
+Brain_Shell also provides a dedicated Home Manager module for per-user declarative configuration.
+
+**1. Add Brain_Shell to your Home Manager flake:**
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    brain-shell = {
+      url = "github:Brainitech/Brain_Shell?ref=main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = { nixpkgs, home-manager, brain-shell, ... }: {
+    homeConfigurations."myuser" = home-manager.lib.homeManagerConfiguration {
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      modules = [
+        brain-shell.homeManagerModules.default
+        {
+          programs.brain-shell = {
+            enable = true;
+            # hyprland.enable = true; # Declaratively adds brain-shell to Hyprland exec-once (default: true)
+            # extraPackages = [ ];   # Optional additional packages
+          };
+        }
+      ];
+    };
+  };
+}
 ```
 
-Once initialized, launch your Hyprland session:
+**2. Switch your Home Manager profile:**
 
 ```bash
 start-hyprland
@@ -498,6 +489,8 @@ _Giving up already? YOU DIED. (Just kidding, here's how to safely remove it with
 
 To completely remove Brain_Shell and restore your previous configuration:
 
+### Arch Linux / Manual Installation
+
 ```bash
 # 1. Kill Currently Running Shell (if running)
 pkill quickshell || pkill qs || true
@@ -505,8 +498,16 @@ pkill quickshell || pkill qs || true
 rm -rf ~/.local/src/Brain_Shell
 rm -rf ~/.config/Brain_Shell
 
-# 3. Remove the Brain_Shell autostart line from the bottom of your Hyprland configuration
+# 3. Remove the Brain_Shell autostart line from your Hyprland configuration (hyprland.lua / hyprland.conf)
+```
 
+### NixOS / Home Manager
+
+1. Remove `programs.brain-shell.enable = true;` from your flake / system / Home Manager configuration.
+2. Rebuild your system (`sudo nixos-rebuild switch --flake /etc/nixos/`) or Home Manager profile (`home-manager switch`).
+3. Optionally remove user configuration and state:
+```bash
+rm -rf ~/.config/Brain_Shell
 ```
 
 ---

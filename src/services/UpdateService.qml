@@ -79,7 +79,7 @@ QtObject {
 
     // Popup is only shown when PrefsService.autoUpdate is enabled
     readonly property bool showPopup:
-        PrefsService.autoUpdate && (
+        !Paths.isNix && PrefsService.autoUpdate && (
             updateAvailable ||
             updating ||
             hasConflict ||
@@ -96,14 +96,15 @@ QtObject {
         onTriggered: root._startConnectivityCheck()
     }
     
-    property bool isLegacyPath: Quickshell.shellDir.indexOf(".local/src/Brain_Shell") !== -1
+    property bool isLegacyPath: !Paths.isNix && Paths.installDir.indexOf(".local/src/Brain_Shell") !== -1
     
     Component.onCompleted: {
+        if (Paths.isNix) return
         if (PrefsService.autoUpdate && root.isLegacyPath) {
             _startTimer.start()
         }
     }
-    readonly property string _dir:        Quickshell.shellDir
+    readonly property string _dir:        Paths.installDir
     // ── Step 1: fetch origin/main ──────────────────────────────────────────
     property var _fetchProc: Process {
         command: ["git", "-C", root._dir, "fetch", "origin", "main", "--quiet"]
@@ -196,6 +197,7 @@ QtObject {
     // ── Public API ─────────────────────────────────────────────────────────
 
     function check() {
+        if (Paths.isNix) return
         if (!root.isLegacyPath) return
         if (root.checking || root.updating) return
         root.checking        = true
@@ -208,6 +210,7 @@ QtObject {
     }
 
     function applyUpdate() {
+        if (Paths.isNix) return
         if (root.updating) return
         root.updating        = true
         root.hasConflict     = false
@@ -218,6 +221,7 @@ QtObject {
     }
 
     function stashAndUpdate() {
+        if (Paths.isNix) return
         if (root.updating) return
         root.updating            = true
         root.hasConflict         = false

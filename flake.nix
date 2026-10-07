@@ -7,20 +7,117 @@
   };
 
   outputs = { self, nixpkgs, flake-utils }:
+    let
+      getBrainShellDeps = pkgs: with pkgs; [
+        quickshell
+        hyprland
+        qt6.qtbase
+        qt6.qtdeclarative
+        qt6.qtwayland
+        qt6Packages.qt6ct
+        pipewire
+        wireplumber
+        pulseaudio
+        networkmanager
+        bluez
+        brightnessctl
+        upower
+        libnotify
+        polkit
+        python3
+        wl-clipboard
+        slurp
+        grim
+        grimblast
+        xdg-user-dirs
+        xdg-utils
+        wtype
+        imagemagick
+        wf-recorder
+        cava
+        playerctl
+        mpv
+        awww
+        matugen
+        lm_sensors
+        hyprlock
+        hypridle
+        hyprsunset
+        xdg-desktop-portal-hyprland
+        xdg-desktop-portal-gtk
+        cliphist
+        git
+        hyprpolkitagent
+        kitty
+        qt6.qtmultimedia
+        qt6.qt5compat
+        util-linux
+        mpvScripts.mpris
+        mpd-mpris
+        ranger
+        coreutils
+        findutils
+        gawk
+        gnused
+        iproute2
+        iputils
+        procps
+      ];
+    in
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-      in {
-        packages.default = pkgs.stdenv.mkDerivation {
+        brainShellDeps = getBrainShellDeps pkgs;
+        brainShellPkg = pkgs.stdenv.mkDerivation {
           pname = "brain-shell";
           version = "0.2.0";
           src = ./.;
+
+          nativeBuildInputs = [ pkgs.makeWrapper ];
+
           phases = [ "installPhase" ];
           installPhase = ''
-           mkdir -p $out
-           cp -r $src/src $src/shell.qml $out/
-         '';
+            mkdir -p $out/share/brain-shell
+            cp -r $src/src $src/shell.qml $out/share/brain-shell/
+            chmod +x $out/share/brain-shell/src/scripts/*.sh 2>/dev/null || true
+
+            mkdir -p $out/bin
+            cat > $out/bin/.brain-shell-unwrapped <<'EOF'
+#!/bin/sh
+if [ -z "$BRAIN_SHELL_CONFIG_DIR" ]; then
+    export BRAIN_SHELL_CONFIG_DIR="$HOME/.config/Brain_Shell"
+fi
+
+if [ "$1" = "ipc" ]; then
+    shift
+    exec quickshell ipc -p "@out@/share/brain-shell" "$@"
+else
+    if [ -x "@out@/share/brain-shell/src/scripts/init_user_dir.sh" ]; then
+        "@out@/share/brain-shell/src/scripts/init_user_dir.sh" || true
+    fi
+    exec quickshell -p "@out@/share/brain-shell" "$@"
+fi
+EOF
+            substituteInPlace $out/bin/.brain-shell-unwrapped --replace-fail "@out@" "$out"
+            chmod +x $out/bin/.brain-shell-unwrapped
+
+            makeWrapper $out/bin/.brain-shell-unwrapped $out/bin/brain-shell \
+              --prefix PATH : "${pkgs.lib.makeBinPath brainShellDeps}" \
+              --set BRAIN_SHELL_INSTALL_DIR "$out/share/brain-shell" \
+              --run '[ -z "$BRAIN_SHELL_CONFIG_DIR" ] && export BRAIN_SHELL_CONFIG_DIR="$HOME/.config/Brain_Shell"' \
+              --set BRAIN_SHELL_NIX "1"
+          '';
         };
+        defaultApp = {
+          type = "app";
+          program = "${brainShellPkg}/bin/brain-shell";
+        };
+      in {
+        packages.default = brainShellPkg;
+        packages.brain-shell = brainShellPkg;
+
+        apps.default = defaultApp;
+        apps.brain-shell = defaultApp;
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
@@ -34,50 +131,7 @@
         with lib;
         let
           cfg = config.programs.brain-shell;
-          brainShellDeps = with pkgs; [
-            quickshell
-            hyprland
-            qt6.qtbase
-            qt6.qtdeclarative
-            qt6.qtwayland
-            qt6Packages.qt6ct
-            pipewire
-            wireplumber
-            networkmanager
-            bluez
-            brightnessctl
-            upower
-            libnotify
-            polkit
-            python3
-            wl-clipboard
-            slurp
-            xdg-user-dirs
-            wtype
-            imagemagick
-            wf-recorder
-            cava
-            playerctl
-            awww
-            matugen
-            lm_sensors
-            hyprlock
-            hypridle
-            hyprsunset
-            xdg-desktop-portal-hyprland
-            xdg-desktop-portal-gtk
-            cliphist
-            git
-            hyprpolkitagent
-            grimblast
-            kitty
-            qt6.qtmultimedia
-            qt6.qt5compat
-            util-linux
-            mpvScripts.mpris
-            mpd-mpris
-            ranger
-          ];
+          brainShellDeps = getBrainShellDeps pkgs;
         in {
           options.programs.brain-shell = {
             enable = mkEnableOption "Brain Shell session";
@@ -109,5 +163,54 @@
             };
           };
         };
+
+      homeManagerModules = rec {
+        default = { config, pkgs, lib, ... }:
+          let
+            cfg = config.programs.brain-shell;
+          in {
+            options.programs.brain-shell = {
+              enable = lib.mkEnableOption "Brain Shell UI";
+
+              package = lib.mkOption {
+                type = lib.types.package;
+                default = self.packages.${pkgs.system}.brain-shell;
+                defaultText = lib.literalExpression "self.packages.\${pkgs.system}.brain-shell";
+                description = "The Brain Shell package to install.";
+              };
+
+              extraPackages = lib.mkOption {
+                type = lib.types.listOf lib.types.package;
+                default = [ ];
+                example = lib.literalExpression "[ pkgs.envycontrol pkgs.gpu-screen-recorder ]";
+                description = "Additional packages to add to the user environment alongside Brain Shell.";
+              };
+
+              hyprland = {
+                enable = lib.mkOption {
+                  type = lib.types.bool;
+                  default = true;
+                  description = "Whether to automatically add Brain Shell to Hyprland autostart (exec-once).";
+                };
+              };
+            };
+
+            # Note on mutable state and Home Manager boundary:
+            # Brain Shell initializes and manages its runtime state dynamically at
+            # ~/.config/Brain_Shell (e.g., shell_prefs.json, wallpaper.json, tasks.json,
+            # colors.json, and keybinds.json) via init_user_dir.sh and Quickshell.
+            # These files MUST remain mutable and are NOT managed via home.file or
+            # xdg.configFile to avoid breaking runtime persistence and the in-shell settings editor.
+            config = lib.mkIf cfg.enable {
+              home.packages = [ cfg.package ] ++ cfg.extraPackages;
+
+              wayland.windowManager.hyprland.settings.exec-once = lib.mkIf cfg.hyprland.enable [
+                "brain-shell"
+              ];
+            };
+          };
+
+        brain-shell = default;
+      };
     };
 }

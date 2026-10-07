@@ -2,8 +2,9 @@
 # v0.2.0 OTA Migration Script
 # Triggered by Quickshell QML on startup if flag is missing.
 
-FLAG_FILE="$HOME/.config/Brain_Shell/.v0.2.0_migrated"
-REPO_DIR="$HOME/.local/src/Brain_Shell"
+CONFIG_DIR="${BRAIN_SHELL_CONFIG_DIR:-$HOME/.config/Brain_Shell}"
+FLAG_FILE="$CONFIG_DIR/.v0.2.0_migrated"
+REPO_DIR="${BRAIN_SHELL_INSTALL_DIR:-$HOME/.local/src/Brain_Shell}"
 
 # 1. Determine active Hyprland config
 HYPR_DIR="$HOME/.config/hypr"
@@ -15,16 +16,16 @@ elif [[ -f "$HYPR_DIR/hyprland.conf" ]]; then
 fi
 
 # 2. Check if already migrated
-if [[ -n "$CONF" ]] && grep -q "brain-shell" "$CONF" && ( [ -f "$HOME/.config/Brain_Shell/hypr/brain-shell.conf" ] || [ -f "$HOME/.config/Brain_Shell/hypr/brain-shell.lua" ] ); then
+if [[ -n "$CONF" ]] && grep -q "brain-shell" "$CONF" && ( [ -f "$CONFIG_DIR/hypr/brain-shell.conf" ] || [ -f "$CONFIG_DIR/hypr/brain-shell.lua" ] ); then
     touch "$FLAG_FILE"
     exit 2 # Silently recover flag
 fi
 
 # 3. Deploy modular autostarts
-mkdir -p "$HOME/.config/Brain_Shell/hypr"
-cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.conf" "$HOME/.config/Brain_Shell/hypr/brain-shell.conf" || exit 1
-cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.lua" "$HOME/.config/Brain_Shell/hypr/brain-shell.lua" || exit 1
-sed -i "s|\$HOME/.local/src/Brain_Shell|$REPO_DIR|g" "$HOME/.config/Brain_Shell/hypr/brain-shell.conf" "$HOME/.config/Brain_Shell/hypr/brain-shell.lua"
+mkdir -p "$CONFIG_DIR/hypr"
+cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.conf" "$CONFIG_DIR/hypr/brain-shell.conf" || exit 1
+cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.lua" "$CONFIG_DIR/hypr/brain-shell.lua" || exit 1
+sed -i "s|\$HOME/.local/src/Brain_Shell|$REPO_DIR|g" "$CONFIG_DIR/hypr/brain-shell.conf" "$CONFIG_DIR/hypr/brain-shell.lua"
 
 if [[ -n "$CONF" ]]; then
     # 4. Backup config
@@ -77,7 +78,8 @@ fi
 # 7. Migrate JSON user data to shell_prefs.json
 python3 -c '
 import json, os
-ud = os.path.expanduser("~/.config/Brain_Shell/src/user_data")
+config_dir = os.environ.get("BRAIN_SHELL_CONFIG_DIR") or os.path.expanduser("~/.config/Brain_Shell")
+ud = os.path.join(config_dir, "src/user_data")
 prefs = os.path.join(ud, "shell_prefs.json")
 old_files = ["animation_prefs.json", "update_prefs.json", "screenrec.json", "hotspot.json"]
 merged = {}
@@ -104,7 +106,7 @@ if changed:
 
 # 8. Set flag and notify
 # Pre-generate default colors to prevent unstyled first boot
-mkdir -p "$HOME/.config/Brain_Shell/matugen"
+mkdir -p "$CONFIG_DIR/matugen"
 (cd "$REPO_DIR" && matugen image "src/assets/wallpapers/brain-shell-default-0.png" -c "src/config/matugen.toml" -m dark --source-color-index 0 --type scheme-smart >/dev/null 2>&1 || true)
 
 touch "$FLAG_FILE"

@@ -227,9 +227,11 @@ QtObject {
     property var _setupServiceProc: Process {
         command: ["bash", "-c",
             "mkdir -p ~/.config/systemd/user && " +
+            "TRUE_BIN=$(which true 2>/dev/null || echo '/usr/bin/true') && " +
+            "CLIP_BIN=$(which cliphist 2>/dev/null || echo 'cliphist') && " +
             "printf '[Unit]\\nDescription=Wipe cliphist history on logout/shutdown\\n\\n" +
-            "[Service]\\nType=oneshot\\nRemainAfterExit=true\\nExecStart=/usr/bin/true\\nExecStop=/usr/bin/cliphist wipe\\n\\n" +
-            "[Install]\\nWantedBy=default.target\\n' " +
+            "[Service]\\nType=oneshot\\nRemainAfterExit=true\\nExecStart=%s\\nExecStop=%s wipe\\n\\n" +
+            "[Install]\\nWantedBy=default.target\\n' \"$TRUE_BIN\" \"$CLIP_BIN\" " +
             "> ~/.config/systemd/user/cliphist-wipe.service && " +
             "systemctl --user daemon-reload && " +
             "systemctl --user enable --now cliphist-wipe.service 2>/dev/null || true"]

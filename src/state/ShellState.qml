@@ -39,7 +39,7 @@ QtObject {
 
                 
     // ── File System ───────────────────────────────────────────────────────────
-    property string userDataDir: Quickshell.env("HOME") + "/.config/Brain_Shell/src/user_data"
+    property string userDataDir: Paths.userDataDir
 
     property bool focusMode:    false
     property bool dnd:          false

@@ -190,7 +190,7 @@ EOF
                 enable = lib.mkOption {
                   type = lib.types.bool;
                   default = true;
-                  description = "Whether to automatically add Brain Shell to Hyprland autostart (exec-once).";
+                  description = "Whether to automatically add Brain Shell to Hyprland autostart (exec_once).";
                 };
               };
             };
@@ -201,13 +201,30 @@ EOF
             # colors.json, and keybinds.json) via init_user_dir.sh and Quickshell.
             # These files MUST remain mutable and are NOT managed via home.file or
             # xdg.configFile to avoid breaking runtime persistence and the in-shell settings editor.
-            config = lib.mkIf cfg.enable {
-              home.packages = [ cfg.package ] ++ cfg.extraPackages;
-
-              wayland.windowManager.hyprland.settings.exec-once = lib.mkIf cfg.hyprland.enable [
-                "brain-shell"
-              ];
-            };
+            config = lib.mkIf cfg.enable (
+              let
+                isLua = (config.wayland.windowManager.hyprland.configType or "hyprlang") == "lua";
+              in {
+                home.packages = [ cfg.package ] ++ cfg.extraPackages;
+            
+                wayland.windowManager.hyprland = lib.mkIf cfg.hyprland.enable {
+                  
+                  # If isLua is true, this evaluates. If false, Nix completely ignores it.
+                  extraConfig = lib.mkIf isLua ''
+                    hl.on("hyprland.start", function()
+                      hl.exec_cmd("brain-shell") 
+                    end)
+                  '';
+            
+                  # Notice the `!isLua` (NOT isLua) here. 
+                  # If it's NOT lua, we pass standard settings.
+                  settings = lib.mkIf (!isLua) {
+                    "exec-once" = [ "brain-shell" ];
+                  };
+                  
+                };
+              }
+            );
           };
 
         brain-shell = default;

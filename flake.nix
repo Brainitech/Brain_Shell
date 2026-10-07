@@ -211,7 +211,7 @@ EOF
                   
                   # If isLua is true, this evaluates. If false, Nix completely ignores it.
                   extraConfig = lib.mkIf isLua ''
-                    hl.on("hyprland.start", function()exec_once = [ "brain-shell" ]; end)
+                    hl.on("hyprland.start", function()exec_once = [ brain-shell ]; end)
                   '';
             
                   # Notice the `!isLua` (NOT isLua) here. 

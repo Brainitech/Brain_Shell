@@ -307,7 +307,7 @@ The NixOS module enables Hyprland, required audio/bluetooth/portal services, Ner
 
 Brain_Shell also provides a dedicated Home Manager module for per-user declarative configuration.
 
-**1. Add Brain_Shell to your Home Manager flake:**
+**1. Add Brain_Shell input in `~/.config/home-manager/flake.nix`:**
 
 ```nix
 {
@@ -324,28 +324,42 @@ Brain_Shell also provides a dedicated Home Manager module for per-user declarati
   };
 
   outputs = { nixpkgs, home-manager, brain-shell, ... }: {
-    homeConfigurations."myuser" = home-manager.lib.homeManagerConfiguration {
+    homeConfigurations."<username>" = home-manager.lib.homeManagerConfiguration {
       pkgs = nixpkgs.legacyPackages.x86_64-linux;
       modules = [
         brain-shell.homeManagerModules.default
-        {
-          programs.brain-shell = {
-            enable = true;
-            # hyprland.enable = true; # Declaratively adds brain-shell to Hyprland exec-once (default: true)
-            # extraPackages = [ ];   # Optional additional packages
-          };
-        }
+        ./home.nix
       ];
     };
   };
 }
 ```
 
-**2. Switch your Home Manager profile:**
+**2. Enable in `~/.config/home-manager/home.nix`:**
+
+```nix
+{ pkgs, ... }:
+
+{
+  home.username = "<username>";
+  home.homeDirectory = "/home/<username>";
+  home.stateVersion = "24.11"; # Set to your initial Home Manager version
+
+  programs.brain-shell = {
+    enable = true;
+    # hyprland.enable = true; # Automatically registers autostart & keybinds in Hyprland (default: true)
+    # extraPackages = [ ];   # Optional extra packages
+  };
+}
+```
+
+**3. Switch your Home Manager profile:**
 
 ```bash
-start-hyprland
+home-manager switch --flake ~/.config/home-manager/#<username>
 ```
+
+---
 
 ---
 

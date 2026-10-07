@@ -64,8 +64,27 @@ copy_template() {
 copy_template "$INSTALL_DIR/src/config/hypridle.conf" "$CONFIG_DIR/hypridle.conf"
 copy_template "$INSTALL_DIR/src/config/hyprlock.conf" "$CONFIG_DIR/hyprlock.conf"
 copy_template "$INSTALL_DIR/src/config/matugen.toml"  "$CONFIG_DIR/matugen.toml"
+copy_template "$INSTALL_DIR/src/config/autostart/BrainShell-hyprland.conf" "$CONFIG_DIR/BrainShell-hyprland.conf"
+copy_template "$INSTALL_DIR/src/config/autostart/BrainShell-hyprland.lua"  "$CONFIG_DIR/BrainShell-hyprland.lua"
 
-# 3. Touch initial user state files if missing
+# 3. Detect Hyprland configuration format (Lua vs Hyprlang)
+# BRAIN_SHELL_CONFIG_TYPE can be set by a wrapper (e.g. Nix) to "lua" or "hyprlang"
+# to override file-based detection for declarative setups where hyprland.lua
+# may not exist at the standard path.
+HYPR_DIR="$HOME/.config/hypr"
+HYPR_CONF="$HYPR_DIR/hyprland.conf"
+HYPR_LUA="$HYPR_DIR/hyprland.lua"
+
+IS_LUA=0
+if [ "${BRAIN_SHELL_CONFIG_TYPE:-}" = "lua" ]; then
+    IS_LUA=1
+elif [ "${BRAIN_SHELL_CONFIG_TYPE:-}" = "hyprlang" ]; then
+    IS_LUA=0
+elif [ -f "$HYPR_LUA" ]; then
+    IS_LUA=1
+fi
+
+# 4. Touch initial user state files if missing
 touch_state() {
     local file="$1"
     if [ ! -f "$file" ]; then
@@ -80,7 +99,52 @@ touch_state "$CONFIG_DIR/src/user_data/wallpaper.json"
 touch_state "$CONFIG_DIR/src/user_data/tasks.json"
 touch_state "$CONFIG_DIR/src/user_data/config_Provider.json"
 
-# 4. Mark initialization complete
+if [ "$IS_LUA" -eq 1 ]; then
+    touch_state "$CONFIG_DIR/Brain_ShellKeybinds.lua"
+else
+    touch_state "$CONFIG_DIR/Brain_ShellKeybinds.conf"
+fi
+
+# 5. Smart Hyprland integration (inject source line or seed default config)
+if [ -f "$HYPR_LUA" ]; then
+    if [ -w "$HYPR_LUA" ] && ! grep -q "BrainShell-hyprland" "$HYPR_LUA" 2>/dev/null; then
+        cat >> "$HYPR_LUA" <<'EOF'
+
+-- >>> Brain Shell Autostart & Integration >>>
+local bs_autostart = os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua"
+local f = io.open(bs_autostart, "r")
+if f then f:close(); dofile(bs_autostart) end
+-- <<< Brain Shell Autostart & Integration <<<
+EOF
+    fi
+elif [ -f "$HYPR_CONF" ]; then
+    if [ -w "$HYPR_CONF" ] && ! grep -q "BrainShell-hyprland" "$HYPR_CONF" 2>/dev/null; then
+        cat >> "$HYPR_CONF" <<'EOF'
+
+# >>> Brain Shell Autostart & Integration >>>
+source = ~/.config/Brain_Shell/BrainShell-hyprland.conf
+# <<< Brain Shell Autostart & Integration <<<
+EOF
+    fi
+elif [ ! -e "$HYPR_CONF" ] && [ ! -e "$HYPR_LUA" ]; then
+    # No Hyprland config found — seed Brain_Shell's curated Lua template.
+    HYPR_TEMPLATE="$INSTALL_DIR/src/config/hypr_template"
+    if [ -d "$HYPR_TEMPLATE" ]; then
+        mkdir -p "$HYPR_DIR" 2>/dev/null || true
+        cp -r "$HYPR_TEMPLATE/"* "$HYPR_DIR/" 2>/dev/null || {
+            echo "[Brain_Shell] Warning: Failed to seed Hyprland config from template" >&2
+        }
+    fi
+fi
+
+# 6. Copy default wallpapers if missing (non-destructive)
+WALLPAPER_DIR="${XDG_PICTURES_DIR:-$HOME/Pictures}/Wallpapers"
+mkdir -p "$WALLPAPER_DIR" 2>/dev/null || true
+if [ -d "$INSTALL_DIR/src/assets/wallpapers" ]; then
+    cp -n -r "$INSTALL_DIR/src/assets/wallpapers"/* "$WALLPAPER_DIR/" 2>/dev/null || true
+fi
+
+# 7. Mark initialization complete
 touch "$VERSION_MARKER" 2>/dev/null || true
 
 exit 0

@@ -192,6 +192,16 @@ EOF
                   default = true;
                   description = "Whether to automatically add Brain Shell to Hyprland autostart (exec_once).";
                 };
+
+                configType = lib.mkOption {
+                  type = lib.types.enum [ "hyprlang" "lua" ];
+                  default = "hyprlang";
+                  description = ''
+                    Hyprland configuration format in use.
+                    Set to "lua" if your hyprland config is written in Lua (Hyprland 0.55+).
+                    Set to "hyprlang" (default) for the standard .conf format.
+                  '';
+                };
               };
             };
 
@@ -201,29 +211,39 @@ EOF
             # colors.json, and keybinds.json) via init_user_dir.sh and Quickshell.
             # These files MUST remain mutable and are NOT managed via home.file or
             # xdg.configFile to avoid breaking runtime persistence and the in-shell settings editor.
+            #
+            # Hyprland config injection:
+            # When Home Manager manages Hyprland (wayland.windowManager.hyprland.enable = true),
+            # this module injects the Brain Shell autostart/rules/keybinds via extraConfig using
+            # the format specified by programs.brain-shell.hyprland.configType.
+            # When hyprland.enable = false (user manages Hyprland manually), Brain Shell's
+            # init_user_dir.sh automatically injects the source line on first launch instead.
             config = lib.mkIf cfg.enable (
               let
-                isLua = (config.wayland.windowManager.hyprland.configType or "hyprlang") == "lua";
+                hmHyprlandEnabled = config.wayland.windowManager.hyprland.enable or false;
+                isLua = cfg.hyprland.configType == "lua";
               in {
                 home.packages = [ cfg.package ] ++ cfg.extraPackages;
-            
-                wayland.windowManager.hyprland = lib.mkIf cfg.hyprland.enable {
-                  
-                  # If isLua is true, this evaluates. If false, Nix completely ignores it.
-                  extraConfig = lib.mkIf isLua ''
-                    local autostart = os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua"
-                    local f = io.open(autostart, "r")
-                    if f then f:close(); dofile(autostart) end
+
+                # Expose the configured format to init_user_dir.sh so it can create
+                # the correct keybind file even when hyprland.lua does not exist at
+                # the standard path (e.g. declarative HM-managed Hyprland configs).
+                home.sessionVariables.BRAIN_SHELL_CONFIG_TYPE = cfg.hyprland.configType;
+
+                # Only manage Hyprland config declaratively when HM owns Hyprland.
+                # Otherwise init_user_dir.sh handles injection on first brain-shell launch.
+                wayland.windowManager.hyprland = lib.mkIf (cfg.hyprland.enable && hmHyprlandEnabled) {
+                  extraConfig = if isLua then ''
+                    -- >>> Brain Shell Autostart & Integration >>>
+                    local bs = os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua"
+                    local f = io.open(bs, "r")
+                    if f then f:close(); dofile(bs) end
+                    -- <<< Brain Shell Autostart & Integration <<<
+                  '' else ''
+                    # >>> Brain Shell Autostart & Integration >>>
+                    source = ~/.config/Brain_Shell/BrainShell-hyprland.conf
+                    # <<< Brain Shell Autostart & Integration <<<
                   '';
-            
-                  # Notice the `!isLua` (NOT isLua) here. 
-                  # If it's NOT lua, we pass standard settings.
-                  settings = lib.mkIf (!isLua) {
-                    source = [
-                      "~/.config/Brain_Shell/BrainShell-hyprland.conf"
-                    ];
-                  };
-                  
                 };
               }
             );

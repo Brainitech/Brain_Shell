@@ -265,7 +265,9 @@ Brain_Shell provides official, declarative NixOS and Home Manager flake modules 
 
 #### NixOS System Module
 
-**1. Add Brain_Shell to `/etc/nixos/flake.nix`:**
+For system-level installation (enables system services, PipeWire audio, Bluetooth, Nerd Fonts, and places `brain-shell` on `$PATH`):
+
+**1. Add Brain_Shell input in `/etc/nixos/flake.nix`:**
 
 ```nix
 {
@@ -278,8 +280,7 @@ Brain_Shell provides official, declarative NixOS and Home Manager flake modules 
   };
 
   outputs = { nixpkgs, brain-shell, ... }: {
-    # Replace "hostname" with your actual hostname
-    nixosConfigurations.hostname = nixpkgs.lib.nixosSystem {
+    nixosConfigurations."<hostname>" = nixpkgs.lib.nixosSystem {
       modules = [
         brain-shell.nixosModules.default
         ./configuration.nix
@@ -301,11 +302,11 @@ programs.brain-shell.enable = true;
 sudo nixos-rebuild switch --flake /etc/nixos/
 ```
 
-The NixOS module enables Hyprland, required audio/bluetooth/portal services, Nerd Fonts, and places the `brain-shell` package on your system `$PATH`. On first launch, Brain_Shell automatically self-initializes mutable user state in `~/.config/Brain_Shell`.
+---
 
 #### Home Manager Module
 
-Brain_Shell also provides a dedicated Home Manager module for per-user declarative configuration.
+For per-user declarative management via Home Manager:
 
 **1. Add Brain_Shell input in `~/.config/home-manager/flake.nix`:**
 
@@ -347,8 +348,9 @@ Brain_Shell also provides a dedicated Home Manager module for per-user declarati
 
   programs.brain-shell = {
     enable = true;
-    # hyprland.enable = true; # Automatically registers autostart & keybinds in Hyprland (default: true)
-    # extraPackages = [ ];   # Optional extra packages
+    # hyprland.enable     = true;       # Automatically registers autostart & keybinds in Hyprland (default: true)
+    # hyprland.configType = "hyprlang"; # Set to "lua" if you use Lua-based hyprland.lua (Hyprland 0.55+)
+    # extraPackages       = [ ];        # Optional extra packages
   };
 }
 ```
@@ -356,7 +358,7 @@ Brain_Shell also provides a dedicated Home Manager module for per-user declarati
 **3. Switch your Home Manager profile:**
 
 ```bash
-home-manager switch --flake ~/.config/home-manager/#<username>
+home-manager switch --flake ~/.config/home-manager/
 ```
 
 ---

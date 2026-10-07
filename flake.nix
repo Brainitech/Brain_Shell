@@ -211,15 +211,17 @@ EOF
                   
                   # If isLua is true, this evaluates. If false, Nix completely ignores it.
                   extraConfig = lib.mkIf isLua ''
-                    hl.on("hyprland.start", function()
-                      hl.exec_cmd("brain-shell") 
-                    end)
+                    local autostart = os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua"
+                    local f = io.open(autostart, "r")
+                    if f then f:close(); dofile(autostart) end
                   '';
             
                   # Notice the `!isLua` (NOT isLua) here. 
                   # If it's NOT lua, we pass standard settings.
                   settings = lib.mkIf (!isLua) {
-                    "exec-once" = [ "brain-shell" ];
+                    source = [
+                      "~/.config/Brain_Shell/BrainShell-hyprland.conf"
+                    ];
                   };
                   
                 };

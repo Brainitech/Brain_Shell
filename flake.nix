@@ -216,31 +216,28 @@ EOF
             # When hyprland.enable = false (user manages Hyprland manually), Brain Shell's
             # init_user_dir.sh automatically injects the source line on first launch instead.
             config = lib.mkIf cfg.enable (
-              let
+             let
                 hmHyprlandEnabled = config.wayland.windowManager.hyprland.enable or false;
                 isLua = cfg.hyprland.configType == "lua";
+                
+                brainShellExtraConfig = if isLua then ''
+                  -- >>> Brain Shell Autostart & Integration >>>
+                  local bs = os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua"
+                  local f = io.open(bs, "r")
+                  if f then f:close(); dofile(bs) end
+                  -- <<< Brain Shell Autostart & Integration <<<
+                '' else ''
+                  # >>> Brain Shell Autostart & Integration >>>
+                  source = ~/.config/Brain_Shell/BrainShell-hyprland.conf
+                  # <<< Brain Shell Autostart & Integration <<<
+                '';
               in {
                 home.packages = [ cfg.package ] ++ cfg.extraPackages;
 
-                # Expose the configured format to init_user_dir.sh so it can create
-                # the correct keybind file even when hyprland.lua does not exist at
-                # the standard path (e.g. declarative HM-managed Hyprland configs).
                 home.sessionVariables.BRAIN_SHELL_CONFIG_TYPE = cfg.hyprland.configType;
 
-                # Only manage Hyprland config declaratively when HM owns Hyprland.
-                # Otherwise init_user_dir.sh handles injection on first brain-shell launch.
                 wayland.windowManager.hyprland = lib.mkIf (cfg.hyprland.enable && hmHyprlandEnabled) {
-                  extraConfig = (if isLua then ''
-                    -- >>> Brain Shell Autostart & Integration >>>
-                    local bs = os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua"
-                    local f = io.open(bs, "r")
-                    if f then f:close(); dofile(bs) end
-                    -- <<< Brain Shell Autostart & Integration <<<
-                  '' else ''
-                    # >>> Brain Shell Autostart & Integration >>>
-                    source = ~/.config/Brain_Shell/BrainShell-hyprland.conf
-                    # <<< Brain Shell Autostart & Integration <<<
-                  '');
+                  extraConfig = brainShellExtraConfig;
                 };
               }
             );

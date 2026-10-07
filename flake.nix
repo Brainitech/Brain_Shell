@@ -204,19 +204,23 @@ EOF
             config = lib.mkIf cfg.enable {
               home.packages = [ cfg.package ] ++ cfg.extraPackages;
 
-              wayland.windowManager.hyprland.settings = lib.mkIf cfg.hyprland.enable (
-                let
-                  # Is home manager using lua?
-                  isLua = (config.wayland.windowManager.hyprland.configType or "hyprlang") == "lua";
-                in
-                if isLua then {
-                  # use new lua format
-                  hl.on("hyprland.start", function()exec_once = [ "brain-shell" ]; end)
-                } else {
-                  # use older hyprlang format
-                  "exec-once" = [ "brain-shell" ];
-                }
-              );
+              wayland.windowManager.hyprland = lib.mkIf cfg.hyprland.enable (
+                  let
+                    # Is home manager using lua?
+                    isLua = (config.wayland.windowManager.hyprland.configType or "hyprlang") == "lua";
+                  in
+                  if isLua then {
+                    # Use extraConfig to pass a raw Lua string
+                    extraConfig = ''
+                      hl.on("hyprland.start", function()exec_once = [ "brain-shell" ]; end)
+                    '';
+                  } else {
+                    # Use settings to pass standard Nix attribute sets
+                    settings = {
+                      "exec-once" = [ "brain-shell" ];
+                    };
+                  }
+                );
             };
           };
 

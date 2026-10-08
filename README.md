@@ -348,9 +348,9 @@ For per-user declarative management via Home Manager:
 
   programs.brain-shell = {
     enable = true;
-    # hyprland.enable     = true;       # Automatically registers autostart & keybinds in Hyprland (default: true)
-    # hyprland.configType = "hyprlang"; # Set to "lua" if you use Lua-based hyprland.lua (Hyprland 0.55+)
-    # extraPackages       = [ ];        # Optional extra packages
+    # systemd.enable = true;                 # Autostart via systemd user service (default: true)
+    # installDefaultHyprlandConfig = false;  # Deploy Brain_Shell's default hyprland template (default: false)
+    # extraPackages = [ ];                   # Optional extra packages
   };
 }
 ```

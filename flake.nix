@@ -83,7 +83,7 @@
 
             mkdir -p $out/bin
             cat > $out/bin/.brain-shell-unwrapped <<'EOF'
-#!/bin/sh
+#!/usr/bin/env bash
 if [ -z "$BRAIN_SHELL_CONFIG_DIR" ]; then
     export BRAIN_SHELL_CONFIG_DIR="$HOME/.config/Brain_Shell"
 fi
@@ -91,12 +91,33 @@ fi
 if [ "$1" = "ipc" ]; then
     shift
     exec quickshell ipc -p "@out@/share/brain-shell" "$@"
-else
-    if [ -x "@out@/share/brain-shell/src/scripts/init_user_dir.sh" ]; then
-        "@out@/share/brain-shell/src/scripts/init_user_dir.sh" || true
-    fi
-    exec quickshell -p "@out@/share/brain-shell" "$@"
 fi
+
+if [ -x "@out@/share/brain-shell/src/scripts/init_user_dir.sh" ]; then
+    "@out@/share/brain-shell/src/scripts/init_user_dir.sh" || true
+fi
+
+# Ensure daemons are killed when shell exits
+cleanup() {
+    kill $(jobs -p) 2>/dev/null
+}
+trap cleanup EXIT
+
+# Start Daemons
+awww-daemon &
+hypridle &
+wl-paste --type text --watch cliphist store &
+wl-paste --type image --watch cliphist store &
+
+if [[ "$XDG_CURRENT_DESKTOP" == *"Hyprland"* ]]; then
+    if systemctl --user list-unit-files hyprpolkitagent.service >/dev/null 2>&1; then
+        systemctl --user start hyprpolkitagent
+    elif command -v hyprpolkitagent >/dev/null 2>&1; then
+        hyprpolkitagent &
+    fi
+fi
+
+quickshell -p "@out@/share/brain-shell" "$@"
 EOF
             substituteInPlace $out/bin/.brain-shell-unwrapped --replace-fail "@out@" "$out"
             chmod +x $out/bin/.brain-shell-unwrapped
@@ -187,56 +208,46 @@ EOF
                 description = "Additional packages to add to the user environment alongside Brain Shell.";
               };
 
-              hyprland = {
-                enable = lib.mkOption {
-                  type = lib.types.bool;
-                  default = true;
-                  description = "Whether to automatically add Brain Shell to Hyprland autostart (exec_once).";
-                };
+              systemd.enable = lib.mkOption {
+                type = lib.types.bool;
+                default = true;
+                description = "Enable Brain Shell as a systemd user service for autostart.";
+              };
 
-                configType = lib.mkOption {
-                  type = lib.types.enum [ "hyprlang" "lua" ];
-                  default = "lua";
-                  description ="Hyprland configuration format in use.";
-                };
+              installDefaultHyprlandConfig = lib.mkOption {
+                type = lib.types.bool;
+                default = false;
+                description = "Whether to install the default Hyprland config template via Home Manager.";
               };
             };
 
-            # Note on mutable state and Home Manager boundary:
-            # Brain Shell initializes and manages its runtime state dynamically at
-            # ~/.config/Brain_Shell (e.g., shell_prefs.json, wallpaper.json, tasks.json,
-            # colors.json, and keybinds.json) via init_user_dir.sh and Quickshell.
-            # These files MUST remain mutable and are NOT managed via home.file or
-            # xdg.configFile to avoid breaking runtime persistence and the in-shell settings editor.
-            #
-            # Hyprland config injection:
-            # When Home Manager manages Hyprland (wayland.windowManager.hyprland.enable = true),
-            # this module injects the Brain Shell autostart/rules/keybinds via extraConfig using
-            # the format specified by programs.brain-shell.hyprland.configType.
-            # When hyprland.enable = false (user manages Hyprland manually), Brain Shell's
-            # init_user_dir.sh automatically injects the source line on first launch instead.
-            config = lib.mkIf cfg.enable (
-             let
-                hmHyprlandEnabled = config.wayland.windowManager.hyprland.enable or false;
-                isLua = cfg.hyprland.configType == "lua";
-                
-               brainShellExtraConfig = if isLua then
-                  "-- >>> Brain Shell Autostart & Integration >>>\nlocal bs = os.getenv(\"HOME\") .. \"/.config/Brain_Shell/hypr/brain-shell.lua\"\nlocal f = io.open(bs, \"r\")\nif f then f:close(); dofile(bs) end\n-- <<< Brain Shell Autostart & Integration <<<"
-                else
-                  "# >>> Brain Shell Autostart & Integration >>>\nsource = ~/.config/Brain_Shell/hypr/brain-shell.conf\n# <<< Brain Shell Autostart & Integration <<<"; 
-              in {
-                home.packages = [ cfg.package ] ++ cfg.extraPackages ++ brainShellDeps ++ (with pkgs; [
-                  nerd-fonts.jetbrains-mono
-                  nerd-fonts.symbols-only
-                ]);
+            config = lib.mkIf cfg.enable {
+              home.packages = [ cfg.package ] ++ cfg.extraPackages ++ brainShellDeps ++ (with pkgs; [
+                nerd-fonts.jetbrains-mono
+                nerd-fonts.symbols-only
+              ]);
 
-                home.sessionVariables.BRAIN_SHELL_CONFIG_TYPE = cfg.hyprland.configType;
-
-                wayland.windowManager.hyprland = lib.mkIf (cfg.hyprland.enable && hmHyprlandEnabled) {
-                  extraConfig = brainShellExtraConfig;
+              systemd.user.services.brain-shell = lib.mkIf cfg.systemd.enable {
+                Unit = {
+                  Description = "Brain Shell session";
+                  PartOf = [ "graphical-session.target" ];
+                  After = [ "graphical-session.target" ];
                 };
-              }
-            );
+                Service = {
+                  ExecStart = "${cfg.package}/bin/brain-shell";
+                  Restart = "on-failure";
+                  RestartSec = "5s";
+                };
+                Install = {
+                  WantedBy = [ "graphical-session.target" ];
+                };
+              };
+
+              xdg.configFile."hypr" = lib.mkIf cfg.installDefaultHyprlandConfig {
+                source = "${cfg.package}/share/brain-shell/src/config/hypr_template";
+                recursive = true;
+              };
+            };
           };
 
         brain-shell = default;

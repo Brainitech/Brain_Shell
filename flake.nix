@@ -168,6 +168,7 @@ EOF
         default = { config, pkgs, lib, ... }:
           let
             cfg = config.programs.brain-shell;
+            brainShellDeps = getBrainShellDeps pkgs;
           in {
             options.programs.brain-shell = {
               enable = lib.mkEnableOption "Brain Shell UI";
@@ -220,11 +221,14 @@ EOF
                 isLua = cfg.hyprland.configType == "lua";
                 
                brainShellExtraConfig = if isLua then
-                  "-- >>> Brain Shell Autostart & Integration >>>\nlocal bs = os.getenv(\"HOME\") .. \"/.config/Brain_Shell/BrainShell-hyprland.lua\"\nlocal f = io.open(bs, \"r\")\nif f then f:close(); dofile(bs) end\n-- <<< Brain Shell Autostart & Integration <<<"
+                  "-- >>> Brain Shell Autostart & Integration >>>\nlocal bs = os.getenv(\"HOME\") .. \"/.config/Brain_Shell/hypr/brain-shell.lua\"\nlocal f = io.open(bs, \"r\")\nif f then f:close(); dofile(bs) end\n-- <<< Brain Shell Autostart & Integration <<<"
                 else
-                  "# >>> Brain Shell Autostart & Integration >>>\nsource = ~/.config/Brain_Shell/BrainShell-hyprland.conf\n# <<< Brain Shell Autostart & Integration <<<"; 
+                  "# >>> Brain Shell Autostart & Integration >>>\nsource = ~/.config/Brain_Shell/hypr/brain-shell.conf\n# <<< Brain Shell Autostart & Integration <<<"; 
               in {
-                home.packages = [ cfg.package ] ++ cfg.extraPackages;
+                home.packages = [ cfg.package ] ++ cfg.extraPackages ++ brainShellDeps ++ (with pkgs; [
+                  nerd-fonts.jetbrains-mono
+                  nerd-fonts.symbols-only
+                ]);
 
                 home.sessionVariables.BRAIN_SHELL_CONFIG_TYPE = cfg.hyprland.configType;
 

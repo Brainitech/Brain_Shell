@@ -110,7 +110,7 @@ cleanup() {
 trap cleanup EXIT
 
 # Start session daemons.
-${BRAIN_SHELL_WALLPAPER_DAEMON:-awww-daemon} &
+''${BRAIN_SHELL_WALLPAPER_DAEMON:-awww-daemon} &
 hypridle &
 wl-paste --type text --watch cliphist store &
 wl-paste --type image --watch cliphist store &

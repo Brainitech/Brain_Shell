@@ -345,7 +345,7 @@ EOF
 
               systemd.enable = lib.mkOption {
                 type = lib.types.bool;
-                default = true;
+                default = false;
                 description = "Enable Brain Shell as a systemd user service for autostart.";
               };
 

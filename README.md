@@ -356,10 +356,10 @@ The Home Manager module manages per-user installation, fonts, the systemd autost
   programs.brain-shell = {
     enable = true;
 
-    # systemd.enable = true;
+    # systemd.enable = false;
     #   Autostart Brain Shell via a systemd user service bound to graphical-session.target.
-    #   Default: true. When enabled, awww-daemon, hypridle, cliphist, and hyprpolkitagent
-    #   are launched by the wrapper — no exec-once lines needed in hyprland.lua.
+    #   Default: false. When false, an exec_cmd hook is injected into Hyprland instead.
+    #   Set to true if you prefer systemd to manage the session.
 
     # hyprlandIntegration = {
     #   enable = true; # default

@@ -105,21 +105,27 @@ fi
 
 # Ensure daemons are killed when shell exits.
 cleanup() {
-    kill $(jobs -p) 2>/dev/null
+    kill $(jobs -p) 2>/dev/null || true
 }
-trap cleanup EXIT
+trap cleanup EXIT TERM INT
 
 # Start session daemons.
-''${BRAIN_SHELL_WALLPAPER_DAEMON:-awww-daemon} &
-hypridle &
-wl-paste --type text --watch cliphist store &
-wl-paste --type image --watch cliphist store &
+if [ "''${BRAIN_SHELL_WALLPAPER_DAEMON:-awww}" = "awww" ]; then
+    pgrep -x awww-daemon >/dev/null || awww-daemon &
+else
+    pgrep -x "''${BRAIN_SHELL_WALLPAPER_DAEMON}" >/dev/null || ''${BRAIN_SHELL_WALLPAPER_DAEMON} &
+fi
+pgrep -x hypridle >/dev/null || hypridle &
+pgrep -f "cliphist store" >/dev/null || {
+    wl-paste --type text --watch cliphist store &
+    wl-paste --type image --watch cliphist store &
+}
 
 if [[ "$XDG_CURRENT_DESKTOP" == *"Hyprland"* ]]; then
     if systemctl --user list-unit-files hyprpolkitagent.service >/dev/null 2>&1; then
-        systemctl --user start hyprpolkitagent
+        systemctl --user is-active hyprpolkitagent.service >/dev/null 2>&1 || systemctl --user start hyprpolkitagent
     elif command -v hyprpolkitagent >/dev/null 2>&1; then
-        hyprpolkitagent &
+        pgrep -x hyprpolkitagent >/dev/null || hyprpolkitagent &
     fi
 fi
 
@@ -208,11 +214,6 @@ EOF
               description = "Wallpaper daemon to use with Brain Shell.";
             };
 
-            autostart = lib.mkOption {
-              type = lib.types.bool;
-              default = true;
-              description = "Whether to add exec-once entries for Brain Shell via Hyprland/home-manager.";
-            };
           };
 
           config = lib.mkIf cfg.enable {
@@ -242,6 +243,7 @@ EOF
               QT_QPA_PLATFORMTHEME = "qt6ct";
               BRAIN_SHELL_TERMINAL = cfg.terminal;
               BRAIN_SHELL_WALLPAPER_DAEMON = cfg.wallpaperDaemon;
+                BRAIN_SHELL_CONFIG_TYPE = cfg.hyprlandIntegration.format;
             };
 
             services.pipewire = {
@@ -364,7 +366,7 @@ EOF
                 format = lib.mkOption {
                   type = lib.types.enum [ "lua" "conf" ];
                   default = "lua";
-                  description = "Format for the injected Hyprland configuration. Hyprland 0.55+ uses Lua. Conf is available as a fallback.";
+                  description = "Format for the injected Hyprland configuration. Hyprland 0.55+ uses Lua. Conf is available as a fallback (requires user-managed hyprland.conf).";
                 };
               };
 
@@ -387,6 +389,7 @@ EOF
               home.sessionVariables = {
                 BRAIN_SHELL_TERMINAL = cfg.terminal;
                 BRAIN_SHELL_WALLPAPER_DAEMON = cfg.wallpaperDaemon;
+                BRAIN_SHELL_CONFIG_TYPE = cfg.hyprlandIntegration.format;
               };
 
               # Systemd user service — handles autostart when enabled.

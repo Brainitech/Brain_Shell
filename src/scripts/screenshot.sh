@@ -12,10 +12,10 @@ if SLURP_ARGS="-b 00000000" grimblast --freeze copysave area "$FILE"; then
 
     case "$ACTION" in
         "icat")
-            kitty --hold sh -c "kitten icat '$FILE'" > /dev/null 2>&1 &
+            ${BRAIN_SHELL_TERMINAL:-kitty} --hold sh -c "kitten icat '$FILE'" > /dev/null 2>&1 &
             ;;
         "folder")
-            kitty ranger --selectfile="$FILE" > /dev/null 2>&1 &
+            ${BRAIN_SHELL_TERMINAL:-kitty} ranger --selectfile="$FILE" > /dev/null 2>&1 &
             ;;
     esac
 fi

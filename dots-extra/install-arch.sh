@@ -2,7 +2,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 #  Brain Shell — Arch Linux Installer
 #  github.com/Brainitech/Brain_Shell  v0.2.0
-#  Invoked by install.sh:  $1=HYPRLAND_CONF  $2=BACKUP_DIR  $3=CONFIG_TYPE
+#  Invoked by install.sh:  $1=HYPRLAND_CONF  $2=CONFIG_TYPE  $3=CONFIG_TYPE
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -215,7 +215,7 @@ PACMAN_DEPS=(
     networkmanager bluez bluez-utils
 
     # System services
-    brightnessctl upower libnotify polkit kitty
+    brightnessctl upower libnotify polkit kitty ranger
     python wl-clipboard slurp xdg-user-dirs
 
     # Screen recording
@@ -241,7 +241,7 @@ PACMAN_DEPS=(
 )
 
 log_info "Synchronizing package database..."
-if ! sudo pacman -Sy --noconfirm; then
+if ! sudo pacman -Syu --noconfirm; then
     log_warn "Database sync failed — continuing with current DB. Some packages may be stale."
 fi
 
@@ -451,13 +451,14 @@ if [[ "${FRESH_INSTALL:-}" == "true" ]]; then
     log_ok "Generated base hyprland config with keyboard layout"
 fi
 
-STARTUP_CONF="$HOME/.config/Brain_Shell/hypr/brain-shell.conf"
-STARTUP_LUA="$HOME/.config/Brain_Shell/hypr/brain-shell.lua"
+STARTUP_CONF="$HOME/.config/Brain_Shell/BrainShell-hyprland.conf"
+STARTUP_LUA="$HOME/.config/Brain_Shell/BrainShell-hyprland.lua"
 mkdir -p "$HOME/.config/Brain_Shell/hypr"
 
 cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.conf" "$STARTUP_CONF"
 cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.lua"  "$STARTUP_LUA"
 sed -i "s|\$HOME/.local/src/Brain_Shell|$REPO_DIR|g" "$STARTUP_CONF" "$STARTUP_LUA"
+sed -i "s|os.getenv(\"HOME\") .. \"/.local/src/Brain_Shell\"|\"$REPO_DIR\"|g" "$STARTUP_LUA"
 log_ok "Generated isolated startup configs"
 
 _BEGIN_MARK_CONF="# >>> Brain Shell Startup >>>"
@@ -495,7 +496,7 @@ else
             {
                 echo ""
                 echo "$_BEGIN_MARK_CONF"
-                echo "source = $HOME/.config/Brain_Shell/hypr/brain-shell.conf"
+                echo "source = $HOME/.config/Brain_Shell/BrainShell-hyprland.conf"
                 echo "$_END_MARK_CONF"
             } >> "$HYPRLAND_CONF"
             log_ok "Brain Shell startup sourced from hyprland.conf (1 line)"
@@ -504,7 +505,7 @@ else
             {
                 echo ""
                 echo "$_BEGIN_MARK_LUA"
-                echo 'dofile(os.getenv("HOME") .. "/.config/Brain_Shell/hypr/brain-shell.lua")'
+                echo 'dofile(os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua")'
                 echo "$_END_MARK_LUA"
             } >> "$HYPRLAND_CONF"
             log_ok "Brain Shell startup loaded from hyprland.lua (1 line)"

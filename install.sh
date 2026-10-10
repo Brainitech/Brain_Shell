@@ -18,7 +18,7 @@ log_warn()  { echo -e "  ${YELLOW}⚠${NC} $1"; }
 log_error() { echo -e "  ${RED}✗${NC} $1" >&2; }
 die()       { echo ""; log_error "$1"; exit 1; }
 
-TOTAL_STEPS=5
+TOTAL_STEPS=4
 step() {
     echo ""
     echo -e "${BOLD}${CYAN}  [$1/$TOTAL_STEPS]  $2${NC}"
@@ -103,8 +103,7 @@ if [[ -f /etc/os-release ]]; then
             DISTRO_TYPE="arch"
             ;;
         nixos)
-            log_ok "Distro: NixOS"
-            DISTRO_TYPE="nix"
+            die "Install Brain_Shell via flakes/home-manager modules provided on the README"
             ;;
         omarchy)
             log_ok "Distro: ${ID} (Omarchy) detected."
@@ -200,9 +199,9 @@ fi
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STEP 4 — Distro-Specific Install
+# STEP 3 — Distro-Specific Install
 # ══════════════════════════════════════════════════════════════════════════════
-step 4 "Distro-Specific Installation"
+step 3 "Distro-Specific Installation"
 echo ""
 
 DISTRO_INSTALLER="$REPO_DIR/dots-extra/install-${DISTRO_TYPE}.sh"
@@ -212,9 +211,9 @@ bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$CONFIG_TYPE" "$REPO_DIR"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STEP 5 — Done
+# STEP 3 — Done
 # ══════════════════════════════════════════════════════════════════════════════
-step 5 "Done"
+step 3 "Done"
 
 echo ""
 log_ok "Brain Shell v0.2.0 installed successfully."

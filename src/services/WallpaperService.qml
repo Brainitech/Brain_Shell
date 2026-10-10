@@ -114,7 +114,7 @@ QtObject {
                 } catch(e) {}
             }
             if (root.currentWall === "") {
-                var defaultWall = Quickshell.shellDir + "/src/assets/wallpapers/brain-shell-default-0.png"
+                var defaultWall = Paths.installDir + "/src/assets/wallpapers/brain-shell-default-0.png"
                 root.apply(defaultWall)
             }
             root.refresh()
@@ -153,7 +153,7 @@ QtObject {
             "rm -f ~/.curr_wall_static.jpg; magick \"" + path + "[0]\" ~/.curr_wall_static.jpg || true; " +
             "else ln -sf \"" + path + "\" ~/.curr_wall_static.jpg; fi) " +
             (PrefsService.dynamicThemeOverride ? "" :
-            "&& matugen image \"$(readlink -f ~/.curr_wall_static.jpg)\" -c \"" + Quickshell.shellDir + "/src/config/matugen.toml\" -m " + (PrefsService.darkMode ? "dark" : "light") + " --source-color-index 0 --type scheme-" + root.scheme + " " +
+            "&& matugen image \"$(readlink -f ~/.curr_wall_static.jpg)\" -c \"" + Paths.installDir + "/src/config/matugen.toml\" -m " + (PrefsService.darkMode ? "dark" : "light") + " --source-color-index 0 --type scheme-" + root.scheme + " " +
             "&& matugen image \"$(readlink -f ~/.curr_wall_static.jpg)\" -m " + (PrefsService.darkMode ? "dark" : "light") + " --source-color-index 0 --type scheme-" + root.scheme) + " || true"
         ]
         applyProc.running = true

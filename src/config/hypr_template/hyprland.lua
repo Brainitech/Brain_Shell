@@ -45,3 +45,12 @@ if f then
     end
     f:close()
 end
+
+-- Source any .conf files placed in conf.d/ (e.g. by Home Manager)
+local conf_f = io.popen('ls -1 ~/.config/hypr/conf.d/*.conf 2>/dev/null')
+if conf_f then
+    for file in conf_f:lines() do
+        hl.exec_cmd("hyprctl keyword source " .. file)
+    end
+    conf_f:close()
+end

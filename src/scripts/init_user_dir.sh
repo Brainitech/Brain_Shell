@@ -64,6 +64,8 @@ copy_template() {
 copy_template "$INSTALL_DIR/src/config/hypridle.conf" "$CONFIG_DIR/hypridle.conf"
 copy_template "$INSTALL_DIR/src/config/hyprlock.conf" "$CONFIG_DIR/hyprlock.conf"
 copy_template "$INSTALL_DIR/src/config/matugen.toml"  "$CONFIG_DIR/matugen.toml"
+copy_template "$INSTALL_DIR/src/config/brain-shell-colors.json.example" "$CONFIG_DIR/brain-shell-colors.json.example"
+copy_template "$INSTALL_DIR/src/config/colors.conf.template" "$CONFIG_DIR/colors.conf.template"
 copy_template "$INSTALL_DIR/src/config/autostart/BrainShell-hyprland.conf" "$CONFIG_DIR/BrainShell-hyprland.conf"
 copy_template "$INSTALL_DIR/src/config/autostart/BrainShell-hyprland.lua"  "$CONFIG_DIR/BrainShell-hyprland.lua"
 
@@ -88,9 +90,15 @@ fi
 touch_state() {
     local file="$1"
     if [ ! -f "$file" ]; then
-        touch "$file" 2>/dev/null || {
-            echo "[Brain_Shell] Warning: Failed to initialize state file $file" >&2
-        }
+        if [[ "$file" == *.json ]]; then
+            echo '{}' > "$file" 2>/dev/null || {
+                echo "[Brain_Shell] Warning: Failed to initialize state file $file" >&2
+            }
+        else
+            touch "$file" 2>/dev/null || {
+                echo "[Brain_Shell] Warning: Failed to initialize state file $file" >&2
+            }
+        fi
     fi
 }
 
@@ -134,6 +142,18 @@ elif [ ! -e "$HYPR_CONF" ] && [ ! -e "$HYPR_LUA" ]; then
         cp -r "$HYPR_TEMPLATE/"* "$HYPR_DIR/" 2>/dev/null || {
             echo "[Brain_Shell] Warning: Failed to seed Hyprland config from template" >&2
         }
+        
+        # Inject the autostart into the newly created template
+        if [ -w "$HYPR_LUA" ]; then
+            cat >> "$HYPR_LUA" <<'EOF'
+
+-- >>> Brain Shell Autostart & Integration >>>
+local bs_autostart = os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua"
+local f = io.open(bs_autostart, "r")
+if f then f:close(); dofile(bs_autostart) end
+-- <<< Brain Shell Autostart & Integration <<<
+EOF
+        fi
     fi
 fi
 

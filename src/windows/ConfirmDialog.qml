@@ -91,9 +91,11 @@ PanelWindow {
 
     // ── Action dispatch ───────────────────────────────────────────────────────
     function confirm() {
-        const powerScript = Quickshell.shellDir + "/src/scripts/PowerControl.sh"
-        const gfxScript   = Quickshell.shellDir + "/src/scripts/GfxSwitch.sh"
-        const restartQs   = "nohup bash -c 'sleep 0.3; pkill -x quickshell 2>/dev/null; pkill -x qs 2>/dev/null; sleep 0.3; if command -v qs &>/dev/null; then qs -p \"" + Quickshell.shellDir + "\"; else quickshell -p \"" + Quickshell.shellDir + "\"; fi' >/dev/null 2>&1 &"
+        const powerScript = Paths.installDir + "/src/scripts/PowerControl.sh"
+        const gfxScript   = Paths.installDir + "/src/scripts/GfxSwitch.sh"
+        const restartQs = Paths.isNix
+            ? "nohup bash -c 'sleep 0.3; if systemctl --user is-active brain-shell.service &>/dev/null; then systemctl --user restart brain-shell.service; else pkill -x quickshell 2>/dev/null; sleep 0.3; brain-shell; fi' >/dev/null 2>&1 &"
+            : "nohup bash -c 'sleep 0.3; pkill -x quickshell 2>/dev/null; pkill -x qs 2>/dev/null; sleep 0.3; if command -v qs &>/dev/null; then qs -p \"" + Paths.installDir + "\"; else quickshell -p \"" + Paths.installDir + "\"; fi' >/dev/null 2>&1 &"
 
         Popups.actionConfirmed(Popups.confirmAction)
 

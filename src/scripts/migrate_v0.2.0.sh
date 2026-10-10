@@ -1,10 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # v0.2.0 OTA Migration Script
 # Triggered by Quickshell QML on startup if flag is missing.
 
 CONFIG_DIR="${BRAIN_SHELL_CONFIG_DIR:-$HOME/.config/Brain_Shell}"
 FLAG_FILE="$CONFIG_DIR/.v0.2.0_migrated"
-REPO_DIR="${BRAIN_SHELL_INSTALL_DIR:-$HOME/.local/src/Brain_Shell}"
+if [ -n "$BRAIN_SHELL_INSTALL_DIR" ]; then
+    REPO_DIR="$BRAIN_SHELL_INSTALL_DIR"
+else
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+    POSSIBLE_DIR="$(cd "$SCRIPT_DIR/../.." >/dev/null 2>&1 && pwd)"
+    if [ -f "$POSSIBLE_DIR/shell.qml" ]; then
+        REPO_DIR="$POSSIBLE_DIR"
+    else
+        REPO_DIR="$HOME/.local/src/Brain_Shell"
+    fi
+fi
 
 # 1. Determine active Hyprland config
 HYPR_DIR="$HOME/.config/hypr"
@@ -16,16 +26,17 @@ elif [[ -f "$HYPR_DIR/hyprland.conf" ]]; then
 fi
 
 # 2. Check if already migrated
-if [[ -n "$CONF" ]] && grep -q "brain-shell" "$CONF" && ( [ -f "$CONFIG_DIR/hypr/brain-shell.conf" ] || [ -f "$CONFIG_DIR/hypr/brain-shell.lua" ] ); then
+if [[ -n "$CONF" ]] && grep -q "brain-shell" "$CONF" && ( [ -f "$CONFIG_DIR/BrainShell-hyprland.conf" ] || [ -f "$CONFIG_DIR/BrainShell-hyprland.lua" ] ); then
     touch "$FLAG_FILE"
     exit 2 # Silently recover flag
 fi
 
 # 3. Deploy modular autostarts
 mkdir -p "$CONFIG_DIR/hypr"
-cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.conf" "$CONFIG_DIR/hypr/brain-shell.conf" || exit 1
-cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.lua" "$CONFIG_DIR/hypr/brain-shell.lua" || exit 1
-sed -i "s|\$HOME/.local/src/Brain_Shell|$REPO_DIR|g" "$CONFIG_DIR/hypr/brain-shell.conf" "$CONFIG_DIR/hypr/brain-shell.lua"
+cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.conf" "$CONFIG_DIR/BrainShell-hyprland.conf" || exit 1
+cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.lua" "$CONFIG_DIR/BrainShell-hyprland.lua" || exit 1
+sed -i "s|\$HOME/.local/src/Brain_Shell|$REPO_DIR|g" "$CONFIG_DIR/BrainShell-hyprland.conf" "$CONFIG_DIR/BrainShell-hyprland.lua"
+sed -i "s|os.getenv(\"HOME\") .. \"/.local/src/Brain_Shell\"|\"$REPO_DIR\"|g" "$CONFIG_DIR/BrainShell-hyprland.lua"
 
 if [[ -n "$CONF" ]]; then
     # 4. Backup config
@@ -58,14 +69,14 @@ except Exception as e:
             cat << 'EOF' >> "$CONF"
 
 -- >>> Brain Shell Startup >>>
-dofile(os.getenv("HOME") .. "/.config/Brain_Shell/hypr/brain-shell.lua")
+dofile(os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua")
 -- <<< Brain Shell Startup <<<
 EOF
         else
             cat << 'EOF' >> "$CONF"
 
 # >>> Brain Shell Startup >>>
-source = ~/.config/Brain_Shell/hypr/brain-shell.conf
+source = ~/.config/Brain_Shell/BrainShell-hyprland.conf
 # <<< Brain Shell Startup <<<
 EOF
         fi

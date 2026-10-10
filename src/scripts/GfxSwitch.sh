@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo "authenticated"
-envycontrol --switch "$1"
+envycontrol --switch "$1" || exit 1

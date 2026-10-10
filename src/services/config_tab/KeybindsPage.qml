@@ -850,7 +850,7 @@ Item {
             var d = (b.dispatcher || "Unknown").toLowerCase()
             
             // Ignore Brain Shell native binds
-            if (d === "exec" && b.arg && (b.arg.indexOf("qs ipc") !== -1 || b.arg.indexOf("quickshell ipc") !== -1)) continue
+            if (d === "exec" && b.arg && (b.arg.indexOf("qs ipc") !== -1 || b.arg.indexOf("quickshell ipc") !== -1 || b.arg.indexOf("brain-shell ipc") !== -1)) continue
             
             var groupName = "Other"
             if (d === "exec") {

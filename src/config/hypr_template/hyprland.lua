@@ -33,3 +33,24 @@ require("config.animations")
 require("config.input")
 require("config.binds")
 require("config.rules")
+
+---------------------------------
+---- EXTERNAL CONFIGURATIONS ----
+---------------------------------
+-- Source any .lua files placed in lua.d/ (e.g. by Home Manager)
+local f = io.popen('ls -1 ~/.config/hypr/lua.d/*.lua 2>/dev/null')
+if f then
+    for file in f:lines() do
+        dofile(file)
+    end
+    f:close()
+end
+
+-- Source any .conf files placed in conf.d/ (e.g. by Home Manager)
+local conf_f = io.popen('ls -1 ~/.config/hypr/conf.d/*.conf 2>/dev/null')
+if conf_f then
+    for file in conf_f:lines() do
+        hl.exec_cmd("hyprctl keyword source " .. file)
+    end
+    conf_f:close()
+end

@@ -26,12 +26,12 @@ import "../"
 Item {
     id: root
 
-    property string _flagPath: Quickshell.env("HOME") + "/.config/Brain_Shell/.v0.2.0_migrated"
-    property string _scriptPath: Quickshell.env("HOME") + "/.local/src/Brain_Shell/src/scripts/migrate_v0.2.0.sh"
+    property string _flagPath: Paths.configDir + "/.v0.2.0_migrated"
+    property string _scriptPath: Paths.installDir + "/src/scripts/migrate_v0.2.0.sh"
 
     property bool isMigrating: false
 
-    property bool isLegacyPath: Qt.resolvedUrl(".").toString().indexOf(".local/src/Brain_Shell") !== -1
+    property bool isLegacyPath: !Paths.isNix && Paths.installDir.indexOf(".local/src/Brain_Shell") !== -1
 
     Process {
         id: checkerProc
@@ -78,7 +78,7 @@ Item {
     }
 
     Component.onCompleted: {
-        if (root.isLegacyPath) {
+        if (!Paths.isNix && root.isLegacyPath) {
             checkerProc.running = true
         }
     }

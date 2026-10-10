@@ -36,6 +36,15 @@ _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire ar
 
 - **Installer Ecosystem Overhaul:** TTY/GUI detection, hardware probing, keybind conflict resolution, and AUR bootstrap fixes
 
+- **First-Class NixOS & Home Manager Integration:**
+  - **Unified Path Abstraction Singleton (`Paths.qml`):** Centralized path resolution singleton (`Paths.installDir`, `Paths.configDir`, `Paths.userDataDir`, `Paths.isNix`) supporting `BRAIN_SHELL_*` environment overrides and read-only Nix store detection.
+  - **Hermetic Flake Packaging:** Flake package using `makeWrapper` bundling 54 runtime dependencies on `$PATH`.
+  - **Portable `brain-shell` CLI Wrapper:** Unified command on `$PATH` for launching the shell and forwarding IPC commands (`brain-shell ipc call <target> toggle`).
+  - **Idempotent Runtime Self-Initialization (`init_user_dir.sh`):** Non-destructive first-run seeding of user templates (`hypridle.conf`, `hyprlock.conf`, `matugen.toml`), wallpapers, and JSON configurations into `~/.config/Brain_Shell`.
+  - **Declarative Home Manager Module:** Introduced `brain-shell.homeManagerModules.default` with options (`programs.brain-shell.{enable, package, extraPackages, hyprland.enable}`) and declarative Hyprland autostart integration (`exec-once`).
+  - **Declarative NixOS Module:** Supported system-level configuration via `brain-shell.nixosModules.default` (`programs.brain-shell.enable = true;`).
+  - **Arch Linux Zero-Regression Guarantee:** 100% backward-compatible fallback for existing Arch Linux setups (`~/.local/src/Brain_Shell`, `qs ipc -p ...`, and untouched auto-update).
+
 ---
 
 ## Notable Fixes
@@ -52,4 +61,4 @@ _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire ar
 
 - **Shutdown Menu State Issues:** Resolved - power actions now route cleanly through systemctl/loginctl with confirmation dialogs.
 
-- **NixOS & Flakes Broken:** NixOS support has been added and stabilized.
+- **NixOS & Flakes Support:** Replaced brittle imperative scripts with official, hermetic NixOS and Home Manager flake modules, CLI wrapper forwarding, and automated first-run self-initialization.

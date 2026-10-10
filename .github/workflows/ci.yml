@@ -93,21 +93,18 @@ jobs:
           bash -n dots-extra/install-arch.sh
           echo "✓ install-arch.sh syntax OK"
 
-      - name: Lint dots-extra/install-nix.sh
+      - name: Lint nix/launcher.sh
         run: |
-          bash -n dots-extra/install-nix.sh
-          echo "✓ install-nix.sh syntax OK"
-
-      - name: Lint dots-extra/validate-install.sh
-        run: |
-          bash -n dots-extra/validate-install.sh
-          echo "✓ validate-install.sh syntax OK"
+          bash -n nix/launcher.sh
+          echo "✓ launcher.sh syntax OK"
 
       - name: Lint shell scripts in src/scripts/
         run: |
           bash -n src/scripts/GfxSwitch.sh
           bash -n src/scripts/PowerControl.sh
           bash -n src/scripts/screenshot.sh
+          bash -n src/scripts/init_user_dir.sh
+          bash -n src/scripts/migrate_v0.2.0.sh
           echo "✓ src/scripts/ syntax OK"
 
       - name: Lint Python scripts
@@ -167,13 +164,17 @@ jobs:
             experimental-features = nix-command flakes
             accept-flake-config = true
 
-      - name: Validate flake.nix syntax
+      - name: Validate Nix files syntax
         run: |
-          # Check file exists and is valid UTF-8 text
+          # Check files exist and are valid UTF-8 text
           cat flake.nix > /dev/null
           # Use nix-instantiate for pure syntax check (no network, no path access)
           nix-instantiate --parse flake.nix > /dev/null
-          echo "✓ flake.nix syntax OK"
+          nix-instantiate --parse nix/deps.nix > /dev/null
+          nix-instantiate --parse nix/package.nix > /dev/null
+          nix-instantiate --parse nix/modules/nixos.nix > /dev/null
+          nix-instantiate --parse nix/modules/home-manager.nix > /dev/null
+          echo "✓ All Nix files syntax OK"
 
       - name: Validate flake.lock structure
         run: |
@@ -191,20 +192,37 @@ jobs:
                   print(f'  ✓ {name}: {rev}')
           "
 
-      - name: Validate flake.nix declares required outputs
+      - name: Validate Flake and Nix modules declare required outputs
         run: |
           python3 -c "
           with open('flake.nix') as f:
-              content = f.read()
+              flake_content = f.read()
+
+          with open('nix/modules/nixos.nix') as f:
+              nixos_content = f.read()
+
+          with open('nix/modules/home-manager.nix') as f:
+              hm_content = f.read()
+
+          with open('nix/deps.nix') as f:
+              deps_content = f.read()
+
           checks = {
-            'packages':              'packages' in content,
-            'devShells':             'devShells' in content,
-            'nixosModules':          'nixosModules' in content,
-            'description':           'description' in content,
-            'brain-shell':           'brain-shell' in content,
-            'programs.hyprland':     'programs.hyprland.enable' in content,
-            'services.pipewire':     'services.pipewire' in content,
-            'kitty':                 'kitty' in content,
+            'flake: packages':              'packages' in flake_content,
+            'flake: apps':                  'apps' in flake_content,
+            'flake: devShells':             'devShells' in flake_content,
+            'flake: nixosModules':          'nixosModules' in flake_content,
+            'flake: homeManagerModules':    'homeManagerModules' in flake_content,
+            'flake: overlays':              'overlays' in flake_content,
+            'flake: description':           'description' in flake_content,
+            'flake: brain-shell':           'brain-shell' in flake_content,
+            'nixos: programs.brain-shell':  'programs.brain-shell' in nixos_content,
+            'nixos: programs.hyprland':     'programs.hyprland.enable' in nixos_content,
+            'nixos: services.pipewire':     'services.pipewire' in nixos_content,
+            'hm: programs.brain-shell':     'programs.brain-shell' in hm_content,
+            'deps: kitty':                  'kitty' in deps_content,
+            'deps: quickshell':             'quickshell' in deps_content,
+            'deps: hyprland':               'hyprland' in deps_content,
           }
           failed = []
           for key, ok in checks.items():
@@ -214,7 +232,7 @@ jobs:
                   print(f'  ✗ {key} MISSING')
                   failed.append(key)
           if failed:
-              raise SystemExit(f'Missing from flake.nix: {failed}')
+              raise SystemExit(f'Missing declarations: {failed}')
           "
 
   # ─────────────────────────────────────────────
@@ -236,8 +254,11 @@ jobs:
             "flake.lock"
             "install.sh"
             "dots-extra/install-arch.sh"
-            "dots-extra/install-nix.sh"
-            "dots-extra/validate-install.sh"
+            "nix/package.nix"
+            "nix/deps.nix"
+            "nix/launcher.sh"
+            "nix/modules/nixos.nix"
+            "nix/modules/home-manager.nix"
             "src/config/brain-shell-colors.json.example"
             "src/theme/Theme.qml"
             "src/theme/ColorLoader.qml"
@@ -251,6 +272,8 @@ jobs:
             "src/scripts/hypr_binds.py"
             "src/scripts/screenshot.sh"
             "src/scripts/PowerControl.sh"
+            "src/scripts/init_user_dir.sh"
+            "src/scripts/migrate_v0.2.0.sh"
           )
           FAILED=()
           for f in "${REQUIRED[@]}"; do
@@ -272,9 +295,13 @@ jobs:
           echo "QML file counts by directory:"
           find src -name "*.qml" | sed 's|/[^/]*$||' | sort | uniq -c | sort -rn
 
-      - name: Check installer shebangs
+      - name: Check script shebangs
         run: |
           head -1 install.sh | grep -q "^#!/" && echo "✓ shebang OK (install.sh)" || (echo "✗ Missing shebang in install.sh" && exit 1)
           head -1 dots-extra/install-arch.sh | grep -q "^#!/" && echo "✓ shebang OK (install-arch.sh)" || (echo "✗ Missing shebang in install-arch.sh" && exit 1)
-          head -1 dots-extra/install-nix.sh | grep -q "^#!/" && echo "✓ shebang OK (install-nix.sh)" || (echo "✗ Missing shebang in install-nix.sh" && exit 1)
-          head -1 dots-extra/validate-install.sh | grep -q "^#!/" && echo "✓ shebang OK (validate-install.sh)" || (echo "✗ Missing shebang in validate-install.sh" && exit 1)
+          head -1 nix/launcher.sh | grep -q "^#!/" && echo "✓ shebang OK (nix/launcher.sh)" || (echo "✗ Missing shebang in nix/launcher.sh" && exit 1)
+          head -1 src/scripts/init_user_dir.sh | grep -q "^#!/" && echo "✓ shebang OK (init_user_dir.sh)" || (echo "✗ Missing shebang in init_user_dir.sh" && exit 1)
+          head -1 src/scripts/migrate_v0.2.0.sh | grep -q "^#!/" && echo "✓ shebang OK (migrate_v0.2.0.sh)" || (echo "✗ Missing shebang in migrate_v0.2.0.sh" && exit 1)
+          head -1 src/scripts/PowerControl.sh | grep -q "^#!/" && echo "✓ shebang OK (PowerControl.sh)" || (echo "✗ Missing shebang in PowerControl.sh" && exit 1)
+          head -1 src/scripts/screenshot.sh | grep -q "^#!/" && echo "✓ shebang OK (screenshot.sh)" || (echo "✗ Missing shebang in screenshot.sh" && exit 1)
+          head -1 src/scripts/GfxSwitch.sh | grep -q "^#!/" && echo "✓ shebang OK (GfxSwitch.sh)" || (echo "✗ Missing shebang in GfxSwitch.sh" && exit 1)

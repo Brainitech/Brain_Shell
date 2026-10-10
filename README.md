@@ -298,7 +298,13 @@ The NixOS module enables system-level services (PipeWire, Bluetooth, Polkit, XDG
 **2. Enable the module in `configuration.nix`:**
 
 ```nix
-programs.brain-shell.enable = true;
+programs.brain-shell = {
+  enable = true;
+
+  # configFormat = "lua";
+  #   The Hyprland config format Brain Shell should expect and generate files for.
+  #   "lua" (Hyprland 0.55+) or "conf". Default: "lua".
+};
 ```
 
 **3. Rebuild:**

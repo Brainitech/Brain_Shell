@@ -30,15 +30,33 @@ Item {
     // ── Interaction and modal tracking ────────────────────────────────────────
     property int _interactionCount: 0
     property int delConfirmId: -1
+    property int clearConfirmColIdx: -1
     property int pickerTaskId: -1
 
     function _evalInteraction() {
-        Popups.tasksInteractionActive = root._interactionCount > 0 || root.pickerTaskId >= 0 || root.delConfirmId >= 0
+        Popups.tasksInteractionActive = root._interactionCount > 0 || root.pickerTaskId >= 0 || root.delConfirmId >= 0 || root.clearConfirmColIdx >= 0
     }
     onPickerTaskIdChanged: root._evalInteraction()
     onDelConfirmIdChanged: {
         root._evalInteraction()
-        if (root.delConfirmId >= 0) deleteKeyHandler.forceActiveFocus()
+        if (root.delConfirmId >= 0) {
+            root.clearConfirmColIdx = -1
+            deleteKeyHandler.forceActiveFocus()
+        }
+    }
+    onClearConfirmColIdxChanged: {
+        root._evalInteraction()
+        if (root.clearConfirmColIdx >= 0) {
+            root.delConfirmId = -1
+            deleteKeyHandler.forceActiveFocus()
+        }
+    }
+    onVisibleChanged: {
+        if (!visible) {
+            root.delConfirmId = -1
+            root.clearConfirmColIdx = -1
+            root.pickerTaskId = -1
+        }
     }
 
     // ── Delete keyboard handler ───────────────────────────────────────────────
@@ -46,14 +64,21 @@ Item {
     Item {
         id: deleteKeyHandler
         Keys.onReturnPressed: function(ev) {
-            if (root.delConfirmId >= 0) {
+            if (root.clearConfirmColIdx >= 0) {
+                KanbanService.clearColumn(root.clearConfirmColIdx)
+                root.clearConfirmColIdx = -1
+                ev.accepted = true
+            } else if (root.delConfirmId >= 0) {
                 KanbanService.removeTask(root.delConfirmId)
                 root.delConfirmId = -1
                 ev.accepted = true
             }
         }
         Keys.onEscapePressed: function(ev) {
-            if (root.delConfirmId >= 0) {
+            if (root.clearConfirmColIdx >= 0) {
+                root.clearConfirmColIdx = -1
+                ev.accepted = true
+            } else if (root.delConfirmId >= 0) {
                 root.delConfirmId = -1
                 ev.accepted = true
             }
@@ -86,10 +111,13 @@ Item {
                 colLabel: modelData.label
                 localScale: root.localScale
                 delConfirmId: root.delConfirmId
+                clearConfirmColIdx: root.clearConfirmColIdx
 
                 onRequestOpenPicker: function(taskId) { root.pickerTaskId = taskId }
                 onRequestDeleteConfirm: function(taskId) { root.delConfirmId = taskId }
                 onCancelDeleteConfirm: { root.delConfirmId = -1 }
+                onRequestClearConfirm: function(colIdx) { root.clearConfirmColIdx = colIdx }
+                onCancelClearConfirm: { root.clearConfirmColIdx = -1 }
                 onInteractionChanged: function(active) {
                     root._interactionCount = Math.max(0, root._interactionCount + (active ? 1 : -1))
                     root._evalInteraction()

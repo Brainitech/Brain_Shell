@@ -26,6 +26,10 @@ Item {
     property string colLabel: ""
     property real   localScale: 1.0
     property int    delConfirmId: -1
+    property int    clearConfirmColIdx: -1
+
+    readonly property bool isClearConfirm: clearConfirmColIdx === colIdx
+    onIsClearConfirmChanged: colItem.interactionChanged(isClearConfirm)
 
     property bool draftOpen: false
     onDraftOpenChanged: colItem.interactionChanged(draftOpen)
@@ -33,6 +37,8 @@ Item {
     signal requestOpenPicker(int taskId)
     signal requestDeleteConfirm(int taskId)
     signal cancelDeleteConfirm()
+    signal requestClearConfirm(int colIdx)
+    signal cancelClearConfirm()
     signal interactionChanged(bool active)
     signal requestBoardFocus()
 
@@ -110,12 +116,8 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            Popups.showConfirm(
-                                "Clear " + colItem.colLabel + "?",
-                                "This will permanently delete " + colItem.cTasks.length + " tasks.",
-                                "Clear Tasks",
-                                "clear_kanban_col_" + colItem.colIdx
-                            )
+                            colItem.draftOpen = false
+                            colItem.requestClearConfirm(colItem.colIdx)
                         }
                     }
                 }
@@ -281,6 +283,106 @@ Item {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    // ── Clear column confirmation overlay ──────────────────────────────────
+    Rectangle {
+        id: clearConfirmOverlay
+        anchors.fill: parent
+        radius: Math.round(Theme.cornerRadius * localScale)
+        z: 10
+        visible: opacity > 0.001
+        opacity: colItem.isClearConfirm ? 1.0 : 0.0
+        Behavior on opacity {
+            NumberAnimation { duration: Anim.fast; easing.type: Anim.outCubic }
+        }
+        color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.88)
+        border.color: Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.35)
+        border.width: 1
+
+        // Click blocker to absorb clicks outside buttons and dismiss on empty click
+        MouseArea {
+            anchors.fill: parent
+            enabled: colItem.isClearConfirm
+            onClicked: colItem.cancelClearConfirm()
+        }
+
+        Column {
+            anchors.centerIn: parent
+            spacing: Math.round(12 * localScale)
+            width: Math.min(parent.width - Math.round(20 * localScale), Math.round(220 * localScale))
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "Clear " + colItem.colLabel + "?"
+                color: Theme.text
+                font.pixelSize: Math.round(14 * localScale)
+                font.weight: Font.DemiBold
+            }
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: colItem.cTasks.length + " task" + (colItem.cTasks.length === 1 ? "" : "s") + " will be deleted"
+                color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.50)
+                font.pixelSize: Math.round(10 * localScale)
+            }
+
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: Math.round(10 * localScale)
+
+                Rectangle {
+                    width: Math.round(68 * localScale)
+                    height: Math.round(26 * localScale)
+                    radius: Math.round(6 * localScale)
+                    color: clrCnH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.06)
+                    border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
+                    border.width: 1
+                    Behavior on color { ColorAnimation { duration: Anim.superFast } }
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Cancel"
+                        font.pixelSize: Math.round(11 * localScale)
+                        color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.70)
+                    }
+                    HoverHandler { id: clrCnH; cursorShape: Qt.PointingHandCursor }
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: colItem.cancelClearConfirm()
+                    }
+                }
+
+                Rectangle {
+                    width: Math.round(68 * localScale)
+                    height: Math.round(26 * localScale)
+                    radius: Math.round(6 * localScale)
+                    color: clrCfH.hovered ? Qt.lighter(Theme.errorSolid, 1.2) : Theme.errorSolid
+                    Behavior on color { ColorAnimation { duration: Anim.superFast } }
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Delete"
+                        font.pixelSize: Math.round(11 * localScale)
+                        font.weight: Font.Bold
+                        color: "white"
+                    }
+                    HoverHandler { id: clrCfH; cursorShape: Qt.PointingHandCursor }
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            KanbanService.clearColumn(colItem.colIdx)
+                            colItem.cancelClearConfirm()
+                        }
+                    }
+                }
+            }
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "↵ confirm · ⎋ cancel"
+                font.pixelSize: Math.round(9 * localScale)
+                color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
             }
         }
     }

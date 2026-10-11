@@ -82,7 +82,6 @@ QtObject {
     property var _themeConn: Connections {
         target: Theme
         function onActiveChanged() { root.updateBorders(); }
-        function onBorderChanged() { root.updateBorders(); }
     }
 
     property var _prefsConn: Connections {
@@ -173,8 +172,7 @@ QtObject {
     }
 
     function updateBorders() {
-        let colStr = PrefsService.dynamicThemeOverride ? String(Theme.border) : String(Theme.active)
-        let cleanCol = colStr.replace('#', '')
+        let cleanCol = String(Theme.active).replace('#', '')
 
         // Build command based on config provider
         if (ShellState.configProvider === "lua") {

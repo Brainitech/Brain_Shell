@@ -1,0 +1,8 @@
+KeybindsPage KeybindsPage.qml
+KeybindRowDelegate KeybindRowDelegate.qml
+KeybindConflictDialog KeybindConflictDialog.qml
+ShellConfig ShellConfig.qml
+GeneralPage GeneralPage.qml
+DataPage DataPage.qml
+MiscPage MiscPage.qml
+VisualsBehaviorPage VisualsBehaviorPage.qml

@@ -62,6 +62,21 @@ NotificationServer {
          n.onClosed.connect(function() {
             root.list = root.list.filter(function(x) { return x !== n })
         })
+
+        if (n.expireTimeout > 0) {
+            var ms = Math.round(n.expireTimeout < 1000 ? n.expireTimeout * 1000 : n.expireTimeout)
+            var timer = Qt.createQmlObject('import QtQuick; Timer { interval: ' + ms + '; running: true; repeat: false }', root)
+            timer.triggered.connect(function() {
+                if (n && n.tracked) {
+                    n.expire()
+                }
+                timer.destroy()
+            })
+            n.onClosed.connect(function() {
+                timer.stop()
+                timer.destroy()
+            })
+        }
     }
 
     function dismissAll() {

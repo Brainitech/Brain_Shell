@@ -22,6 +22,7 @@ import QtQuick.Controls
 import Quickshell.Io
 import "../../"
 import "../../components"
+import "../../components/sliders"
 import "../"
 
 // Right column — brightness slider + scrollable quick-settings grid.
@@ -34,13 +35,6 @@ StatCard {
     property real localScale: 1.0
 
     // ─────────────────────────────────────────────────────────────────────────
-    //  Brightness
-    // ─────────────────────────────────────────────────────────────────────────
-    property real _brightVal: BrightnessService.brightness / 100
-
-
-
-    // ─────────────────────────────────────────────────────────────────────────
     //  Wi-Fi
     // ─────────────────────────────────────────────────────────────────────────
     property bool   wifiOn:   false
@@ -49,7 +43,6 @@ StatCard {
     Process { id: wifiRadioRead; command: ["bash", "-c", "nmcli radio wifi"]; running: false
         stdout: SplitParser { onRead: function(l) {
             root.wifiOn = l.trim() === "enabled"
-            // Expose to ShellState — suppressed while hotspot owns the interface
             ShellState.wifiOn = root.wifiOn && !ShellState.hotspot
         } } }
     Process { id: wifiSSIDRead
@@ -64,9 +57,8 @@ StatCard {
         wifiSSIDRead.running  = false; wifiSSIDRead.running  = true
     }
     function _wifiToggle() {
-        // Do not allow wifi toggle while hotspot is using the interface
-        if (root.hotspotOn || root.hotspotBusy) return
-        root.wifiOn = !root.wifiOn           // optimistic — tile updates now
+        if (hotspotManager.hotspotOn || hotspotManager.hotspotBusy) return
+        root.wifiOn = !root.wifiOn
         ShellState.wifiOn = root.wifiOn
         wifiToggleProc.command = ["bash", "-c",
             "nmcli radio wifi " + (root.wifiOn ? "on" : "off")]
@@ -109,8 +101,7 @@ StatCard {
     }
     function _btToggle() {
         var turningOn = !root.btOn
-        root.btOn = turningOn                // optimistic
-        // Mirror to ShellState immediately so Network.qml bar icon reacts
+        root.btOn = turningOn
         ShellState.btPowered = turningOn
         if (!turningOn) ShellState.btConnected = false
 
@@ -166,204 +157,16 @@ StatCard {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    //  Hotspot — direct toggle; requires ethernet connection
+    //  Hotspot Manager Component
     // ─────────────────────────────────────────────────────────────────────────
-    property bool   hotspotOn:     false
-    property bool   hotspotBusy:   false
-    property bool   _hsWifiWasOff: false  // wifi radio was off when hotspot started; restore on stop
-    property string hotspotLabel:  ""    // sublabel: "Active" | "Not on ethernet" | ""
-    property string _hsSSID: PrefsService.hotspotSsid
-    property string _hsPassword: PrefsService.hotspotPassword
-    property string _hsWifiIface:  "wlan0"
-
-    // Detect WiFi interface name
-    Process {
-        id: hsIfaceProc
-        command: ["bash", "-c",
-            "nmcli -g DEVICE,TYPE dev 2>/dev/null | awk -F: '$2==\"wifi\"{print $1; exit}'"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var n = text.trim()
-                if (n !== "") root._hsWifiIface = n
-            }
+    QuickHotspotManager {
+        id: hotspotManager
+        wifiOn: root.wifiOn
+        onWifiStateChanged: function(on) {
+            root.wifiOn = on
+            ShellState.wifiOn = on
         }
-    }
-
-    // Check if ethernet is connected
-    Process {
-        id: hsEthernetCheck
-        command: ["bash", "-c",
-            "nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -c 'ethernet:connected'"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var hasEth = parseInt(text.trim()) > 0
-                if (!hasEth) {
-                    root.hotspotLabel = "Not on ethernet"
-                    root.hotspotBusy  = false
-                    return
-                }
-                // Remember whether wifi radio was off so we can restore it on stop
-                root._hsWifiWasOff = !root.wifiOn
-                // Ethernet confirmed — start hotspot
-                root._hsDoStart()
-            }
-        }
-    }
-
-    // Check hotspot status
-    Process {
-        id: hotspotCheck
-        command: ["bash", "-c",
-            "nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -c 'wifi:connected'"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                // If WiFi device shows 'connected' in AP mode that's our hotspot
-                // Cross-check with ap-like connection
-                hsActiveCheckProc.running = false; hsActiveCheckProc.running = true
-            }
-        }
-    }
-
-    Process {
-        id: hsActiveCheckProc
-        command: ["bash", "-c",
-            "nmcli -t -f NAME,STATE,DEVICE con show --active 2>/dev/null" +
-            " | awk -F: '$1~/[Hh]otspot/{found=1} END{print found+0}'"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.hotspotOn     = parseInt(text.trim()) > 0
-                ShellState.hotspot = root.hotspotOn
-                root.hotspotLabel  = root.hotspotOn ? "Active" : ""
-                // WiFi interface is owned by hotspot — suppress from ShellState
-                if (root.hotspotOn) ShellState.wifiOn = false
-            }
-        }
-    }
-
-    // Start hotspot
-    Process {
-        id: hsStartProc
-        command: []
-        running: false
-        stderr: StdioCollector { id: hsStartErr }
-        onRunningChanged: if (!running) {
-            root.hotspotBusy = false
-            // Re-check actual state after nmcli exits
-            hsActiveCheckProc.running = false; hsActiveCheckProc.running = true
-        }
-        onExited: function(code, status) {
-            if (code === 0) {
-                root.hotspotOn     = true
-                root.hotspotLabel  = "Active"
-                ShellState.hotspot = true
-                // WiFi interface now owned by hotspot
-                ShellState.wifiOn  = false
-            } else {
-                root.hotspotOn    = false
-                root.hotspotLabel = "Failed"
-                ShellState.hotspot = false
-                hsLabelResetTimer.restart()
-            }
-        }
-    }
-
-    // Stop hotspot
-    Process {
-        id: hsStopProc
-        // Disconnect by interface — works regardless of what nmcli named the connection
-        command: ["bash", "-c",
-            "nmcli device disconnect " + root._hsWifiIface + " 2>/dev/null; " +
-            "nmcli con delete BrainShellHotspot 2>/dev/null; true"]
-        running: false
-        onRunningChanged: if (!running) {
-            root.hotspotBusy   = false
-            root.hotspotOn     = false
-            ShellState.hotspot = false
-            if (root._hsWifiWasOff) {
-                // Wifi radio was off before hotspot started — restore that state.
-                // Turn the radio back off so the interface cycle is clean.
-                root.wifiOn       = false
-                ShellState.wifiOn = false
-                wifiToggleProc.command = ["bash", "-c", "nmcli radio wifi off"]
-                wifiToggleProc.running = false
-                wifiToggleProc.running = true
-                root._hsWifiWasOff = false
-            } else {
-                // Radio was already on — just re-expose wifi state and re-poll for SSID
-                ShellState.wifiOn = root.wifiOn
-                _wifiPoll()
-            }
-        }
-    }
-
-    Timer { id: hsLabelResetTimer; interval: 3000; repeat: false
-        onTriggered: { if (root.hotspotLabel === "Failed") root.hotspotLabel = "" } }
-
-    // Ethernet disconnect watcher — runs during polling when hotspot is active
-    Process {
-        id: hsEthernetLiveCheck
-        command: ["bash", "-c",
-            "nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -c 'ethernet:connected'"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                if (!root.hotspotOn || root.hotspotBusy) return
-                var hasEth = parseInt(text.trim()) > 0
-                if (!hasEth) {
-                    // Ethernet lost — tear down hotspot automatically
-                    root.hotspotLabel = "Ethernet lost"
-                    root.hotspotBusy  = true
-                    // Rebuild stop command with current iface before running
-                    hsStopProc.command = ["bash", "-c",
-                        "nmcli device disconnect " + root._hsWifiIface + " 2>/dev/null; " +
-                        "nmcli con delete BrainShellHotspot 2>/dev/null; true"]
-                    hsStopProc.running = false; hsStopProc.running = true
-                    hsLabelResetTimer.restart()
-                }
-            }
-        }
-    }
-
-    function _hsDoStart() {
-        var ssid = root._hsSSID
-        var pass = root._hsPassword
-        var iface = root._hsWifiIface
-        hsStartProc.command = ["bash", "-c",
-            // Silently bring the wifi radio up if it was off (ethernet-only scenario).
-            // nmcli needs the radio enabled before it can create an AP connection.
-            "nmcli radio wifi on 2>/dev/null; " +
-            "sleep 1; " +
-            // Disconnect whatever is currently on the interface 
-            "nmcli device disconnect \"" + iface + "\" 2>/dev/null; " +
-            "nmcli con delete BrainShellHotspot 2>/dev/null; " +
-            "nmcli device wifi hotspot " +
-                "ifname \"" + iface + "\" " +
-                "ssid \"" + ssid + "\" " +
-                "password \"" + pass + "\" " +
-                "con-name BrainShellHotspot 2>&1"]
-        hsStartProc.running = false; hsStartProc.running = true
-    }
-
-    function _hotspotToggle() {
-        if (root.hotspotBusy) return
-        if (root.hotspotOn) {
-            root.hotspotBusy  = true
-            root.hotspotLabel = ""
-            // Rebuild with current iface (detected after startup)
-            hsStopProc.command = ["bash", "-c",
-                "nmcli device disconnect \"" + root._hsWifiIface + "\" 2>/dev/null; " +
-                "nmcli con delete BrainShellHotspot 2>/dev/null; true"]
-            hsStopProc.running = false; hsStopProc.running = true
-        } else {
-            root.hotspotBusy  = true
-            root.hotspotLabel = ""
-            // Check ethernet first, then start
-            hsEthernetCheck.running = false; hsEthernetCheck.running = true
-        }
+        onRequestWifiPoll: root._wifiPoll()
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -373,9 +176,6 @@ StatCard {
 
     Process { id: airplaneCheck
         command: ["bash", "-c",
-            // Airplane = ALL radios soft-blocked.
-            // nmcli radio wifi off blocks only wifi via rfkill — not bluetooth/wwan.
-            // So count devices that are NOT blocked; if zero, airplane mode is on.
             "notBlocked=$(rfkill list all 2>/dev/null | grep -c 'Soft blocked: no');" +
             " total=$(rfkill list all 2>/dev/null | grep -c 'Soft blocked:');" +
             " [ \"$total\" -gt 0 ] && [ \"$notBlocked\" -eq 0 ] && echo yes || echo no"]
@@ -429,122 +229,10 @@ StatCard {
             restoreGaps.running = false; restoreGaps.running = true
         } else { readGapsIn.running = false; readGapsIn.running = true }
     }
-    
 
-// ─────────────────────────────────────────────────────────────────────────
-    //  Filter  (Native Hyprland Lua)
-    //
-    //  Tile click: runs bash `find`, opens picker popup above the tile.
-    //  Picker has "Off" at top + all available shaders.
-    //  Selecting a shader: resolves absolute path and uses `hyprctl eval hl.config()`
-    //  Selecting the active shader or "Off": clears the shader in Hyprland.
     // ─────────────────────────────────────────────────────────────────────────
-    property string currentFilter:    ""
-    property var    filterList:       []
-    property bool   filterPickerOpen: false
-    property bool   screenCapturePickerOpen: false
-    
-    // Add your standard shader directories here (space-separated)
-    property string shaderPaths: "~/.config/hypr/shaders ~/.local/share/hypr/shaders /usr/share/hyprshade/shaders ~/.local/src/Brain_Shell/src/config/shaders ~/.config/quickshell/src/config/shaders"
-
-    // Check process stays exactly the same — it already reads cleanly from Hyprland!
-    Process {
-        id: filterCheckProc
-        command: ["bash", "-c",
-            "hyprctl getoption decoration:screen_shader -j 2>/dev/null" +
-            " | python3 -c \"" +
-            "import sys,json,os;" +
-            "d=json.load(sys.stdin);" +
-            "s=d.get('str','').strip();" +
-            "print('' if s in ('','[[EMPTY]]') else os.path.splitext(os.path.basename(s))[0])\""]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.currentFilter = text.trim()
-            }
-        }
-    }
-
-    Process {
-        id: filterApplyProc
-        command: []
-        running: false
-        onRunningChanged: if (!running) {
-            filterCheckProc.running = false
-            filterCheckProc.running = true
-        }
-    }
-
-    function _filterApply(name) {
-        var turningOff = (name === "" || name === root.currentFilter)
-        root.currentFilter = turningOff ? "" : name
-
-        var isLua = ShellState.configProvider === "lua"
-
-        // Handle DPMS toggling based on provider
-        var damageCmd = isLua 
-            ? ` && hyprctl dispatch 'hl.dsp.dpms({ action = "disable" })' && hyprctl dispatch 'hl.dsp.dpms({ action = "enable" })'`
-            : ` && hyprctl dispatch dpms off && hyprctl dispatch dpms on`
-
-        if (turningOff) {
-            var offCmd = isLua 
-                ? "hyprctl eval \"hl.config({ decoration = { screen_shader = '' } })\""
-                : "hyprctl keyword decoration:screen_shader '[[EMPTY]]'"
-                
-            filterApplyProc.command = ["bash", "-c", offCmd + damageCmd]
-        } else {
-            var resolveCmd =
-                "TARGET=$(find " + root.shaderPaths +
-                " -maxdepth 1 -type f \\( -name '" + name + ".glsl' -o -name '" + name + ".frag' \\)" +
-                " 2>/dev/null | head -n 1); "
-                
-            var onCmd = isLua
-                ? "if [ -n \"$TARGET\" ]; then hyprctl eval \"hl.config({ decoration = { screen_shader = '$TARGET' } })\"" + damageCmd + "; fi"
-                : "if [ -n \"$TARGET\" ]; then hyprctl keyword decoration:screen_shader \"$TARGET\"" + damageCmd + "; fi"
-
-            filterApplyProc.command = ["bash", "-c", resolveCmd + onCmd]
-        }
-
-        filterApplyProc.running = false
-        filterApplyProc.running = true
-        root.filterPickerOpen = false
-    }
-
-    Connections {
-        target: WallpaperService
-        function onWallpaperApplied(path) {
-            filterCheckProc.running = false
-            filterCheckProc.running = true
-        }
-    }
-
-    Connections {
-        target: Popups
-        function onDashboardOpenChanged() {
-            if (!Popups.dashboardOpen) root.filterPickerOpen = false
-        }
-    }
-
-    Process {
-        id: filterListProc
-        // Replaces `hyprshade ls` by searching your directories and stripping the file extensions
-        command: ["bash", "-c", "find " + root.shaderPaths + " -maxdepth 1 -type f \\( -name '*.glsl' -o -name '*.frag' \\) 2>/dev/null | rev | cut -d/ -f1 | rev | sed 's/\\.[^.]*$//' | sort -u"]
-        running: false
-        stdout: SplitParser {
-            onRead: function(l) {
-                var n = l.trim()
-                if (n !== "") root.filterList = root.filterList.concat([n])
-            }
-        }
-    }
-
-    function _filterOpen() {
-        root.filterList = []
-        filterListProc.running = false
-        filterListProc.running = true
-        root.filterPickerOpen  = true
-    }
-
+    //  Color Picker
+    // ─────────────────────────────────────────────────────────────────────────
     property string pickerFormat: "HEX"
     property var sysThemeProc: Process {}
 
@@ -589,25 +277,20 @@ StatCard {
         interval: 5000; running: Popups.dashboardOpen; repeat: true
         onTriggered: {
             _wifiPoll(); _btPoll()
-            hsActiveCheckProc.running = false; hsActiveCheckProc.running = true
+            hotspotManager.poll()
             airplaneCheck.running = false; airplaneCheck.running = true
-            // Monitor ethernet while hotspot is active
-            if (root.hotspotOn && !root.hotspotBusy) {
-                hsEthernetLiveCheck.running = false; hsEthernetLiveCheck.running = true
+            if (hotspotManager.hotspotOn && !hotspotManager.hotspotBusy) {
+                hotspotManager.checkEthernetLive()
             }
         }
     }
 
     Component.onCompleted: {
-        
         _wifiPoll(); _btPoll()
         nlCheck.running         = true
         caffeineCheck.running   = true
-        hotspotCheck.running    = true
         airplaneCheck.running   = true
-        filterCheckProc.running = true
-        hsIfaceProc.running     = true
-        hsActiveCheckProc.running = true
+        hotspotManager.init()
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -617,83 +300,10 @@ StatCard {
         anchors { fill: parent; margins: Math.round(12 * localScale) }
         spacing: 0
 
-        // ── Brightness ────────────────────────────────────────────────────────
-        Item {
+        // ── Integrated Brightness Slider ──────────────────────────────────────
+        QuickBrightnessSlider {
             width: parent.width
-            height: Math.round(52 * localScale)
-
-            Text {
-                id: brightLbl
-                anchors { left: parent.left; top: parent.top }
-                text: "BRIGHTNESS"; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold
-                color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
-            }
-            Text {
-                anchors { right: parent.right; top: parent.top }
-                text: Math.round(root._brightVal * 100) + "%"
-                font.pixelSize: Math.round(9 * localScale); font.family: "JetBrains Mono"; font.weight: Font.Bold
-                color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.7)
-            }
-
-            Row {
-                anchors { left: parent.left; right: parent.right; top: brightLbl.bottom; topMargin: Math.round(8 * localScale) }
-                spacing: Math.round(8 * localScale)
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "󰃞"; font.pixelSize: Math.round(13 * localScale)
-                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.35)
-                }
-
-                Item {
-                    id: btw
-                    width: parent.width - Math.round(13 * localScale) - Math.round(13 * localScale) - parent.spacing * 2
-                    height: Math.round(30 * localScale); anchors.verticalCenter: parent.verticalCenter
-                    anchors.bottomMargin: Math.round(30 * localScale)
-                    readonly property int thumbD: Math.round(14 * localScale)
-
-                    Rectangle {
-                        id: btrack
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width; height: Math.round(5 * localScale); radius: height / 2
-                        color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
-                        Rectangle {
-                            anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
-                            width: Math.max(parent.radius * 2, parent.width * root._brightVal)
-                            radius: parent.radius; color: Theme.active
-                            Behavior on width { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
-                        }
-                        MouseArea {
-                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            function _c(mx) {
-                                return Math.max(0.0, Math.min(1.0,
-                                    (mx - btw.thumbD/2) / (btrack.width - btw.thumbD)))
-                            }
-                            onPressed:         BrightnessService.setBrightness(Math.round(_c(mouseX) * 100))
-                            onPositionChanged: if (pressed) BrightnessService.setBrightness(Math.round(_c(mouseX) * 100))
-                        }
-                        }
-
-                     WheelHandler {
-                        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                        onWheel: function(e) {
-                            BrightnessService.setBrightness(Math.round((root._brightVal + (e.angleDelta.y > 0 ? 0.05 : -0.05)) * 100))
-                        }
-                    }
-                    Rectangle {
-                        width: btw.thumbD; height: btw.thumbD; radius: btw.thumbD / 2
-                        color: Theme.text; anchors.verticalCenter: parent.verticalCenter
-                        x: Math.max(0, Math.min(btw.width - width, root._brightVal * (btw.width - width)))
-                        Behavior on x { NumberAnimation { duration: Anim.superFast; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
-                    }
-                }
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "󰃠"; font.pixelSize: Math.round(13 * localScale)
-                    color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.75)
-                }
-            }
+            localScale: root.localScale
         }
 
         Rectangle {
@@ -722,67 +332,6 @@ StatCard {
                 clip:           true
                 boundsBehavior: Flickable.StopAtBounds
 
-                component TglBtn: Rectangle {
-                    id: btn
-                    required property bool   on
-                    required property string icon
-                    required property string label
-                    property  string sublabel: ""
-                    signal toggled()
-                    signal rightToggled()
-
-                    radius: Math.round(10 * localScale)
-                    color: on
-                        ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
-                        : bH.hovered
-                            ? Theme.cardHover
-                            : Theme.card
-                    border.color: on
-                        ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.30)
-                        : Qt.rgba(Theme.border.r, Theme.border.g, Theme.border.b, 0.35)
-                    border.width: 1
-                    Behavior on color        { ColorAnimation { duration: Anim.color} }
-                    Behavior on border.color { ColorAnimation { duration: Anim.color} }
-
-                    Rectangle {
-                        anchors { top: parent.top; right: parent.right; margins: Math.round(8 * localScale) }
-                        width: Math.round(6 * localScale); height: Math.round(6 * localScale); radius: width / 2
-                        color: btn.on ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.18)
-                        Behavior on color { ColorAnimation { duration: Anim.color} }
-                    }
-
-                    Column {
-                        anchors { left: parent.left; bottom: parent.bottom; margins: Math.round(9 * localScale) }
-                        spacing: Math.round(2 * localScale)
-                        Text {
-                            text: btn.icon; font.pixelSize: Math.round(17 * localScale)
-                            color: btn.on ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.40)
-                            Behavior on color { ColorAnimation { duration: Anim.color} }
-                        }
-                        Text {
-                            text: btn.label; font.pixelSize: Math.round(9 * localScale); font.weight: Font.Medium
-                            color: btn.on ? Theme.text : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.45)
-                            Behavior on color { ColorAnimation { duration: Anim.color} }
-                        }
-                        Text {
-                            visible: btn.sublabel !== ""
-                            text:    btn.sublabel
-                            font.pixelSize: Math.round(8 * localScale); font.family: "JetBrains Mono"
-                            color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.65)
-                            width: btn.width - Math.round(18 * localScale); elide: Text.ElideRight
-                        }
-                    }
-                    HoverHandler { id: bH; cursorShape: Qt.PointingHandCursor }
-                    MouseArea { 
-                        anchors.fill: parent
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        onClicked: (mouse) => {
-                            if (mouse.button === Qt.RightButton) btn.rightToggled()
-                            else btn.toggled()
-                        }
-                    }
-                }
-
                 Grid {
                     id: tileGrid
                     width: flick.width
@@ -791,56 +340,65 @@ StatCard {
                     readonly property real btnW: (width - spacing) / 2
                     readonly property real btnH: btnW * 0.85
 
-                    TglBtn {
+                    QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
-                        on: root.wifiOn && !root.hotspotOn
-                        icon: (root.wifiOn && !root.hotspotOn) ? "󰤨" : "󰤭"; label: "Wi-Fi"
-                        sublabel: (root.wifiOn && !root.hotspotOn) && root.wifiSSID !== "" ? root.wifiSSID : (root.hotspotOn ? "Used by Hotspot" : "")
+                        localScale: root.localScale
+                        on: root.wifiOn && !hotspotManager.hotspotOn
+                        icon: (root.wifiOn && !hotspotManager.hotspotOn) ? "󰤨" : "󰤭"; label: "Wi-Fi"
+                        sublabel: (root.wifiOn && !hotspotManager.hotspotOn) && root.wifiSSID !== "" ? root.wifiSSID : (hotspotManager.hotspotOn ? "Used by Hotspot" : "")
                         onToggled: root._wifiToggle()
                     }
-                    TglBtn {
+                    QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
+                        localScale: root.localScale
                         on: root.btOn; icon: root.btOn ? "󰂱" : "󰂲"; label: "Bluetooth"
                         sublabel: root.btOn && root.btDevice !== "" ? root.btDevice : ""
                         onToggled: root._btToggle()
                     }
-                    TglBtn {
+                    QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
+                        localScale: root.localScale
                         on: root.airplaneOn; icon: "󰀝"; label: "Airplane Mode"
                         onToggled: root._airplaneToggle()
                     }
-                    TglBtn {
+                    QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
-                        on: root.hotspotOn || root.hotspotBusy
+                        localScale: root.localScale
+                        on: hotspotManager.hotspotOn || hotspotManager.hotspotBusy
                         icon: "󰀃"
                         label: "Hotspot"
-                        sublabel: root.hotspotLabel
-                        onToggled: root._hotspotToggle()
+                        sublabel: hotspotManager.hotspotLabel
+                        onToggled: hotspotManager.toggle()
                     }
-                    TglBtn {
+                    QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
+                        localScale: root.localScale
                         on: root.nightLightOn; icon: "󰖐"; label: "Night Light"
                         onToggled: root._nightLightToggle()
                     }
-                    TglBtn {
+                    QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
+                        localScale: root.localScale
                         on: root.caffeineOn; icon: "󰅶"; label: "Caffeine"
                         onToggled: root._caffeineToggle()
                     }
-                    TglBtn {
+                    QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
+                        localScale: root.localScale
                         on: ShellState.focusMode
                         icon: ShellState.focusMode ? "󱃕" : "󰍻"; label: "Focus Mode"
                         onToggled: root._focusToggle()
                     }
-                    TglBtn {
+                    QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
+                        localScale: root.localScale
                         on: ShellState.dnd; icon: ShellState.dnd ? "󰂛" : "󰂚"
                         label: "Do Not Disturb"
                         onToggled: root._dndToggle()
                     }
-                    TglBtn {
+                    QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
+                        localScale: root.localScale
                         on:    ShellState.screenRecord || ScreenRecService.recording
                         icon:  ScreenRecService.recording ? "⏹" : "󰻂"
                         label: ScreenRecService.recording ? "Recording" : "Screen Capture"
@@ -850,22 +408,22 @@ StatCard {
                             } else if (ShellState.screenRecord) {
                                 ScreenRecService.cancelSetup()
                             } else {
-                                root.screenCapturePickerOpen = !root.screenCapturePickerOpen
+                                capturePicker.toggle()
                             }
                         }
                     }
-                    // Filter tile — opens picker, does not toggle directly
-                    TglBtn {
+                    QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
-                        on:       root.currentFilter !== ""
+                        localScale: root.localScale
+                        on:       filterPicker.currentFilter !== ""
                         icon:     "󱡓"
                         label:    "Filter"
-                        sublabel: root.currentFilter !== "" ? root.currentFilter : ""
-                        onToggled: root._filterOpen()
+                        sublabel: filterPicker.currentFilter !== "" ? filterPicker.currentFilter : ""
+                        onToggled: filterPicker.open()
                     }
-                    // Picker tile — opens Wayland portal color picker dialog (right-click cycles format)
-                    TglBtn {
+                    QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
+                        localScale: root.localScale
                         on: false
                         icon: "󰈊"
                         label: "Picker"
@@ -877,9 +435,9 @@ StatCard {
                             else root.pickerFormat = "HEX";
                         }
                     }
-                    // Theme Mode tile — system wide dark/light scheme toggle
-                    TglBtn {
+                    QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
+                        localScale: root.localScale
                         on: PrefsService.darkMode
                         icon: PrefsService.darkMode ? "󰔎" : "󰖨"
                         label: "Theme Mode"
@@ -899,290 +457,22 @@ StatCard {
         }
     }
 
-    // ── Filter picker popup ───────────────────────────────────────────────────
-    // Floats above the bottom-right tile. z:20 renders it over the grid.
-    // Anchored bottom-right of the StatCard's inner area.
-    Rectangle {
+    // ── Floating Subcomponent Pickers ─────────────────────────────────────────
+    QuickFilterPicker {
         id: filterPicker
-        visible:  root.filterPickerOpen
-        z:        20
-        
-        onVisibleChanged: {
-            if (visible) {
-                forceActiveFocus()
-            } else {
-                root.forceActiveFocus()
-            }
-        }
-
-        Keys.onEscapePressed: function(event) {
-            root.filterPickerOpen = false
-            event.accepted = true // <--- Prevents the dashboard from closing
-        }
-
-        anchors {
-            right:        parent.right
-            bottom:       parent.bottom
-            rightMargin:  Math.round(12 * localScale)
-            bottomMargin: Math.round(12 * localScale)
-        }
-
-        width:  Math.round(180 * localScale)
-        // Height fits "Off" row + all shader rows, capped at 280
-        height: Math.min(Math.round(280 * localScale), pickerCol.implicitHeight + Math.round(16 * localScale))
-        radius: Math.round(Theme.cornerRadius * localScale)
-
-        color: Qt.rgba(
-            Math.min(1, Theme.background.r + 0.05),
-            Math.min(1, Theme.background.g + 0.05),
-            Math.min(1, Theme.background.b + 0.05),
-            0.98)
-        border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.10)
-        border.width: 1
-
-        // Subtle entrance scale + fade
-        opacity: root.filterPickerOpen ? 1 : 0
-        scale:   root.filterPickerOpen ? 1 : 0.95
-        Behavior on opacity { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
-        Behavior on scale   { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
-        transformOrigin: Item.BottomRight
-
-        // Dismiss when clicking outside the picker
-        MouseArea {
-            anchors.fill: parent
-            // Swallow clicks so they don't fall through to tiles below
-            onClicked: {} // intentionally empty — keeps picker open on internal clicks
-        }
-
-        Flickable {
-            anchors { fill: parent; margins: Math.round(8 * localScale) }
-            contentWidth:   width
-            contentHeight:  pickerCol.implicitHeight
-            clip:           true
-            boundsBehavior: Flickable.StopAtBounds
-
-            Column {
-                id: pickerCol
-                width: parent.width
-                spacing: Math.round(2 * localScale)
-
-                // Header label
-                Text {
-                    width: parent.width
-                    text: "SHADER"
-                    font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold
-                    color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
-                    leftPadding: Math.round(4 * localScale)
-                    bottomPadding: Math.round(4 * localScale)
-                }
-
-                // "Off" row — always first
-                Rectangle {
-                    width:  parent.width
-                    height: Math.round(28 * localScale)
-                    radius: Math.round(6 * localScale)
-                    property bool isActive: root.currentFilter === ""
-                    color: isActive
-                        ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
-                        : offH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
-                    Behavior on color { ColorAnimation { duration: Anim.fast} }
-
-                    Row {
-                        anchors { left: parent.left; leftMargin: Math.round(10 * localScale); verticalCenter: parent.verticalCenter }
-                        spacing: Math.round(8 * localScale)
-                        Text {
-                            text:           parent.parent.isActive ? "●" : "○"
-                            font.pixelSize: Math.round(9 * localScale)
-                            color: parent.parent.isActive ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.30)
-                            anchors.verticalCenter: parent.verticalCenter
-                            Behavior on color { ColorAnimation { duration: Anim.fast} }
-                        }
-                        Text {
-                            text:           "Off"
-                            font.pixelSize: Math.round(12 * localScale)
-                            color: parent.parent.isActive ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.65)
-                            anchors.verticalCenter: parent.verticalCenter
-                            Behavior on color { ColorAnimation { duration: Anim.fast} }
-                        }
-                    }
-                    HoverHandler { id: offH; cursorShape: Qt.PointingHandCursor }
-                    TapHandler   { onTapped: root._filterApply("") }
-                }
-
-                // Divider
-                Rectangle {
-                    width: parent.width; height: 1
-                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
-                }
-
-                // Shader rows — populated by hyprshade ls
-                Repeater {
-                    model: root.filterList
-                    delegate: Rectangle {
-                        required property string modelData
-                        property bool isActive: root.currentFilter === modelData
-
-                        width:  pickerCol.width
-                        height: Math.round(28 * localScale)
-                        radius: Math.round(6 * localScale)
-                        color: isActive
-                            ? Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.14)
-                            : itemH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
-                        Behavior on color { ColorAnimation { duration: Anim.fast} }
-
-                        Row {
-                            anchors { left: parent.left; leftMargin: Math.round(10 * localScale); verticalCenter: parent.verticalCenter }
-                            spacing: Math.round(8 * localScale)
-                            Text {
-                                text:           parent.parent.isActive ? "●" : "○"
-                                font.pixelSize: Math.round(9 * localScale)
-                                color: parent.parent.isActive ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.30)
-                                anchors.verticalCenter: parent.verticalCenter
-                                Behavior on color { ColorAnimation { duration: Anim.fast} }
-                            }
-                            Text {
-                                text:           modelData
-                                font.pixelSize: Math.round(12 * localScale)
-                                color: parent.parent.isActive ? Theme.active : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.65)
-                                anchors.verticalCenter: parent.verticalCenter
-                                elide: Text.ElideRight
-                                width: pickerCol.width - Math.round(38 * localScale)
-                                Behavior on color { ColorAnimation { duration: Anim.fast} }
-                            }
-                        }
-                        HoverHandler { id: itemH; cursorShape: Qt.PointingHandCursor }
-                        TapHandler   { onTapped: root._filterApply(modelData) }
-                    }
-                }
-
-                // Empty state — shown while hyprshade ls is still running
-                Text {
-                    width:   parent.width
-                    visible: root.filterList.length === 0
-                    text:    "Loading…"
-                    font.pixelSize: Math.round(11 * localScale)
-                    color:   Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.25)
-                    horizontalAlignment: Text.AlignHCenter
-                    topPadding: Math.round(4 * localScale)
-                }
-            }
-        }
+        localScale: root.localScale
     }
 
-    // Tap outside the picker to close it
+    QuickScreenCapturePicker {
+        id: capturePicker
+        localScale: root.localScale
+    }
+
     TapHandler {
-        enabled: root.filterPickerOpen || root.screenCapturePickerOpen
+        enabled: filterPicker.isOpen || capturePicker.isOpen
         onTapped: {
-            root.filterPickerOpen = false
-            root.screenCapturePickerOpen = false
-        }
-    }
-
-    Rectangle {
-        id: screenCapturePicker
-        visible:  root.screenCapturePickerOpen
-        z:        20
-        
-        onVisibleChanged: {
-            if (visible) forceActiveFocus()
-            else root.forceActiveFocus()
-        }
-
-        Keys.onEscapePressed: function(event) {
-            root.screenCapturePickerOpen = false
-            event.accepted = true
-        }
-
-        anchors {
-            right:        parent.right
-            bottom:       parent.bottom
-            rightMargin:  Math.round(12 * localScale)
-            bottomMargin: Math.round(12 * localScale)
-        }
-
-        width:  Math.round(180 * localScale)
-        height: captureCol.implicitHeight + Math.round(16 * localScale)
-        radius: Math.round(Theme.cornerRadius * localScale)
-
-        color: Qt.rgba(
-            Math.min(1, Theme.background.r + 0.05),
-            Math.min(1, Theme.background.g + 0.05),
-            Math.min(1, Theme.background.b + 0.05),
-            0.98)
-        border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.10)
-        border.width: 1
-
-        opacity: root.screenCapturePickerOpen ? 1 : 0
-        scale:   root.screenCapturePickerOpen ? 1 : 0.95
-        Behavior on opacity { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
-        Behavior on scale   { NumberAnimation { duration: Anim.color; easing.type: Anim.outCubic; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod} }
-        transformOrigin: Item.BottomRight
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked: {}
-        }
-
-        Item {
-            anchors { fill: parent; margins: Math.round(8 * localScale) }
-
-            Column {
-                id: captureCol
-                width: parent.width
-                spacing: Math.round(2 * localScale)
-
-                Text {
-                    width: parent.width
-                    text: "CAPTURE"
-                    font.pixelSize: Math.round(9 * localScale); font.weight: Font.Bold
-                    color: Qt.rgba(Theme.active.r, Theme.active.g, Theme.active.b, 0.55)
-                    leftPadding: Math.round(4 * localScale)
-                    bottomPadding: Math.round(4 * localScale)
-                }
-
-                Rectangle {
-                    width:  parent.width
-                    height: Math.round(28 * localScale)
-                    radius: Math.round(6 * localScale)
-                    color: shotH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
-                    Behavior on color { ColorAnimation { duration: Anim.fast} }
-                    Text {
-                        anchors { left: parent.left; leftMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
-                        text: "Screenshot"
-                        color: Theme.text
-                        font.pixelSize: Math.round(11 * localScale)
-                    }
-                    HoverHandler { id: shotH; cursorShape: Qt.PointingHandCursor }
-                    TapHandler {
-                        onTapped: {
-                            root.screenCapturePickerOpen = false
-                            IpcManager.screenshotDelayed()
-                        }
-                    }
-                }
-
-                Rectangle {
-                    width:  parent.width
-                    height: Math.round(28 * localScale)
-                    radius: Math.round(6 * localScale)
-                    color: recH.hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07) : "transparent"
-                    Behavior on color { ColorAnimation { duration: Anim.fast} }
-                    Text {
-                        anchors { left: parent.left; leftMargin: Math.round(8 * localScale); verticalCenter: parent.verticalCenter }
-                        text: "Screen Record"
-                        color: Theme.text
-                        font.pixelSize: Math.round(11 * localScale)
-                    }
-                    HoverHandler { id: recH; cursorShape: Qt.PointingHandCursor }
-                    TapHandler {
-                        onTapped: {
-                            root.screenCapturePickerOpen = false
-                            Popups.closeAll()
-                            ShellState.screenRecord = true
-                        }
-                    }
-                }
-            }
+            filterPicker.close()
+            capturePicker.close()
         }
     }
 }

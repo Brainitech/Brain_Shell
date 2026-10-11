@@ -1,7 +1,7 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
 #  Brain Shell — main Installer
-#  github.com/Brainitech/Brain_Shell  v0.2.0
+#  github.com/Brainitech/Brain_Shell  v0.2.1
 # ─────────────────────────────────────────────────────────────────────────────
 # Hesitation is Defeat — Isshin Ashina
 set -eo pipefail
@@ -18,7 +18,7 @@ log_warn()  { echo -e "  ${YELLOW}⚠${NC} $1"; }
 log_error() { echo -e "  ${RED}✗${NC} $1" >&2; }
 die()       { echo ""; log_error "$1"; exit 1; }
 
-TOTAL_STEPS=5
+TOTAL_STEPS=4
 step() {
     echo ""
     echo -e "${BOLD}${CYAN}  [$1/$TOTAL_STEPS]  $2${NC}"
@@ -39,7 +39,7 @@ echo " ▒███▒▒▒▒▒███ ▒███▒▒▒▒▒███
 echo " ▒███    ▒███ ▒███    ▒███  ▒███    ▒███  ▒███  ▒███  ▒▒█████     ███    ▒███ ▒███    ▒███  ▒███ ▒   █ ▒███      █ ▒███      █"
 echo " ███████████  █████   █████ █████   █████ █████ █████  ▒▒█████   ▒▒█████████  █████   █████ ██████████ ███████████ ███████████"
 echo -e "${NC}"
-echo -e "  ${DIM}v0.2.0  ·  github.com/Brainitech/Brain_Shell${NC}" # Update is finally seeing its light after getting the TeamCherry Treatment
+echo -e "  ${DIM}v0.2.1  ·  github.com/Brainitech/Brain_Shell${NC}"
 echo ""
 
 
@@ -53,6 +53,39 @@ step 1 "Pre-Flight Checks"
 # OS
 [[ "$OSTYPE" =~ ^linux ]] || die "This installer only supports Linux."
 log_ok "Linux confirmed"
+
+# NixOS Detection
+if [[ -f /etc/NIXOS ]] || { [[ -d /nix ]] && command -v nixos-version &>/dev/null; } || { [[ -f /etc/os-release ]] && grep -Eq '^ID=("?nixos"?|.*nixos)' /etc/os-release 2>/dev/null; }; then
+    log_ok "Distro: NixOS"
+    echo ""
+    echo -e "  ${BOLD}${CYAN}Brain Shell on NixOS${NC}"
+    echo -e "  ${DIM}$(printf '%.0s─' {1..50})${NC}"
+    echo -e "  Brain Shell provides official declarative NixOS and Home Manager modules."
+    echo -e "  Imperative installation via this script is not needed and not recommended."
+    echo ""
+    echo -e "  ${BOLD}Declarative Configuration Options:${NC}"
+    echo ""
+    echo -e "  ${BOLD}1. NixOS System Flake (/etc/nixos/flake.nix):${NC}"
+    echo -e "     inputs.brain-shell = {"
+    echo -e "       url = \"github:Brainitech/Brain_Shell?ref=main\";"
+    echo -e "       inputs.nixpkgs.follows = \"nixpkgs\";"
+    echo -e "     };"
+    echo -e "     modules = [ brain-shell.nixosModules.default ];"
+    echo -e "     ${GREEN}programs.brain-shell.enable = true;${NC}"
+    echo ""
+    echo -e "  ${BOLD}2. Home Manager Flake:${NC}"
+    echo -e "     inputs.brain-shell = {"
+    echo -e "       url = \"github:Brainitech/Brain_Shell?ref=main\";"
+    echo -e "       inputs.nixpkgs.follows = \"nixpkgs\";"
+    echo -e "     };"
+    echo -e "     modules = [ brain-shell.homeManagerModules.default ];"
+    echo -e "     ${GREEN}programs.brain-shell.enable = true;${NC}"
+    echo ""
+    echo -e "  For complete documentation and configuration examples, see:"
+    echo -e "  ${CYAN}https://github.com/Brainitech/Brain_Shell#nixos${NC}"
+    echo ""
+    exit 0
+fi
 
 # Deps
 command -v git &>/dev/null || die "git is not installed. Please install git first."
@@ -70,8 +103,7 @@ if [[ -f /etc/os-release ]]; then
             DISTRO_TYPE="arch"
             ;;
         nixos)
-            log_ok "Distro: NixOS"
-            DISTRO_TYPE="nix"
+            die "Install Brain_Shell via flakes/home-manager modules provided on the README"
             ;;
         omarchy)
             log_ok "Distro: ${ID} (Omarchy) detected."
@@ -167,9 +199,9 @@ fi
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STEP 4 — Distro-Specific Install
+# STEP 3 — Distro-Specific Install
 # ══════════════════════════════════════════════════════════════════════════════
-step 4 "Distro-Specific Installation"
+step 3 "Distro-Specific Installation"
 echo ""
 
 DISTRO_INSTALLER="$REPO_DIR/dots-extra/install-${DISTRO_TYPE}.sh"
@@ -179,12 +211,12 @@ bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$CONFIG_TYPE" "$REPO_DIR"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STEP 5 — Done
+# STEP 3 — Done
 # ══════════════════════════════════════════════════════════════════════════════
-step 5 "Done"
+step 3 "Done"
 
 echo ""
-log_ok "Brain Shell v0.2.0 installed successfully."
+log_ok "Brain Shell v0.2.1 installed successfully."
 echo ""
 
 if [[ "$IS_OMARCHY" == "true" ]]; then
@@ -218,7 +250,7 @@ fi
 echo -e "  ${BOLD}Next Steps:${NC}"
 if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]] && command -v hyprctl &>/dev/null && hyprctl activeworkspace &>/dev/null; then
     log_info "Active Hyprland session detected:"
-    log_info "  • Log out and back in, or run: ${CYAN}hyprctl dispatch exit${NC}"
+    log_info "  • Log out and back in to start Brain_Shell"
 else
     log_info "From TTY, launch your Hyprland session:"
     log_info "  • Run: ${CYAN}Hyprland${NC}"

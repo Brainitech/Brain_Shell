@@ -1,113 +1,78 @@
 {
   description = "Brain Shell - Modular session shell for Hyprland";
 
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
-  };
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-      in {
-        packages.default = pkgs.stdenv.mkDerivation {
-          pname = "brain-shell";
-          version = "0.2.0";
-          src = ./.;
-          phases = [ "installPhase" ];
-          installPhase = ''
-           mkdir -p $out
-           cp -r $src/src $src/shell.qml $out/
-         '';
-        };
+  outputs =
+    { self, nixpkgs }:
+    let
+      # Brain Shell only targets Linux (Wayland/Hyprland requirement).
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
 
-        devShells.default = pkgs.mkShell {
-          packages = with pkgs; [
-            git
-            python3
-          ];
-        };
-      }
-    ) // {
-      nixosModules.default = { config, pkgs, lib, ... }:
-        with lib;
+      # Single pkgs instance per system (no repeated imports).
+      forAllSystems =
+        f:
+        nixpkgs.lib.genAttrs systems (
+          system:
+          f {
+            inherit system;
+            pkgs = nixpkgs.legacyPackages.${system};
+          }
+        );
+    in
+    {
+      packages = forAllSystems (
+        { pkgs, ... }:
+        rec {
+          brain-shell = pkgs.callPackage ./nix/package.nix {
+            runtimeDeps = import ./nix/deps.nix pkgs;
+          };
+          default = brain-shell;
+        }
+      );
+
+      apps = forAllSystems (
+        { system, ... }:
         let
-          cfg = config.programs.brain-shell;
-          brainShellDeps = with pkgs; [
-            quickshell
-            hyprland
-            qt6.qtbase
-            qt6.qtdeclarative
-            qt6.qtwayland
-            qt6Packages.qt6ct
-            pipewire
-            wireplumber
-            networkmanager
-            bluez
-            brightnessctl
-            upower
-            libnotify
-            polkit
-            python3
-            wl-clipboard
-            slurp
-            xdg-user-dirs
-            wtype
-            imagemagick
-            wf-recorder
-            cava
-            playerctl
-            awww
-            matugen
-            lm_sensors
-            hyprlock
-            hypridle
-            hyprsunset
-            xdg-desktop-portal-hyprland
-            xdg-desktop-portal-gtk
-            cliphist
-            git
-            hyprpolkitagent
-            grimblast
-            kitty
-            qt6.qtmultimedia
-            qt6.qt5compat
-            rfkill
-            mpv-mpris
-            mpd-mpris
-            ranger
-          ];
-        in {
-          options.programs.brain-shell = {
-            enable = mkEnableOption "Brain Shell session";
+          app = {
+            type = "app";
+            program = "${self.packages.${system}.default}/bin/brain-shell";
           };
+        in
+        {
+          default = app;
+          brain-shell = app;
+        }
+      );
 
-          config = mkIf cfg.enable {
-            environment.systemPackages = brainShellDeps ++ [ self.packages.${pkgs.system}.default pkgs.pulseaudio ];
-
-            programs.hyprland.enable = mkDefault true;
-
-            fonts.packages = with pkgs; [
-              nerd-fonts.jetbrains-mono
-              nerd-fonts.symbols-only
+      devShells = forAllSystems (
+        { pkgs, ... }:
+        {
+          default = pkgs.mkShell {
+            packages = (import ./nix/deps.nix pkgs) ++ [
+              pkgs.nixfmt-rfc-style
             ];
-
-            environment.variables.QT_QPA_PLATFORMTHEME = "qt6ct";
-
-            services.pipewire = {
-              enable = mkDefault true;
-              alsa.enable = mkDefault true;
-              pulse.enable = mkDefault true;
-            };
-            services.blueman.enable = mkDefault true;
-            services.upower.enable = mkDefault true;
-
-            xdg.portal = {
-              enable = mkDefault true;
-              extraPortals = [ pkgs.xdg-desktop-portal-hyprland pkgs.xdg-desktop-portal-gtk ];
-            };
+            shellHook = ''
+              export QT_QPA_PLATFORMTHEME=qt6ct
+              export BRAIN_SHELL_CONFIG_DIR="$HOME/.config/Brain_Shell"
+            '';
           };
-        };
+        }
+      );
+
+      formatter = forAllSystems ({ pkgs, ... }: pkgs.nixfmt-rfc-style);
+
+      overlays.default = final: _prev: {
+        brain-shell = self.packages.${final.stdenv.hostPlatform.system}.default;
+      };
+
+      nixosModules.default = import ./nix/modules/nixos.nix self;
+      homeManagerModules = {
+        default = import ./nix/modules/home-manager.nix self;
+        brain-shell = import ./nix/modules/home-manager.nix self;
+      };
     };
 }

@@ -13,3 +13,5 @@ singleton PrefsService services/PrefsService.qml
 singleton SurfaceState state/SurfaceState.qml
 singleton MediaService services/MediaService.qml
 singleton FrecencyService services/FrecencyService.qml
+singleton Paths          utils/Paths.qml
+singleton KanbanService  services/KanbanService.qml

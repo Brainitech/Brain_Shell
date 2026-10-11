@@ -6,7 +6,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/last-commit/Brainitech/Brain_Shell?style=for-the-badge&color=8D748C&logoColor=D9E0EE&labelColor=252733" alt="Last Commit" />
   <img src="https://img.shields.io/github/stars/Brainitech/Brain_Shell?style=for-the-badge&logo=starship&color=AB6C6A&logoColor=D9E0EE&labelColor=252733" alt="Stars" />
-  <img src="https://img.shields.io/badge/version-0.2.0-8D748C?style=for-the-badge&logoColor=D9E0EE&labelColor=252733" alt="Version 0.2.0" />
+  <img src="https://img.shields.io/badge/version-0.2.1-8D748C?style=for-the-badge&logoColor=D9E0EE&labelColor=252733" alt="Version 0.2.1" />
   <br>
   <img src="https://img.shields.io/badge/hyprland-v0.55+-5E81AC?style=for-the-badge&logoColor=D9E0EE&labelColor=252733" alt="Hyprland v0.55+" />
   <img src="https://img.shields.io/badge/framework-quickshell-A1C999?style=for-the-badge&logoColor=D9E0EE&labelColor=252733" alt="Quickshell Framework" />
@@ -46,7 +46,7 @@
 
 ## What's New
 
-For a complete breakdown of new features, architectural improvements, and bug fixes in v0.2.0, see [CHANGELOG.md](CHANGELOG.md) or the [GitHub Releases](https://github.com/Brainitech/Brain_Shell/releases) page.
+For a complete breakdown of new features, architectural improvements, and bug fixes in v0.2.1, see [CHANGELOG.md](CHANGELOG.md) or the [GitHub Releases](https://github.com/Brainitech/Brain_Shell/releases) page.
 
 ---
 
@@ -223,46 +223,6 @@ yay -S --needed auto-cpufreq
 
 </details>
 
-<details>
-<summary><b>NixOS (configuration.nix)</b></summary>
-
-Add the following packages to your `environment.systemPackages` inside `configuration.nix`:
-
-```nix
-# Note: The following packages are ONLY required if you do not use the provided flake module.
-# The flake module `brain-shell.nixosModules.default` automatically encapsulates these.
-environment.systemPackages = with pkgs; [
-  quickshell hyprland qt6.qtbase qt6.qtdeclarative qt6.qtwayland qt6.qtmultimedia qt6.qt5compat qt6Packages.qt6ct
-  pipewire wireplumber networkmanager bluez brightnessctl upower libnotify polkit python3 wl-clipboard slurp
-  xdg-user-dirs wtype imagemagick wf-recorder cava playerctl awww matugen lm_sensors hyprlock hypridle hyprsunset
-  xdg-desktop-portal-hyprland xdg-desktop-portal-gtk cliphist git hyprpolkitagent grimblast kitty rfkill mpv-mpris mpd-mpris
-];
-```
-
-Ensure the required Wayland and system services are enabled:
-
-```nix
-programs.hyprland.enable = true;
-services.pipewire = {
-  enable = true;
-  alsa.enable = true;
-  pulse.enable = true;
-};
-services.blueman.enable = true;
-services.upower.enable = true;
-xdg.portal = {
-  enable = true;
-  extraPortals = [ pkgs.xdg-desktop-portal-hyprland pkgs.xdg-desktop-portal-gtk ];
-};
-fonts.packages = with pkgs; [
-  nerd-fonts.jetbrains-mono
-  nerd-fonts.symbols-only
-];
-environment.variables.QT_QPA_PLATFORMTHEME = "qt6ct";
-```
-
-</details>
-
 ---
 
 ## Installation
@@ -294,13 +254,25 @@ The installer automatically:
 > [!IMPORTANT]
 > If you're on `OMARCHY` then disable the `omarchy-shell` startup line located in `/usr/share/omarchy/default/hypr/autostart.lua`
 > Comment out the line `hl.exec_cmd("omarchy-shell-launch")`
-> Failing to do this will interfere with `Brain_Shell`'s Notification and Wallpaper Manager
+> Failing to do this will interfere with `Brain_Shell`'s Notification and Wallpaper Manager.
+> The Installer should already do this if it detects Omarchy.
 
 ---
 
-### NixOS
+### NixOS & Home Manager
 
-### 1. Create or edit `/etc/nixos/flake.nix`
+Brain_Shell provides official, declarative NixOS and Home Manager flake modules. Dependencies, system services, fonts, and Hyprland integration are all configured automatically.
+
+> [!IMPORTANT]
+> Brain_Shell requires **nixos-unstable** (or a recent nixpkgs snapshot). Stable channels may lack required packages such as `quickshell` and `awww`.
+
+---
+
+#### NixOS System Module
+
+The NixOS module enables system-level services (PipeWire, Bluetooth, Polkit, XDG portals), installs all runtime packages system-wide, and places `brain-shell` on `$PATH`.
+
+**1. Add Brain_Shell to your system flake (`/etc/nixos/flake.nix`):**
 
 ```nix
 {
@@ -313,7 +285,6 @@ The installer automatically:
   };
 
   outputs = { nixpkgs, brain-shell, ... }: {
-    # Replace "hostname" with whatever your actual hostname is
     nixosConfigurations.hostname = nixpkgs.lib.nixosSystem {
       modules = [
         brain-shell.nixosModules.default
@@ -324,37 +295,160 @@ The installer automatically:
 }
 ```
 
-### 2. Enable it in `/etc/nixos/configuration.nix`
+**2. Enable the module in `configuration.nix`:**
 
 ```nix
-programs.brain-shell.enable = true;
+programs.brain-shell = {
+  enable = true;
 
-# Note: If this is a fresh install, ensure flakes are enabled:
-nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  # configFormat = "lua";
+  #   The Hyprland config format Brain Shell should expect and generate files for.
+  #   "lua" (Hyprland 0.55+) or "conf". Default: "lua".
+};
 ```
 
-### 3. Rebuild the system
-
-Run the rebuild command targeting the flake.
+**3. Rebuild:**
 
 ```bash
 sudo nixos-rebuild switch --flake /etc/nixos/
 ```
 
-### 4. Initialize User Configuration & Autostart
+After the rebuild, add the Brain_Shell autostart to your Hyprland config (see [Hyprland Integration on NixOS](#hyprland-integration-on-nixos) below).
 
-The NixOS flake module installs system dependencies and enables core services, but user-level autostarts and configuration files must be initialized:
+---
 
-```bash
-# Run the installer script to initialize ~/.config/Brain_Shell and Hyprland autostart
-curl -fsSL https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh | bash
+#### Home Manager Module
+
+The Home Manager module handles user-level installation, fonts, and the systemd autostart service. It can also auto-inject Brain_Shell's layer rules and keybinds into your Hyprland config.
+
+**1. Add Brain_Shell to your Home Manager flake:**
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    brain-shell = {
+      url = "github:Brainitech/Brain_Shell?ref=main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = { nixpkgs, home-manager, brain-shell, ... }: {
+    homeConfigurations.username = home-manager.lib.homeManagerConfiguration {
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      modules = [
+        brain-shell.homeManagerModules.default
+        ./home.nix
+      ];
+    };
+  };
+}
 ```
 
-Once initialized, launch your Hyprland session:
+**2. Enable in `home.nix`:**
+
+```nix
+{ pkgs, ... }:
+
+{
+  # Default Stuff
+
+  programs.brain-shell = {
+    enable = true;
+
+    # systemd.enable = false;
+    #   Autostart Brain Shell via a systemd user service bound to graphical-session.target.
+    #   Default: false. When false, an exec_cmd hook is injected into Hyprland instead.
+    #   Set to true if you prefer systemd to manage the session.
+
+    # installDefaultHyprlandConfig = false;
+    #   Deploys Brain_Shell's bundled Hyprland config template to ~/.config/hypr/.
+    #   Useful for fresh Hyprland installs with no existing configuration.
+    #   Default: false. WARNING: this overwrites existing hyprland.lua.
+
+    # hyprlandIntegration = {
+    #   enable = true; # default
+    #   format = "lua"; # "lua" or "conf" (default: "lua")
+    # };
+    #   Writes ~/.config/hypr/lua.d/brain-shell.lua (or conf.d/brain-shell.conf)
+    #   with layer rules and the dynamic keybind source line. Disable if you
+    #   manage hyprland config yourself and want full control.
+
+    # terminal = "kitty";
+    #   Terminal emulator used for nmtui and screenshot previews. Default: "kitty".
+
+    # extraPackages = [ ];
+    #   Additional packages installed alongside Brain Shell in the user profile.
+    #   Example: [ pkgs.gpu-screen-recorder pkgs.envycontrol ]
+  };
+}
+```
+
+**3. Switch your profile:**
 
 ```bash
-start-hyprland
+home-manager switch --flake ~/.config/home-manager/
 ```
+
+---
+
+#### Hyprland Integration on NixOS
+
+If `hyprlandIntegration.enable = true` (default) in your Home Manager config, Brain_Shell drops its layer rules and keybinds right into `~/.config/hypr/lua.d/brain-shell.lua`. No extra config needed.
+
+If you manage your Hyprland configuration manually or prefer the system-level NixOS module, add the following snippets yourself:
+
+<details open>
+<summary><b>For <code>~/.config/hypr/hyprland.lua</code> (Lua format — Recommended for Hyprland 0.55+)</b></summary>
+
+```lua
+-- Brain Shell layer rules — required for correct rendering
+hl.layer_rule({ match = { namespace = "^brain-shell.*" }, no_anim = true })
+hl.layer_rule({ match = { namespace = "selection" }, no_anim = true, ignore_alpha = 1 })
+
+-- Dynamic keybinds managed by Brain Shell's visual editor
+local kb_path = os.getenv("HOME") .. "/.config/Brain_Shell/Brain_ShellKeybinds.lua"
+local f = io.open(kb_path, "r")
+if f then f:close(); dofile(kb_path) end
+```
+
+If Brain Shell is **not** started by systemd (i.e., `systemd.enable = false` or using the NixOS system module without Home Manager), also add the autostart hook:
+
+```lua
+hl.on("hyprland.start", function()
+    hl.exec_cmd("brain-shell")
+end)
+```
+
+</details>
+
+<details>
+<summary><b>For <code>~/.config/hypr/hyprland.conf</code> (Hyprlang format — Fallback option)</b></summary>
+
+```ini
+# Brain Shell layer rules — required for correct rendering
+layerrule = noanim, ^(brain-shell.*)$
+layerrule = noanim, selection
+layerrule = ignorealpha 1, selection
+
+# Dynamic keybinds managed by Brain Shell's visual editor
+source = ~/.config/Brain_Shell/Brain_ShellKeybinds.conf
+```
+
+If Brain Shell is **not** started by systemd (i.e., `systemd.enable = false` or using the NixOS system module without Home Manager), also add:
+
+```ini
+exec-once = brain-shell
+```
+
+</details>
+
+> [!NOTE]
+> Brain_Shell keeps its runtime state (`~/.config/Brain_Shell/src/user_data/`, `matugen/`, keybindings) mutable and initializes it on first launch. This means you can still use the visual editor and tweak settings inside the shell, while Nix handles the core package and services.
 
 ---
 
@@ -459,9 +553,31 @@ Enables GPU power mode switching (`Integrated`, `Hybrid`, `Dedicated`) in the Da
 
 ---
 
-## IPC Integration
+## CLI Wrapper & IPC Integration
+
+### Command Line Interface (`brain-shell`)
+
+When installed via NixOS or Home Manager, the `brain-shell` executable is available globally on your `$PATH`:
+
+```bash
+# Launch Brain Shell directly with bundled dependencies
+brain-shell
+
+# Send IPC toggle commands
+brain-shell ipc call <TARGET> toggle
+```
+
+### IPC Integration
 
 Brain_Shell provides an IPC interface via Quickshell's IPC subsystem. You can trigger surfaces from Hyprland keybinds, scripts, or terminal commands:
+
+**NixOS / Home Manager:**
+
+```bash
+brain-shell ipc call <TARGET> toggle
+```
+
+**Arch Linux / Manual Installation:**
 
 ```bash
 qs ipc -p ~/.local/src/Brain_Shell call <TARGET> toggle
@@ -498,6 +614,8 @@ _Giving up already? YOU DIED. (Just kidding, here's how to safely remove it with
 
 To completely remove Brain_Shell and restore your previous configuration:
 
+### Arch Linux / Manual Installation
+
 ```bash
 # 1. Kill Currently Running Shell (if running)
 pkill quickshell || pkill qs || true
@@ -505,15 +623,24 @@ pkill quickshell || pkill qs || true
 rm -rf ~/.local/src/Brain_Shell
 rm -rf ~/.config/Brain_Shell
 
-# 3. Remove the Brain_Shell autostart line from the bottom of your Hyprland configuration
+# 3. Remove the Brain_Shell autostart line from your Hyprland configuration (hyprland.lua / hyprland.conf)
+```
 
+### NixOS / Home Manager
+
+1. Remove `programs.brain-shell.enable = true;` from your flake / system / Home Manager configuration.
+2. Rebuild your system (`sudo nixos-rebuild switch --flake /etc/nixos/`) or Home Manager profile (`home-manager switch`).
+3. Optionally remove user configuration and state:
+
+```bash
+rm -rf ~/.config/Brain_Shell
 ```
 
 ---
 
 ## Roadmap
 
-### Current (v0.2.0)
+### Current (v0.2.1)
 
 - [x] Core shell framework
 - [x] System monitoring dashboard
@@ -531,7 +658,7 @@ rm -rf ~/.config/Brain_Shell
 - [x] App Launcher frecency-based sorting
 - [x] Unified popup configuration layer
 - [x] Notch Mini Player
-- [x] Experimental NixOS & Flakes support
+- [x] Home Manager Flake integration
 
 ### Upcoming
 
@@ -552,7 +679,7 @@ rm -rf ~/.config/Brain_Shell
 
 #### Tooling & Documentation
 
-- [ ] CLI for Brain_Shell
+- [x] CLI for Brain_Shell (`brain-shell` wrapper with IPC forwarding)
 - [ ] Extended documentation site
 - [ ] Onboarding guide
 
@@ -560,7 +687,7 @@ rm -rf ~/.config/Brain_Shell
 
 ## Known Issues
 
-If you encounter an unlisted issue, capture debug output by running `qs -p ~/.local/src/Brain_Shell` in a terminal or inspecting systemd logs, then file a report on GitHub Issues.
+If you encounter an unlisted issue, capture debug output by running `brain-shell` (on NixOS) or `qs -p ~/.local/src/Brain_Shell` (on Arch Linux) in a terminal or inspecting systemd logs, then file a report on GitHub Issues.
 
 - **Keybind Conflict Detection Failure:** The conflict detector may fail or incorrectly map binds in certain edge cases.
 - **Lua Keybind Resolution:** Hyprland Lua keybinds that lack explicit descriptions are currently falling back and being read generically as the line number in the code.

@@ -1,4 +1,12 @@
-ProfileCard    ProfileCard.qml
-CalendarCard   CalendarCard.qml
-ClockCard      ClockCard.qml
-QuickSettings  QuickSettings.qml
+ProfileCard              ProfileCard.qml
+CalendarCard             CalendarCard.qml
+ClockCard                ClockCard.qml
+QuickSettings            QuickSettings.qml
+QuickMediaWidget         QuickMediaWidget.qml
+QuickFilterPicker        QuickFilterPicker.qml
+QuickScreenCapturePicker QuickScreenCapturePicker.qml
+QuickHotspotManager      QuickHotspotManager.qml
+QuickToggleTile          QuickToggleTile.qml
+StopwatchView            StopwatchView.qml
+TimerView                TimerView.qml
+AlarmView                AlarmView.qml

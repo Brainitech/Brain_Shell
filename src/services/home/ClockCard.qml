@@ -252,6 +252,27 @@ StatCard {
         target: PrefsService
         function onUse24HourTimeChanged() { root._tick() }
     }
+
+    function resetCard() {
+        root._mode = "clock"
+        root._addOpen = false
+        root._addTimerOpen = false
+        if (pageAlarm && pageAlarm.resetScroll) pageAlarm.resetScroll()
+    }
+
+    Connections {
+        target: SurfaceState
+        function onActiveContentChanged() {
+            if (SurfaceState.activeContent !== "dashboard") root.resetCard()
+        }
+    }
+
+    Connections {
+        target: Popups
+        function onDashboardPageChanged() {
+            if (Popups.dashboardPage !== "home") root.resetCard()
+        }
+    }
     
     // ── UI ────────────────────────────────────────────────────────────────────
     Item {

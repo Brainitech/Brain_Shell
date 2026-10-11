@@ -27,6 +27,9 @@ QtObject {
     // ── Per-popup open state ───────────────────────────────────────────────────
     readonly property bool audioOpen: SurfaceState.activeContent === "audio"
     onAudioOpenChanged: {
+        if (!audioOpen) {
+            _ignoreDefaultTab = false
+        }
         if (audioOpen && !_ignoreDefaultTab) {
             let opt = PrefsService.defaultAudioTab
             if (opt === "Input") audioPage = "input"
@@ -44,6 +47,9 @@ QtObject {
         if (!dashboardOpen && activeExpandedButton) {
             activeExpandedButton.expanded = false
             activeExpandedButton = null
+        }
+        if (!dashboardOpen) {
+            _ignoreDefaultTab = false
         }
         if (dashboardOpen && !_ignoreDefaultTab) {
             let opt = PrefsService.defaultDashboardTab

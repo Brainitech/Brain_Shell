@@ -158,8 +158,11 @@ Item {
         color: Theme.text
     }
 
+    function resetScroll() { flick.contentY = 0; flick.returnToBounds() }
+
     // ── Scrollable list ───────────────────────────────────────────────────────
     Flickable {
+        id: flick
         anchors {
             top:         _titleLabel.bottom
             left:        parent.left

@@ -20,10 +20,10 @@ import QtQuick
 import Quickshell.Io
 
 // Controls fans via nbfc-linux.
-// Default mode assumes "auto" — set by hyprland exec-once at startup.
+// Queries nbfc status on startup and dashboard reveal to detect backend mode.
 //
 // Modes:
-//   "quiet" → nbfc set -s 0
+//   "quiet" → nbfc set -s 30
 //   "auto"  → nbfc set -a
 //   "max"   → nbfc set -s 100
 //
@@ -31,27 +31,84 @@ import Quickshell.Io
 //
 // Exposes:
 //   string mode         — "quiet" | "auto" | "max"
+//   bool   available    — true if nbfc is installed and responding
 //   bool   busy         — true while a command is in flight
+//   bool   active       — drives refresh on UI reveal
 //   function setMode(m)
+//   function refresh()
 
 QtObject {
     id: root
 
     property string mode: "auto"
     property bool available: false
+    property bool busy: false
+    property bool active: false
 
-    property var _checkProc: Process {
-        command: ["sh", "-c", "nbfc status >/dev/null 2>&1"]
-        running: true
-        onExited: (code) => { root.available = (code === 0) }
+    onActiveChanged: {
+        if (active && available && !busy) {
+            refresh()
+        }
     }
-    property bool   busy: false
-    
 
+    // ── Status query process ──────────────────────────────────────────────────
+    property var _queryProc: Process {
+        command: ["sh", "-c", "timeout 5 nbfc status 2>/dev/null"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: root._parseStatus(text)
+        }
+        onExited: (code) => {
+            root.available = (code === 0)
+        }
+    }
+
+    // ── Mode command process ──────────────────────────────────────────────────
     property var _proc: Process {
         command: []
         running: false
-        onRunningChanged: if (!running) root.busy = false
+        onExited: (code) => {
+            root.busy = false
+            root.refresh()
+        }
+    }
+
+    function _parseStatus(text) {
+        if (!text || text.trim() === "") return
+
+        // Auto mode if auto control is enabled
+        if (/Auto Control Enabled\s*:\s*true/i.test(text)) {
+            root.mode = "auto"
+            return
+        }
+
+        // Manual mode: evaluate target fan speed
+        var speeds = []
+        var re = /Target Fan Speed\s*:\s*([0-9.]+)/gi
+        var m
+        while ((m = re.exec(text)) !== null) {
+            speeds.push(parseFloat(m[1]))
+        }
+
+        if (speeds.length > 0) {
+            var maxSpeed = Math.max.apply(null, speeds)
+            if (maxSpeed >= 70.0) {
+                root.mode = "max"
+            } else if (maxSpeed <= 40.0) {
+                root.mode = "quiet"
+            } else {
+                root.mode = "auto"
+            }
+            return
+        }
+
+        root.mode = "auto"
+    }
+
+    function refresh() {
+        if (root.busy) return
+        _queryProc.running = false
+        _queryProc.running = true
     }
 
     function setMode(m) {

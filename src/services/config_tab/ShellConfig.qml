@@ -37,6 +37,43 @@ Item {
         { key: "misc",       icon: "󰒓", label: "Misc"               },
     ]
 
+    function resetConfig() {
+        root._page = "general"
+        pageArea.oldIdx = 0
+        pageArea.newIdx = 0
+        pageArea.progress = 1.0
+        if (pageGeneral.resetScroll) pageGeneral.resetScroll()
+        if (pageVisuals.resetScroll) pageVisuals.resetScroll()
+        if (pageKeybinds.resetScroll) pageKeybinds.resetScroll()
+        if (pageData.resetScroll) pageData.resetScroll()
+        if (pageMisc.resetScroll) pageMisc.resetScroll()
+    }
+
+    on_PageChanged: {
+        switch (_page) {
+            case "general":  if (pageGeneral.resetScroll) pageGeneral.resetScroll(); break
+            case "visuals":  if (pageVisuals.resetScroll) pageVisuals.resetScroll(); break
+            case "keybinds": if (pageKeybinds.resetScroll) pageKeybinds.resetScroll(); break
+            case "data":     if (pageData.resetScroll) pageData.resetScroll(); break
+            case "misc":     if (pageMisc.resetScroll) pageMisc.resetScroll(); break
+        }
+    }
+
+    Connections {
+        target: SurfaceState
+        function onActiveContentChanged() {
+            if (SurfaceState.activeContent !== "dashboard") root.resetConfig()
+        }
+    }
+
+    Connections {
+        target: Popups
+        function onDashboardPageChanged() {
+            if (Popups.dashboardPage !== "config") root.resetConfig()
+        }
+    }
+
+
     Row {
         anchors {
             fill:    parent
@@ -165,15 +202,16 @@ Item {
 
                 VerticalSlidePage {
                     myIdx: 0
-                    GeneralPage { anchors.fill: parent; localScale: root.localScale }
+                    GeneralPage { id: pageGeneral; anchors.fill: parent; localScale: root.localScale }
                 }
                 VerticalSlidePage {
                     myIdx: 1
-                    VisualsBehaviorPage { anchors.fill: parent; localScale: root.localScale }
+                    VisualsBehaviorPage { id: pageVisuals; anchors.fill: parent; localScale: root.localScale }
                 }
                 VerticalSlidePage {
                     myIdx: 2
                     KeybindsPage { 
+                        id: pageKeybinds
                         anchors.fill: parent
                         localScale: root.localScale
                         showHyprlandKeybinds: root.showHyprlandKeybinds
@@ -181,11 +219,11 @@ Item {
                 }
                 VerticalSlidePage {
                     myIdx: 3
-                    DataPage { anchors.fill: parent; localScale: root.localScale }
+                    DataPage { id: pageData; anchors.fill: parent; localScale: root.localScale }
                 }
                 VerticalSlidePage {
                     myIdx: 4
-                    MiscPage { anchors.fill: parent; localScale: root.localScale }
+                    MiscPage { id: pageMisc; anchors.fill: parent; localScale: root.localScale }
                 }
             }
         }

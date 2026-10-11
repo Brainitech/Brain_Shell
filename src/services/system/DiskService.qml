@@ -19,7 +19,7 @@
 import QtQuick
 import Quickshell.Io
 
-// Runs df every 15s and exposes real block devices as a list model.
+// Runs df every 5s and exposes real block devices as a list model.
 //
 // Exposes:
 //   var disks — ListModel with objects:
@@ -44,7 +44,7 @@ QtObject {
     }
 
     property var _timer: Timer {
-        interval: 15000
+        interval: 5000
         running:  root.active
         repeat:   true
         onTriggered: root._run()

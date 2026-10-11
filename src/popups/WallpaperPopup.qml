@@ -145,6 +145,7 @@ Item {
                 clip:           true
                 boundsBehavior: Flickable.StopAtBounds
                 interactive:    false
+                cacheBuffer:    Math.round(400 * localScale)
                 ScrollBar.horizontal: ScrollBar { 
                     policy: ScrollBar.AsNeeded
                     height: Math.round(6 * localScale) 
@@ -177,14 +178,35 @@ Item {
                         visible:      false
 
                         Image {
+                            id: cardImg
                             anchors.left:  parent.left
                             anchors.right: parent.right
                             anchors.top:   parent.top
                             height:        parent.height - cardDelegate.labelH
-                            source:        modelData.indexOf("://") !== -1 ? modelData : "file://" + modelData
                             fillMode:      Image.PreserveAspectCrop
                             asynchronous:  true
                             cache:         true
+                            mipmap:        true
+
+                            readonly property string rawUrl:   modelData.indexOf("://") !== -1 ? modelData : ("file://" + modelData)
+                            readonly property string thumbUrl: "file://" + WallpaperService.getThumbnail(modelData)
+
+                            source: thumbUrl
+
+                            onStatusChanged: {
+                                if (status === Image.Error && source === thumbUrl) {
+                                    source = rawUrl
+                                }
+                            }
+
+                            Connections {
+                                target: WallpaperService
+                                function onThumbnailsUpdated() {
+                                    if (cardImg.source !== cardImg.thumbUrl) {
+                                        cardImg.source = cardImg.thumbUrl
+                                    }
+                                }
+                            }
                         }
 
                         Rectangle {

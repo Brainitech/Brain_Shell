@@ -105,6 +105,7 @@ jobs:
           bash -n src/scripts/screenshot.sh
           bash -n src/scripts/init_user_dir.sh
           bash -n src/scripts/migrate_v0.2.0.sh
+          bash -n src/scripts/generate_wallpaper_thumbnails.sh
           echo "✓ src/scripts/ syntax OK"
 
       - name: Lint Python scripts

@@ -6,7 +6,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/last-commit/Brainitech/Brain_Shell?style=for-the-badge&color=8D748C&logoColor=D9E0EE&labelColor=252733" alt="Last Commit" />
   <img src="https://img.shields.io/github/stars/Brainitech/Brain_Shell?style=for-the-badge&logo=starship&color=AB6C6A&logoColor=D9E0EE&labelColor=252733" alt="Stars" />
-  <img src="https://img.shields.io/badge/version-0.2.1-8D748C?style=for-the-badge&logoColor=D9E0EE&labelColor=252733" alt="Version 0.2.1" />
+  <img src="https://img.shields.io/badge/version-0.2.2-8D748C?style=for-the-badge&logoColor=D9E0EE&labelColor=252733" alt="Version 0.2.2" />
   <br>
   <img src="https://img.shields.io/badge/hyprland-v0.55+-5E81AC?style=for-the-badge&logoColor=D9E0EE&labelColor=252733" alt="Hyprland v0.55+" />
   <img src="https://img.shields.io/badge/framework-quickshell-A1C999?style=for-the-badge&logoColor=D9E0EE&labelColor=252733" alt="Quickshell Framework" />
@@ -46,7 +46,7 @@
 
 ## What's New
 
-For a complete breakdown of new features, architectural improvements, and bug fixes in v0.2.1, see [CHANGELOG.md](CHANGELOG.md) or the [GitHub Releases](https://github.com/Brainitech/Brain_Shell/releases) page.
+For a complete breakdown of new features, architectural improvements, and bug fixes in v0.2.2, see [CHANGELOG.md](CHANGELOG.md) or the [GitHub Releases](https://github.com/Brainitech/Brain_Shell/releases) page.
 
 ---
 
@@ -640,7 +640,7 @@ rm -rf ~/.config/Brain_Shell
 
 ## Roadmap
 
-### Current (v0.2.1)
+### Current (v0.2.2)
 
 - [x] Core shell framework
 - [x] System monitoring dashboard

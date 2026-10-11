@@ -40,6 +40,7 @@ Item {
     signal deleteAlarm(var id)
 
     function _zp(n) { return n < 10 ? "0" + n : "" + n }
+    function resetScroll() { alarmList.contentY = 0; alarmList.returnToBounds() }
 
     onIsCurrentChanged: {
         if (!isCurrent) wasCurrent = true;

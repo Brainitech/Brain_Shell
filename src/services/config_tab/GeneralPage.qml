@@ -24,9 +24,11 @@ import "../../"
 Item {
     id: root
     property real localScale: 1.0
-    
+
+    function resetScroll() { flick.contentY = 0; flick.returnToBounds() }
 
     Flickable {
+        id: flick
         anchors.fill: parent
         contentWidth: width
         contentHeight: contentCol.height + Math.round(40 * localScale)

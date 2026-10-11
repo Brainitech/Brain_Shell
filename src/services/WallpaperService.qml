@@ -54,6 +54,34 @@ QtObject {
     // Emitted when the full apply pipeline exits cleanly (exitCode === 0).
     signal wallpaperApplied(string path)
 
+    // ── Thumbnails ────────────────────────────────────────────────────────────
+    readonly property string thumbCacheDir: (Quickshell.env("XDG_CACHE_HOME") ? Quickshell.env("XDG_CACHE_HOME") : (Quickshell.env("HOME") + "/.cache")) + "/Brain_Shell/thumbnails"
+    signal thumbnailsUpdated()
+
+    function getThumbnail(filePath) {
+        if (!filePath || filePath === "") return ""
+        return root.thumbCacheDir + "/" + Qt.md5(filePath) + ".jpg"
+    }
+
+    function _generateThumbnails() {
+        if (thumbProc.running) return
+        var dir = root.wallpaperDir.replace(/^~/, Quickshell.env("HOME"))
+        thumbProc.command = [
+            "bash",
+            Paths.installDir + "/src/scripts/generate_wallpaper_thumbnails.sh",
+            dir,
+            root.thumbCacheDir
+        ]
+        thumbProc.running = true
+    }
+
+    property Process thumbProc: Process {
+        command: []
+        onExited: function(code, status) {
+            root.thumbnailsUpdated()
+        }
+    }
+
     // ── File listing ──────────────────────────────────────────────────────────
     function refresh() {
         if (listProc.running) return
@@ -75,14 +103,25 @@ QtObject {
             }
         }
         onExited: function() {
-            root.wallpapers = root.tempWalls
+            var changed = (root.tempWalls.length !== root.wallpapers.length)
+            if (!changed) {
+                for (var i = 0; i < root.tempWalls.length; i++) {
+                    if (root.tempWalls[i] !== root.wallpapers[i]) {
+                        changed = true
+                        break
+                    }
+                }
+            }
+            if (changed) {
+                root.wallpapers = root.tempWalls
+            }
+            root._generateThumbnails()
         }
     }
 
     property var _themeConn: Connections {
         target: Theme
         function onActiveChanged() { root.updateBorders(); }
-        function onBorderChanged() { root.updateBorders(); }
     }
 
     property var _prefsConn: Connections {
@@ -173,8 +212,7 @@ QtObject {
     }
 
     function updateBorders() {
-        let colStr = PrefsService.dynamicThemeOverride ? String(Theme.border) : String(Theme.active)
-        let cleanCol = colStr.replace('#', '')
+        let cleanCol = String(Theme.active).replace('#', '')
 
         // Build command based on config provider
         if (ShellState.configProvider === "lua") {

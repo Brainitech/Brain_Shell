@@ -2,6 +2,27 @@
 
 All notable changes to Brain_Shell will be documented in this file.
 
+## What's New in v0.2.2
+
+- **Thumbnail Caching:**
+  - Background thumbnail generation prevents freezes when opening large directories or heavy animated GIFs
+  - Smooth grid scrolling while preserving crisp image quality on HiDPI screens
+
+- **Popup & Page Reset on Exit**
+  - Shell Config returns to the first tab (General) and resets scroll to top when closed
+  - Clock Card resets to the clock view and closes open panels on dismissal without stopping active timers or stopwatch
+
+- **Network Menu Cleanup:**
+  - Modularized Wi-Fi, Bluetooth, and VPN views for cleaner state handling
+  - Ethernet status stays visible even when Wi-Fi is turned off
+
+- **Fixes & Polish:**
+  - Fixed active window border color using accent color instead of border color under Dynamic Theme Override
+  - Fixed fan control hardware speed sync with the slider
+  - Reduced system storage polling interval from 15s to 5s
+
+---
+
 ## What's New in v0.2.1
 
 - **Declarative NixOS & Home Manager Integration:**

@@ -1,4 +1,7 @@
-ProfileCard    ProfileCard.qml
-CalendarCard   CalendarCard.qml
-ClockCard      ClockCard.qml
-QuickSettings  QuickSettings.qml
+ProfileCard              ProfileCard.qml
+CalendarCard             CalendarCard.qml
+ClockCard                ClockCard.qml
+QuickSettings            QuickSettings.qml
+StopwatchView            StopwatchView.qml
+TimerView                TimerView.qml
+AlarmView                AlarmView.qml

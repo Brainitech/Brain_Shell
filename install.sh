@@ -250,7 +250,7 @@ fi
 echo -e "  ${BOLD}Next Steps:${NC}"
 if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]] && command -v hyprctl &>/dev/null && hyprctl activeworkspace &>/dev/null; then
     log_info "Active Hyprland session detected:"
-    log_info "  • Log out and back in, or run: ${CYAN}hyprctl dispatch exit${NC}"
+    log_info "  • Log out and back in to start Brain_Shell"
 else
     log_info "From TTY, launch your Hyprland session:"
     log_info "  • Run: ${CYAN}Hyprland${NC}"

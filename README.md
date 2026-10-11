@@ -239,7 +239,7 @@ yay -S --needed auto-cpufreq
 > **Automated Setup:** The installation script verifies system prerequisites, creates a timestamped backup of your Hyprland configuration in `~/.config/hypr/`, installs dependencies via your package manager, and registers Brain_Shell in your autostart.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh | BRAIN_SHELL_BRANCH=dev bash
 ```
 
 The installer automatically:
@@ -270,7 +270,9 @@ Brain_Shell provides official, declarative NixOS and Home Manager flake modules.
 
 #### NixOS System Module
 
-The NixOS module enables system-level services (PipeWire, Bluetooth, Polkit, XDG portals), installs all runtime packages system-wide, and places `brain-shell` on `$PATH`.
+The NixOS module enables system-level services (PipeWire, B
+
+### Related Issuesluetooth, Polkit, XDG portals), installs all runtime packages system-wide, and places `brain-shell` on `$PATH`.
 
 **1. Add Brain_Shell to your system flake (`/etc/nixos/flake.nix`):**
 
@@ -279,7 +281,7 @@ The NixOS module enables system-level services (PipeWire, Bluetooth, Polkit, XDG
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     brain-shell = {
-      url = "github:Brainitech/Brain_Shell?ref=fix/nix-testing";
+      url = "github:Brainitech/Brain_Shell?ref=dev";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -332,7 +334,7 @@ The Home Manager module handles user-level installation, fonts, and the systemd 
       inputs.nixpkgs.follows = "nixpkgs";
     };
     brain-shell = {
-      url = "github:Brainitech/Brain_Shell?ref=fix/nix-testing";
+      url = "github:Brainitech/Brain_Shell?ref=dev";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

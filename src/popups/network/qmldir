@@ -1,0 +1,3 @@
+ScanRings ScanRings.qml
+WifiNetworkRow WifiNetworkRow.qml
+BluetoothDeviceRow BluetoothDeviceRow.qml

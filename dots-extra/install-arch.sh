@@ -1,7 +1,7 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
 #  Brain Shell — Arch Linux Installer
-#  github.com/Brainitech/Brain_Shell  v0.2.0
+#  github.com/Brainitech/Brain_Shell  v0.2.1
 #  Invoked by install.sh:  $1=HYPRLAND_CONF  $2=CONFIG_TYPE  $3=CONFIG_TYPE
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ log_error() { echo -e "  ${RED}✗${NC} $1" >&2; }
 die()       { echo ""; log_error "$1"; exit 1; }
 
 # ── Banner ────────────────────────────────────────────────────────────────────
-echo -e "  ${DIM}v0.2.0  ·  github.com/Brainitech/Brain_Shell${NC}"
+echo -e "  ${DIM}v0.2.1  ·  github.com/Brainitech/Brain_Shell${NC}"
 
 TOTAL_STEPS=6
 step() {

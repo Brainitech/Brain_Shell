@@ -1,7 +1,7 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
 #  Brain Shell — main Installer
-#  github.com/Brainitech/Brain_Shell  v0.2.0
+#  github.com/Brainitech/Brain_Shell  v0.2.1
 # ─────────────────────────────────────────────────────────────────────────────
 # Hesitation is Defeat — Isshin Ashina
 set -eo pipefail
@@ -39,7 +39,7 @@ echo " ▒███▒▒▒▒▒███ ▒███▒▒▒▒▒███
 echo " ▒███    ▒███ ▒███    ▒███  ▒███    ▒███  ▒███  ▒███  ▒▒█████     ███    ▒███ ▒███    ▒███  ▒███ ▒   █ ▒███      █ ▒███      █"
 echo " ███████████  █████   █████ █████   █████ █████ █████  ▒▒█████   ▒▒█████████  █████   █████ ██████████ ███████████ ███████████"
 echo -e "${NC}"
-echo -e "  ${DIM}v0.2.0  ·  github.com/Brainitech/Brain_Shell${NC}" # Update is finally seeing its light after getting the TeamCherry Treatment
+echo -e "  ${DIM}v0.2.1  ·  github.com/Brainitech/Brain_Shell${NC}"
 echo ""
 
 
@@ -216,7 +216,7 @@ bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$CONFIG_TYPE" "$REPO_DIR"
 step 3 "Done"
 
 echo ""
-log_ok "Brain Shell v0.2.0 installed successfully."
+log_ok "Brain Shell v0.2.1 installed successfully."
 echo ""
 
 if [[ "$IS_OMARCHY" == "true" ]]; then

@@ -6,7 +6,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/last-commit/Brainitech/Brain_Shell?style=for-the-badge&color=8D748C&logoColor=D9E0EE&labelColor=252733" alt="Last Commit" />
   <img src="https://img.shields.io/github/stars/Brainitech/Brain_Shell?style=for-the-badge&logo=starship&color=AB6C6A&logoColor=D9E0EE&labelColor=252733" alt="Stars" />
-  <img src="https://img.shields.io/badge/version-0.2.0-8D748C?style=for-the-badge&logoColor=D9E0EE&labelColor=252733" alt="Version 0.2.0" />
+  <img src="https://img.shields.io/badge/version-0.2.1-8D748C?style=for-the-badge&logoColor=D9E0EE&labelColor=252733" alt="Version 0.2.1" />
   <br>
   <img src="https://img.shields.io/badge/hyprland-v0.55+-5E81AC?style=for-the-badge&logoColor=D9E0EE&labelColor=252733" alt="Hyprland v0.55+" />
   <img src="https://img.shields.io/badge/framework-quickshell-A1C999?style=for-the-badge&logoColor=D9E0EE&labelColor=252733" alt="Quickshell Framework" />
@@ -46,7 +46,7 @@
 
 ## What's New
 
-For a complete breakdown of new features, architectural improvements, and bug fixes in v0.2.0, see [CHANGELOG.md](CHANGELOG.md) or the [GitHub Releases](https://github.com/Brainitech/Brain_Shell/releases) page.
+For a complete breakdown of new features, architectural improvements, and bug fixes in v0.2.1, see [CHANGELOG.md](CHANGELOG.md) or the [GitHub Releases](https://github.com/Brainitech/Brain_Shell/releases) page.
 
 ---
 
@@ -239,7 +239,7 @@ yay -S --needed auto-cpufreq
 > **Automated Setup:** The installation script verifies system prerequisites, creates a timestamped backup of your Hyprland configuration in `~/.config/hypr/`, installs dependencies via your package manager, and registers Brain_Shell in your autostart.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh | BRAIN_SHELL_BRANCH=dev bash
+curl -fsSL https://raw.githubusercontent.com/Brainitech/Brain_Shell/refs/heads/main/install.sh | bash
 ```
 
 The installer automatically:
@@ -270,9 +270,7 @@ Brain_Shell provides official, declarative NixOS and Home Manager flake modules.
 
 #### NixOS System Module
 
-The NixOS module enables system-level services (PipeWire, B
-
-### Related Issuesluetooth, Polkit, XDG portals), installs all runtime packages system-wide, and places `brain-shell` on `$PATH`.
+The NixOS module enables system-level services (PipeWire, Bluetooth, Polkit, XDG portals), installs all runtime packages system-wide, and places `brain-shell` on `$PATH`.
 
 **1. Add Brain_Shell to your system flake (`/etc/nixos/flake.nix`):**
 
@@ -281,7 +279,7 @@ The NixOS module enables system-level services (PipeWire, B
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     brain-shell = {
-      url = "github:Brainitech/Brain_Shell?ref=dev";
+      url = "github:Brainitech/Brain_Shell?ref=main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -334,7 +332,7 @@ The Home Manager module handles user-level installation, fonts, and the systemd 
       inputs.nixpkgs.follows = "nixpkgs";
     };
     brain-shell = {
-      url = "github:Brainitech/Brain_Shell?ref=dev";
+      url = "github:Brainitech/Brain_Shell?ref=main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -642,7 +640,7 @@ rm -rf ~/.config/Brain_Shell
 
 ## Roadmap
 
-### Current (v0.2.0)
+### Current (v0.2.1)
 
 - [x] Core shell framework
 - [x] System monitoring dashboard
@@ -660,7 +658,7 @@ rm -rf ~/.config/Brain_Shell
 - [x] App Launcher frecency-based sorting
 - [x] Unified popup configuration layer
 - [x] Notch Mini Player
-- [x] First-class NixOS & Home Manager Flake integration
+- [x] Home Manager Flake integration
 
 ### Upcoming
 

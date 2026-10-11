@@ -2,6 +2,30 @@
 
 All notable changes to Brain_Shell will be documented in this file.
 
+## What's New in v0.2.1
+
+- **Declarative NixOS & Home Manager Integration:**
+  - Modularized Nix architecture across dedicated packaging (`package.nix`), dependency (`deps.nix`), and module files
+  - Native Home Manager and NixOS modules (`programs.brain-shell`) with systemd autostart support
+  - Hardened executable launcher wrapper scoping environment dependencies cleanly
+  - Unified configuration handling supporting both Lua and Hyprlang pipelines
+
+- **Kanban Board Inline Clear Confirmation:** Replaced the global confirmation dialog with an inline dimmed column overlay featuring centered Delete / Cancel controls with Enter / Esc keyboard shortcuts and click-outside dismissal
+
+- **Monolith Modularization:**
+  - Refactored `QuickSettings.qml` into modular sliders (`QuickBrightnessSlider`, `QuickVolumeSlider`, `QuickMicSlider`) in `src/components/sliders/` and standalone widgets (`QuickMediaWidget`)
+  - Modularized `KanbanBoard.qml` into `KanbanColumn`, `KanbanTaskCard`, `KanbanDatePicker`, and headless `KanbanService`
+  - Decomposed `ClockCard.qml` into discrete sub-views (`StopwatchView`, `TimerView`, `AlarmView`)
+  - Extracted `KeybindsPage.qml` shortcut recorder and warning banners into `KeybindRowDelegate` and `KeybindConflictDialog`
+
+- **Notification Expiration Lifecycle:** `NotificationService` now properly tracks and honors client expiration timeouts, invoking `.expire()` and resolving background process leaks from `notify-send --action`
+
+- **Screenshot Notification Timeout:** Region screenshot script now automatically expires after 10 minutes without lingering background processes
+
+- **Installer Modernization:** Removed deprecated `hyprctl dispatch exit` instruction in favor of standard session logout instructions
+
+---
+
 ## What's New in v0.2.0
 
 _v0.2.0 basically got the TeamCherry treatment: meaning we rebuilt the entire architecture from the ground up (and yes, it took long enough). Here's what came out of it:_

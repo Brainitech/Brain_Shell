@@ -20,6 +20,7 @@ pragma Singleton
 import QtQuick
 import Quickshell.Io
 import Quickshell.Services.Mpris
+import "../"
 
 // Unified MPRIS media player manager.
 // Single source of truth for active player across CenterContent,
@@ -119,23 +120,23 @@ QtObject {
     }
 
     // ── Playback state ───────────────────────────────────────────────────────
-    readonly property bool   isPlaying: activePlayer?.playbackState === MprisPlaybackState.Playing ?? false
-    readonly property string artUrl:    activePlayer?.trackArtUrl ?? ""
+    readonly property bool   isPlaying: activePlayer ? activePlayer.playbackState === MprisPlaybackState.Playing : false
+    readonly property string artUrl:    (activePlayer && activePlayer.trackArtUrl) ? activePlayer.trackArtUrl : ""
 
     readonly property string title: {
-        var t = activePlayer?.trackTitle
+        var t = activePlayer ? activePlayer.trackTitle : ""
         return (t && t !== "") ? t : "Nothing Playing"
     }
     readonly property string artist: {
-        var a = activePlayer?.trackArtists
+        var a = activePlayer ? activePlayer.trackArtists : null
         if (!a) return ""
         if (typeof a === "string") return a
         if (typeof a.join === "function") return a.join(", ")
         return a.toString()
     }
 
-    readonly property real length:   activePlayer?.length   ?? 0
-    readonly property real position: activePlayer?.position ?? 0
+    readonly property real length:   (activePlayer && activePlayer.length) ? activePlayer.length : 0
+    readonly property real position: (activePlayer && activePlayer.position) ? activePlayer.position : 0
 
     // Interpolated position for smooth UI progress
     property real _pos: 0
@@ -157,10 +158,10 @@ QtObject {
     }
 
     // ── Playback controls ────────────────────────────────────────────────────
-    readonly property bool canToggle: activePlayer?.canTogglePlaying ?? false
-    readonly property bool canNext:   activePlayer?.canGoNext        ?? false
-    readonly property bool canPrev:   activePlayer?.canGoPrevious    ?? false
-    readonly property bool canSeek:   activePlayer?.canSeek          ?? false
+    readonly property bool canToggle: (activePlayer && activePlayer.canTogglePlaying) ? true : false
+    readonly property bool canNext:   (activePlayer && activePlayer.canGoNext) ? true : false
+    readonly property bool canPrev:   (activePlayer && activePlayer.canGoPrevious) ? true : false
+    readonly property bool canSeek:   (activePlayer && activePlayer.canSeek) ? true : false
 
     function toggle() {
         if (activePlayer && canToggle)
@@ -227,15 +228,9 @@ QtObject {
     }
 
     // ── Focus redirect: bring player's window to front ───────────────────────
-    property var _focusProc: Process {
-        command: ["hyprctl", "dispatch", "focusurgentorlast", ""]
-        running: false
-    }
-
     function focusPlayer() {
         if (!activePlayer) return
-        _focusProc.running = false
-        _focusProc.running = true
+        WM.focusUrgentOrLast()
     }
 
     // ── Global "any playing" check (for CavaService gating) ──────────────────

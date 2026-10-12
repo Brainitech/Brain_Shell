@@ -21,7 +21,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
+import "../../services/wm"
 import Quickshell.Services.SystemTray
 import "../../components"
 import "../../"
@@ -170,7 +170,7 @@ RowLayout {
                 menu: modelData.menu
             }
             
-            HyprlandFocusGrab {
+            FocusGrab {
                 windows: [customMenu, delegateRoot.QsWindow.window]
                 active: isMenuOpen
                 onCleared: {
@@ -261,9 +261,11 @@ RowLayout {
                 cursorShape: Qt.PointingHandCursor
             }
 
-            Process {
-                id: focusProc
-                command: ["sh", "-c", "sleep 0.15 && hyprctl dispatch focusurgentorlast"]
+            Timer {
+                id: focusTimer
+                interval: 150
+                repeat: false
+                onTriggered: WM.focusUrgentOrLast()
             }
 
             TapHandler {
@@ -272,8 +274,7 @@ RowLayout {
                     if (button === Qt.LeftButton) {
                         modelData.activate()
                         trayRow.activeMenuIndex = -1
-                        focusProc.running = false
-                        focusProc.running = true
+                        focusTimer.restart()
                     } else if (button === Qt.RightButton) {
                         if (trayRow.activeMenuIndex === index) {
                             trayRow.activeMenuIndex = -1

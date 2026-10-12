@@ -27,7 +27,7 @@ Item {
     property real localScale: 1.0
     property string _page: "general"
 
-    property bool showHyprlandKeybinds: false
+    property bool showCompositorKeybinds: false
 
     readonly property var _tabs: [
         { key: "general",    icon: "󰒓", label: "General"            },
@@ -105,9 +105,9 @@ Item {
                 }
                 currentPage: root._page
                 model:       root._tabs
-                switchStates: ({ "keybinds": root.showHyprlandKeybinds })
+                switchStates: ({ "keybinds": root.showCompositorKeybinds })
                 onSwitchToggled: function(key, state) {
-                    if (key === "keybinds") root.showHyprlandKeybinds = state
+                    if (key === "keybinds") root.showCompositorKeybinds = state
                 }
                 onPageChanged: function(key) { root._page = key }
             }
@@ -214,7 +214,7 @@ Item {
                         id: pageKeybinds
                         anchors.fill: parent
                         localScale: root.localScale
-                        showHyprlandKeybinds: root.showHyprlandKeybinds
+                        showCompositorKeybinds: root.showCompositorKeybinds
                     }
                 }
                 VerticalSlidePage {

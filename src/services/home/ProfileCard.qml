@@ -40,7 +40,7 @@ StatCard {
     }
 
     property string _user:   ""
-    property string _wm:     ""
+    readonly property string _wm: WM.name
     property string _uptime: ""
 
     Process {
@@ -49,16 +49,6 @@ StatCard {
         stdout: SplitParser {
             onRead: function(line) {
                 if (line.trim() !== "") root._user = line.trim()
-            }
-        }
-    }
-
-    Process {
-        command: ["bash", "-c", "echo ${XDG_CURRENT_DESKTOP:-Hyprland}"]
-        running: true
-        stdout: SplitParser {
-            onRead: function(line) {
-                if (line.trim() !== "") root._wm = line.trim()
             }
         }
     }

@@ -212,28 +212,9 @@ QtObject {
     }
 
     function updateBorders() {
-        let cleanCol = String(Theme.active).replace('#', '')
-
-        // Build command based on config provider
-        if (ShellState.configProvider === "lua") {
-            // Using hl.config with RGB strings in Lua
-            borderUpdateProc.command = [
-                "bash", "-c",
-                "hyprctl eval 'hl.config({ general = { [\"col.active_border\"] = { colors = { \"rgb(" + cleanCol + ")\" } } } })'"
-            ]
-        } else {
-            // Using hyprctl keyword for .conf
-            borderUpdateProc.command = [
-                "bash", "-c",
-                "hyprctl keyword general:col.active_border \"rgb(" + cleanCol + ")\""
-            ]
+        if (Theme.active && String(Theme.active).trim() !== "") {
+            WM.setActiveBorderColor(Theme.active)
         }
-        
-        borderUpdateProc.running = true
-    }
-
-    property Process borderUpdateProc: Process {
-        command: []
     }
 
     Component.onCompleted: {

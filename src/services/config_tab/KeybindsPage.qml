@@ -25,10 +25,10 @@ import "../../components"
 Item {
     id: root
     property real localScale: 1.0
-    property bool showHyprlandKeybinds: false
+    property bool showCompositorKeybinds: false
 
-    onShowHyprlandKeybindsChanged: {
-        if (showHyprlandKeybinds) KeybindService.loadHyprBinds()
+    onShowCompositorKeybindsChanged: {
+        if (showCompositorKeybinds) KeybindService.loadCompositorBinds()
     }
 
     // ── Capture state ─────────────────────────────────────────────────────────
@@ -152,7 +152,7 @@ Item {
             left: parent.left
             leftMargin: Math.round(12 * localScale)
         }
-        text: root.showHyprlandKeybinds ? "Hyprland Keybinds (Read-Only)" : "Brain Shell Keybinds"
+        text: root.showCompositorKeybinds ? (WM.name + " Keybinds (Read-Only)") : "Brain Shell Keybinds"
         font.pixelSize: Math.round(16 * localScale)
         font.weight: Font.Bold
         color: Theme.text
@@ -174,7 +174,7 @@ Item {
             topMargin:   Math.round(12 * localScale)
         }
         contentWidth:   width
-        contentHeight:  (root.showHyprlandKeybinds ? _hyprCol.implicitHeight : _col.implicitHeight) + Math.round(16 * localScale)
+        contentHeight:  (root.showCompositorKeybinds ? _compCol.implicitHeight : _col.implicitHeight) + Math.round(16 * localScale)
         clip:           true
         boundsBehavior: Flickable.StopAtBounds
 
@@ -189,7 +189,7 @@ Item {
 
         Column {
             id: _col
-            visible: !root.showHyprlandKeybinds
+            visible: !root.showCompositorKeybinds
             width:   parent.width - Math.round(12 * localScale)
             spacing: Math.round(32 * localScale)
 
@@ -248,17 +248,17 @@ Item {
         }
 
         Column {
-            id: _hyprCol
-            visible: root.showHyprlandKeybinds
+            id: _compCol
+            visible: root.showCompositorKeybinds
             width:   parent.width - Math.round(12 * localScale)
             spacing: Math.round(32 * localScale)
             
             Repeater {
-                model: root._getHyprGroups()
+                model: root._getCompositorGroups()
                 delegate: SettingsGroup {
                     required property var modelData
                     required property int index
-                    width: _hyprCol.width
+                    width: _compCol.width
                     title: modelData.name
                     localScale: root.localScale
                     
@@ -285,7 +285,7 @@ Item {
                                 Rectangle {
                                     id: _pillRect
                                     anchors { right: parent.right; rightMargin: Math.round(16 * localScale); verticalCenter: parent.verticalCenter }
-                                    width: _hyprTxt.implicitWidth + Math.round(20 * localScale)
+                                    width: _compTxt.implicitWidth + Math.round(20 * localScale)
                                     height: Math.round(26 * localScale)
                                     radius: Math.round(4 * localScale)
                                     color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.06)
@@ -293,7 +293,7 @@ Item {
                                     border.width: 1
                                     
                                     Text {
-                                        id: _hyprTxt
+                                        id: _compTxt
                                         anchors.centerIn: parent
                                         text: modelData.bind
                                         font.pixelSize: Math.round(11 * localScale)
@@ -318,7 +318,8 @@ Item {
         return p.join(" + ")
     }
 
-    function _getHyprGroups() {
+
+    function _getCompositorGroups() {
         var groups = {
             "Launch Applications": [],
             "Close / Exit": [],
@@ -326,7 +327,7 @@ Item {
             "Window Management": [],
             "Other": []
         }
-        var binds = KeybindService._hyprBinds || []
+        var binds = KeybindService.compositorBinds || []
         for (var i = 0; i < binds.length; i++) {
             var b = binds[i]
             if (b.submap !== "" && b.submap_universal !== "true") continue

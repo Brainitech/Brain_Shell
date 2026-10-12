@@ -9,9 +9,10 @@
 set -eo pipefail
 
 # ── Arguments (validated up-front) ───────────────────────────────────────────
-HYPRLAND_CONF="${1:?Missing arg: HYPRLAND_CONF path}"
-CONFIG_TYPE="${2:?Missing arg: CONFIG_TYPE (conf|lua)}"
+HYPRLAND_CONF="${1:-}"
+CONFIG_TYPE="${2:-lua}"
 REPO_DIR="${3:-$HOME/.local/src/Brain_Shell}"
+TARGET_WM="${4:-hyprland}"
 
 # ── Colors ────────────────────────────────────────────────────────────────────
 RED='\033[0;31m';   GREEN='\033[0;32m';  YELLOW='\033[1;33m'
@@ -230,15 +231,37 @@ PACMAN_DEPS=(
     # Hardware sensors
     lm_sensors util-linux
 
-    # Hyprland ecosystem
-    hyprland hyprsunset hyprlock hyprpolkitagent hypridle
-    xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
-
     # Fonts
     ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols-common
 
     cliphist
 )
+
+# Compositor ecosystem packages
+case "$TARGET_WM" in
+    hyprland)
+        PACMAN_DEPS+=(
+            hyprland hyprsunset hyprlock hyprpolkitagent hypridle
+            xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
+        )
+        ;;
+    niri)
+        PACMAN_DEPS+=(
+            niri xdg-desktop-portal-gtk xdg-desktop-portal-gnome
+        )
+        ;;
+    sway)
+        PACMAN_DEPS+=(
+            sway swayidle swaylock xdg-desktop-portal-wlr xdg-desktop-portal-gtk
+        )
+        ;;
+    *)
+        PACMAN_DEPS+=(
+            hyprland hyprsunset hyprlock hyprpolkitagent hypridle
+            xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
+        )
+        ;;
+esac
 
 log_info "Synchronizing package database..."
 if ! sudo pacman -Syu --noconfirm; then
@@ -417,7 +440,7 @@ bind = ALT, F9, exec, qs ipc -p $REPO_DIR call screenrec-on toggle
 EOF
 fi
 
-if [[ "${FRESH_INSTALL:-}" == "true" ]]; then
+if [[ "${FRESH_INSTALL:-}" == "true" && "$TARGET_WM" == "hyprland" ]]; then
     log_info "Detecting keyboard layout for base config..."
     detect_keyboard_layout() {
         local layout="" variant=""
@@ -467,14 +490,13 @@ _BEGIN_MARK_LUA="-- >>> Brain Shell Startup >>>"
 _END_MARK_LUA="-- <<< Brain Shell Startup <<<"
 
 
-if [[ -f "$HYPRLAND_CONF" ]]; then
+if [[ "$TARGET_WM" == "hyprland" && -n "$HYPRLAND_CONF" && -f "$HYPRLAND_CONF" ]]; then
     TS=$(date +%Y%m%d_%H%M%S)
     cp "$HYPRLAND_CONF" "${HYPRLAND_CONF}.mod-backup-${TS}"
     log_info "Backup created: ${HYPRLAND_CONF}.mod-backup-${TS}"
-fi
 
-log_info "Migrating active configuration..."
-python3 -c '
+    log_info "Migrating active configuration..."
+    python3 -c '
 import sys, re
 with open(sys.argv[1], "r") as f: content = f.read()
 # Scrub legacy inline autostarts (conf)
@@ -488,32 +510,39 @@ content = re.sub(r"\n*-- Brain_ShellKeybinds\ndofile\(.*Brain_ShellKeybinds\.lua
 with open(sys.argv[1], "w") as f: f.write(content.strip() + "\n")
 ' "$HYPRLAND_CONF"
 
-if grep -q "brain-shell" "$HYPRLAND_CONF"; then
-    log_ok "Brain Shell startup already sourced in $HYPRLAND_CONF"
-else
-    case "$CONFIG_TYPE" in
-        conf)
-            {
-                echo ""
-                echo "$_BEGIN_MARK_CONF"
-                echo "source = $HOME/.config/Brain_Shell/BrainShell-hyprland.conf"
-                echo "$_END_MARK_CONF"
-            } >> "$HYPRLAND_CONF"
-            log_ok "Brain Shell startup sourced from hyprland.conf (1 line)"
-            ;;
-        lua)
-            {
-                echo ""
-                echo "$_BEGIN_MARK_LUA"
-                echo 'dofile(os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua")'
-                echo "$_END_MARK_LUA"
-            } >> "$HYPRLAND_CONF"
-            log_ok "Brain Shell startup loaded from hyprland.lua (1 line)"
-            ;;
-        *)
-            log_warn "Unknown config type '$CONFIG_TYPE' — skipping Hyprland config update."
-            ;;
-    esac
+    if grep -q "brain-shell" "$HYPRLAND_CONF"; then
+        log_ok "Brain Shell startup already sourced in $HYPRLAND_CONF"
+    else
+        case "$CONFIG_TYPE" in
+            conf)
+                {
+                    echo ""
+                    echo "$_BEGIN_MARK_CONF"
+                    echo "source = $HOME/.config/Brain_Shell/BrainShell-hyprland.conf"
+                    echo "$_END_MARK_CONF"
+                } >> "$HYPRLAND_CONF"
+                log_ok "Brain Shell startup sourced from hyprland.conf (1 line)"
+                ;;
+            lua)
+                {
+                    echo ""
+                    echo "$_BEGIN_MARK_LUA"
+                    echo 'dofile(os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua")'
+                    echo "$_END_MARK_LUA"
+                } >> "$HYPRLAND_CONF"
+                log_ok "Brain Shell startup loaded from hyprland.lua (1 line)"
+                ;;
+            *)
+                log_warn "Unknown config type '$CONFIG_TYPE' — skipping Hyprland config update."
+                ;;
+        esac
+    fi
+elif [[ "$TARGET_WM" == "niri" ]]; then
+    log_warn "Niri support is currently unsupported / in development."
+    log_info "Manual autostart: add 'spawn-at-startup \"quickshell\"' to ~/.config/niri/config.kdl"
+elif [[ "$TARGET_WM" == "sway" ]]; then
+    log_warn "Sway support is currently unsupported / in development."
+    log_info "Manual autostart: add 'exec quickshell' to ~/.config/sway/config"
 fi
 
 step 6 "Brain Shell Config"
@@ -527,26 +556,29 @@ mkdir -p "$USER_DATA" \
          "$HOME/.config/hypr/shaders" \
          "$HOME/.config/matugen/templates"
 
-# Copy hypridle and hyprlock configs; -n = do not overwrite if already customised
-if cp -n "$REPO_DIR/src/config/hypridle.conf" "$HOME/.config/hypr/" 2>/dev/null; then
-    log_ok "hypridle.conf → $HOME/.config/hypr/"
-else
-    log_info "hypridle.conf already exists — not overwritten"
+if [[ "$TARGET_WM" == "hyprland" ]]; then
+    mkdir -p "$HOME/.config/hypr/shaders"
+    # Copy hypridle and hyprlock configs; -n = do not overwrite if already customised
+    if cp -n "$REPO_DIR/src/config/hypridle.conf" "$HOME/.config/hypr/" 2>/dev/null; then
+        log_ok "hypridle.conf → $HOME/.config/hypr/"
+    else
+        log_info "hypridle.conf already exists — not overwritten"
+    fi
+
+    if cp -n "$REPO_DIR/src/config/hyprlock.conf" "$HOME/.config/hypr/" 2>/dev/null; then
+        log_ok "hyprlock.conf → $HOME/.config/hypr/"
+    else
+        log_info "hyprlock.conf already exists — not overwritten"
+    fi
 fi
 
-if cp -n "$REPO_DIR/src/config/hyprlock.conf" "$HOME/.config/hypr/" 2>/dev/null; then
-    log_ok "hyprlock.conf → $HOME/.config/hypr/"
-else
-    log_info "hyprlock.conf already exists — not overwritten"
-fi
-
-printf '{"configProvider": "%s"}\n' "$CONFIG_TYPE" > "$USER_DATA/config_Provider.json"
+printf '{"wm": "%s", "configProvider": "%s"}\n' "$TARGET_WM" "$CONFIG_TYPE" > "$USER_DATA/wm_config.json"
 if [[ ! -f "$USER_DATA/keybinds.json" ]]; then
     printf '{}\n' > "$USER_DATA/keybinds.json"
 fi
 
 log_ok "Config dirs created"
-log_ok "config_Provider.json  →  $CONFIG_TYPE"
+log_ok "wm_config.json  →  $TARGET_WM ($CONFIG_TYPE)"
 
 log_info "Initializing cache directories..."
 mkdir -p "$HOME/.cache/brain-shell"
@@ -557,8 +589,9 @@ cp -n -r "$REPO_DIR/src/assets/wallpapers"/* "$HOME/Pictures/Wallpapers/" 2>/dev
 log_ok "Cache directories initialized"
 
 # ── Keybind Conflict Detection ────────────────────────────────────────────────
-echo ""
-log_info "Checking keybind conflicts against active Hyprland session..."
+if [[ "$TARGET_WM" == "hyprland" ]]; then
+    echo ""
+    log_info "Checking keybind conflicts against active Hyprland session..."
 
 python3 << 'PYEOF' || log_warn "Keybind check skipped (Python error or no Hyprland session)."
 import subprocess, json, os, sys, re
@@ -696,6 +729,7 @@ for p in [lua_path, conf_path]:
 print("  \033[1;33m⚠\033[0m  Conflicting binds left unbound in Brain Shell.")
 print("       Re-assign them: Dashboard  →  Config  →  Keybinds\n")
 PYEOF
+fi
 
 
 

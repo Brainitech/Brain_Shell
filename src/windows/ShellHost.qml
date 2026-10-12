@@ -19,7 +19,6 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import "../"
 import "../components"
 import "../services"
@@ -36,13 +35,11 @@ ShellRoot {
     
 
     Connections {
-        target: Hyprland
-        function onRawEvent(event) {
-            if (event.name === "configreloaded") {
-                PrefsService.updateHyprlandBlur()
-                WallpaperService.updateBorders()
-                ShellState.applyZeroGaps()
-            }
+        target: WM
+        function onConfigReloaded() {
+            PrefsService.updateLayerBlur()
+            WallpaperService.updateBorders()
+            WM.setGaps(null, 0)
         }
     }
 

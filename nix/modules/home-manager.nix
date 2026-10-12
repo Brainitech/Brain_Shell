@@ -50,6 +50,16 @@ in
   options.programs.brain-shell = {
     enable = lib.mkEnableOption "Brain Shell UI";
 
+    wm = lib.mkOption {
+      type = lib.types.enum [
+        "hyprland"
+        "niri"
+        "sway"
+      ];
+      default = "hyprland";
+      description = "Target window manager / compositor for Brain Shell. Note: niri and sway backends are currently unsupported / in development.";
+    };
+
     package = lib.mkOption {
       type = lib.types.package;
       default = self.packages.${system}.default;
@@ -136,6 +146,7 @@ in
       ]);
 
     home.sessionVariables = {
+      BRAIN_SHELL_WM = cfg.wm;
       BRAIN_SHELL_TERMINAL = cfg.terminal;
       BRAIN_SHELL_WALLPAPER_DAEMON = cfg.wallpaperDaemon;
       BRAIN_SHELL_CONFIG_TYPE = cfg.hyprlandIntegration.format;
@@ -152,7 +163,8 @@ in
         ExecStart = "${cfg.package}/bin/brain-shell";
         Environment = [
           "QT_QPA_PLATFORMTHEME=qt6ct"
-          "XDG_CURRENT_DESKTOP=Hyprland"
+          "XDG_CURRENT_DESKTOP=${if cfg.wm == "hyprland" then "Hyprland" else if cfg.wm == "niri" then "Niri" else "Sway"}"
+          "BRAIN_SHELL_WM=${cfg.wm}"
           "BRAIN_SHELL_TERMINAL=${cfg.terminal}"
           "BRAIN_SHELL_WALLPAPER_DAEMON=${cfg.wallpaperDaemon}"
         ];
@@ -163,14 +175,14 @@ in
     };
 
     xdg.configFile."hypr/lua.d/brain-shell.lua" =
-      lib.mkIf (cfg.hyprlandIntegration.enable && cfg.hyprlandIntegration.format == "lua")
+      lib.mkIf (cfg.wm == "hyprland" && cfg.hyprlandIntegration.enable && cfg.hyprlandIntegration.format == "lua")
         { text = withAutostart luaExecOnce luaBase; };
 
     xdg.configFile."hypr/conf.d/brain-shell.conf" =
-      lib.mkIf (cfg.hyprlandIntegration.enable && cfg.hyprlandIntegration.format == "conf")
+      lib.mkIf (cfg.wm == "hyprland" && cfg.hyprlandIntegration.enable && cfg.hyprlandIntegration.format == "conf")
         { text = withAutostart confExecOnce confBase; };
 
-    xdg.configFile."hypr" = lib.mkIf cfg.installDefaultHyprlandConfig {
+    xdg.configFile."hypr" = lib.mkIf (cfg.wm == "hyprland" && cfg.installDefaultHyprlandConfig) {
       source = "${cfg.package}/share/brain-shell/src/config/hypr_template";
       recursive = true;
     };

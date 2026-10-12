@@ -84,8 +84,12 @@ Column {
     }
 
     function runDirect(action) {
+        if (action === "lock") {
+            WM.lockScreen()
+            SurfaceState.close()
+            return
+        }
         switch (action) {
-            case "lock":    runner.pendingCmd = ["loginctl", "lock-session"];    break
             case "suspend": runner.pendingCmd = ["systemctl", "suspend"];        break
         }
         runner.running = true

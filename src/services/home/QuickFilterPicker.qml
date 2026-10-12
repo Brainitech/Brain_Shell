@@ -28,10 +28,10 @@ Rectangle {
     property real localScale: 1.0
     property bool isOpen: false
 
-    property string currentFilter: ""
+    readonly property string currentFilter: WM.currentScreenShader
     property var    filterList:    []
 
-    property string shaderPaths: Paths.installDir + "/src/config/shaders ~/.config/hypr/shaders ~/.local/share/hypr/shaders /usr/share/hyprshade/shaders ~/.local/src/Brain_Shell/src/config/shaders ~/.config/quickshell/src/config/shaders"
+    property string shaderPaths: WM.defaultShaderPaths
 
     visible: isOpen
     z: 20
@@ -96,33 +96,6 @@ Rectangle {
     }
 
     Process {
-        id: filterCheckProc
-        command: ["bash", "-c",
-            "hyprctl getoption decoration:screen_shader -j 2>/dev/null" +
-            " | python3 -c \"" +
-            "import sys,json,os;" +
-            "d=json.load(sys.stdin);" +
-            "s=d.get('str','').strip();" +
-            "print('' if s in ('','[[EMPTY]]') else os.path.splitext(os.path.basename(s))[0])\""]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                filterPickerRoot.currentFilter = text.trim()
-            }
-        }
-    }
-
-    Process {
-        id: filterApplyProc
-        command: []
-        running: false
-        onRunningChanged: if (!running) {
-            filterCheckProc.running = false
-            filterCheckProc.running = true
-        }
-    }
-
-    Process {
         id: filterListProc
         command: ["bash", "-c", "find " + filterPickerRoot.shaderPaths + " -maxdepth 1 -type f \\( -name '*.glsl' -o -name '*.frag' \\) 2>/dev/null | rev | cut -d/ -f1 | rev | sed 's/\\.[^.]*$//' | sort -u"]
         running: false
@@ -137,8 +110,7 @@ Rectangle {
     Connections {
         target: WallpaperService
         function onWallpaperApplied(path) {
-            filterCheckProc.running = false
-            filterCheckProc.running = true
+            WM.checkScreenShader()
         }
     }
 
@@ -150,32 +122,7 @@ Rectangle {
     }
 
     function applyFilter(name) {
-        var turningOff = (name === "" || name === filterPickerRoot.currentFilter)
-        filterPickerRoot.currentFilter = turningOff ? "" : name
-
-        var isLua = ShellState.configProvider === "lua"
-        var damageCmd = isLua 
-            ? ` && hyprctl dispatch 'hl.dsp.dpms({ action = "disable" })' && hyprctl dispatch 'hl.dsp.dpms({ action = "enable" })'`
-            : ` && hyprctl dispatch dpms off && hyprctl dispatch dpms on`
-
-        if (turningOff) {
-            var offCmd = isLua 
-                ? "hyprctl eval \"hl.config({ decoration = { screen_shader = '' } })\""
-                : "hyprctl keyword decoration:screen_shader '[[EMPTY]]'"
-            filterApplyProc.command = ["bash", "-c", offCmd + damageCmd]
-        } else {
-            var resolveCmd =
-                "TARGET=$(find " + filterPickerRoot.shaderPaths +
-                " -maxdepth 1 -type f \\( -name '" + name + ".glsl' -o -name '" + name + ".frag' \\)" +
-                " 2>/dev/null | head -n 1); "
-            var onCmd = isLua
-                ? "if [ -n \"$TARGET\" ]; then hyprctl eval \"hl.config({ decoration = { screen_shader = '$TARGET' } })\"" + damageCmd + "; fi"
-                : "if [ -n \"$TARGET\" ]; then hyprctl keyword decoration:screen_shader \"$TARGET\"" + damageCmd + "; fi"
-            filterApplyProc.command = ["bash", "-c", resolveCmd + onCmd]
-        }
-
-        filterApplyProc.running = false
-        filterApplyProc.running = true
+        WM.setScreenShader(name, filterPickerRoot.shaderPaths)
         filterPickerRoot.isOpen = false
     }
 
@@ -317,6 +264,6 @@ Rectangle {
     }
 
     Component.onCompleted: {
-        filterCheckProc.running = true
+        WM.checkScreenShader()
     }
 }

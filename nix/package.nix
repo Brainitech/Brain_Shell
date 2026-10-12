@@ -3,6 +3,7 @@
   stdenv,
   makeWrapper,
   runtimeDeps,
+  wm ? null,
 }:
 
 stdenv.mkDerivation {
@@ -25,6 +26,7 @@ stdenv.mkDerivation {
       --prefix PATH : "${lib.makeBinPath runtimeDeps}" \
       --set BRAIN_SHELL_INSTALL_DIR "$out/share/brain-shell" \
       --set BRAIN_SHELL_NIX "1" \
+      ${lib.optionalString (wm != null) "--set-default BRAIN_SHELL_WM \"${wm}\" \\"}
       --run '[ -z "$BRAIN_SHELL_CONFIG_DIR" ] && export BRAIN_SHELL_CONFIG_DIR="$HOME/.config/Brain_Shell"'
   '';
 

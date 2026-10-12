@@ -20,7 +20,6 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland   // focusedMonitor for fullscreen capture
 import "../"
 
 // ScreenRecService — owns all screen recording state.
@@ -370,11 +369,7 @@ QtObject {
         var mkdir = "mkdir -p '" + saveDir.replace(/'/g, "'\\''") + "' && exec "
         var hasAudio = (PrefsService.screenrecAudioMic || PrefsService.screenrecAudioSystem)
                        && root._resolvedAudioDevice !== ""
-        // Fullscreen capture must name an output: wl-screenrec requires --output
-        // whenever more than one display is connected, and gpu-screen-recorder's
-        // "screen" target grabs the first enumerated monitor rather than the
-        // focused one. Both take the Hyprland monitor name.
-        var monitor = Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : (Hyprland.monitors.length > 0 ? Hyprland.monitors[0].name : "")
+        var monitor = WM.focusedMonitorName
 
         if (PrefsService.screenrecBackend === "gsr") {
             var gsr = "gpu-screen-recorder -f " + fps + " -k h264 -cursor yes -o '" + file + "'"
@@ -454,22 +449,11 @@ QtObject {
         if (PrefsService.screenrecCaptureTarget === "screen") {
             root._resolveAudio()
         } else if (PrefsService.screenrecCaptureTarget === "window") {
-            _windowPickerProc.command = [
-                "bash", "-c",
-                "hyprctl clients -j | python3 -c \"" +
-                "import sys,json; ws=json.load(sys.stdin); " +
-                "[print(str(w['at'][0])+','+str(w['at'][1])+' '+str(w['size'][0])+'x'+str(w['size'][1])) " +
-                "for w in ws if w['mapped']]\" | slurp"
-            ]
+            _windowPickerProc.command = WM.pickWindowCommand()
             _windowPickerProc.running = false
             _windowPickerProc.running = true
         } else {
-            _regionPickerProc.command = [
-                "bash", "-c",
-                "hyprctl monitors -j | python3 -c \"" +
-                "import sys,json; ms=json.load(sys.stdin); " +
-                "[print(str(m['x'])+','+str(m['y'])+' '+str(m['width'])+'x'+str(m['height'])) for m in ms]\" | slurp"
-            ]
+            _regionPickerProc.command = WM.pickRegionCommand()
             _regionPickerProc.running = false
             _regionPickerProc.running = true
         }

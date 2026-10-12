@@ -1,0 +1,3 @@
+HyprlandBackend HyprlandBackend.qml
+FocusGrab FocusGrab.qml
+singleton WM WM.qml

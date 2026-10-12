@@ -118,43 +118,86 @@ else
     die "Cannot detect distro — /etc/os-release not found."
 fi
 
-# Check if Hyprland is installed (allows installation from TTY)
-if command -v hyprland &>/dev/null; then
-    log_ok "Hyprland installation detected"
-else
-    log_warn "Hyprland binary not found in PATH."
-    log_info "Make sure Hyprland is installed before launching it." #Future work: Prompt user for Hyprland installation, waiting for config files so
-                                                                    #default files are not picked up
+# ── Target Window Manager Selection ───────────────────────────────────────────
+echo ""
+echo -e "  ${BOLD}Select your Window Manager / Compositor:${NC}"
+echo -e "    ${CYAN}1)${NC} Hyprland   ${GREEN}(Supported / Default)${NC}"
+echo -e "    ${CYAN}2)${NC} Niri       ${YELLOW}(Unsupported / In Development)${NC}"
+echo -e "    ${CYAN}3)${NC} Sway       ${YELLOW}(Unsupported / In Development)${NC}"
+echo ""
+read -rp "  Enter choice [1-3, default: 1]: " _wm_input < /dev/tty || _wm_input="1"
+
+case "${_wm_input:-1}" in
+    1|hyprland|Hyprland) TARGET_WM="hyprland" ;;
+    2|niri|Niri)         TARGET_WM="niri" ;;
+    3|sway|Sway)         TARGET_WM="sway" ;;
+    *)                   TARGET_WM="hyprland" ;;
+esac
+log_ok "Target Compositor: ${TARGET_WM}"
+
+if [[ "$TARGET_WM" != "hyprland" ]]; then
+    log_warn "${TARGET_WM} support is currently unsupported and in active development."
+    log_info "Compositor-specific integrations (workspaces, dispatchers, binds) will remain inactive."
 fi
 
-# Hyprland config
 HYPR_DIR="$HOME/.config/hypr"
 HYPRLAND_CONF=""
 CONFIG_TYPE=""
 
-# Hyprland loads .lua first when both exist; mirror that priority here so
-# the installer always targets the file Hyprland is actually reading.
-if [[ -f "$HYPR_DIR/hyprland.lua" ]]; then
-    HYPRLAND_CONF="$HYPR_DIR/hyprland.lua"
-    CONFIG_TYPE="lua"
-    if [[ -f "$HYPR_DIR/hyprland.conf" ]]; then
-        log_ok "Hyprland config: hyprland.lua  ${DIM}(hyprland.conf also present but ignored by Hyprland)${NC}"
+if [[ "$TARGET_WM" == "hyprland" ]]; then
+    # Check if Hyprland is installed (allows installation from TTY)
+    if command -v hyprland &>/dev/null; then
+        log_ok "Hyprland installation detected"
     else
-        log_ok "Hyprland config: hyprland.lua"
+        log_warn "Hyprland binary not found in PATH."
+        log_info "Make sure Hyprland is installed before launching it."
     fi
-elif [[ -f "$HYPR_DIR/hyprland.conf" ]]; then
-    HYPRLAND_CONF="$HYPR_DIR/hyprland.conf"
-    CONFIG_TYPE="conf"
-    log_ok "Hyprland config: hyprland.conf"
-    log_warn "hyprland.conf support is deprecated as of 0.55 and will be removed in a future release."
-    log_info "Consider migrating to hyprland.lua — see https://wiki.hypr.land/Configuring/Start/"
-else
-    log_warn "No Hyprland config found in $HYPR_DIR."
-    log_info "A curated base config will be generated."
-    mkdir -p "$HYPR_DIR"
-    HYPRLAND_CONF="$HYPR_DIR/hyprland.lua"
-    CONFIG_TYPE="lua"
-    export FRESH_INSTALL="true"
+
+    # Hyprland loads .lua first when both exist; mirror that priority here so
+    # the installer always targets the file Hyprland is actually reading.
+    if [[ -f "$HYPR_DIR/hyprland.lua" ]]; then
+        HYPRLAND_CONF="$HYPR_DIR/hyprland.lua"
+        CONFIG_TYPE="lua"
+        if [[ -f "$HYPR_DIR/hyprland.conf" ]]; then
+            log_ok "Hyprland config: hyprland.lua  ${DIM}(hyprland.conf also present but ignored by Hyprland)${NC}"
+        else
+            log_ok "Hyprland config: hyprland.lua"
+        fi
+    elif [[ -f "$HYPR_DIR/hyprland.conf" ]]; then
+        HYPRLAND_CONF="$HYPR_DIR/hyprland.conf"
+        CONFIG_TYPE="conf"
+        log_ok "Hyprland config: hyprland.conf"
+        log_warn "hyprland.conf support is deprecated as of 0.55 and will be removed in a future release."
+        log_info "Consider migrating to hyprland.lua — see https://wiki.hypr.land/Configuring/Start/"
+    else
+        log_warn "No Hyprland config found in $HYPR_DIR."
+        log_info "A curated base config will be generated."
+        mkdir -p "$HYPR_DIR"
+        HYPRLAND_CONF="$HYPR_DIR/hyprland.lua"
+        CONFIG_TYPE="lua"
+        export FRESH_INSTALL="true"
+    fi
+elif [[ "$TARGET_WM" == "niri" ]]; then
+    if command -v niri &>/dev/null; then
+        log_ok "Niri installation detected"
+    else
+        log_warn "Niri binary not found in PATH."
+        log_info "Make sure Niri is installed before launching it."
+    fi
+    CONFIG_TYPE="kdl"
+    NIRI_DIR="$HOME/.config/niri"
+    if [[ -f "$NIRI_DIR/config.kdl" ]]; then
+        log_ok "Niri config: config.kdl"
+    else
+        log_info "Niri config will be initialized at $NIRI_DIR/config.kdl"
+    fi
+elif [[ "$TARGET_WM" == "sway" ]]; then
+    if command -v sway &>/dev/null; then
+        log_ok "Sway installation detected"
+    else
+        log_warn "Sway binary not found in PATH."
+    fi
+    CONFIG_TYPE="sway"
 fi
 
 
@@ -207,13 +250,13 @@ echo ""
 DISTRO_INSTALLER="$REPO_DIR/dots-extra/install-${DISTRO_TYPE}.sh"
 [[ -f "$DISTRO_INSTALLER" ]] || die "Distro installer not found: $DISTRO_INSTALLER"
 
-bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$CONFIG_TYPE" "$REPO_DIR"
+bash "$DISTRO_INSTALLER" "$HYPRLAND_CONF" "$CONFIG_TYPE" "$REPO_DIR" "$TARGET_WM"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# STEP 3 — Done
+# STEP 4 — Done
 # ══════════════════════════════════════════════════════════════════════════════
-step 3 "Done"
+step 4 "Done"
 
 echo ""
 log_ok "Brain Shell v0.2.2 installed successfully."
@@ -248,12 +291,25 @@ fi
 
 
 echo -e "  ${BOLD}Next Steps:${NC}"
-if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]] && command -v hyprctl &>/dev/null && hyprctl activeworkspace &>/dev/null; then
-    log_info "Active Hyprland session detected:"
-    log_info "  • Log out and back in to start Brain_Shell"
-else
-    log_info "From TTY, launch your Hyprland session:"
-    log_info "  • Run: ${CYAN}Hyprland${NC}"
+if [[ "$TARGET_WM" == "hyprland" ]]; then
+    if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]] && command -v hyprctl &>/dev/null && hyprctl activeworkspace &>/dev/null; then
+        log_info "Active Hyprland session detected:"
+        log_info "  • Log out and back in to start Brain_Shell"
+    else
+        log_info "From TTY, launch your Hyprland session:"
+        log_info "  • Run: ${CYAN}Hyprland${NC}"
+    fi
+elif [[ "$TARGET_WM" == "niri" ]]; then
+    if [[ -n "$NIRI_SOCKET" ]]; then
+        log_info "Active Niri session detected:"
+        log_info "  • Restart session or run: ${CYAN}quickshell${NC}"
+    else
+        log_info "Launch your Niri session:"
+        log_info "  • Run: ${CYAN}niri-session${NC} (or ${CYAN}niri${NC})"
+    fi
+elif [[ "$TARGET_WM" == "sway" ]]; then
+    log_info "Launch your Sway session:"
+    log_info "  • Run: ${CYAN}sway${NC}"
 fi
 echo ""
 

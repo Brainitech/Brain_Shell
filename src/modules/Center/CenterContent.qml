@@ -18,8 +18,6 @@
 
 import QtQuick
 import QtQuick.Effects
-import Quickshell.Hyprland
-import Quickshell.Io
 import "../../"
 
 // CenterContent — scrollable dynamic island carousel.
@@ -54,58 +52,7 @@ Item {
 	readonly property bool   isPlaying: MediaService.isPlaying
 	readonly property string artUrl:    MediaService.artUrl
 
-	property string activeTitle: "Desktop"
-
-	// ── App name helper ───────────────────────────────────────────────────────    
-	// 2. Process to fetch the initialTitle
-	property var _titleProc: Process {
-		command: ["hyprctl", "activewindow", "-j"]
-		running: false
-
-		stdout: StdioCollector {
-			id: titleOut
-		}
-
-		onExited: function(exitCode, exitStatus) {
-
-			var out = titleOut.text.trim()            
-			// Check for empty, Invalid, or empty JSON object
-			if (exitCode !== 0 || out === "" || out === "Invalid" || out === "{}") {
-				root.activeTitle = "Desktop"
-				return
-			}
-
-			try {
-				// Parse the JSON natively in Quickshell
-				var data = JSON.parse(out)
-				var title = data.initialTitle || ""
-
-				if (title !== "") {
-					// Capitalize the first letter (e.g., "kitty" -> "Kitty")
-					var finalTitle = title.charAt(0).toUpperCase() + title.slice(1)
-					root.activeTitle = finalTitle
-				} else {
-					root.activeTitle = "Desktop"
-				}
-			} catch(e) {
-				root.activeTitle = "Desktop"
-			}
-		}
-	}
-
-	Connections{
-		target: Hyprland
-		// 3. Your Raw Event Monitor
-		function onRawEvent(event) {
-			// 3. Trigger title fetch on any window/workspace focus change
-			var titleTriggers = ["workspace", "activewindow", "activespecial", "destroyworkspace", "closewindow", "changefloatingmode"]
-
-			if (titleTriggers.includes(event.name)) {
-				_titleProc.running = false
-				_titleProc.running = true
-			}
-		}
-	}
+	readonly property string activeTitle: WM.activeTitle
 
 	// ── Dynamic item list ─────────────────────────────────────────────────────
 	property var  _items:         ["title"]

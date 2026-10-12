@@ -84,9 +84,9 @@ QtObject {
     property bool darkMode: true
     property real bgOpacity: 1.0
     property bool bgBlur: false
-    onBgBlurChanged: updateHyprlandBlur()
+    onBgBlurChanged: updateLayerBlur()
     Component.onCompleted: {
-        updateHyprlandBlur()
+        updateLayerBlur()
         var p = ShellState.userDataDir + "/shell_prefs.json"
         _initProcPrefs.command = ["bash", "-c", "mkdir -p \"$(dirname \"" + p + "\")\" && touch \"" + p + "\"" ]
         _initProcPrefs.running = true
@@ -112,7 +112,7 @@ QtObject {
 
     function _parse(raw) {
         if (!raw || raw.trim() === "") {
-            root.updateHyprlandBlur()
+            root.updateLayerBlur()
             root._loaded = true
                 root.loaded()
             return
@@ -174,7 +174,7 @@ QtObject {
             if (o.overrideSubtext !== undefined) root.overrideSubtext = o.overrideSubtext
             if (o.overrideIcon !== undefined) root.overrideIcon = o.overrideIcon
         } catch(e) {}
-        root.updateHyprlandBlur()
+        root.updateLayerBlur()
         root._loaded = true
                 root.loaded()
     }
@@ -284,17 +284,10 @@ QtObject {
         _saveProc.running = true
     }
 
-    function updateHyprlandBlur() {
-        var isLua = ShellState.configProvider === "lua"
-        var cmd = root.bgBlur
-            ? (isLua ? "hyprctl eval \"hl.layer_rule({ match = { namespace = 'brain-shell-frame' }, blur = true, ignore_alpha = 0.1 })\""
-                     : "hyprctl keyword layerrule 'unset, brain-shell-frame' && hyprctl keyword layerrule 'blur, brain-shell-frame' && hyprctl keyword layerrule 'ignorealpha 0.1, brain-shell-frame'")
-            : (isLua ? "hyprctl eval \"hl.layer_rule({ match = { namespace = 'brain-shell-frame' }, blur = false })\""
-                     : "hyprctl keyword layerrule 'unset, brain-shell-frame'")
-        _blurProc.command = ["bash", "-c", "if [ -n \"$HYPRLAND_INSTANCE_SIGNATURE\" ]; then " + cmd + "; fi"]
-        _blurProc.running = false
-        _blurProc.running = true
+    function updateLayerBlur() {
+        WM.setLayerBlur("brain-shell-frame", root.bgBlur, 0.1)
     }
+
 
 
     property Process _initProcPrefs: Process {
@@ -307,5 +300,4 @@ QtObject {
         }
     }
     property var _saveProc: Process { command: []; running: false }
-    property var _blurProc: Process { command: []; running: false }
 }

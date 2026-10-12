@@ -25,10 +25,6 @@ import "../"
 QtObject {
     id: root
 
-    readonly property string _shellDir: Paths.installDir
-    readonly property string _configDir: Paths.configDir
-    readonly property string _luaPath:  _configDir + "/Brain_ShellKeybinds.lua"
-    readonly property string _confPath: _configDir + "/Brain_ShellKeybinds.conf"
     readonly property string _jsonPath: Paths.userDataDir + "/keybinds.json"
 
     // ── Capture gate ──────────────────────────────────────────────────────────
@@ -64,24 +60,10 @@ QtObject {
 
     property var keybinds: ({})
 
-    // ── Hyprland binds cache ──────────────────────────────────────────────────
-    // Refreshed each time a BindRow enters capture mode.
-    property var _hyprBinds: []
+    readonly property var compositorBinds: WM.rawKeybinds
 
-    property var _hyprBindsProc: Process {
-        command: ["python3", Paths.installDir + "/src/scripts/hypr_binds.py"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try   { root._hyprBinds = JSON.parse(text.trim()) }
-                catch (e) { root._hyprBinds = [] }
-            }
-        }
-    }
-
-    function loadHyprBinds() {
-        _hyprBindsProc.running = false
-        _hyprBindsProc.running = true
+    function loadCompositorBinds() {
+        WM.loadRawKeybinds()
     }
 
     // Converts "SUPER + SHIFT" → Hyprland modmask integer
@@ -142,28 +124,12 @@ QtObject {
         return mods || ""
     }
 
-    // Returns a short description of the conflicting Hyprland bind, or "".
+    // Returns a short description of the conflicting compositor bind, or "".
     // Own shell binds (arg contains "qs ipc") are filtered out.
-    function wouldConflictHypr(action, mods, key) {
-        var mask = _modsToMask(root._effectiveMods(mods, key))
-        var k    = root._normalizeKey(key).toLowerCase()
-        for (var i = 0; i < root._hyprBinds.length; i++) {
-            var b = root._hyprBinds[i]
-            if (b.submap !== "") continue  // ignore submaps
-            if (b.mouse)         continue  // ignore mouse binds
-            if (b.arg && (b.arg.indexOf("qs ipc") >= 0 || b.arg.indexOf("quickshell ipc") >= 0 || b.arg.indexOf("brain-shell ipc") >= 0)) continue // standard shell binds
-            if (b.description && b.description.toLowerCase().indexOf("brain shell") >= 0) continue // modular lua binds
-            
-            if (b.modmask === mask && (b.key || "").toLowerCase() === k) {
-                if (b.description && b.description.trim() !== "") return b.description
-                if (b.dispatcher === "__lua") return "Lua Bind (No Description)"
-                var desc = b.dispatcher || ""
-                if (b.arg) desc += ": " + b.arg.substring(0, 36)
-                return desc || "Hyprland bind"
-            }
-        }
-        return ""
+    function wouldConflictCompositor(action, mods, key) {
+        return WM.wouldConflictCompositor(action, mods, key)
     }
+
 
     readonly property var _comboMap: {
         var m = {}
@@ -269,19 +235,11 @@ QtObject {
 
     property var _saveProc: Process { command: []; running: false }
 
-    property var _reloadProc: Process {
-        command: ["hyprctl", "reload"]
-        running: false
-    }
-
-    // Brief delay lets the file writes flush before hyprctl re-reads them
+    // Brief delay lets the file writes flush before compositor re-reads them
     property var _reloadTimer: Timer {
         interval: 300
         repeat:   false
-        onTriggered: {
-            root._reloadProc.running = false
-            root._reloadProc.running = true
-        }
+        onTriggered: WM.reloadConfig()
     }
 
     function reload() {
@@ -329,136 +287,8 @@ QtObject {
     }
 
     // ── File generation ───────────────────────────────────────────────────────
-    property var _writeProc: Process { command: []; running: false }
-
     function _writeFiles() {
-        var lua = _genLua()
-        var conf = _genConf()
-        var le  = lua.replace(/\\/g, "\\\\").replace(/'/g, "'\\''")
-        var ce  = conf.replace(/\\/g, "\\\\").replace(/'/g, "'\\''")
-        
-        // Write both files so the user has them regardless of what they switch to
-        _writeProc.command = ["bash", "-c",
-            "printf '%s' '" + le + "' > '" + root._luaPath + "' && " +
-            "printf '%s' '" + ce + "' > '" + root._confPath + "'"]
-            
-        _writeProc.running = false
-        _writeProc.running = true
-    }
-
-    function _grouped() {
-        var groups = {}; var order = []
-        var ks = Object.keys(root.keybinds)
-        for (var i = 0; i < ks.length; i++) {
-            var k = ks[i]; var b = root.keybinds[k]
-            if (!b || b.mods === undefined || !b.key || b.key === "" || b.key.toUpperCase() === "UNKNOWN") continue
-            var g = b.group || "Other"
-            if (!groups[g]) { groups[g] = []; order.push(g) }
-            var entry = { k: k, mods: b.mods, key: b.key, label: b.label }
-            groups[g].push(entry)
-        }
-        return { groups: groups, order: order }
-    }
-
-    function _genLua() {
-        var sd   = root._shellDir.replace(/"/g, "\\\"")
-        var data = _grouped()
-        
-        var lines = [
-            "-- ==============================================================================",
-            "-- Brain Shell Keybinds",
-            "-- Auto-generated by Quickshell. Do not edit manually.",
-            "-- ==============================================================================",
-            ""
-        ]
-
-        if (!Paths.isNix) {
-            lines.push("local shell = \"" + sd + "\"")
-            lines.push("")
-        }
-
-        lines.push("-- ==============================================================================")
-        lines.push("-- BrainShell Capture Submap (Disables all normal binds during recording)")
-        lines.push("-- ==============================================================================")
-        lines.push("hl.define_submap(\"BrainShell_clean\", function()")
-        lines.push("    -- Emergency exit in case the shell crashes during capture")
-        lines.push("    hl.bind(\"CTRL + ESCAPE\", function()")
-        lines.push("        hl.dispatch(hl.dsp.exec_cmd(\"notify-send 'BrainShell' 'Emergency Exit: Keybinds re-enabled.'\"))")
-        lines.push("        hl.dispatch(hl.dsp.submap(\"reset\"))")
-        lines.push("    end, { description = \"Emergency return to global submap\" })")
-        lines.push("end)")
-        lines.push("")
-        lines.push("-- ==============================================================================")
-        lines.push("-- User Defined Bindings")
-        lines.push("-- ==============================================================================")
-        lines.push("")
-        
-        for (var gi = 0; gi < data.order.length; gi++) {
-            var g = data.order[gi]
-            lines.push("-- " + g)
-            var entries = data.groups[g]
-            for (var ei = 0; ei < entries.length; ei++) {
-                var e = entries[ei]
-                var isModOnly = (e.mods === "" && root._isModKey(e.key))
-                var luaBindStr = isModOnly
-                    ? (root._modForModKey(e.key) + " + " + e.key)
-                    : ((e.mods !== "") ? (e.mods + " + " + e.key) : e.key)
-                var descLabel = (e.label || e.k).replace(/"/g, "\\\"")
-                var opts = isModOnly
-                    ? "{ description = \"Brain Shell: " + descLabel + "\", release = true }"
-                    : "{ description = \"Brain Shell: " + descLabel + "\" }"
-                var execCmd = Paths.isNix
-                    ? ("hl.dsp.exec_cmd(\"brain-shell ipc call " + e.k + " toggle\")")
-                    : ("hl.dsp.exec_cmd(\"qs ipc -p \" .. shell .. \" call " + e.k + " toggle\")")
-                lines.push("hl.bind(\"" + luaBindStr + "\", " + execCmd + ", " + opts + ")")
-            }
-            lines.push("")
-        }
-        return lines.join("\n")
-    }
-
-    function _genConf() {
-        var data = _grouped()
-        
-        var lines = [
-            "# ==============================================================================",
-            "# Brain Shell Keybinds",
-            "# Auto-generated by Quickshell. Do not edit manually.",
-            "# ==============================================================================",
-            "",
-            "# ==============================================================================",
-            "# BrainShell Capture Submap (Disables all normal binds during recording)",
-            "# ==============================================================================",
-            "submap = BrainShell_clean",
-            "bind = CTRL, ESCAPE, exec, notify-send 'BrainShell' 'Emergency Exit: Keybinds re-enabled.'",
-            "bind = CTRL, ESCAPE, submap, reset",
-            "submap = reset",
-            "",
-            "# ==============================================================================",
-            "# User Defined Bindings",
-            "# ==============================================================================",
-            ""
-        ]
-        
-        for (var gi = 0; gi < data.order.length; gi++) {
-            var g = data.order[gi]
-            lines.push("# " + g)
-            var entries = data.groups[g]
-            for (var ei = 0; ei < entries.length; ei++) {
-                var e = entries[ei]
-                var isModOnly = (e.mods === "" && root._isModKey(e.key))
-                var confMods = isModOnly
-                    ? root._modForModKey(e.key)
-                    : e.mods.replace(/\s*\+\s*/g, " ")
-                var bindDirective = isModOnly ? "bindr" : "bind"
-                var cmd = Paths.isNix
-                    ? ("brain-shell ipc call " + e.k + " toggle")
-                    : ("qs ipc -p " + root._shellDir + " call " + e.k + " toggle")
-                lines.push(bindDirective + " = " + confMods + ", " + e.key + ", exec, " + cmd)
-            }
-            lines.push("")
-        }
-        return lines.join("\n")
+        WM.writeKeybindFiles(root.keybinds)
     }
 
     Component.onCompleted: _loadProc.running = true

@@ -15,3 +15,4 @@ singleton MediaService services/MediaService.qml
 singleton FrecencyService services/FrecencyService.qml
 singleton Paths          utils/Paths.qml
 singleton KanbanService  services/KanbanService.qml
+singleton WM             services/wm/WM.qml

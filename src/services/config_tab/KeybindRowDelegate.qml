@@ -97,7 +97,7 @@ Item {
                 return (lbl ? lbl.label : pkeys[i]) + " (pending)"
             }
         }
-        return KeybindService.wouldConflictHypr(br.action, br.capturedMods, br.capturedKey)
+        return KeybindService.wouldConflictCompositor(br.action, br.capturedMods, br.capturedKey)
     }
     readonly property bool _hasConflict: _conflictLabel !== ""
 
@@ -114,7 +114,7 @@ Item {
             br._hadNonMod   = false
             br.capturedMods = ""
             br.capturedKey  = ""
-            KeybindService.loadHyprBinds()   // refresh for conflict detection
+            KeybindService.loadCompositorBinds()   // refresh for conflict detection
             Qt.callLater(function() { _captureArea.forceActiveFocus() })
         }
     }
@@ -176,7 +176,7 @@ Item {
                         br.capturedMods = m
                         br.capturedKey  = k
                         if (KeybindService.wouldConflict(br.action, m, k) === ""
-                            && KeybindService.wouldConflictHypr(br.action, m, k) === ""
+                            && KeybindService.wouldConflictCompositor(br.action, m, k) === ""
                             && !_hasPendingConflict(m, k)) {
                             br.captureAccepted(m, k)
                             br.releaseCapture()
@@ -201,9 +201,9 @@ Item {
                 br.capturedMods = m
                 br.capturedKey  = k
                 // Auto-accept when valid: no service conflict,
-                // no pending-map conflict, no Hyprland conflict
+                // no pending-map conflict, no compositor conflict
                 if (KeybindService.wouldConflict(br.action, m, k) === ""
-                    && KeybindService.wouldConflictHypr(br.action, m, k) === ""
+                    && KeybindService.wouldConflictCompositor(br.action, m, k) === ""
                     && !_hasPendingConflict(m, k)) {
                     br.captureAccepted(m, k)
                     br.releaseCapture()

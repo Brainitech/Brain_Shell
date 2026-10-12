@@ -114,17 +114,10 @@ StatCard {
     // ─────────────────────────────────────────────────────────────────────────
     //  Night Light  (hyprsunset)
     // ─────────────────────────────────────────────────────────────────────────
-    property bool nightLightOn: false
+    readonly property bool nightLightOn: WM.nightLightOn
 
-    Process { id: nlCheck; command: ["bash", "-c", "pgrep -x hyprsunset"]; running: false
-        stdout: SplitParser { onRead: function(l) { if (l.trim() !== "") root.nightLightOn = true } } }
-    Process { id: nlProc; command: ["hyprsunset", "-t", "5600"]; running: false }
-    Process { id: nlKill; command: ["bash", "-c", "pkill hyprsunset"]; running: false }
     function _nightLightToggle() {
-        if (root.nightLightOn) {
-            nlProc.running = false; nlKill.running = false; nlKill.running = true
-            root.nightLightOn = false
-        } else { nlProc.running = true; root.nightLightOn = true }
+        WM.toggleNightLight()
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -201,33 +194,19 @@ StatCard {
     // ─────────────────────────────────────────────────────────────────────────
     //  Focus Mode  (hyprctl gaps)
     // ─────────────────────────────────────────────────────────────────────────
-    property int _savedGapsIn: 5; property int _savedGapsOut: 10
+    property int _savedGapsIn: 5
+    property int _savedGapsOut: 10
 
-    Process { id: readGapsIn
-        command: ["bash", "-c",
-            "hyprctl getoption general:gaps_in -j | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('int',5))\""]
-        running: false
-        stdout: SplitParser { onRead: function(l) { var v=parseInt(l.trim()); if(!isNaN(v)) root._savedGapsIn=v } }
-        onRunningChanged: if (!running) readGapsOut.running = true }
-    Process { id: readGapsOut
-        command: ["bash", "-c",
-            "hyprctl getoption general:gaps_out -j | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('int',10))\""]
-        running: false
-        stdout: SplitParser { onRead: function(l) { var v=parseInt(l.trim()); if(!isNaN(v)) root._savedGapsOut=v } }
-        onRunningChanged: if (!running) applyFocusGaps.running = true }
-    Process { id: applyFocusGaps
-        command: ["bash", "-c",
-            "hyprctl keyword general:gaps_in 0 && hyprctl keyword general:gaps_out 10"]
-        running: false; onRunningChanged: if (!running) ShellState.focusMode = true }
-    Process { id: restoreGaps; command: []; running: false
-        onRunningChanged: if (!running) ShellState.focusMode = false }
     function _focusToggle() {
         if (ShellState.focusMode) {
-            restoreGaps.command = ["bash", "-c",
-                "hyprctl keyword general:gaps_in "  + root._savedGapsIn  +
-                " && hyprctl keyword general:gaps_out " + root._savedGapsOut]
-            restoreGaps.running = false; restoreGaps.running = true
-        } else { readGapsIn.running = false; readGapsIn.running = true }
+            WM.setGaps(root._savedGapsIn, root._savedGapsOut)
+            ShellState.focusMode = false
+        } else {
+            root._savedGapsIn = WM.gapsIn > 0 ? WM.gapsIn : 5
+            root._savedGapsOut = WM.gapsOut > 0 ? WM.gapsOut : 10
+            WM.setGaps(0, 10)
+            ShellState.focusMode = true
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -287,7 +266,7 @@ StatCard {
 
     Component.onCompleted: {
         _wifiPoll(); _btPoll()
-        nlCheck.running         = true
+        WM.checkNightLight()
         caffeineCheck.running   = true
         airplaneCheck.running   = true
         hotspotManager.init()

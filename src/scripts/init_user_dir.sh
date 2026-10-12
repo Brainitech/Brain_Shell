@@ -105,7 +105,6 @@ touch_state() {
 touch_state "$CONFIG_DIR/src/user_data/shell_prefs.json"
 touch_state "$CONFIG_DIR/src/user_data/wallpaper.json"
 touch_state "$CONFIG_DIR/src/user_data/tasks.json"
-touch_state "$CONFIG_DIR/src/user_data/config_Provider.json"
 
 if [ "$IS_LUA" -eq 1 ]; then
     touch_state "$CONFIG_DIR/Brain_ShellKeybinds.lua"
@@ -134,8 +133,8 @@ source = ~/.config/Brain_Shell/BrainShell-hyprland.conf
 # <<< Brain Shell Autostart & Integration <<<
 EOF
     fi
-elif [ ! -e "$HYPR_CONF" ] && [ ! -e "$HYPR_LUA" ]; then
-    # No Hyprland config found — seed Brain_Shell's curated Lua template.
+elif [ ! -e "$HYPR_CONF" ] && [ ! -e "$HYPR_LUA" ] && [ -z "$NIRI_SOCKET" ] && [ -z "$SWAYSOCK" ] && { [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ] || command -v hyprctl &>/dev/null; }; then
+    # No Hyprland config found - Inject Brain_Shell's Lua Hyprland Template.
     HYPR_TEMPLATE="$INSTALL_DIR/src/config/hypr_template"
     if [ -d "$HYPR_TEMPLATE" ]; then
         mkdir -p "$HYPR_DIR" 2>/dev/null || true

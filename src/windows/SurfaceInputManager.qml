@@ -21,7 +21,6 @@ import "../"
 import "../theme"
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 
 Item {
     id: inputManager
@@ -262,15 +261,13 @@ Item {
         SurfaceState.close()
     }
 
-    // --- HYPRLAND EVENT DISMISS ---
+    // --- WM EVENT DISMISS ---
     Connections {
-        target: Hyprland
-        function onRawEvent(event) {
-            if (event.name === "workspace" || event.name === "activemonitor" || event.name === "activespecial" || event.name === "openwindow") {
-                if (inputManager.isInputActive) return;
-                Popups.miniPlayerOpen = false
-                SurfaceState.close()
-            }
+        target: WM
+        function onDismissRequested() {
+            if (inputManager.isInputActive) return;
+            Popups.miniPlayerOpen = false
+            SurfaceState.close()
         }
     }
 }

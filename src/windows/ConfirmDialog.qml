@@ -30,8 +30,6 @@ import "../services/"
 //   "shutdown"        → systemctl poweroff
 //   "reboot"          → systemctl reboot
 //   "logout"          → loginctl terminate-user $USER
-//   "lock"            → loginctl lock-session
-//   "suspend"         → systemctl suspend
 //   "gpu-switch-envy" → pkexec scripts/GfxSwitch.sh <mode>, then systemctl reboot
 //                       GfxSwitch.sh prints "authenticated" after pkexec auth succeeds,
 //                       which triggers the processing card before envycontrol runs.
@@ -115,16 +113,7 @@ PanelWindow {
                 proc.pendingCmd = ["bash", powerScript, "logout"]
                 proc.running = true
                 break
-            case "lock":
-                Popups.cancelConfirm()
-                proc.pendingCmd = ["loginctl", "lock-session"]
-                proc.running = true
-                break
-            case "suspend":
-                Popups.cancelConfirm()
-                proc.pendingCmd = ["systemctl", "suspend"]
-                proc.running = true
-                break
+
             case "reset_shell":
                 Popups.cancelConfirm()
                 proc.pendingCmd = ["bash", "-c", "rm '" + ShellState.userDataDir + "/shell_prefs.json' && " + restartQs]

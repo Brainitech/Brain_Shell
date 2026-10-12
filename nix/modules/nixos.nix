@@ -14,6 +14,16 @@ in
   options.programs.brain-shell = {
     enable = lib.mkEnableOption "Brain Shell session";
 
+    wm = lib.mkOption {
+      type = lib.types.enum [
+        "hyprland"
+        "niri"
+        "sway"
+      ];
+      default = "hyprland";
+      description = "Target window manager / compositor for Brain Shell. Note: niri and sway backends are currently unsupported / in development.";
+    };
+
     package = lib.mkOption {
       type = lib.types.package;
       default = self.packages.${system}.default;
@@ -52,14 +62,14 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = config.programs.hyprland.enable;
-        message = "programs.brain-shell requires programs.hyprland.enable = true.";
+        assertion = (cfg.wm != "hyprland") || config.programs.hyprland.enable;
+        message = "programs.brain-shell requires programs.hyprland.enable = true when wm is set to 'hyprland'.";
       }
     ];
 
     environment.systemPackages = (import ../deps.nix pkgs) ++ [ cfg.package ];
 
-    programs.hyprland.enable = lib.mkDefault true;
+    programs.hyprland.enable = lib.mkIf (cfg.wm == "hyprland") (lib.mkDefault true);
     security.polkit.enable = lib.mkDefault true;
     hardware.bluetooth.enable = lib.mkDefault true;
     networking.networkmanager.enable = lib.mkDefault true;
@@ -71,6 +81,7 @@ in
 
     environment.variables = {
       QT_QPA_PLATFORMTHEME = "qt6ct";
+      BRAIN_SHELL_WM = cfg.wm;
       BRAIN_SHELL_TERMINAL = cfg.terminal;
       BRAIN_SHELL_WALLPAPER_DAEMON = cfg.wallpaperDaemon;
       BRAIN_SHELL_CONFIG_TYPE = cfg.configFormat;
@@ -86,10 +97,9 @@ in
 
     xdg.portal = {
       enable = lib.mkDefault true;
-      extraPortals = [
-        pkgs.xdg-desktop-portal-hyprland
-        pkgs.xdg-desktop-portal-gtk
-      ];
+      extraPortals =
+        (lib.optional (cfg.wm == "hyprland") pkgs.xdg-desktop-portal-hyprland)
+        ++ [ pkgs.xdg-desktop-portal-gtk ];
     };
   };
 }

@@ -19,7 +19,6 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import "../"
 import "../theme"
 import "../popups/"

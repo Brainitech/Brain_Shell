@@ -33,6 +33,10 @@ IconBtn {
         if (next) Popups.notificationsPinned = true
     }
 
+    onRightClicked: {
+        ShellState.dnd = !ShellState.dnd
+    }
+
     HoverHandler {
         onHoveredChanged: Popups.notificationsTriggerHovered = hovered
     }

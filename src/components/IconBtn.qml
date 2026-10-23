@@ -32,6 +32,7 @@ Rectangle {
     property color textColor: Theme.text
     property int fontSize: Math.round(14 * localScale)
     signal clicked()
+    signal rightClicked()
 
     Text {
         anchors.centerIn: parent
@@ -49,6 +50,13 @@ Rectangle {
     
     MouseArea {
         anchors.fill: parent
-        onClicked: root.clicked()
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked: function(mouse) {
+            if (mouse.button === Qt.RightButton) {
+                root.rightClicked()
+            } else {
+                root.clicked()
+            }
+        }
     }
 }

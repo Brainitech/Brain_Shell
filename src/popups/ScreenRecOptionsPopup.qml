@@ -31,7 +31,7 @@ Item {
     // Metrics
     readonly property int gap: Math.round(8 * localScale)
     
-    width: ScreenRecService.popupTargetWidth > 0 ? ScreenRecService.popupTargetWidth : Math.round(340 * localScale)
+    width: (parent && parent.width > 0) ? parent.width : (ScreenRecService.popupTargetWidth > 0 ? ScreenRecService.popupTargetWidth : Math.round(Theme.cNotchMinWidth * localScale))
     
     readonly property int tileW: Math.floor((width - (gap * 2) - Math.round(16 * localScale) - (gap * 2)) / 3)
     readonly property int targetTileH: Math.round(54 * localScale)

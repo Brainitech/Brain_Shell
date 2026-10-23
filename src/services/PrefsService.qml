@@ -58,6 +58,12 @@ QtObject {
     property string hotspotPassword: "changeme1"
 
     // Sizing & Borders
+    property string shellLayout: "border"
+    readonly property bool isFloating: shellLayout === "floating"
+    readonly property bool isBorderMode: shellLayout === "border"
+    property int floatingGap: 8
+    property int floatingBarHeight: 40
+
     property bool barEnabled: true
     property int borderWidth: 6
     property int cornerRadius: 17
@@ -141,6 +147,10 @@ QtObject {
             if (o.hotspotSsid !== undefined) root.hotspotSsid = o.hotspotSsid
             if (o.hotspotPassword !== undefined) root.hotspotPassword = o.hotspotPassword
 
+            if (o.shellLayout !== undefined) root.shellLayout = o.shellLayout
+            if (o.floatingGap !== undefined) root.floatingGap = Math.max(4, o.floatingGap)
+            if (o.floatingBarHeight !== undefined) root.floatingBarHeight = o.floatingBarHeight
+
             if (o.barEnabled !== undefined) root.barEnabled = o.barEnabled
             if (o.borderWidth !== undefined) root.borderWidth = o.borderWidth
             if (o.cornerRadius !== undefined) root.cornerRadius = o.cornerRadius
@@ -176,7 +186,7 @@ QtObject {
         } catch(e) {}
         root.updateLayerBlur()
         root._loaded = true
-                root.loaded()
+        root.loaded()
     }
 
         onCustomAvatarPathChanged: if (_loaded) saveConfig()
@@ -199,6 +209,9 @@ QtObject {
     onScreenrecSaveDirChanged: if (_loaded) saveConfig()
     onHotspotSsidChanged: if (_loaded) saveConfig()
     onHotspotPasswordChanged: if (_loaded) saveConfig()
+    onShellLayoutChanged: if (_loaded) saveConfig()
+    onFloatingGapChanged: { if (floatingGap < 4) floatingGap = 4; if (_loaded) saveConfig() }
+    onFloatingBarHeightChanged: if (_loaded) saveConfig()
     onBarEnabledChanged: if (_loaded) saveConfig()
     onBorderWidthChanged: if (_loaded) saveConfig()
     onCornerRadiusChanged: if (_loaded) saveConfig()
@@ -250,6 +263,9 @@ QtObject {
             screenrecSaveDir: root.screenrecSaveDir,
             hotspotSsid: root.hotspotSsid,
             hotspotPassword: root.hotspotPassword,
+            shellLayout: root.shellLayout,
+            floatingGap: root.floatingGap,
+            floatingBarHeight: root.floatingBarHeight,
             barEnabled: root.barEnabled,
             borderWidth: root.borderWidth,
             cornerRadius: root.cornerRadius,

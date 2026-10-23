@@ -19,6 +19,7 @@
 import QtQuick
 import "../"
 import "../theme"
+import "../services"
 import Quickshell
 import Quickshell.Wayland
 
@@ -39,6 +40,12 @@ Item {
     required property bool isRightCenterHovered
     required property bool isBottomCenterHovered
     required property bool isBottomRightHovered
+
+    property Item leftCenterArea: null
+    property Item rightCenterArea: null
+    property Item bottomCenterArea: null
+    property Item bottomRightArea: null
+
     focus: SurfaceState.activeSurface !== "none" || (screenRecord && !screenRecording)
 
     // --- INPUT & EVENT SHIELDING ---
@@ -133,10 +140,15 @@ Item {
     
     Item { 
         id: leftCenterNotchMask
-        width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : Math.max(1, surfaceShape.frameThickness)
-        height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * inputManager.localScale)
+        width: SurfaceState.isLeftCenterExpanded 
+            ? ((leftCenterArea ? leftCenterArea.width : Math.round(Theme.popupMaxWidth * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0)) 
+            : (surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : (PrefsService.isFloating ? 1 : Math.max(1, surfaceShape.frameThickness)))
+        height: SurfaceState.isLeftCenterExpanded 
+            ? (leftCenterArea ? leftCenterArea.height : Math.round(Theme.popupMaxHeight * inputManager.localScale)) 
+            : (surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * inputManager.localScale))
         x: 0
         anchors.verticalCenter: parent.verticalCenter
+        visible: true
         MouseArea { 
             anchors.fill: parent
             onClicked: {
@@ -157,10 +169,15 @@ Item {
     }
     Item { 
         id: rightCenterNotchMask
-        width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : Math.max(1, surfaceShape.frameThickness)
-        height: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * inputManager.localScale)
+        width: SurfaceState.isRightCenterExpanded 
+            ? ((rightCenterArea ? rightCenterArea.width : Math.round(Theme.popupMaxWidth * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0)) 
+            : (surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : (PrefsService.isFloating ? 1 : Math.max(1, surfaceShape.frameThickness)))
+        height: SurfaceState.isRightCenterExpanded 
+            ? (rightCenterArea ? rightCenterArea.height : Math.round(Theme.popupMaxHeight * inputManager.localScale)) 
+            : (surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * inputManager.localScale))
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
+        visible: true
         MouseArea { 
             anchors.fill: parent
             onClicked: {
@@ -199,10 +216,15 @@ Item {
     }
     Item { 
         id: bottomCenterNotchMask
-        width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * inputManager.localScale)
-        height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : Math.max(1, surfaceShape.frameThickness)
+        width: SurfaceState.isBottomCenterExpanded 
+            ? (bottomCenterArea ? bottomCenterArea.width : Math.round(Theme.popupMaxWidth * inputManager.localScale)) 
+            : (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * inputManager.localScale))
+        height: SurfaceState.isBottomCenterExpanded 
+            ? ((bottomCenterArea ? bottomCenterArea.height : Math.round(Theme.popupMaxHeight * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0)) 
+            : (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : (PrefsService.isFloating ? 1 : Math.max(1, surfaceShape.frameThickness)))
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
+        visible: true
         MouseArea { 
             anchors.fill: parent
             onClicked: {
@@ -223,10 +245,15 @@ Item {
     }
     Item { 
         id: bottomRightNotchMask
-        width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * inputManager.localScale)
-        height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : Math.max(1, surfaceShape.frameThickness)
+        width: SurfaceState.isBottomRightExpanded 
+            ? ((bottomRightArea ? bottomRightArea.width : Math.round(Theme.popupMaxWidth * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0)) 
+            : (surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * inputManager.localScale))
+        height: SurfaceState.isBottomRightExpanded 
+            ? ((bottomRightArea ? bottomRightArea.height : Math.round(Theme.popupMaxHeight * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0)) 
+            : (surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : (PrefsService.isFloating ? 1 : Math.max(1, surfaceShape.frameThickness)))
         anchors.bottom: parent.bottom
         anchors.right: parent.right
+        visible: true
         MouseArea { 
             anchors.fill: parent
             onClicked: {

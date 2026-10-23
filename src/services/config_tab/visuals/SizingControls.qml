@@ -32,16 +32,65 @@ Item {
         width: parent.width
         localScale: root.localScale
         title: "Surface & Window Styling"
-        description: "Panel border thickness, corner roundness, and geometry."
+        description: "Panel border thickness, corner roundness, and shell layout architecture."
+
+        SettingsButton {
+            localScale: root.localScale
+            text: "Shell Layout"
+            description: "Choose between classic morphing border frame and detached floating pills."
+            inputType: "options"
+            options: ["border", "floating"]
+            selectedOption: PrefsService.shellLayout
+            buttonText: selectedOption
+            defaultValue: "border"
+            onOptionSelected: function(opt) {
+                if (opt !== PrefsService.shellLayout) {
+                    PrefsService.shellLayout = opt
+                    PrefsService.saveConfig()
+                }
+            }
+        }
+
+        SettingsDivider { localScale: root.localScale }
 
         SettingsSlider {
+            id: borderWidthSlider
             localScale: root.localScale
             text: "Border Width"
-            description: "Thickness of panel borders."
-            from: 0; to: 10; stepSize: 1; value: PrefsService.borderWidth
-            defaultValue: 6
-            onValueChanged: { if (value !== PrefsService.borderWidth) { PrefsService.borderWidth = value; PrefsService.saveConfig() } }
+            description: PrefsService.isFloating
+                         ? "Disabled — border frame is eliminated in floating mode."
+                         : "Thickness of panel borders."
+            from: 0; to: 10; stepSize: 1
+            value: PrefsService.isFloating ? 0 : PrefsService.borderWidth
+            defaultValue: PrefsService.isFloating ? 0 : 6
+            enabled: !PrefsService.isFloating
+            opacity: PrefsService.isFloating ? 0.4 : 1.0
+            Behavior on opacity { NumberAnimation { duration: Anim.fast } }
+            formatValue: function(v) {
+                if (PrefsService.isFloating) return "0px (N/A)"
+                return Math.round(v) + "px"
+            }
+            onValueChanged: {
+                if (!PrefsService.isFloating && value !== PrefsService.borderWidth) {
+                    PrefsService.borderWidth = value
+                    PrefsService.saveConfig()
+                }
+            }
             valueSuffix: "px"
+        }
+
+        Connections {
+            target: PrefsService
+            function onIsFloatingChanged() {
+                borderWidthSlider.value = Qt.binding(function() {
+                    return PrefsService.isFloating ? 0 : PrefsService.borderWidth
+                })
+            }
+            function onBorderWidthChanged() {
+                if (!PrefsService.isFloating && borderWidthSlider.value !== PrefsService.borderWidth) {
+                    borderWidthSlider.value = PrefsService.borderWidth
+                }
+            }
         }
 
         SettingsDivider { localScale: root.localScale }
@@ -54,6 +103,46 @@ Item {
             defaultValue: 17
             onValueChanged: { if (value !== PrefsService.cornerRadius) { PrefsService.cornerRadius = value; PrefsService.saveConfig() } }
             valueSuffix: "px"
+        }
+
+        // Floating Shell Configuration Section
+        Item {
+            width: parent.width
+            height: visible ? floatingCol.height : 0
+            visible: PrefsService.isFloating
+            clip: true
+
+            Behavior on height { NumberAnimation { duration: Anim.fast; easing.type: Anim.globalCurve } }
+
+            Column {
+                id: floatingCol
+                width: parent.width
+                spacing: Math.round(4 * root.localScale)
+
+                SettingsDivider { localScale: root.localScale }
+
+                SettingsSlider {
+                    localScale: root.localScale
+                    text: "Edge Gap"
+                    description: "Distance between floating pills and screen edges."
+                    from: 4; to: 24; stepSize: 2; value: PrefsService.floatingGap
+                    defaultValue: 8
+                    onValueChanged: { if (value !== PrefsService.floatingGap) { PrefsService.floatingGap = value; PrefsService.saveConfig() } }
+                    valueSuffix: "px"
+                }
+
+                SettingsDivider { localScale: root.localScale }
+
+                SettingsSlider {
+                    localScale: root.localScale
+                    text: "Pill Height"
+                    description: "Height of the three top floating pill bars."
+                    from: 32; to: 56; stepSize: 2; value: PrefsService.floatingBarHeight
+                    defaultValue: 40
+                    onValueChanged: { if (value !== PrefsService.floatingBarHeight) { PrefsService.floatingBarHeight = value; PrefsService.saveConfig() } }
+                    valueSuffix: "px"
+                }
+            }
         }
     }
 }

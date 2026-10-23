@@ -21,6 +21,7 @@ import Quickshell
 import Quickshell.Wayland
 import "../"
 import "../theme"
+import "../services"
 import "../popups/"
 import "../components"
 import "../modules/Right/"
@@ -60,11 +61,15 @@ PanelWindow {
         screenRecording: ScreenRecService.recording
         optionsExpanded: ScreenRecService.optionsExpanded
         isTopHovered: leftNotchHover.hovered || centerNotchHover.hovered || rightNotchHover.hovered
-        isRightHovered: rightNotchHover.hovered
+        isRightHovered: rightNotchHover.hovered || (rightPopupContainer && rightPopupHover.hovered)
         isLeftCenterHovered: sideBottomSurfaces.isLeftCenterHovered
         isRightCenterHovered: sideBottomSurfaces.isRightCenterHovered
         isBottomCenterHovered: sideBottomSurfaces.isBottomCenterHovered
         isBottomRightHovered: sideBottomSurfaces.isBottomRightHovered
+        leftCenterArea: sideBottomSurfaces.leftCenterNotchArea
+        rightCenterArea: sideBottomSurfaces.rightCenterNotchArea
+        bottomCenterArea: sideBottomSurfaces.bottomCenterNotchArea
+        bottomRightArea: sideBottomSurfaces.bottomRightNotchArea
     }
     
     WlrLayershell.layer: WlrLayer.Top
@@ -81,32 +86,44 @@ PanelWindow {
     // Pass the entire window bounding box to the compositor.
     BackgroundEffect.blurRegion: PrefsService.bgBlur ? fullRegion : null
 
-    // Mask logic: Combine frame borders + active notches + click shield. 
+    // Mask logic: Combine frame borders + active notches + click shield + edge handles. 
     mask: Region {
         Region { item: clickShield.isActive ? clickShield : null }
         
-        // Top and Bottom frame borders
-        Region { x: 0; y: 0; width: root.width; height: Math.max(1, surfaceShape.frameThickness) }
-        Region { x: 0; y: root.height - Math.max(1, surfaceShape.frameThickness); width: root.width; height: Math.max(1, surfaceShape.frameThickness) }
+        // Top and Bottom frame borders (Border & Hybrid modes)
+        Region { x: 0; y: 0; width: PrefsService.isFloating ? 0 : root.width; height: PrefsService.isFloating ? 0 : Math.max(1, surfaceShape.frameThickness) }
+        Region { x: 0; y: root.height - (PrefsService.isFloating ? 0 : Math.max(1, surfaceShape.frameThickness)); width: PrefsService.isFloating ? 0 : root.width; height: PrefsService.isFloating ? 0 : Math.max(1, surfaceShape.frameThickness) }
         
-        // Left and Right frame borders
-        Region { x: 0; y: 0; width: Math.max(1, surfaceShape.frameThickness); height: root.height }
-        Region { x: root.width - Math.max(1, surfaceShape.frameThickness); y: 0; width: Math.max(1, surfaceShape.frameThickness); height: root.height }
+        // Left and Right frame borders (Border & Hybrid modes)
+        Region { x: 0; y: 0; width: PrefsService.isFloating ? 0 : Math.max(1, surfaceShape.frameThickness); height: PrefsService.isFloating ? 0 : root.height }
+        Region { x: root.width - (PrefsService.isFloating ? 0 : Math.max(1, surfaceShape.frameThickness)); y: 0; width: PrefsService.isFloating ? 0 : Math.max(1, surfaceShape.frameThickness); height: PrefsService.isFloating ? 0 : root.height }
         
-        // Top Notches
-        Region { x: 0; y: 0; width: surfaceShape.leftNotchWidth; height: surfaceShape.leftNotchHeight }
-        Region { x: root.width / 2 - surfaceShape.centerNotchWidth / 2; y: 0; width: surfaceShape.centerNotchWidth; height: surfaceShape.centerNotchHeight }
-        Region { x: root.width - surfaceShape.rightNotchWidth; y: 0; width: surfaceShape.rightNotchWidth; height: surfaceShape.rightNotchHeight }
-        // Top Center 1px fallback region (active when borderWidth === 0 or focusMode)
+        // Top Notches (Border & Hybrid idle notches)
+        Region { x: 0; y: 0; width: PrefsService.isFloating ? 0 : surfaceShape.leftNotchWidth; height: PrefsService.isFloating ? 0 : surfaceShape.leftNotchHeight }
+        Region { x: Math.round(root.width / 2 - surfaceShape.centerNotchWidth / 2); y: 0; width: PrefsService.isFloating ? 0 : surfaceShape.centerNotchWidth; height: PrefsService.isFloating ? 0 : surfaceShape.centerNotchHeight }
+        Region { x: Math.round(root.width - surfaceShape.rightNotchWidth); y: 0; width: PrefsService.isFloating ? 0 : surfaceShape.rightNotchWidth; height: PrefsService.isFloating ? 0 : surfaceShape.rightNotchHeight }
+
+        // Top Pill Areas (Floating mode)
+        Region { item: PrefsService.isFloating ? leftNotchArea : null }
+        Region { item: PrefsService.isFloating ? centerNotchArea : null }
+        Region { item: PrefsService.isFloating ? rightNotchArea : null }
+
+        // Top Center & Top Right Popups when active
+        Region { item: SurfaceState.isTopExpanded ? dashboardContainer : null }
+        Region { item: (SurfaceState.isRightExpanded || Popups.notificationToastOpen) ? rightPopupContainer : null }
+
+        // 1px Edge Fallback Triggers (Always Active on All 4 Screen Edges for Mouse Access)
         Region { x: Math.round(root.width / 2 - (160 * root.localScale) / 2); y: 0; width: Math.round(160 * root.localScale); height: 1 }
-        
-        // Side Notches
-        Region { x: 0; y: root.height / 2 - (surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * root.localScale)) / 2; width: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : Math.max(1, surfaceShape.frameThickness); height: surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * root.localScale) }
-        Region { x: root.width - (surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : Math.max(1, surfaceShape.frameThickness)); y: root.height / 2 - (surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * root.localScale)) / 2; width: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : Math.max(1, surfaceShape.frameThickness); height: surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * root.localScale) }
-        
-        // Bottom Notches
-        Region { x: root.width / 2 - (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * root.localScale)) / 2; y: root.height - (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : Math.max(1, surfaceShape.frameThickness)); width: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * root.localScale); height: surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : Math.max(1, surfaceShape.frameThickness) }
-        Region { x: root.width - (surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * root.localScale)); y: root.height - (surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : Math.max(1, surfaceShape.frameThickness)); width: surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * root.localScale); height: surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : Math.max(1, surfaceShape.frameThickness) }
+        Region { x: 0; y: Math.round(root.height / 2 - (200 * root.localScale) / 2); width: 1; height: Math.round(200 * root.localScale) }
+        Region { x: root.width - 1; y: Math.round(root.height / 2 - (200 * root.localScale) / 2); width: 1; height: Math.round(200 * root.localScale) }
+        Region { x: Math.round(root.width / 2 - (300 * root.localScale) / 2); y: root.height - 1; width: Math.round(300 * root.localScale); height: 1 }
+        Region { x: root.width - Math.round(200 * root.localScale); y: root.height - 1; width: Math.round(200 * root.localScale); height: 1 }
+
+        // Side & Bottom Notch Areas when expanded
+        Region { item: SurfaceState.isLeftCenterExpanded ? sideBottomSurfaces.leftCenterNotchArea : null }
+        Region { item: SurfaceState.isRightCenterExpanded ? sideBottomSurfaces.rightCenterNotchArea : null }
+        Region { item: SurfaceState.isBottomCenterExpanded ? sideBottomSurfaces.bottomCenterNotchArea : null }
+        Region { item: SurfaceState.isBottomRightExpanded ? sideBottomSurfaces.bottomRightNotchArea : null }
     }
 
     // --- FOCUS & FALLBACK TRIGGERS ---
@@ -123,6 +140,7 @@ PanelWindow {
         id: surfaceShape
         anchors.fill: parent
         localScale: root.localScale
+        visible: !PrefsService.isFloating
         
         rcnDepth: { 
             if (!SurfaceState.isRightCenterExpanded) return 0.001; 
@@ -200,18 +218,60 @@ PanelWindow {
         
         // Geometry animates with smooth CUBIC curve (never detaches)
     }
+
+    FloatingShape {
+        id: floatingShape
+        anchors.fill: parent
+        localScale: root.localScale
+        visible: PrefsService.isFloating
+        leftContentWidth: leftContent.implicitWidth
+        centerContentWidth: centerContent.implicitWidth
+        rightContentWidth: rightContent.implicitWidth
+
+        isCenterExpanded: SurfaceState.isTopExpanded || Popups.miniPlayerOpen || (ShellState.screenRecord && !ScreenRecService.recording && ScreenRecService.optionsExpanded)
+        centerExpandedWidth: {
+            if (SurfaceState.isTopExpanded) return Math.round(Popups.dashboardPageWidth * root.localScale);
+            return floatingShape.centerPillIdleWidth;
+        }
+        centerExpandedHeight: {
+            if (SurfaceState.isTopExpanded) return Math.round(Theme.dashboardHeight * root.localScale);
+            if (Popups.miniPlayerOpen) return floatingShape.barHeight + miniPlayerView.height + Math.round(16 * root.localScale);
+            if (ShellState.screenRecord && !ScreenRecService.recording && ScreenRecService.optionsExpanded) return floatingShape.barHeight + screenRecOptionsPopupView.height + Math.round(16 * root.localScale);
+            return floatingShape.barHeight;
+        }
+
+        isRightExpanded: SurfaceState.isRightExpanded || Popups.notificationToastOpen
+        rightExpandedWidth: {
+            if (SurfaceState.isRightExpanded) {
+                if (SurfaceState.activeContent === "network") return Math.round(Theme.networkPopupWidth * root.localScale);
+                if (SurfaceState.activeContent === "notifications") return notifsPopupView.popupWidth;
+                return Math.round(Theme.popupMaxWidth * root.localScale);
+            }
+            if (Popups.notificationToastOpen) return notificationToastView.toastWidth + Math.round(Theme.cornerRadius * root.localScale);
+            return floatingShape.rightPillIdleWidth;
+        }
+        rightExpandedHeight: {
+            if (SurfaceState.isRightExpanded) {
+                if (SurfaceState.activeContent === "network") return Math.round(648 * root.localScale);
+                if (SurfaceState.activeContent === "notifications") return notifsPopupView.targetHeight;
+                return Math.round(Theme.popupMaxHeight * root.localScale);
+            }
+            if (Popups.notificationToastOpen) return notificationToastView.targetHeight;
+            return floatingShape.barHeight;
+        }
+    }
     
     
     // --- NOTCH CONTENT ---
     Item {
         id: leftNotchArea
         HoverHandler { id: leftNotchHover }
-        width: surfaceShape.leftNotchWidth
-        height: surfaceShape.leftNotchHeight
+        width: PrefsService.isFloating ? floatingShape.leftPillWidth : surfaceShape.leftNotchWidth
+        height: PrefsService.isFloating ? floatingShape.leftPillHeight : surfaceShape.leftNotchHeight
         anchors.left: parent.left
-        anchors.leftMargin: Math.round(Theme.borderWidth * root.localScale)
+        anchors.leftMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
         anchors.top: parent.top
-        anchors.topMargin: Math.round(Theme.borderWidth * root.localScale)
+        anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
         clip: true
         
         opacity: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (focusTriggers.fmLeftHovered || leftNotchHover.hovered)) && !SurfaceState.isTopExpanded) ? 0 : 1
@@ -220,7 +280,7 @@ PanelWindow {
         Item {
             id: leftNotchHead
             width: parent.width
-            height: Math.round(Theme.notchHeight * root.localScale)
+            height: PrefsService.isFloating ? floatingShape.barHeight : Math.round(Theme.notchHeight * root.localScale)
             anchors.top: parent.top
             
             LeftContent {
@@ -234,11 +294,11 @@ PanelWindow {
     Item {
         id: centerNotchArea
         HoverHandler { id: centerNotchHover }
-        width: surfaceShape.centerNotchWidth
-        height: surfaceShape.centerNotchHeight
+        width: PrefsService.isFloating ? floatingShape.centerPillWidth : surfaceShape.centerNotchWidth
+        height: PrefsService.isFloating ? floatingShape.centerPillHeight : surfaceShape.centerNotchHeight
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: Math.round(Theme.borderWidth * root.localScale)
+        anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
         clip: true
         
         opacity: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (focusTriggers.fmCenterHovered || centerNotchHover.hovered)) && !SurfaceState.isTopExpanded && !ShellState.screenRecord && !ScreenRecService.recording) ? 0 : 1
@@ -247,8 +307,11 @@ PanelWindow {
         Item {
             id: centerNotchHead
             width: parent.width
-            height: Math.round(Theme.notchHeight * root.localScale)
+            height: PrefsService.isFloating ? floatingShape.barHeight : Math.round(Theme.notchHeight * root.localScale)
             anchors.top: parent.top
+            opacity: SurfaceState.isTopExpanded ? 0 : 1
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Anim.fast } }
             
             CenterContent {
                 localScale: root.localScale
@@ -257,45 +320,56 @@ PanelWindow {
             }
         }
 
+        ScreenRecOptionsPopup {
+            id: screenRecOptionsPopupView
+            localScale: root.localScale
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: centerNotchHead.bottom
+            anchors.topMargin: Math.round(8 * root.localScale)
+            z: 999
+        }
+        MiniPlayer {
+            id: miniPlayerView
+            localScale: root.localScale
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: centerNotchHead.bottom
+            anchors.topMargin: Math.round(8 * root.localScale)
+            z: 998
+        }
+    }
+
+    Item {
+        id: dashboardContainer
+        HoverHandler { id: dashboardHover }
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
+        width: PrefsService.isFloating ? floatingShape.centerPillWidth : surfaceShape.centerNotchWidth
+        height: PrefsService.isFloating ? floatingShape.centerPillHeight : surfaceShape.centerNotchHeight
+        clip: true
+        visible: SurfaceState.isTopExpanded || dashboardView.opacity > 0
+
         Dashboard {
             id: dashboardView
             localScale: root.localScale
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
+            anchors.fill: parent
             screen: root.screen
             
             opacity: SurfaceState.activeContent === "dashboard" ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         }
-    ScreenRecOptionsPopup {
-        id: screenRecOptionsPopupView
-        localScale: root.localScale
-        x: ScreenRecService.popupTargetX + (ScreenRecService.popupTargetWidth / 2) - (width / 2) - parent.x
-        y: Math.round(8 * root.localScale) + Math.round(Theme.notchHeight * root.localScale)
-        z: 999
     }
-    MiniPlayer {
-        id: miniPlayerView
-        localScale: root.localScale
-        anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.round(8 * root.localScale) + Math.round(Theme.notchHeight * root.localScale)
-        z: 998
-    }
-    }
-
 
     Item {
         id: rightNotchArea
         HoverHandler { id: rightNotchHover }
-        width: surfaceShape.rightNotchWidth
-        height: surfaceShape.rightNotchHeight
+        width: PrefsService.isFloating ? floatingShape.rightPillWidth : surfaceShape.rightNotchWidth
+        height: PrefsService.isFloating ? floatingShape.rightPillHeight : surfaceShape.rightNotchHeight
         anchors.right: parent.right
-        anchors.rightMargin: Math.round(Theme.borderWidth * root.localScale)
+        anchors.rightMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
         anchors.top: parent.top
-        anchors.topMargin: Math.round(Theme.borderWidth * root.localScale)
+        anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
         clip: true
         
         opacity: (ShellState.focusMode && !(PrefsService.focusModeHoverExpand && (focusTriggers.fmRightHovered || rightNotchHover.hovered)) && !SurfaceState.isRightExpanded && !Popups.notificationToastOpen) ? 0 : 1
@@ -304,8 +378,11 @@ PanelWindow {
         Item {
             id: rightNotchHead
             width: parent.width
-            height: Math.round(Theme.notchHeight * root.localScale)
+            height: PrefsService.isFloating ? floatingShape.barHeight : Math.round(Theme.notchHeight * root.localScale)
             anchors.top: parent.top
+            opacity: (SurfaceState.isRightExpanded || Popups.notificationToastOpen) ? 0 : 1
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Anim.fast } }
             
             RightContent {
                 localScale: root.localScale
@@ -315,50 +392,46 @@ PanelWindow {
                 anchors.rightMargin: Math.round(Theme.notchPadding * root.localScale)
             }
         }
+    }
+
+    Item {
+        id: rightPopupContainer
+        HoverHandler { id: rightPopupHover }
+        anchors.right: parent.right
+        anchors.rightMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
+        anchors.top: parent.top
+        anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
+        width: PrefsService.isFloating ? floatingShape.rightPillWidth : surfaceShape.rightNotchWidth
+        height: PrefsService.isFloating ? floatingShape.rightPillHeight : surfaceShape.rightNotchHeight
+        clip: true
+        visible: SurfaceState.isRightExpanded || Popups.notificationToastOpen || networkPopupView.opacity > 0 || notifsPopupView.opacity > 0 || notificationToastView.opacity > 0
 
         NetworkPopup {
             id: networkPopupView
             localScale: root.localScale
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
+            anchors.fill: parent
             screen: root.screen
-            
+
             opacity: SurfaceState.activeContent === "network" ? 1 : 0
-
-            
             visible: opacity > 0
-
-            
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         }
 
         NotificationsPopup {
             id: notifsPopupView
             localScale: root.localScale
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            
+            anchors.fill: parent
+
             opacity: SurfaceState.activeContent === "notifications" ? 1 : 0
-
-            
             visible: opacity > 0
-
-            
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
         }
 
         NotificationToast {
             id: notificationToastView
             localScale: root.localScale
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            
+            anchors.fill: parent
+
             opacity: Popups.notificationToastOpen && !Popups.notificationsOpen ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
@@ -371,6 +444,7 @@ PanelWindow {
         anchors.fill: parent
         localScale: root.localScale
         surfaceShape: surfaceShape
+        floatingShape: floatingShape
     }
 
 }

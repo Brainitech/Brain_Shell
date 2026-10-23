@@ -25,7 +25,7 @@ QtObject {
     property bool barEnabled: PrefsService.barEnabled
 
     // -- Bar Sizes --
-    property int borderWidth:   PrefsService.borderWidth
+    property int borderWidth:   PrefsService.isFloating ? 0 : PrefsService.borderWidth
     property int cornerRadius:  PrefsService.cornerRadius
     property int notchHeight:   40
         

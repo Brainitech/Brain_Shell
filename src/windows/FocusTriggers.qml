@@ -19,6 +19,7 @@
 import QtQuick
 import "../"
 import "../theme"
+import "../services"
 
 Item {
     id: focusTriggers
@@ -54,7 +55,7 @@ Item {
         anchors.top: parent.top
         width: Math.round(160 * focusTriggers.localScale)
         height: 1
-        visible: !SurfaceState.isTopExpanded && (Theme.borderWidth === 0 || ShellState.focusMode)
+        visible: !SurfaceState.isTopExpanded && (Theme.borderWidth === 0 || ShellState.focusMode || PrefsService.isFloating)
         z: 9999
 
         TapHandler {

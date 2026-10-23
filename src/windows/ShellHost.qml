@@ -103,12 +103,27 @@ ShellRoot {
                 StrutWindow { 
                     screen: modelData; 
                     edge: "top"; 
-                    reserveSpace: ShellState.focusMode ? Math.round(Theme.borderWidth * localScale) * 2 : Math.round(40 * localScale) + Math.round(Theme.borderWidth * localScale) * 2 
+                    reserveSpace: PrefsService.isFloating ? (ShellState.focusMode ? 0 : Math.round((PrefsService.floatingGap * 2 + PrefsService.floatingBarHeight) * localScale)) : (ShellState.focusMode ? Math.round(Theme.borderWidth * localScale) * 2 : Math.round(40 * localScale) + Math.round(Theme.borderWidth * localScale) * 2)
                     Behavior on reserveSpace { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
                 }
-                StrutWindow { screen: modelData; edge: "bottom"; reserveSpace: Math.round(Theme.borderWidth * localScale) * 2 }
-                StrutWindow { screen: modelData; edge: "left"; reserveSpace: Math.round(Theme.borderWidth * localScale) * 2 }
-                StrutWindow { screen: modelData; edge: "right"; reserveSpace: Math.round(Theme.borderWidth * localScale) * 2 }
+                StrutWindow { 
+                    screen: modelData; 
+                    edge: "bottom"; 
+                    reserveSpace: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * localScale) * 2 
+                    Behavior on reserveSpace { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+                }
+                StrutWindow { 
+                    screen: modelData; 
+                    edge: "left"; 
+                    reserveSpace: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * localScale) * 2 
+                    Behavior on reserveSpace { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+                }
+                StrutWindow { 
+                    screen: modelData; 
+                    edge: "right"; 
+                    reserveSpace: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * localScale) * 2 
+                    Behavior on reserveSpace { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve; easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod } }
+                }
                 
                 // The morphing unified screen frame
                 DynamicSurface {

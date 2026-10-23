@@ -4,3 +4,4 @@ ColorStudioModal ColorStudioModal.qml
 PopupBehaviorControls PopupBehaviorControls.qml
 SizingControls SizingControls.qml
 ThemePresetGrid ThemePresetGrid.qml
+WorkspaceControls WorkspaceControls.qml

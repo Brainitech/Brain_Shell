@@ -51,6 +51,10 @@ Item {
                 localScale: root.localScale
             }
 
+            WorkspaceControls {
+                localScale: root.localScale
+            }
+
             AnimationControls {
                 localScale: root.localScale
             }

@@ -68,6 +68,15 @@ QtObject {
     property int borderWidth: 6
     property int cornerRadius: 17
 
+    // Workspaces Customization
+    property string wsMode: (WM.detectedCompositor === "Niri") ? "dynamic" : "static" // "static" | "dynamic" | "occupied"
+    property int wsCount: 10 // 3 - 15 (for static mode)
+    property string wsShape: "circle" // "circle" | "pill" | "rounded" | "square"
+    property string wsSymbols: "none" // "none" | "numbers" | "kanji" | "roman" | "icons"
+    property string wsSymbolStyle: "floating" // "floating" | "badges"
+    property bool wsShowCapsule: true
+    property bool wsInvertScroll: false
+
     // Popup Behavior
     property bool globalHoverMode: true
     property bool hoverDashboard: false
@@ -155,6 +164,14 @@ QtObject {
             if (o.borderWidth !== undefined) root.borderWidth = o.borderWidth
             if (o.cornerRadius !== undefined) root.cornerRadius = o.cornerRadius
 
+            if (o.wsMode !== undefined) root.wsMode = (WM.detectedCompositor === "Niri") ? "dynamic" : o.wsMode
+            if (o.wsCount !== undefined) root.wsCount = o.wsCount
+            if (o.wsShape !== undefined) root.wsShape = o.wsShape
+            if (o.wsSymbols !== undefined) root.wsSymbols = o.wsSymbols
+            if (o.wsSymbolStyle !== undefined) root.wsSymbolStyle = (o.wsSymbolStyle === "badges") ? "badges" : "floating"
+            if (o.wsShowCapsule !== undefined) root.wsShowCapsule = o.wsShowCapsule
+            if (o.wsInvertScroll !== undefined) root.wsInvertScroll = o.wsInvertScroll
+
             if (o.globalHoverMode !== undefined) root.globalHoverMode = o.globalHoverMode
             if (o.hoverDashboard !== undefined) root.hoverDashboard = o.hoverDashboard
             if (o.hoverNetwork !== undefined) root.hoverNetwork = o.hoverNetwork
@@ -215,6 +232,13 @@ QtObject {
     onBarEnabledChanged: if (_loaded) saveConfig()
     onBorderWidthChanged: if (_loaded) saveConfig()
     onCornerRadiusChanged: if (_loaded) saveConfig()
+    onWsModeChanged: if (_loaded) saveConfig()
+    onWsCountChanged: if (_loaded) saveConfig()
+    onWsShapeChanged: if (_loaded) saveConfig()
+    onWsSymbolsChanged: if (_loaded) saveConfig()
+    onWsSymbolStyleChanged: if (_loaded) saveConfig()
+    onWsShowCapsuleChanged: if (_loaded) saveConfig()
+    onWsInvertScrollChanged: if (_loaded) saveConfig()
     onGlobalHoverModeChanged: if (_loaded) saveConfig()
     onHoverDashboardChanged: if (_loaded) saveConfig()
     onHoverNetworkChanged: if (_loaded) saveConfig()
@@ -269,6 +293,13 @@ QtObject {
             barEnabled: root.barEnabled,
             borderWidth: root.borderWidth,
             cornerRadius: root.cornerRadius,
+            wsMode: root.wsMode,
+            wsCount: root.wsCount,
+            wsShape: root.wsShape,
+            wsSymbols: root.wsSymbols,
+            wsSymbolStyle: root.wsSymbolStyle,
+            wsShowCapsule: root.wsShowCapsule,
+            wsInvertScroll: root.wsInvertScroll,
             globalHoverMode: root.globalHoverMode,
             hoverDashboard: root.hoverDashboard,
             hoverNetwork: root.hoverNetwork,

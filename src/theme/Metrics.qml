@@ -36,7 +36,7 @@ QtObject {
     // -- Notch Width Constraints --
     // Each notch sizes itself to its content, clamped between min and max.
     property int lNotchMinWidth: 180
-    property int lNotchMaxWidth: 360
+    property int lNotchMaxWidth: 420
 
     property int cNotchMinWidth: 300
     property int cNotchMaxWidth: 360
@@ -61,7 +61,7 @@ QtObject {
 
     // -- Workspace Dot Sizes --
     property int wsDotSize:     10
-    property int wsActiveWidth: 24
+    property int wsActiveWidth: 20
     property int wsSpacing:     6
     property int wsPadding:     8
     property int wsRadius:      16

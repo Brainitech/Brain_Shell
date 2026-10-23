@@ -193,7 +193,7 @@ Item {
         Connections {
             target: Popups
             function onAudioOpenChanged() {
-                Popups.quickTriggerHovered = Popups.audioOpen ? false : rightCenterNotchHover.hovered
+                Popups.quickTriggerHovered = Popups.audioOpen ? false : inputManager.isRightCenterHovered
             }
         }
     }

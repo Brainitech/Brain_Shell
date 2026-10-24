@@ -106,14 +106,54 @@ Item {
         onTriggered: {
             if (inputManager.isInputActive) return;
             if (Date.now() - SurfaceState.lastCloseTime < 400) return;
-            if (Popups.dashboardTriggerHovered && Popups.dashboardAllowHover) { Popups.closeAll(); SurfaceState.open("top", "dashboard") }
-            else if (Popups.archMenuTriggerHovered && Popups.archMenuAllowHover) { Popups.closeAll(); SurfaceState.open("leftCenter", "archMenu") }
-            else if (Popups.audioTriggerHovered && Popups.audioAllowHover) { Popups.closeAll(); SurfaceState.open("rightCenter", "audio") }
-            else if (Popups.networkTriggerHovered && Popups.networkAllowHover) { Popups.closeAll(); SurfaceState.open("right", "network") } 
-            else if (Popups.notificationsTriggerHovered && Popups.notificationsAllowHover) { Popups.closeAll(); SurfaceState.open("right", "notifications") }
-            else if (Popups.wallpaperTriggerHovered && Popups.wallpaperAllowHover) { Popups.closeAll(); SurfaceState.open("bottomCenter", "wallpaper") }
-            else if (Popups.quickTriggerHovered && Popups.quickAllowHover) { Popups.closeAll(); SurfaceState.open("rightCenter", "quick") }
-            else if (Popups.clipboardTriggerHovered && Popups.clipboardAllowHover) { Popups.closeAll(); SurfaceState.open("bottomRight", "clipboard") }
+            if (Popups.dashboardTriggerHovered && Popups.dashboardAllowHover) {
+                if (SurfaceState.activeSurface !== "top" || SurfaceState.activeContent !== "dashboard") {
+                    Popups.closeAll()
+                    SurfaceState.open("top", "dashboard")
+                }
+            }
+            else if (Popups.archMenuTriggerHovered && Popups.archMenuAllowHover) {
+                if (SurfaceState.activeSurface !== "leftCenter" || SurfaceState.activeContent !== "archMenu") {
+                    Popups.closeAll()
+                    SurfaceState.open("leftCenter", "archMenu")
+                }
+            }
+            else if (Popups.audioTriggerHovered && Popups.audioAllowHover) {
+                if (SurfaceState.activeSurface !== "rightCenter" || SurfaceState.activeContent !== "audio") {
+                    Popups.closeAll()
+                    SurfaceState.open("rightCenter", "audio")
+                }
+            }
+            else if (Popups.networkTriggerHovered && Popups.networkAllowHover) {
+                if (SurfaceState.activeSurface !== "right" || SurfaceState.activeContent !== "network") {
+                    Popups.closeAll()
+                    SurfaceState.open("right", "network")
+                }
+            } 
+            else if (Popups.notificationsTriggerHovered && Popups.notificationsAllowHover) {
+                if (SurfaceState.activeSurface !== "right" || SurfaceState.activeContent !== "notifications") {
+                    Popups.closeAll()
+                    SurfaceState.open("right", "notifications")
+                }
+            }
+            else if (Popups.wallpaperTriggerHovered && Popups.wallpaperAllowHover) {
+                if (SurfaceState.activeSurface !== "bottomCenter" || SurfaceState.activeContent !== "wallpaper") {
+                    Popups.closeAll()
+                    SurfaceState.open("bottomCenter", "wallpaper")
+                }
+            }
+            else if (Popups.quickTriggerHovered && Popups.quickAllowHover) {
+                if (SurfaceState.activeSurface !== "rightCenter" || SurfaceState.activeContent !== "quick") {
+                    Popups.closeAll()
+                    SurfaceState.open("rightCenter", "quick")
+                }
+            }
+            else if (Popups.clipboardTriggerHovered && Popups.clipboardAllowHover) {
+                if (SurfaceState.activeSurface !== "bottomRight" || SurfaceState.activeContent !== "clipboard") {
+                    Popups.closeAll()
+                    SurfaceState.open("bottomRight", "clipboard")
+                }
+            }
         }
     }
 
@@ -141,10 +181,16 @@ Item {
     Item { 
         id: leftCenterNotchMask
         width: SurfaceState.isLeftCenterExpanded 
-            ? ((leftCenterArea ? leftCenterArea.width : Math.round(Theme.popupMaxWidth * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0)) 
+            ? Math.max(
+                (PrefsService.isFloating ? 1 : Math.max(1, surfaceShape.frameThickness)),
+                ((leftCenterArea ? leftCenterArea.width : Math.round(Theme.popupMaxWidth * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0))
+              )
             : (surfaceShape.lcnDepth > 1 ? surfaceShape.lcnDepth : (PrefsService.isFloating ? 1 : Math.max(1, surfaceShape.frameThickness)))
         height: SurfaceState.isLeftCenterExpanded 
-            ? (leftCenterArea ? leftCenterArea.height : Math.round(Theme.popupMaxHeight * inputManager.localScale)) 
+            ? Math.max(
+                Math.round(200 * inputManager.localScale),
+                (leftCenterArea ? leftCenterArea.height : Math.round(Theme.popupMaxHeight * inputManager.localScale))
+              )
             : (surfaceShape.lcnDepth > 1 ? surfaceShape.lcnHeight : Math.round(200 * inputManager.localScale))
         x: 0
         anchors.verticalCenter: parent.verticalCenter
@@ -170,10 +216,16 @@ Item {
     Item { 
         id: rightCenterNotchMask
         width: SurfaceState.isRightCenterExpanded 
-            ? ((rightCenterArea ? rightCenterArea.width : Math.round(Theme.popupMaxWidth * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0)) 
+            ? Math.max(
+                (PrefsService.isFloating ? 1 : Math.max(1, surfaceShape.frameThickness)),
+                ((rightCenterArea ? rightCenterArea.width : Math.round(Theme.popupMaxWidth * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0))
+              )
             : (surfaceShape.rcnDepth > 1 ? surfaceShape.rcnDepth : (PrefsService.isFloating ? 1 : Math.max(1, surfaceShape.frameThickness)))
         height: SurfaceState.isRightCenterExpanded 
-            ? (rightCenterArea ? rightCenterArea.height : Math.round(Theme.popupMaxHeight * inputManager.localScale)) 
+            ? Math.max(
+                Math.round(200 * inputManager.localScale),
+                (rightCenterArea ? rightCenterArea.height : Math.round(Theme.popupMaxHeight * inputManager.localScale))
+              )
             : (surfaceShape.rcnDepth > 1 ? surfaceShape.rcnHeight : Math.round(200 * inputManager.localScale))
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
@@ -217,10 +269,16 @@ Item {
     Item { 
         id: bottomCenterNotchMask
         width: SurfaceState.isBottomCenterExpanded 
-            ? (bottomCenterArea ? bottomCenterArea.width : Math.round(Theme.popupMaxWidth * inputManager.localScale)) 
+            ? Math.max(
+                Math.round(300 * inputManager.localScale),
+                (bottomCenterArea ? bottomCenterArea.width : Math.round(Theme.popupMaxWidth * inputManager.localScale))
+              )
             : (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnWidth : Math.round(300 * inputManager.localScale))
         height: SurfaceState.isBottomCenterExpanded 
-            ? ((bottomCenterArea ? bottomCenterArea.height : Math.round(Theme.popupMaxHeight * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0)) 
+            ? Math.max(
+                (PrefsService.isFloating ? 1 : Math.max(1, surfaceShape.frameThickness)),
+                ((bottomCenterArea ? bottomCenterArea.height : Math.round(Theme.popupMaxHeight * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0))
+              )
             : (surfaceShape.bcnDepth > 1 ? surfaceShape.bcnDepth : (PrefsService.isFloating ? 1 : Math.max(1, surfaceShape.frameThickness)))
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
@@ -246,10 +304,16 @@ Item {
     Item { 
         id: bottomRightNotchMask
         width: SurfaceState.isBottomRightExpanded 
-            ? ((bottomRightArea ? bottomRightArea.width : Math.round(Theme.popupMaxWidth * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0)) 
+            ? Math.max(
+                Math.round(200 * inputManager.localScale),
+                ((bottomRightArea ? bottomRightArea.width : Math.round(Theme.popupMaxWidth * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0))
+              )
             : (surfaceShape.brnDepth > 1 ? surfaceShape.brnWidth : Math.round(200 * inputManager.localScale))
         height: SurfaceState.isBottomRightExpanded 
-            ? ((bottomRightArea ? bottomRightArea.height : Math.round(Theme.popupMaxHeight * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0)) 
+            ? Math.max(
+                (PrefsService.isFloating ? 1 : Math.max(1, surfaceShape.frameThickness)),
+                ((bottomRightArea ? bottomRightArea.height : Math.round(Theme.popupMaxHeight * inputManager.localScale)) + (PrefsService.isFloating ? Math.max(4, PrefsService.floatingGap) : 0))
+              )
             : (surfaceShape.brnDepth > 1 ? surfaceShape.brnDepth : (PrefsService.isFloating ? 1 : Math.max(1, surfaceShape.frameThickness)))
         anchors.bottom: parent.bottom
         anchors.right: parent.right
@@ -272,7 +336,6 @@ Item {
             onHoveredChanged: Popups.clipboardTriggerHovered = hovered
         }
     }
-
 
     // --- GLOBAL ESCAPE HANDLER ---
     Keys.onEscapePressed: {

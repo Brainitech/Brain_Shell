@@ -47,6 +47,9 @@ Item {
     readonly property alias isBottomCenterHovered: bottomCenterNotchHover.hovered
     readonly property alias isBottomRightHovered: bottomRightNotchHover.hovered
 
+    // Floating gap helper
+    readonly property int floatingGap: floatingShape ? floatingShape.gap : Math.round(4 * sideBottomSurfaces.localScale)
+
     // Popup Views
     readonly property alias archMenuPopupView: archMenuPopupView
     readonly property alias audioPopupView: audioPopupView
@@ -58,22 +61,23 @@ Item {
         id: leftCenterNotchArea
         HoverHandler { id: leftCenterNotchHover }
         width: PrefsService.isFloating
-            ? (SurfaceState.isLeftCenterExpanded ? (archMenuPopupView.popupWidth + Math.round(Theme.cornerRadius * sideBottomSurfaces.localScale)) : 0)
+            ? (SurfaceState.isLeftCenterExpanded ? (archMenuPopupView.popupWidth + Math.round(Theme.cornerRadius * sideBottomSurfaces.localScale) + sideBottomSurfaces.floatingGap) : 0)
             : surfaceShape.lcnDepth
         height: PrefsService.isFloating
             ? (SurfaceState.isLeftCenterExpanded ? (archMenuPopupView.popupHeight + Math.round(Theme.cornerRadius * sideBottomSurfaces.localScale * 2)) : 0)
             : surfaceShape.lcnHeight
         anchors.left: parent.left
-        anchors.leftMargin: PrefsService.isFloating ? (floatingShape ? floatingShape.gap : Math.round(4 * sideBottomSurfaces.localScale)) : Math.round(Theme.borderWidth * sideBottomSurfaces.localScale)
+        anchors.leftMargin: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * sideBottomSurfaces.localScale)
         anchors.verticalCenter: parent.verticalCenter
         clip: true
-        Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-        Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+        Behavior on width  { enabled: PrefsService.isFloating; NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+        Behavior on height { enabled: PrefsService.isFloating; NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
 
         ArchMenu {
             id: archMenuPopupView
             localScale: sideBottomSurfaces.localScale
             anchors.fill: parent
+            anchors.leftMargin: PrefsService.isFloating ? sideBottomSurfaces.floatingGap : 0
 
             Rectangle {
                 anchors.fill: parent
@@ -93,22 +97,23 @@ Item {
         id: rightCenterNotchArea
         HoverHandler { id: rightCenterNotchHover }
         width: PrefsService.isFloating
-            ? (SurfaceState.isRightCenterExpanded ? (SurfaceState.activeContent === "audio" ? audioPopupView.popupWidth : (SurfaceState.activeContent === "quick" ? quickControlPopupView.popupWidth : Math.round(Theme.popupMaxWidth * sideBottomSurfaces.localScale))) : 0)
+            ? (SurfaceState.isRightCenterExpanded ? ((SurfaceState.activeContent === "audio" ? audioPopupView.popupWidth : (SurfaceState.activeContent === "quick" ? quickControlPopupView.popupWidth : Math.round(Theme.popupMaxWidth * sideBottomSurfaces.localScale))) + sideBottomSurfaces.floatingGap) : 0)
             : surfaceShape.rcnDepth
         height: PrefsService.isFloating
             ? (SurfaceState.isRightCenterExpanded ? (SurfaceState.activeContent === "audio" ? audioPopupView.popupHeight : (SurfaceState.activeContent === "quick" ? quickControlPopupView.popupHeight : Math.round(Theme.popupMaxHeight * sideBottomSurfaces.localScale))) : 0)
             : surfaceShape.rcnHeight
         anchors.right: parent.right
-        anchors.rightMargin: PrefsService.isFloating ? (floatingShape ? floatingShape.gap : Math.round(4 * sideBottomSurfaces.localScale)) : Math.round(Theme.borderWidth * sideBottomSurfaces.localScale)
+        anchors.rightMargin: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * sideBottomSurfaces.localScale)
         anchors.verticalCenter: parent.verticalCenter
         clip: true
-        Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-        Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+        Behavior on width  { enabled: PrefsService.isFloating; NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+        Behavior on height { enabled: PrefsService.isFloating; NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
 
         AudioPopup {
             id: audioPopupView
             localScale: sideBottomSurfaces.localScale
             anchors.fill: parent
+            anchors.rightMargin: PrefsService.isFloating ? sideBottomSurfaces.floatingGap : 0
 
             Rectangle {
                 anchors.fill: parent
@@ -127,6 +132,7 @@ Item {
             id: quickControlPopupView
             localScale: sideBottomSurfaces.localScale
             anchors.fill: parent
+            anchors.rightMargin: PrefsService.isFloating ? sideBottomSurfaces.floatingGap : 0
 
             Rectangle {
                 anchors.fill: parent
@@ -149,19 +155,20 @@ Item {
             ? (SurfaceState.isBottomCenterExpanded ? (wallpaperPopupView.popupWidth + Math.round(Theme.cornerRadius * sideBottomSurfaces.localScale * 2)) : 0)
             : surfaceShape.bcnWidth
         height: PrefsService.isFloating
-            ? (SurfaceState.isBottomCenterExpanded ? (wallpaperPopupView.popupHeight + Math.round(Theme.cornerRadius * sideBottomSurfaces.localScale)) : 0)
+            ? (SurfaceState.isBottomCenterExpanded ? (wallpaperPopupView.popupHeight + Math.round(Theme.cornerRadius * sideBottomSurfaces.localScale) + sideBottomSurfaces.floatingGap) : 0)
             : surfaceShape.bcnDepth
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: PrefsService.isFloating ? (floatingShape ? floatingShape.gap : Math.round(4 * sideBottomSurfaces.localScale)) : Math.round(Theme.borderWidth * sideBottomSurfaces.localScale)
+        anchors.bottomMargin: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * sideBottomSurfaces.localScale)
         clip: true
-        Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-        Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+        Behavior on width  { enabled: PrefsService.isFloating; NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+        Behavior on height { enabled: PrefsService.isFloating; NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
 
         WallpaperPopup {
             id: wallpaperPopupView
             localScale: sideBottomSurfaces.localScale
             anchors.fill: parent
+            anchors.bottomMargin: PrefsService.isFloating ? sideBottomSurfaces.floatingGap : 0
 
             Rectangle {
                 anchors.fill: parent
@@ -181,23 +188,25 @@ Item {
         id: bottomRightNotchArea
         HoverHandler { id: bottomRightNotchHover }
         width: PrefsService.isFloating
-            ? (SurfaceState.isBottomRightExpanded ? (clipboardPopupView.popupWidth + Math.round(Theme.cornerRadius * sideBottomSurfaces.localScale)) : 0)
+            ? (SurfaceState.isBottomRightExpanded ? (clipboardPopupView.popupWidth + Math.round(Theme.cornerRadius * sideBottomSurfaces.localScale) + sideBottomSurfaces.floatingGap) : 0)
             : surfaceShape.brnWidth
         height: PrefsService.isFloating
-            ? (SurfaceState.isBottomRightExpanded ? (clipboardPopupView.popupHeight + Math.round(Theme.cornerRadius * sideBottomSurfaces.localScale)) : 0)
+            ? (SurfaceState.isBottomRightExpanded ? (clipboardPopupView.popupHeight + Math.round(Theme.cornerRadius * sideBottomSurfaces.localScale) + sideBottomSurfaces.floatingGap) : 0)
             : surfaceShape.brnDepth
         anchors.right: parent.right
-        anchors.rightMargin: PrefsService.isFloating ? (floatingShape ? floatingShape.gap : Math.round(4 * sideBottomSurfaces.localScale)) : Math.round(Theme.borderWidth * sideBottomSurfaces.localScale)
+        anchors.rightMargin: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * sideBottomSurfaces.localScale)
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: PrefsService.isFloating ? (floatingShape ? floatingShape.gap : Math.round(4 * sideBottomSurfaces.localScale)) : Math.round(Theme.borderWidth * sideBottomSurfaces.localScale)
+        anchors.bottomMargin: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * sideBottomSurfaces.localScale)
         clip: true
-        Behavior on width  { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
-        Behavior on height { NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+        Behavior on width  { enabled: PrefsService.isFloating; NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
+        Behavior on height { enabled: PrefsService.isFloating; NumberAnimation { duration: Anim.transition; easing.type: Anim.outCubic } }
 
         ClipboardPopup {
             id: clipboardPopupView
             localScale: sideBottomSurfaces.localScale
             anchors.fill: parent
+            anchors.rightMargin: PrefsService.isFloating ? sideBottomSurfaces.floatingGap : 0
+            anchors.bottomMargin: PrefsService.isFloating ? sideBottomSurfaces.floatingGap : 0
 
             Rectangle {
                 anchors.fill: parent

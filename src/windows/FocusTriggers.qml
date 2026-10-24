@@ -65,6 +65,16 @@ Item {
                 Popups.dashboardPinned = true
             }
         }
+
+        HoverHandler {
+            onHoveredChanged: {
+                if (hovered) {
+                    Popups.dashboardTriggerHovered = true
+                } else if (!focusTriggers.fmCenterHovered) {
+                    Popups.dashboardTriggerHovered = false
+                }
+            }
+        }
     }
 
     // --- VECTOR GEOMETRY ---

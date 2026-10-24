@@ -60,7 +60,7 @@ PanelWindow {
         screenRecord: ShellState.screenRecord
         screenRecording: ScreenRecService.recording
         optionsExpanded: ScreenRecService.optionsExpanded
-        isTopHovered: leftNotchHover.hovered || centerNotchHover.hovered || rightNotchHover.hovered
+        isTopHovered: leftNotchHover.hovered || centerNotchHover.hovered || rightNotchHover.hovered || (dashboardContainer && dashboardHover.hovered)
         isRightHovered: rightNotchHover.hovered || (rightPopupContainer && rightPopupHover.hovered)
         isLeftCenterHovered: sideBottomSurfaces.isLeftCenterHovered
         isRightCenterHovered: sideBottomSurfaces.isRightCenterHovered
@@ -343,9 +343,9 @@ PanelWindow {
         HoverHandler { id: dashboardHover }
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
+        anchors.topMargin: 0
         width: PrefsService.isFloating ? floatingShape.centerPillWidth : surfaceShape.centerNotchWidth
-        height: PrefsService.isFloating ? floatingShape.centerPillHeight : surfaceShape.centerNotchHeight
+        height: (PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)) + (PrefsService.isFloating ? floatingShape.centerPillHeight : surfaceShape.centerNotchHeight)
         clip: true
         visible: SurfaceState.isTopExpanded || dashboardView.opacity > 0
 
@@ -353,6 +353,7 @@ PanelWindow {
             id: dashboardView
             localScale: root.localScale
             anchors.fill: parent
+            anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
             screen: root.screen
             
             opacity: SurfaceState.activeContent === "dashboard" ? 1 : 0
@@ -398,11 +399,9 @@ PanelWindow {
         id: rightPopupContainer
         HoverHandler { id: rightPopupHover }
         anchors.right: parent.right
-        anchors.rightMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
         anchors.top: parent.top
-        anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
-        width: PrefsService.isFloating ? floatingShape.rightPillWidth : surfaceShape.rightNotchWidth
-        height: PrefsService.isFloating ? floatingShape.rightPillHeight : surfaceShape.rightNotchHeight
+        width: (PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)) + (PrefsService.isFloating ? floatingShape.rightPillWidth : surfaceShape.rightNotchWidth)
+        height: (PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)) + (PrefsService.isFloating ? floatingShape.rightPillHeight : surfaceShape.rightNotchHeight)
         clip: true
         visible: SurfaceState.isRightExpanded || Popups.notificationToastOpen || networkPopupView.opacity > 0 || notifsPopupView.opacity > 0 || notificationToastView.opacity > 0
 
@@ -410,6 +409,8 @@ PanelWindow {
             id: networkPopupView
             localScale: root.localScale
             anchors.fill: parent
+            anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
+            anchors.rightMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
             screen: root.screen
 
             opacity: SurfaceState.activeContent === "network" ? 1 : 0
@@ -421,6 +422,8 @@ PanelWindow {
             id: notifsPopupView
             localScale: root.localScale
             anchors.fill: parent
+            anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
+            anchors.rightMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
 
             opacity: SurfaceState.activeContent === "notifications" ? 1 : 0
             visible: opacity > 0
@@ -431,6 +434,8 @@ PanelWindow {
             id: notificationToastView
             localScale: root.localScale
             anchors.fill: parent
+            anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
+            anchors.rightMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
 
             opacity: Popups.notificationToastOpen && !Popups.notificationsOpen ? 1 : 0
             visible: opacity > 0
@@ -446,5 +451,4 @@ PanelWindow {
         surfaceShape: surfaceShape
         floatingShape: floatingShape
     }
-
 }

@@ -1,3 +1,4 @@
 QuickBrightnessSlider QuickBrightnessSlider.qml
 QuickVolumeSlider QuickVolumeSlider.qml
 QuickMicSlider QuickMicSlider.qml
+HorizontalSliderTrack HorizontalSliderTrack.qml

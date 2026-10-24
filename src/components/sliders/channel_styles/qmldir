@@ -1,6 +1,5 @@
 CapsuleSliderStyle CapsuleSliderStyle.qml
 GlowSliderStyle GlowSliderStyle.qml
-DottedSliderStyle DottedSliderStyle.qml
 OutlineSliderStyle OutlineSliderStyle.qml
 RingSliderStyle RingSliderStyle.qml
 DynamicSliderStyle DynamicSliderStyle.qml

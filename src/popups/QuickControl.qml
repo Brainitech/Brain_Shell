@@ -46,38 +46,33 @@ Item {
 
     property real _bVal: BrightnessService.brightness / 100
 
-
-
-
-
-
     Item {
         id: slide
         anchors.fill: parent
         clip: true
-        
 
         Row {
             anchors.centerIn: parent
-            spacing: Math.round(8 * root.localScale)
+            spacing: Math.round(20 * root.localScale)
             
             ChannelSlider {
                 localScale: root.localScale
                 icon: {
-                    if (!root.sink?.ready)            return "󰕾"
-                    if (root.sink.audio.muted)        return "󰖁"
-                    if (root.sink.audio.volume > 0.6) return "󰕾"
-                    if (root.sink.audio.volume > 0.2) return "󰖀"
+                    if (!root.sink || !root.sink.ready) return "󰕾"
+                    if (root.sink.audio && root.sink.audio.muted) return "󰖁"
+                    if (root.sink.audio && root.sink.audio.volume > 0.6) return "󰕾"
+                    if (root.sink.audio && root.sink.audio.volume > 0.2) return "󰖀"
                     return "󰕿"
                 }
-                value:  root.sink?.ready ? root.sink.audio.volume : 0
-                muted:  root.sink?.audio.muted ?? false
-                active: root.sink?.ready ?? false
+                value: (root.sink && root.sink.ready && root.sink.audio) ? root.sink.audio.volume : 0
+                muted: (root.sink && root.sink.audio) ? root.sink.audio.muted : false
+                active: (root.sink && root.sink.ready) || false
                 onVolumeChanged: function(v) {
-                    if (root.sink?.ready) root.sink.audio.volume = v
+                    if (root.sink && root.sink.ready && root.sink.audio) root.sink.audio.volume = v
                 }
                 onMuteToggled: {
-                    if (root.sink?.ready) root.sink.audio.muted = !root.sink.audio.muted
+                    if (root.sink && root.sink.ready && root.sink.audio)
+                        root.sink.audio.muted = !root.sink.audio.muted
                 }
             }
 
@@ -93,5 +88,4 @@ Item {
             }
         }
     }
-
 }

@@ -1,0 +1,6 @@
+HorizontalCapsuleStyle HorizontalCapsuleStyle.qml
+HorizontalGlowStyle HorizontalGlowStyle.qml
+HorizontalOutlineStyle HorizontalOutlineStyle.qml
+HorizontalRingStyle HorizontalRingStyle.qml
+HorizontalDynamicStyle HorizontalDynamicStyle.qml
+HorizontalSegmentedStyle HorizontalSegmentedStyle.qml

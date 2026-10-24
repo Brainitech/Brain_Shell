@@ -18,6 +18,7 @@
 
 import QtQuick
 import "../"
+import "sliders"
 
 Item {
     id: root
@@ -70,7 +71,6 @@ Item {
         }
     }
 
-    // Slider Area
     Item {
         id: sliderArea
         anchors {
@@ -80,84 +80,28 @@ Item {
         width: Math.round(160 * localScale)
         height: Math.round(24 * localScale)
 
-        // Track
-        Rectangle {
+        HorizontalSliderTrack {
             id: track
             anchors.verticalCenter: parent.verticalCenter
             width: root.showValue ? (parent.width - Math.round(50 * localScale)) : parent.width
-            height: Math.round(6 * localScale)
-            radius: height / 2
-            color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
-
-            // Fill
-            Rectangle {
-                anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
-                width: {
-                    var range = root.to - root.from
-                    var percent = (root.value - root.from) / range
-                    return Math.max(0, Math.min(track.width, track.width * percent))
-                }
-                radius: parent.radius
-                color: Theme.active
-                Behavior on width { 
-                    enabled: !dragArea.pressed
-                    NumberAnimation { duration: Anim.superFast; easing.type: Anim.linear } 
-                }
+            height: Math.round(24 * localScale)
+            localScale: root.localScale
+            value: {
+                var range = root.to - root.from
+                return range > 0 ? Math.max(0.0, Math.min(1.0, (root.value - root.from) / range)) : 0.0
             }
-
-            // Thumb
-            Rectangle {
-                width: Math.round(14 * localScale)
-                height: Math.round(14 * localScale)
-                radius: width / 2
-                anchors.verticalCenter: parent.verticalCenter
-                x: {
-                    var range = root.to - root.from
-                    var percent = (root.value - root.from) / range
-                    return Math.max(0, Math.min(track.width - width, (track.width - width) * percent))
-                }
-                color: "white"
-                border.color: Qt.rgba(0, 0, 0, 0.2)
-                border.width: 1
-                Behavior on x { 
-                    enabled: !dragArea.pressed
-                    NumberAnimation { duration: Anim.superFast; easing.type: Anim.linear } 
-                }
-            }
-
-            // Drag area
-            MouseArea {
-                id: dragArea
-                anchors.fill: parent
-                anchors.margins: Math.round(-10 * localScale)
-                cursorShape: Qt.PointingHandCursor
-                
-                function updateValue(mouseX) {
-                    var percent = Math.max(0.0, Math.min(1.0, mouseX / track.width))
-                    var range = root.to - root.from
-                    var rawVal = root.from + (percent * range)
-                    var steps = Math.round(rawVal / root.stepSize)
-                    var snapped = steps * root.stepSize
-                    snapped = Math.max(root.from, Math.min(root.to, snapped))
+            accent: Theme.active
+            onValueMoved: function(normVal) {
+                var range = root.to - root.from
+                var rawVal = root.from + (normVal * range)
+                var steps = Math.round(rawVal / root.stepSize)
+                var snapped = Math.max(root.from, Math.min(root.to, steps * root.stepSize))
+                if (snapped !== root.value) {
                     root.value = snapped
-                }
-
-                onPressed: updateValue(mouseX)
-                onPositionChanged: if (pressed) updateValue(mouseX)
-            }
-            
-            // Scroll wheel support
-            WheelHandler {
-                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                onWheel: function(event) {
-                    var delta = event.angleDelta.y > 0 ? root.stepSize : -root.stepSize
-                    var newVal = Math.max(root.from, Math.min(root.to, root.value + delta))
-                    root.value = newVal
                 }
             }
         }
 
-        // Reset to default
         Rectangle {
             id: rstBtn
             visible: root._hasDefault && !root._isDefault
@@ -182,7 +126,6 @@ Item {
             }
         }
 
-        // Value text
         Text {
             id: valText
             visible: root.showValue

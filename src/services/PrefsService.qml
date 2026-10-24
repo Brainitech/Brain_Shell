@@ -67,6 +67,7 @@ QtObject {
     property bool barEnabled: true
     property int borderWidth: 6
     property int cornerRadius: 17
+    property string sliderStyle: "capsule"
 
     // Workspaces Customization
     property string wsMode: (WM.detectedCompositor === "Niri") ? "dynamic" : "static" // "static" | "dynamic" | "occupied"
@@ -163,6 +164,16 @@ QtObject {
             if (o.barEnabled !== undefined) root.barEnabled = o.barEnabled
             if (o.borderWidth !== undefined) root.borderWidth = o.borderWidth
             if (o.cornerRadius !== undefined) root.cornerRadius = o.cornerRadius
+            if (o.sliderStyle !== undefined) {
+                var s = o.sliderStyle
+                if (s === "classic" || s === "rings" || s === "dots" || s === "dotted") root.sliderStyle = "capsule"
+                else if (s === "modern") root.sliderStyle = "glow"
+                else if (s === "concentric") root.sliderStyle = "outline"
+                else if (s === "floating") root.sliderStyle = "ring"
+                else if (s === "expanding") root.sliderStyle = "dynamic"
+                else if (s === "futuristic") root.sliderStyle = "segmented"
+                else root.sliderStyle = s
+            }
 
             if (o.wsMode !== undefined) root.wsMode = (WM.detectedCompositor === "Niri") ? "dynamic" : o.wsMode
             if (o.wsCount !== undefined) root.wsCount = o.wsCount
@@ -232,6 +243,7 @@ QtObject {
     onBarEnabledChanged: if (_loaded) saveConfig()
     onBorderWidthChanged: if (_loaded) saveConfig()
     onCornerRadiusChanged: if (_loaded) saveConfig()
+    onSliderStyleChanged: if (_loaded) saveConfig()
     onWsModeChanged: if (_loaded) saveConfig()
     onWsCountChanged: if (_loaded) saveConfig()
     onWsShapeChanged: if (_loaded) saveConfig()
@@ -293,6 +305,7 @@ QtObject {
             barEnabled: root.barEnabled,
             borderWidth: root.borderWidth,
             cornerRadius: root.cornerRadius,
+            sliderStyle: root.sliderStyle,
             wsMode: root.wsMode,
             wsCount: root.wsCount,
             wsShape: root.wsShape,
@@ -335,11 +348,7 @@ QtObject {
         WM.setLayerBlur("brain-shell-frame", root.bgBlur, 0.1)
     }
 
-
-
     property Process _initProcPrefs: Process {
-
-
         command: []
         running: false
         onExited: (code) => {

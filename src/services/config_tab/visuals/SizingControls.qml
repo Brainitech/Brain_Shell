@@ -144,5 +144,35 @@ Item {
                 }
             }
         }
+
+        SettingsDivider { localScale: root.localScale }
+
+        SettingsButton {
+            localScale: root.localScale
+            text: "Slider Style"
+            description: "Visual appearance of volume and brightness channel sliders."
+            inputType: "options"
+            options: ["Capsule", "Glow", "Outline", "Ring", "Dynamic", "Segmented"]
+            selectedOption: {
+                switch (PrefsService.sliderStyle) {
+                    case "glow": return "Glow"
+                    case "outline": return "Outline"
+                    case "ring": return "Ring"
+                    case "dynamic": return "Dynamic"
+                    case "segmented": return "Segmented"
+                    case "capsule":
+                    default: return "Capsule"
+                }
+            }
+            buttonText: selectedOption
+            defaultValue: "Capsule"
+            onOptionSelected: function(opt) {
+                var s = opt.toLowerCase()
+                if (s !== PrefsService.sliderStyle) {
+                    PrefsService.sliderStyle = s
+                    PrefsService.saveConfig()
+                }
+            }
+        }
     }
 }

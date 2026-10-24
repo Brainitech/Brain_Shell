@@ -110,98 +110,20 @@ Item {
             }
         }
 
-        Item {
+        HorizontalSliderTrack {
             id: btw
             width: Math.max(0, parent.width - Math.round(13 * sliderRoot.localScale) * 2 - sliderRow.spacing * 2)
             height: Math.round(30 * sliderRoot.localScale)
             anchors.verticalCenter: parent.verticalCenter
-            readonly property int thumbD: Math.round(14 * sliderRoot.localScale)
-
-            Rectangle {
-                id: btrack
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width
-                height: Math.round(5 * sliderRoot.localScale)
-                radius: height / 2
-                color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
-
-                Rectangle {
-                    id: bfill
-                    anchors {
-                        left: parent.left
-                        top: parent.top
-                        bottom: parent.bottom
-                    }
-                    width: sliderRoot.volume > 0 ? Math.max(parent.radius * 2, parent.width * Math.min(1.0, sliderRoot.volume)) : 0
-                    radius: parent.radius
-                    color: sliderRoot.muted ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.2) : Theme.active
-                    Behavior on color { ColorAnimation { duration: Anim.mediumFast } }
-                    Behavior on width {
-                        NumberAnimation {
-                            duration: Anim.superFast
-                            easing.type: Anim.outCubic
-                            easing.overshoot: Anim.globalOvershoot
-                            easing.amplitude: Anim.globalAmplitude
-                            easing.period: Anim.globalPeriod
-                        }
-                    }
-                }
-
-                MouseArea {
-                    id: bMouse
-                    anchors.fill: parent
-                    anchors.topMargin: -Math.round(8 * sliderRoot.localScale)
-                    anchors.bottomMargin: -Math.round(8 * sliderRoot.localScale)
-                    cursorShape: Qt.PointingHandCursor
-
-                    function _calc(mx) {
-                        return Math.max(0.0, Math.min(1.0, (mx - btw.thumbD / 2) / (btrack.width - btw.thumbD)))
-                    }
-
-                    function _apply(mx) {
-                        if (sliderRoot.ready && sliderRoot.sink.audio) {
-                            sliderRoot.sink.audio.volume = _calc(mx)
-                            if (sliderRoot.sink.audio.muted)
-                                sliderRoot.sink.audio.muted = false
-                        }
-                    }
-
-                    onPressed: _apply(mouseX)
-                    onPositionChanged: if (pressed) _apply(mouseX)
-                }
-            }
-
-            WheelHandler {
-                id: bWheel
-                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                onWheel: function(e) {
-                    if (sliderRoot.ready && sliderRoot.sink.audio) {
-                        var step = e.angleDelta.y > 0 ? 0.05 : -0.05
-                        var newVol = Math.max(0.0, Math.min(1.0, sliderRoot.volume + step))
-                        sliderRoot.sink.audio.volume = newVol
-                        if (sliderRoot.sink.audio.muted && step > 0)
-                            sliderRoot.sink.audio.muted = false
-                    }
-                }
-            }
-
-            Rectangle {
-                id: bthumb
-                width: btw.thumbD
-                height: btw.thumbD
-                radius: btw.thumbD / 2
-                color: sliderRoot.muted ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.6) : Theme.text
-                anchors.verticalCenter: parent.verticalCenter
-                x: Math.max(0, Math.min(btw.width - width, Math.min(1.0, sliderRoot.volume) * (btw.width - width)))
-                Behavior on color { ColorAnimation { duration: Anim.mediumFast } }
-                Behavior on x {
-                    NumberAnimation {
-                        duration: Anim.superFast
-                        easing.type: Anim.outCubic
-                        easing.overshoot: Anim.globalOvershoot
-                        easing.amplitude: Anim.globalAmplitude
-                        easing.period: Anim.globalPeriod
-                    }
+            localScale: sliderRoot.localScale
+            value: Math.min(1.0, sliderRoot.volume)
+            muted: sliderRoot.muted
+            accent: Theme.active
+            onValueMoved: function(v) {
+                if (sliderRoot.ready && sliderRoot.sink.audio) {
+                    sliderRoot.sink.audio.volume = v
+                    if (sliderRoot.sink.audio.muted)
+                        sliderRoot.sink.audio.muted = false
                 }
             }
         }

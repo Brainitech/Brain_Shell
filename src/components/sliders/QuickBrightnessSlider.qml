@@ -75,84 +75,16 @@ Item {
             color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.35)
         }
 
-        Item {
+        HorizontalSliderTrack {
             id: btw
             width: Math.max(0, parent.width - Math.round(13 * sliderRoot.localScale) * 2 - sliderRow.spacing * 2)
             height: Math.round(30 * sliderRoot.localScale)
             anchors.verticalCenter: parent.verticalCenter
-            readonly property int thumbD: Math.round(14 * sliderRoot.localScale)
-
-            Rectangle {
-                id: btrack
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width
-                height: Math.round(5 * sliderRoot.localScale)
-                radius: height / 2
-                color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
-
-                Rectangle {
-                    id: bfill
-                    anchors {
-                        left: parent.left
-                        top: parent.top
-                        bottom: parent.bottom
-                    }
-                    width: Math.max(parent.radius * 2, parent.width * sliderRoot.value)
-                    radius: parent.radius
-                    color: Theme.active
-                    Behavior on width {
-                        NumberAnimation {
-                            duration: Anim.superFast
-                            easing.type: Anim.outCubic
-                            easing.overshoot: Anim.globalOvershoot
-                            easing.amplitude: Anim.globalAmplitude
-                            easing.period: Anim.globalPeriod
-                        }
-                    }
-                }
-
-                MouseArea {
-                    id: bMouse
-                    anchors.fill: parent
-                    anchors.topMargin: -Math.round(8 * sliderRoot.localScale)
-                    anchors.bottomMargin: -Math.round(8 * sliderRoot.localScale)
-                    cursorShape: Qt.PointingHandCursor
-
-                    function _calc(mx) {
-                        return Math.max(0.0, Math.min(1.0, (mx - btw.thumbD / 2) / (btrack.width - btw.thumbD)))
-                    }
-
-                    onPressed: BrightnessService.setBrightness(Math.round(_calc(mouseX) * 100))
-                    onPositionChanged: if (pressed) BrightnessService.setBrightness(Math.round(_calc(mouseX) * 100))
-                }
-            }
-
-            WheelHandler {
-                id: bWheel
-                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                onWheel: function(e) {
-                    var step = e.angleDelta.y > 0 ? 0.05 : -0.05
-                    BrightnessService.setBrightness(Math.round((sliderRoot.value + step) * 100))
-                }
-            }
-
-            Rectangle {
-                id: bthumb
-                width: btw.thumbD
-                height: btw.thumbD
-                radius: btw.thumbD / 2
-                color: Theme.text
-                anchors.verticalCenter: parent.verticalCenter
-                x: Math.max(0, Math.min(btw.width - width, sliderRoot.value * (btw.width - width)))
-                Behavior on x {
-                    NumberAnimation {
-                        duration: Anim.superFast
-                        easing.type: Anim.outCubic
-                        easing.overshoot: Anim.globalOvershoot
-                        easing.amplitude: Anim.globalAmplitude
-                        easing.period: Anim.globalPeriod
-                    }
-                }
+            localScale: sliderRoot.localScale
+            value: sliderRoot.value
+            accent: Theme.active
+            onValueMoved: function(v) {
+                BrightnessService.setBrightness(Math.round(v * 100))
             }
         }
 

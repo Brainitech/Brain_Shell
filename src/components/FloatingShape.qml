@@ -36,6 +36,15 @@ Item {
     property real centerContentWidth: 0
     property real rightContentWidth: 0
 
+    // Hover states passed from DynamicSurface
+    property bool isLeftHovered: false
+    property bool isCenterHovered: false
+    property bool isRightHovered: false
+
+    readonly property bool isLeftHidden: ShellState.focusMode && !(PrefsService.focusModeHoverExpand && isLeftHovered)
+    readonly property bool isCenterHidden: ShellState.focusMode && !(PrefsService.focusModeHoverExpand && isCenterHovered) && !isCenterExpanded
+    readonly property bool isRightHidden: ShellState.focusMode && !(PrefsService.focusModeHoverExpand && isRightHovered) && !isRightExpanded
+
     // Morphing popup expansion inputs passed from DynamicSurface
     property bool isCenterExpanded: false
     property real centerExpandedWidth: 0
@@ -50,19 +59,19 @@ Item {
         Math.round(Theme.lNotchMinWidth * localScale),
         Math.min(Math.round(Theme.lNotchMaxWidth * localScale), leftContentWidth + Math.round(Theme.notchPadding * 2 * localScale))
     )
-    readonly property real leftPillIdleHeight: (ShellState.focusMode && !PrefsService.focusModeHoverExpand) ? 0 : barHeight
+    readonly property real leftPillIdleHeight: isLeftHidden ? 0 : barHeight
 
     readonly property real centerPillIdleWidth: Math.max(
         Math.round(Theme.cNotchMinWidth * localScale),
         Math.min(Math.round(Theme.cNotchMaxWidth * localScale), centerContentWidth + Math.round(Theme.notchPadding * 2 * localScale))
     )
-    readonly property real centerPillIdleHeight: (ShellState.focusMode && !PrefsService.focusModeHoverExpand) ? 0 : barHeight
+    readonly property real centerPillIdleHeight: isCenterHidden ? 0 : barHeight
 
     readonly property real rightPillIdleWidth: Math.max(
         Math.round(Theme.rNotchMinWidth * localScale),
         Math.min(Math.round(Theme.rNotchMaxWidth * localScale), rightContentWidth + Math.round(Theme.notchPadding * 2 * localScale))
     )
-    readonly property real rightPillIdleHeight: (ShellState.focusMode && !PrefsService.focusModeHoverExpand) ? 0 : barHeight
+    readonly property real rightPillIdleHeight: isRightHidden ? 0 : barHeight
 
     // Active Pill Target Dimensions (attached morphing is permanent default)
     readonly property real centerTargetWidth: isCenterExpanded ? centerExpandedWidth : centerPillIdleWidth
@@ -106,7 +115,7 @@ Item {
         height: root.leftPillHeight
         radius: root.cornerRadius
         color: Theme.background
-        opacity: (ShellState.focusMode && !PrefsService.focusModeHoverExpand) ? 0.0 : 1.0
+        opacity: root.isLeftHidden ? 0.0 : 1.0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
     }
@@ -120,7 +129,7 @@ Item {
         height: root.centerPillHeight
         radius: root.cornerRadius
         color: Theme.background
-        opacity: (ShellState.focusMode && !PrefsService.focusModeHoverExpand && !root.isCenterExpanded) ? 0.0 : 1.0
+        opacity: root.isCenterHidden ? 0.0 : 1.0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
     }
@@ -134,7 +143,7 @@ Item {
         height: root.rightPillHeight
         radius: root.cornerRadius
         color: Theme.background
-        opacity: (ShellState.focusMode && !PrefsService.focusModeHoverExpand && !root.isRightExpanded) ? 0.0 : 1.0
+        opacity: root.isRightHidden ? 0.0 : 1.0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Anim.transition; easing.type: Anim.globalCurve } }
     }

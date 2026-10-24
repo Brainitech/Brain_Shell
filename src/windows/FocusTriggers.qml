@@ -81,7 +81,11 @@ Item {
     // Focus Mode Independent Hitboxes
     Item {
         id: fmLeftTrigger
-        anchors { left: parent.left; top: parent.top; leftMargin: Math.round(Theme.borderWidth * focusTriggers.localScale) }
+        anchors {
+            left: parent.left
+            top: parent.top
+            leftMargin: PrefsService.isFloating ? Math.max(4, Math.round(PrefsService.floatingGap * focusTriggers.localScale)) : Math.round(Theme.borderWidth * focusTriggers.localScale)
+        }
         width: Math.max(Math.round(Theme.lNotchMinWidth * focusTriggers.localScale), Math.min(Math.round(Theme.lNotchMaxWidth * focusTriggers.localScale), focusTriggers.leftContentImplicitWidth + Math.round(Theme.notchPadding * 2 * focusTriggers.localScale)))
         height: Math.round(Theme.notchHeight * focusTriggers.localScale)
         visible: ShellState.focusMode
@@ -108,7 +112,11 @@ Item {
 
     Item {
         id: fmRightTrigger
-        anchors { right: parent.right; top: parent.top; rightMargin: Math.round(Theme.borderWidth * focusTriggers.localScale) }
+        anchors {
+            right: parent.right
+            top: parent.top
+            rightMargin: PrefsService.isFloating ? Math.max(4, Math.round(PrefsService.floatingGap * focusTriggers.localScale)) : Math.round(Theme.borderWidth * focusTriggers.localScale)
+        }
         width: Math.max(Math.round(Theme.rNotchMinWidth * focusTriggers.localScale), Math.min(Math.round(Theme.rNotchMaxWidth * focusTriggers.localScale), focusTriggers.rightContentImplicitWidth + Math.round(Theme.notchPadding * 2 * focusTriggers.localScale)))
         height: Math.round(Theme.notchHeight * focusTriggers.localScale)
         visible: ShellState.focusMode

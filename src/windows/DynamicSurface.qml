@@ -114,6 +114,18 @@ PanelWindow {
 
         // 1px Edge Fallback Triggers (Always Active on All 4 Screen Edges for Mouse Access)
         Region { x: Math.round(root.width / 2 - (160 * root.localScale) / 2); y: 0; width: Math.round(160 * root.localScale); height: 1 }
+        Region { 
+            x: PrefsService.isFloating ? Math.round(floatingShape.leftPillX) : 0
+            y: 0
+            width: PrefsService.isFloating ? Math.round(floatingShape.leftPillIdleWidth) : 0
+            height: (PrefsService.isFloating && ShellState.focusMode && PrefsService.focusModeHoverExpand) ? 1 : 0 
+        }
+        Region { 
+            x: PrefsService.isFloating ? Math.round(floatingShape.rightPillX) : 0
+            y: 0
+            width: PrefsService.isFloating ? Math.round(floatingShape.rightPillIdleWidth) : 0
+            height: (PrefsService.isFloating && ShellState.focusMode && PrefsService.focusModeHoverExpand) ? 1 : 0 
+        }
         Region { x: 0; y: Math.round(root.height / 2 - (200 * root.localScale) / 2); width: 1; height: Math.round(200 * root.localScale) }
         Region { x: root.width - 1; y: Math.round(root.height / 2 - (200 * root.localScale) / 2); width: 1; height: Math.round(200 * root.localScale) }
         Region { x: Math.round(root.width / 2 - (300 * root.localScale) / 2); y: root.height - 1; width: Math.round(300 * root.localScale); height: 1 }
@@ -227,6 +239,10 @@ PanelWindow {
         leftContentWidth: leftContent.implicitWidth
         centerContentWidth: centerContent.implicitWidth
         rightContentWidth: rightContent.implicitWidth
+
+        isLeftHovered: focusTriggers.fmLeftHovered || leftNotchHover.hovered
+        isCenterHovered: focusTriggers.fmCenterHovered || centerNotchHover.hovered
+        isRightHovered: focusTriggers.fmRightHovered || rightNotchHover.hovered
 
         isCenterExpanded: SurfaceState.isTopExpanded || Popups.miniPlayerOpen || (ShellState.screenRecord && !ScreenRecService.recording && ScreenRecService.optionsExpanded)
         centerExpandedWidth: {

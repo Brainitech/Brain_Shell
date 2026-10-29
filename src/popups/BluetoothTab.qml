@@ -381,6 +381,7 @@ Item {
         }
 
         Flickable {
+            visible: root._btPowered
             width: parent.width
             height: parent.height - Math.round(49 * localScale) - (root._scanning ? Math.round(90 * localScale) : 0)
             contentWidth: width; contentHeight: devCol.height
@@ -511,11 +512,6 @@ Item {
         anchors { fill: parent; topMargin: Math.round(49 * localScale) }
         visible: !root._btPowered
         z: 2
-
-        Rectangle {
-            anchors.fill: parent
-            color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.95)
-        }
 
         Column {
             anchors.centerIn: parent

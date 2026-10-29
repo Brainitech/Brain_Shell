@@ -61,7 +61,7 @@ Item {
             visible:        root.icon !== ""
             text:           root.icon
             font.pixelSize: Math.round(12 * localScale)
-            color:          root.active ? Theme.background : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.7)
+            color:          root.active ? Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1.0) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.7)
             anchors.verticalCenter: parent.verticalCenter
             Behavior on color { ColorAnimation { duration: Anim.color} }
         }
@@ -70,7 +70,7 @@ Item {
             text:           root.label
             font.pixelSize: Math.round(11 * localScale)
             font.weight:    root.active ? Font.Medium : Font.Normal
-            color:          root.active ? Theme.background : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.7)
+            color:          root.active ? Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1.0) : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.7)
             anchors.verticalCenter: parent.verticalCenter
             Behavior on color { ColorAnimation { duration: Anim.color} }
         }

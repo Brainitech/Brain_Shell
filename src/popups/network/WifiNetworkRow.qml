@@ -272,9 +272,9 @@ Item {
         id: expandArea
         anchors { top: baseRow.bottom; left: parent.left; right: parent.right }
         clip: true
-        height: netRow.isForgetPending
+        height: (netRow.isForgetPending && netRow.net && netRow.net.ssid)
             ? forgetRow.implicitHeight + Math.round(16 * localScale)
-            : netRow.isExpanded
+            : (netRow.isExpanded && netRow.net && netRow.net.ssid)
                 ? passRow.implicitHeight + Math.round(16 * localScale)
                 : 0
         Behavior on height {

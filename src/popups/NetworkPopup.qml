@@ -24,7 +24,13 @@ import "../"
 Item {
     id: root
     Keys.onEscapePressed: SurfaceState.close()
-    onOpacityChanged: if (opacity === 1) forceActiveFocus()
+    onOpacityChanged: {
+        if (opacity === 1) {
+            Qt.callLater(function() {
+                if (root.opacity === 1) root.forceActiveFocus()
+            })
+        }
+    }
     
     // Physical state properties injected by DynamicSurface
     property var screen
@@ -54,14 +60,13 @@ Item {
     
             Item {
                 id: contentArea
-                anchors {
-                    fill:         parent
-                    topMargin:    Math.round(8 * root.localScale)
-                    leftMargin:   Math.round(8 * root.localScale)
-                    rightMargin:  Math.round(8 * root.localScale)
-                    bottomMargin: Math.round(8 * root.localScale)
-                }
-    
+                width: root.popupWidth - Math.round(16 * root.localScale)
+                height: root.popupHeight - Math.round(16 * root.localScale)
+                anchors.top: parent.top
+                anchors.topMargin: Math.round(8 * root.localScale)
+                anchors.right: parent.right
+                anchors.rightMargin: Math.round(8 * root.localScale)
+
                 opacity: (SurfaceState.activeContent === "network") ? 1 : 0
                 Behavior on opacity {
                     NumberAnimation {

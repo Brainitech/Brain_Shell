@@ -67,40 +67,48 @@ Item {
         id: scanProc
         command: []
         running: false
-        stdout: SplitParser {
-            onRead: function(line) {
-                var t = line.trim()
-                if (t === "") return
-                var lastC = t.lastIndexOf(":")
-                if (lastC < 0) return
-                var security  = t.substring(lastC + 1)
-                var t2        = t.substring(0, lastC)
-                var secC      = t2.lastIndexOf(":")
-                if (secC < 0) return
-                var signalStr = t2.substring(secC + 1)
-                var t3        = t2.substring(0, secC)
-                var firstC    = t3.indexOf(":")
-                if (firstC < 0) return
-                var inUseStr  = t3.substring(0, firstC)
-                var ssid      = t3.substring(firstC + 1).replace(/\\:/g, ":")
-                if (ssid === "" || ssid === "--") return
-                var inUse   = inUseStr.trim() === "*"
-                var signal  = parseInt(signalStr.trim()) || 0
-                var secured = security.trim() !== "" && security.trim() !== "--"
-                var nets = root._networks.slice()
-                var found = false
-                for (var i = 0; i < nets.length; i++) {
-                    if (nets[i].ssid === ssid) {
-                        if (inUse || signal > nets[i].signal)
-                            nets[i] = { ssid: ssid, signal: signal, secured: secured, inUse: inUse }
-                        found = true; break
-                    }
-                }
-                if (!found) nets.push({ ssid: ssid, signal: signal, secured: secured, inUse: inUse })
-                root._networks = nets
-            }
+        stdout: StdioCollector {
+            id: scanCollector
+            onStreamFinished: root._parseNetworks(scanCollector.text)
         }
         onRunningChanged: if (!running) root._scanning = false
+    }
+
+    function _parseNetworks(raw) {
+        if (!raw) return
+        var lines = raw.trim().split("\n")
+        var nets = []
+        for (var i = 0; i < lines.length; i++) {
+            var t = lines[i].trim()
+            if (t === "") continue
+            var lastC = t.lastIndexOf(":")
+            if (lastC < 0) continue
+            var security  = t.substring(lastC + 1)
+            var t2        = t.substring(0, lastC)
+            var secC      = t2.lastIndexOf(":")
+            if (secC < 0) continue
+            var signalStr = t2.substring(secC + 1)
+            var t3        = t2.substring(0, secC)
+            var firstC    = t3.indexOf(":")
+            if (firstC < 0) continue
+            var inUseStr  = t3.substring(0, firstC)
+            var ssid      = t3.substring(firstC + 1).replace(/\\:/g, ":")
+            if (ssid === "" || ssid === "--") continue
+            var inUse   = inUseStr.trim() === "*"
+            var signal  = parseInt(signalStr.trim()) || 0
+            var secured = security.trim() !== "" && security.trim() !== "--"
+            var found = false
+            for (var j = 0; j < nets.length; j++) {
+                if (nets[j].ssid === ssid) {
+                    if (inUse || signal > nets[j].signal)
+                        nets[j] = { ssid: ssid, signal: signal, secured: secured, inUse: inUse }
+                    found = true
+                    break
+                }
+            }
+            if (!found) nets.push({ ssid: ssid, signal: signal, secured: secured, inUse: inUse })
+        }
+        root._networks = nets
     }
 
     // First attempt — captures stderr to detect secret requirement
@@ -167,7 +175,11 @@ Item {
         command: ["bash", "-c", "nmcli radio wifi"]
         running: false
         stdout: SplitParser {
-            onRead: function(line) { root._wifiEnabled = line.trim() === "enabled" }
+            onRead: function(line) {
+                var en = line.trim() === "enabled"
+                root._wifiEnabled = en
+                if (!en) root._networks = []
+            }
         }
     }
 
@@ -175,13 +187,14 @@ Item {
 
     function _setWifiEnabled(on) {
         root._wifiEnabled = on
+        if (!on) root._networks = []
         radioProc.command = ["bash", "-c", "nmcli radio wifi " + (on ? "on" : "off")]
         radioProc.running = false; radioProc.running = true
     }
 
     function _scan(rescan) {
         if (_scanning || !root._wifiEnabled) return
-        _scanning = true; _networks = []
+        _scanning = true
         scanProc.command = ["bash", "-c",
             "nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY dev wifi list " +
             (rescan ? "--rescan yes" : "--rescan no") + " 2>/dev/null"]
@@ -418,10 +431,10 @@ Item {
                     net: root._current ?? { ssid: "", signal: 0, secured: false, inUse: true }
                     isCurrent: true
                     localScale: root.localScale
-                    isForgetPending: root._forgetSsid === (root._current ? root._current.ssid : "")
-                    isExpanded: root._expandSsid === (root._current ? root._current.ssid : "")
-                    isConnecting: root._connectingTo === (root._current ? root._current.ssid : "")
-                    needsPassword: !!(root._current && root._needsPassword[root._current.ssid])
+                    isForgetPending: root._forgetSsid !== "" && root._forgetSsid === (root._current ? root._current.ssid : "")
+                    isExpanded: root._expandSsid !== "" && root._expandSsid === (root._current ? root._current.ssid : "")
+                    isConnecting: root._connectingTo !== "" && root._connectingTo === (root._current ? root._current.ssid : "")
+                    needsPassword: !!(root._current && root._current.ssid !== "" && root._needsPassword[root._current.ssid])
 
                     onConnectClicked: function(ssid, password) {
                         root._forgetSsid = ""
@@ -467,10 +480,10 @@ Item {
                         net: modelData
                         isCurrent: false
                         localScale: root.localScale
-                        isForgetPending: root._forgetSsid === modelData.ssid
-                        isExpanded: root._expandSsid === modelData.ssid
-                        isConnecting: root._connectingTo === modelData.ssid
-                        needsPassword: !!root._needsPassword[modelData.ssid]
+                        isForgetPending: root._forgetSsid !== "" && root._forgetSsid === modelData.ssid
+                        isExpanded: root._expandSsid !== "" && root._expandSsid === modelData.ssid
+                        isConnecting: root._connectingTo !== "" && root._connectingTo === modelData.ssid
+                        needsPassword: !!(modelData.ssid !== "" && root._needsPassword[modelData.ssid])
 
                         onConnectClicked: function(ssid, password) {
                             root._forgetSsid = ""

@@ -417,10 +417,10 @@ Item {
                         device: modelData
                         isPaired: true
                         localScale: root.localScale
-                        inAction: root._actionMac === modelData.mac
-                        inRemove: root._removingMac === modelData.mac
-                        isPairingOpen: root._pairingMac === modelData.mac
-                        isRemovePending: root._removeMac === modelData.mac
+                        inAction: root._actionMac !== "" && root._actionMac === modelData.mac
+                        inRemove: root._removingMac !== "" && root._removingMac === modelData.mac
+                        isPairingOpen: root._pairingMac !== "" && root._pairingMac === modelData.mac
+                        isRemovePending: root._removeMac !== "" && root._removeMac === modelData.mac
 
                         onConnectClicked: function(mac) { root._connect(mac) }
                         onDisconnectClicked: function(mac) { root._disconnect(mac) }
@@ -468,10 +468,10 @@ Item {
                         device: modelData
                         isPaired: false
                         localScale: root.localScale
-                        inAction: root._actionMac === modelData.mac
-                        inRemove: root._removingMac === modelData.mac
-                        isPairingOpen: root._pairingMac === modelData.mac
-                        isRemovePending: root._removeMac === modelData.mac
+                        inAction: root._actionMac !== "" && root._actionMac === modelData.mac
+                        inRemove: root._removingMac !== "" && root._removingMac === modelData.mac
+                        isPairingOpen: root._pairingMac !== "" && root._pairingMac === modelData.mac
+                        isRemovePending: root._removeMac !== "" && root._removeMac === modelData.mac
 
                         onConnectClicked: function(mac) { root._connect(mac) }
                         onDisconnectClicked: function(mac) { root._disconnect(mac) }

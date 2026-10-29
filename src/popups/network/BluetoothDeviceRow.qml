@@ -284,9 +284,9 @@ Item {
         id: expandArea
         anchors { top: baseRow.bottom; left: parent.left; right: parent.right }
         clip: true
-        height: dRow.isRemovePending
+        height: (dRow.isRemovePending && dRow.device && dRow.device.mac)
             ? removeRow.implicitHeight + Math.round(16 * localScale)
-            : dRow.isPairingOpen
+            : (dRow.isPairingOpen && dRow.device && dRow.device.mac)
                 ? pinRow.implicitHeight + Math.round(16 * localScale)
                 : 0
         Behavior on height {

@@ -324,13 +324,13 @@ PanelWindow {
 
         // Left Notch Bottom Concave Melt
         Region {
-            x: surfaceShape.frameThickness
+            x: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? surfaceShape.frameThickness : 0
             y: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.leftNotchHeight) : 0
             width: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(surfaceShape.lnLeftMelt) : 0
             height: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(surfaceShape.lnLeftMelt) : 0
 
             Region {
-                x: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.lnLeftMelt) : 0
+                x: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? surfaceShape.frameThickness : 0
                 y: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.leftNotchHeight) : 0
                 width: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(2 * surfaceShape.lnLeftMelt) : 0
                 height: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(2 * surfaceShape.lnLeftMelt) : 0

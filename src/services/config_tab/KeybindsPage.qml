@@ -335,16 +335,16 @@ Item {
             var d = (b.dispatcher || "Unknown").toLowerCase()
             
             // Ignore Brain Shell native binds
-            if (d === "exec" && b.arg && (b.arg.indexOf("qs ipc") !== -1 || b.arg.indexOf("quickshell ipc") !== -1 || b.arg.indexOf("brain-shell ipc") !== -1)) continue
+            if ((d === "exec" || d === "spawn" || d === "spawn-sh") && b.arg && (b.arg.indexOf("qs ipc") !== -1 || b.arg.indexOf("quickshell ipc") !== -1 || b.arg.indexOf("brain-shell ipc") !== -1)) continue
             
             var groupName = "Other"
-            if (d === "exec") {
+            if (d === "exec" || d === "spawn" || d === "spawn-sh") {
                 groupName = "Launch Applications"
-            } else if (d === "killactive" || d === "exit" || d === "forcekillactive") {
+            } else if (d === "killactive" || d === "exit" || d === "forcekillactive" || d === "close-window" || d === "quit") {
                 groupName = "Close / Exit"
             } else if (d.indexOf("workspace") !== -1) {
                 groupName = "Workspace Management"
-            } else if (d === "movewindow" || d === "resizewindow" || d === "togglefloating" || d === "fullscreen" || d === "layoutmsg" || d === "pseudo" || d === "pin" || d === "centerwindow" || d === "movefocus" || d === "cyclenext" || d === "focuswindow") {
+            } else if (d === "movewindow" || d === "resizewindow" || d === "togglefloating" || d === "fullscreen" || d === "layoutmsg" || d === "pseudo" || d === "pin" || d === "centerwindow" || d === "movefocus" || d === "cyclenext" || d === "focuswindow" || d.indexOf("column") !== -1 || d.indexOf("window") !== -1 || d.indexOf("overview") !== -1 || d.indexOf("preset") !== -1) {
                 groupName = "Window Management"
             }
             

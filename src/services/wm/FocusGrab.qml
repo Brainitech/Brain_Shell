@@ -18,7 +18,6 @@
 
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import "./"
 
 Item {
@@ -30,11 +29,12 @@ Item {
 
     Loader {
         active: root.active && WM.isSupported && WM.name === "Hyprland"
-        sourceComponent: Component {
-            HyprlandFocusGrab {
-                windows: root.windows
-                active: root.active
-                onCleared: root.cleared()
+        source: "HyprlandFocusGrab.qml"
+        onLoaded: {
+            if (item) {
+                item.windows = Qt.binding(() => root.windows)
+                item.active = Qt.binding(() => root.active)
+                item.cleared.connect(root.cleared)
             }
         }
     }

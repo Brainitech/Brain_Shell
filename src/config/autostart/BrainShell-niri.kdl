@@ -1,0 +1,45 @@
+// Brain Shell — Niri integration (KDL format)
+// Include this file from your config.kdl:
+//   include "~/.config/Brain_Shell/BrainShell-niri.kdl"
+//
+// On NixOS with the Home Manager module and systemd.enable = true, Brain Shell
+// and its daemons are managed by systemd user services.
+
+// Daemon autostarts
+spawn-at-startup "awww-daemon"
+spawn-at-startup "hypridle"
+spawn-sh-at-startup "command -v brain-shell >/dev/null 2>&1 && brain-shell || qs -p $HOME/.local/src/Brain_Shell"
+spawn-sh-at-startup "if systemctl --user list-unit-files hyprpolkitagent.service >/dev/null 2>&1; then systemctl --user start hyprpolkitagent; elif command -v hyprpolkitagent >/dev/null 2>&1; then hyprpolkitagent; fi"
+spawn-sh-at-startup "wl-paste --type text --watch cliphist store"
+spawn-sh-at-startup "wl-paste --type image --watch cliphist store"
+
+// Layer rules — disable shadows on shell surfaces and disable xray blur for real-time window blur
+layer-rule {
+    match namespace="^brain-shell.*"
+    shadow {
+        off
+    }
+    background-effect {
+        xray false
+    }
+}
+
+layer-rule {
+    match namespace="selection"
+    shadow {
+        off
+    }
+}
+
+// Disable hot-corners to prevent conflict with Brain Shell top notches
+gestures {
+    hot-corners {
+        off
+    }
+}
+
+// Dynamic theme and border colors managed by Brain Shell
+include "~/.config/Brain_Shell/BrainShell-niri-theme.kdl"
+
+// Dynamic keybinds managed by Brain Shell's visual keybind editor
+include "~/.config/Brain_Shell/Brain_ShellKeybinds.kdl"

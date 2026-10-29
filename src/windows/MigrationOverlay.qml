@@ -34,6 +34,7 @@ PanelWindow {
 
     visible: MigrationService.isMigrating
 
+    WlrLayershell.namespace:     "brain-shell-migration"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive // Block all keyboard interaction
     

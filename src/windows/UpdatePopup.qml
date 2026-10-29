@@ -20,6 +20,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import "../"
+import "../services"
+import "../components"
 
 // UpdatePopup — centered overlay popup for shell update notifications.
 // Same structural pattern as ConfirmDialog: PanelWindow Overlay, dim background,
@@ -41,12 +43,19 @@ PanelWindow {
     anchors { top: true; left: true; right: true; bottom: true }
     exclusionMode: ExclusionMode.Ignore
 
+    WlrLayershell.namespace:     "brain-shell-update"
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
     Region {
         id: updateBlurReg
-        item: card
+        RoundedRegion {
+            rectX: Math.round((root.width - card.width) / 2)
+            rectY: Math.round((root.height - card.height) / 2)
+            rectWidth: root.windowVisible ? Math.round(card.width) : 0
+            rectHeight: root.windowVisible ? Math.round(card.height) : 0
+            cornerRadius: card.radius
+        }
     }
 
     BackgroundEffect.blurRegion: PrefsService.bgBlur ? updateBlurReg : null

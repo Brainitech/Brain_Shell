@@ -45,6 +45,7 @@ Item {
 
     // ── Symbol map ───────────────────────────────────────────────────────────
     function layoutSymbol(name) {
+        if (WM.name === "Niri") return "󰕰"
         switch (name.toLowerCase()) {
             case "dwindle":   return "><"
             case "master":    return "M"
@@ -72,6 +73,14 @@ Item {
             acceptedButtons: Qt.LeftButton | Qt.RightButton
 
             onClicked: (mouse) => {
+                if (WM.name === "Niri") {
+                    if (mouse.button === Qt.LeftButton) {
+                        WM.toggleOverview()
+                    } else if (mouse.button === Qt.RightButton) {
+                        WM.cycleLayout(1)
+                    }
+                    return
+                }
                 if (mouse.button === Qt.LeftButton) {
                     WM.cycleLayout(1)
                 } else if (mouse.button === Qt.RightButton) {

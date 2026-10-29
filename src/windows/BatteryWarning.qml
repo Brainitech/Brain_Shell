@@ -18,7 +18,10 @@
 
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import "../"
+import "../services"
+import "../components"
 
 // Low battery warning — FloatingWindow, centered by the WM (Hyprland floats center).
 // Auto-dismisses after `timeout` ms. Click anywhere to dismiss early.
@@ -33,6 +36,19 @@ FloatingWindow {
     maximumSize: Qt.size(320, 100)
 
     color: "transparent"
+    
+    Region {
+        id: batteryBlurReg
+        RoundedRegion {
+            rectX: 0
+            rectY: 0
+            rectWidth: root.width
+            rectHeight: root.height
+            cornerRadius: Theme.cornerRadius + 4
+        }
+    }
+
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? batteryBlurReg : null
     
     // Auto-dismiss timer
     Timer {

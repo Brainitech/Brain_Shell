@@ -27,7 +27,20 @@ Item {
 
     // ── Identity ──────────────────────────────────────────────────────────────
     readonly property string name: "Hyprland"
-    readonly property bool isSupported: Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") !== ""
+    readonly property bool isSupported: {
+        var forced = Quickshell.env("BRAIN_SHELL_WM")
+        if (typeof forced === "string" && forced.trim() !== "") {
+            return forced.trim().toLowerCase() === "hyprland"
+        }
+        var hasNiri = typeof Quickshell.env("NIRI_SOCKET") === "string" && Quickshell.env("NIRI_SOCKET").trim() !== ""
+        if (hasNiri) return false
+        var hasSway = typeof Quickshell.env("SWAYSOCK") === "string" && Quickshell.env("SWAYSOCK").trim() !== ""
+        if (hasSway) return false
+        var hasHypr = typeof Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") === "string" && Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE").trim() !== ""
+        if (hasHypr) return true
+        var desk = (Quickshell.env("XDG_CURRENT_DESKTOP") || "").toString().toLowerCase()
+        return desk.indexOf("hyprland") !== -1
+    }
     property string configProvider: "lua"
 
     property Process configScanProc: Process {

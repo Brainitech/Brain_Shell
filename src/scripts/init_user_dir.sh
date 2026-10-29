@@ -34,7 +34,7 @@ else
     fi
 fi
 
-VERSION_MARKER="$CONFIG_DIR/.init_done_v0.2.0"
+VERSION_MARKER="$CONFIG_DIR/.init_done_v0.2.2"
 
 # Check if already initialized for this version
 if [ -f "$VERSION_MARKER" ]; then
@@ -68,6 +68,7 @@ copy_template "$INSTALL_DIR/src/config/brain-shell-colors.json.example" "$CONFIG
 copy_template "$INSTALL_DIR/src/config/colors.conf.template" "$CONFIG_DIR/colors.conf.template"
 copy_template "$INSTALL_DIR/src/config/autostart/BrainShell-hyprland.conf" "$CONFIG_DIR/BrainShell-hyprland.conf"
 copy_template "$INSTALL_DIR/src/config/autostart/BrainShell-hyprland.lua"  "$CONFIG_DIR/BrainShell-hyprland.lua"
+copy_template "$INSTALL_DIR/src/config/autostart/BrainShell-niri.kdl"      "$CONFIG_DIR/BrainShell-niri.kdl"
 
 # 3. Detect Hyprland configuration format (Lua vs Hyprlang)
 # BRAIN_SHELL_CONFIG_TYPE can be set by a wrapper (e.g. Nix) to "lua" or "hyprlang"
@@ -112,6 +113,30 @@ else
     touch_state "$CONFIG_DIR/Brain_ShellKeybinds.conf"
 fi
 
+touch_state "$CONFIG_DIR/Brain_ShellKeybinds.kdl"
+if [ ! -s "$CONFIG_DIR/Brain_ShellKeybinds.kdl" ]; then
+    cat > "$CONFIG_DIR/Brain_ShellKeybinds.kdl" <<'EOF'
+// Brain Shell Keybinds (Niri)
+binds {
+}
+EOF
+fi
+
+touch_state "$CONFIG_DIR/BrainShell-niri-theme.kdl"
+if [ ! -s "$CONFIG_DIR/BrainShell-niri-theme.kdl" ]; then
+    cat > "$CONFIG_DIR/BrainShell-niri-theme.kdl" <<'EOF'
+// Brain Shell Theme (Niri)
+layout {
+    border {
+        active-color "#80c8ff"
+    }
+    focus-ring {
+        active-color "#80c8ff"
+    }
+}
+EOF
+fi
+
 # 5. Smart Hyprland integration (inject source line or seed default config)
 if [ -f "$HYPR_LUA" ]; then
     if [ -w "$HYPR_LUA" ] && ! grep -q "BrainShell-hyprland" "$HYPR_LUA" 2>/dev/null; then
@@ -153,6 +178,20 @@ if f then f:close(); dofile(bs_autostart) end
 -- <<< Brain Shell Autostart & Integration <<<
 EOF
         fi
+    fi
+fi
+
+# 5b. Smart Niri integration
+NIRI_DIR="$HOME/.config/niri"
+NIRI_CONF="$NIRI_DIR/config.kdl"
+if [ -f "$NIRI_CONF" ] && [ -w "$NIRI_CONF" ]; then
+    if ! grep -q "BrainShell-niri" "$NIRI_CONF" 2>/dev/null; then
+        cat >> "$NIRI_CONF" <<'EOF'
+
+// >>> Brain Shell Autostart & Integration >>>
+include "~/.config/Brain_Shell/BrainShell-niri.kdl"
+// <<< Brain Shell Autostart & Integration <<<
+EOF
     fi
 fi
 

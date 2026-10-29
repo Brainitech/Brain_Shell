@@ -83,8 +83,410 @@ PanelWindow {
         height: root.height
     }
 
-    // Pass the entire window bounding box to the compositor.
-    BackgroundEffect.blurRegion: PrefsService.bgBlur ? fullRegion : null
+    Region {
+        id: frameBlurRegion
+
+        // ── Floating Mode Blur Regions (Pills and expanded floating popups) ──
+        RoundedRegion {
+            rectX: PrefsService.isFloating ? Math.round(floatingShape.leftPillX) : 0
+            rectY: PrefsService.isFloating ? Math.round(floatingShape.leftPillY) : 0
+            rectWidth: PrefsService.isFloating ? Math.round(floatingShape.leftPillWidth) : 0
+            rectHeight: PrefsService.isFloating ? Math.round(floatingShape.leftPillHeight) : 0
+            cornerRadius: PrefsService.isFloating ? floatingShape.cornerRadius : 0
+        }
+        RoundedRegion {
+            rectX: PrefsService.isFloating ? Math.round(floatingShape.centerPillX) : 0
+            rectY: PrefsService.isFloating ? Math.round(floatingShape.centerPillY) : 0
+            rectWidth: PrefsService.isFloating ? Math.round(floatingShape.centerPillWidth) : 0
+            rectHeight: PrefsService.isFloating ? Math.round(floatingShape.centerPillHeight) : 0
+            cornerRadius: PrefsService.isFloating ? floatingShape.cornerRadius : 0
+        }
+        RoundedRegion {
+            rectX: PrefsService.isFloating ? Math.round(floatingShape.rightPillX) : 0
+            rectY: PrefsService.isFloating ? Math.round(floatingShape.rightPillY) : 0
+            rectWidth: PrefsService.isFloating ? Math.round(floatingShape.rightPillWidth) : 0
+            rectHeight: PrefsService.isFloating ? Math.round(floatingShape.rightPillHeight) : 0
+            cornerRadius: PrefsService.isFloating ? floatingShape.cornerRadius : 0
+        }
+
+        // Floating side popups (when expanded)
+        RoundedRegion {
+            rectX: PrefsService.isFloating && SurfaceState.isLeftCenterExpanded ? Math.round(sideBottomSurfaces.leftCenterNotchArea.x) : 0
+            rectY: PrefsService.isFloating && SurfaceState.isLeftCenterExpanded ? Math.round(sideBottomSurfaces.leftCenterNotchArea.y) : 0
+            rectWidth: PrefsService.isFloating && SurfaceState.isLeftCenterExpanded ? Math.round(sideBottomSurfaces.leftCenterNotchArea.width) : 0
+            rectHeight: PrefsService.isFloating && SurfaceState.isLeftCenterExpanded ? Math.round(sideBottomSurfaces.leftCenterNotchArea.height) : 0
+            cornerRadius: PrefsService.isFloating ? floatingShape.cornerRadius : 0
+        }
+        RoundedRegion {
+            rectX: PrefsService.isFloating && SurfaceState.isRightCenterExpanded ? Math.round(root.width - sideBottomSurfaces.rightCenterNotchArea.width) : 0
+            rectY: PrefsService.isFloating && SurfaceState.isRightCenterExpanded ? Math.round(sideBottomSurfaces.rightCenterNotchArea.y) : 0
+            rectWidth: PrefsService.isFloating && SurfaceState.isRightCenterExpanded ? Math.round(sideBottomSurfaces.rightCenterNotchArea.width) : 0
+            rectHeight: PrefsService.isFloating && SurfaceState.isRightCenterExpanded ? Math.round(sideBottomSurfaces.rightCenterNotchArea.height) : 0
+            cornerRadius: PrefsService.isFloating ? floatingShape.cornerRadius : 0
+        }
+        RoundedRegion {
+            rectX: PrefsService.isFloating && SurfaceState.isBottomCenterExpanded ? Math.round((root.width - sideBottomSurfaces.bottomCenterNotchArea.width) / 2) : 0
+            rectY: PrefsService.isFloating && SurfaceState.isBottomCenterExpanded ? Math.round(root.height - sideBottomSurfaces.bottomCenterNotchArea.height) : 0
+            rectWidth: PrefsService.isFloating && SurfaceState.isBottomCenterExpanded ? Math.round(sideBottomSurfaces.bottomCenterNotchArea.width) : 0
+            rectHeight: PrefsService.isFloating && SurfaceState.isBottomCenterExpanded ? Math.round(sideBottomSurfaces.bottomCenterNotchArea.height) : 0
+            cornerRadius: PrefsService.isFloating ? floatingShape.cornerRadius : 0
+        }
+        RoundedRegion {
+            rectX: PrefsService.isFloating && SurfaceState.isBottomRightExpanded ? Math.round(root.width - sideBottomSurfaces.bottomRightNotchArea.width) : 0
+            rectY: PrefsService.isFloating && SurfaceState.isBottomRightExpanded ? Math.round(root.height - sideBottomSurfaces.bottomRightNotchArea.height) : 0
+            rectWidth: PrefsService.isFloating && SurfaceState.isBottomRightExpanded ? Math.round(sideBottomSurfaces.bottomRightNotchArea.width) : 0
+            rectHeight: PrefsService.isFloating && SurfaceState.isBottomRightExpanded ? Math.round(sideBottomSurfaces.bottomRightNotchArea.height) : 0
+            cornerRadius: PrefsService.isFloating ? floatingShape.cornerRadius : 0
+        }
+
+        // ── Border Mode Blur Regions ──
+        // Top and Bottom frame borders
+        Region {
+            x: 0; y: 0
+            width: !PrefsService.isFloating && surfaceShape.frameThickness > 0 ? root.width : 0
+            height: !PrefsService.isFloating && surfaceShape.frameThickness > 0 ? surfaceShape.frameThickness : 0
+        }
+        Region {
+            x: 0
+            y: !PrefsService.isFloating && surfaceShape.frameThickness > 0 ? root.height - surfaceShape.frameThickness : 0
+            width: !PrefsService.isFloating && surfaceShape.frameThickness > 0 ? root.width : 0
+            height: !PrefsService.isFloating && surfaceShape.frameThickness > 0 ? surfaceShape.frameThickness : 0
+        }
+
+        // Left and Right frame borders
+        Region {
+            x: 0; y: 0
+            width: !PrefsService.isFloating && surfaceShape.frameThickness > 0 ? surfaceShape.frameThickness : 0
+            height: !PrefsService.isFloating && surfaceShape.frameThickness > 0 ? root.height : 0
+        }
+        Region {
+            x: !PrefsService.isFloating && surfaceShape.frameThickness > 0 ? root.width - surfaceShape.frameThickness : 0
+            y: 0
+            width: !PrefsService.isFloating && surfaceShape.frameThickness > 0 ? surfaceShape.frameThickness : 0
+            height: !PrefsService.isFloating && surfaceShape.frameThickness > 0 ? root.height : 0
+        }
+
+        // Screen Corner Arcs (bottom-left and bottom-right inner frame roundness)
+        Region {
+            x: 0
+            y: !PrefsService.isFloating ? root.height - surfaceShape.frameThickness - surfaceShape.innerRadius : 0
+            width: !PrefsService.isFloating ? surfaceShape.frameThickness + surfaceShape.innerRadius : 0
+            height: !PrefsService.isFloating ? surfaceShape.frameThickness + surfaceShape.innerRadius : 0
+
+            Region {
+                x: surfaceShape.frameThickness
+                y: !PrefsService.isFloating ? root.height - surfaceShape.frameThickness - 2 * surfaceShape.innerRadius : 0
+                width: !PrefsService.isFloating ? 2 * surfaceShape.innerRadius : 0
+                height: !PrefsService.isFloating ? 2 * surfaceShape.innerRadius : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+        Region {
+            x: !PrefsService.isFloating && surfaceShape.brnDepth <= 1 ? root.width - surfaceShape.frameThickness - surfaceShape.innerRadius : 0
+            y: !PrefsService.isFloating && surfaceShape.brnDepth <= 1 ? root.height - surfaceShape.frameThickness - surfaceShape.innerRadius : 0
+            width: !PrefsService.isFloating && surfaceShape.brnDepth <= 1 ? surfaceShape.frameThickness + surfaceShape.innerRadius : 0
+            height: !PrefsService.isFloating && surfaceShape.brnDepth <= 1 ? surfaceShape.frameThickness + surfaceShape.innerRadius : 0
+
+            Region {
+                x: !PrefsService.isFloating ? root.width - surfaceShape.frameThickness - 2 * surfaceShape.innerRadius : 0
+                y: !PrefsService.isFloating ? root.height - surfaceShape.frameThickness - 2 * surfaceShape.innerRadius : 0
+                width: !PrefsService.isFloating ? 2 * surfaceShape.innerRadius : 0
+                height: !PrefsService.isFloating ? 2 * surfaceShape.innerRadius : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+
+        // Top Center Notch (Dashboard & top-center notch body + bottom corners)
+        RoundedRegion {
+            rectX: !PrefsService.isFloating ? Math.round(root.width / 2 - surfaceShape.centerNotchWidth / 2) : 0
+            rectY: 0
+            rectWidth: !PrefsService.isFloating ? Math.round(surfaceShape.centerNotchWidth) : 0
+            rectHeight: !PrefsService.isFloating ? Math.round(surfaceShape.frameThickness + surfaceShape.centerNotchHeight) : 0
+            cornerRadius: !PrefsService.isFloating ? Math.round(surfaceShape.cnR) : 0
+            roundTopLeft: false
+            roundTopRight: false
+            roundBottomLeft: true
+            roundBottomRight: true
+        }
+
+        // Center Notch Left Concave Flare
+        Region {
+            x: !PrefsService.isFloating && surfaceShape.cnFr > 0 ? Math.round(root.width / 2 - surfaceShape.centerNotchWidth / 2 - surfaceShape.cnFr) : 0
+            y: 0
+            width: !PrefsService.isFloating && surfaceShape.cnFr > 0 ? Math.round(surfaceShape.cnFr) : 0
+            height: !PrefsService.isFloating && surfaceShape.cnFr > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.cnFr) : 0
+
+            Region {
+                x: !PrefsService.isFloating && surfaceShape.cnFr > 0 ? Math.round(root.width / 2 - surfaceShape.centerNotchWidth / 2 - 2 * surfaceShape.cnFr) : 0
+                y: surfaceShape.frameThickness
+                width: !PrefsService.isFloating && surfaceShape.cnFr > 0 ? Math.round(2 * surfaceShape.cnFr) : 0
+                height: !PrefsService.isFloating && surfaceShape.cnFr > 0 ? Math.round(2 * surfaceShape.cnFr) : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+
+        // Center Notch Right Concave Flare
+        Region {
+            x: !PrefsService.isFloating && surfaceShape.cnFr > 0 ? Math.round(root.width / 2 + surfaceShape.centerNotchWidth / 2) : 0
+            y: 0
+            width: !PrefsService.isFloating && surfaceShape.cnFr > 0 ? Math.round(surfaceShape.cnFr) : 0
+            height: !PrefsService.isFloating && surfaceShape.cnFr > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.cnFr) : 0
+
+            Region {
+                x: !PrefsService.isFloating && surfaceShape.cnFr > 0 ? Math.round(root.width / 2 + surfaceShape.centerNotchWidth / 2) : 0
+                y: surfaceShape.frameThickness
+                width: !PrefsService.isFloating && surfaceShape.cnFr > 0 ? Math.round(2 * surfaceShape.cnFr) : 0
+                height: !PrefsService.isFloating && surfaceShape.cnFr > 0 ? Math.round(2 * surfaceShape.cnFr) : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+
+        // Top Right Notch (Body + bottom-left rounded corner)
+        RoundedRegion {
+            rectX: !PrefsService.isFloating ? Math.round(root.width - surfaceShape.frameThickness - surfaceShape.rightNotchWidth) : 0
+            rectY: 0
+            rectWidth: !PrefsService.isFloating ? Math.round(surfaceShape.frameThickness + surfaceShape.rightNotchWidth) : 0
+            rectHeight: !PrefsService.isFloating ? Math.round(surfaceShape.frameThickness + surfaceShape.rightNotchHeight) : 0
+            cornerRadius: !PrefsService.isFloating ? Math.round(surfaceShape.rnInnerR) : 0
+            roundTopLeft: false
+            roundTopRight: false
+            roundBottomLeft: true
+            roundBottomRight: false
+        }
+
+        // Right Notch Left Concave Flare
+        Region {
+            x: !PrefsService.isFloating && surfaceShape.rnTopFlare > 0 ? Math.round(root.width - surfaceShape.frameThickness - surfaceShape.rightNotchWidth - surfaceShape.rnTopFlare) : 0
+            y: 0
+            width: !PrefsService.isFloating && surfaceShape.rnTopFlare > 0 ? Math.round(surfaceShape.rnTopFlare) : 0
+            height: !PrefsService.isFloating && surfaceShape.rnTopFlare > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.rnTopFlare) : 0
+
+            Region {
+                x: !PrefsService.isFloating && surfaceShape.rnTopFlare > 0 ? Math.round(root.width - surfaceShape.frameThickness - surfaceShape.rightNotchWidth - 2 * surfaceShape.rnTopFlare) : 0
+                y: surfaceShape.frameThickness
+                width: !PrefsService.isFloating && surfaceShape.rnTopFlare > 0 ? Math.round(2 * surfaceShape.rnTopFlare) : 0
+                height: !PrefsService.isFloating && surfaceShape.rnTopFlare > 0 ? Math.round(2 * surfaceShape.rnTopFlare) : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+
+        // Right Notch Bottom Concave Melt
+        Region {
+            x: !PrefsService.isFloating && surfaceShape.rnBottomMelt > 0 ? Math.round(root.width - surfaceShape.frameThickness - surfaceShape.rnBottomMelt) : 0
+            y: !PrefsService.isFloating && surfaceShape.rnBottomMelt > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.rightNotchHeight) : 0
+            width: !PrefsService.isFloating && surfaceShape.rnBottomMelt > 0 ? Math.round(surfaceShape.rnBottomMelt) : 0
+            height: !PrefsService.isFloating && surfaceShape.rnBottomMelt > 0 ? Math.round(surfaceShape.rnBottomMelt) : 0
+
+            Region {
+                x: !PrefsService.isFloating && surfaceShape.rnBottomMelt > 0 ? Math.round(root.width - surfaceShape.frameThickness - 2 * surfaceShape.rnBottomMelt) : 0
+                y: !PrefsService.isFloating && surfaceShape.rnBottomMelt > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.rightNotchHeight) : 0
+                width: !PrefsService.isFloating && surfaceShape.rnBottomMelt > 0 ? Math.round(2 * surfaceShape.rnBottomMelt) : 0
+                height: !PrefsService.isFloating && surfaceShape.rnBottomMelt > 0 ? Math.round(2 * surfaceShape.rnBottomMelt) : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+
+        // Top Left Notch (Body + bottom-right rounded corner)
+        RoundedRegion {
+            rectX: 0
+            rectY: 0
+            rectWidth: !PrefsService.isFloating ? Math.round(surfaceShape.frameThickness + surfaceShape.leftNotchWidth) : 0
+            rectHeight: !PrefsService.isFloating ? Math.round(surfaceShape.frameThickness + surfaceShape.leftNotchHeight) : 0
+            cornerRadius: !PrefsService.isFloating ? Math.round(surfaceShape.lnInnerR) : 0
+            roundTopLeft: false
+            roundTopRight: false
+            roundBottomLeft: false
+            roundBottomRight: true
+        }
+
+        // Left Notch Right Concave Flare
+        Region {
+            x: !PrefsService.isFloating && surfaceShape.lnRightFlare > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.leftNotchWidth) : 0
+            y: 0
+            width: !PrefsService.isFloating && surfaceShape.lnRightFlare > 0 ? Math.round(surfaceShape.lnRightFlare) : 0
+            height: !PrefsService.isFloating && surfaceShape.lnRightFlare > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.lnRightFlare) : 0
+
+            Region {
+                x: !PrefsService.isFloating && surfaceShape.lnRightFlare > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.leftNotchWidth) : 0
+                y: surfaceShape.frameThickness
+                width: !PrefsService.isFloating && surfaceShape.lnRightFlare > 0 ? Math.round(2 * surfaceShape.lnRightFlare) : 0
+                height: !PrefsService.isFloating && surfaceShape.lnRightFlare > 0 ? Math.round(2 * surfaceShape.lnRightFlare) : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+
+        // Left Notch Bottom Concave Melt
+        Region {
+            x: surfaceShape.frameThickness
+            y: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.leftNotchHeight) : 0
+            width: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(surfaceShape.lnLeftMelt) : 0
+            height: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(surfaceShape.lnLeftMelt) : 0
+
+            Region {
+                x: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.lnLeftMelt) : 0
+                y: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.leftNotchHeight) : 0
+                width: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(2 * surfaceShape.lnLeftMelt) : 0
+                height: !PrefsService.isFloating && surfaceShape.lnLeftMelt > 0 ? Math.round(2 * surfaceShape.lnLeftMelt) : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+
+        // Side Notches (Only blur when expanded)
+        // Left Center Notch (Arch Menu)
+        RoundedRegion {
+            rectX: 0
+            rectY: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 ? Math.round((root.height - surfaceShape.lcnHeight) / 2) : 0
+            rectWidth: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 ? Math.round(surfaceShape.frameThickness + surfaceShape.lcnDepth) : 0
+            rectHeight: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 ? Math.round(surfaceShape.lcnHeight) : 0
+            cornerRadius: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 ? Math.round(surfaceShape.lcnR) : 0
+            roundTopLeft: false
+            roundBottomLeft: false
+            roundTopRight: true
+            roundBottomRight: true
+        }
+        Region {
+            x: 0
+            y: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 && surfaceShape.lcnFr > 0 ? Math.round((root.height - surfaceShape.lcnHeight) / 2 - surfaceShape.lcnFr) : 0
+            width: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 && surfaceShape.lcnFr > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.lcnFr) : 0
+            height: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 && surfaceShape.lcnFr > 0 ? Math.round(surfaceShape.lcnFr) : 0
+
+            Region {
+                x: surfaceShape.frameThickness
+                y: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 && surfaceShape.lcnFr > 0 ? Math.round((root.height - surfaceShape.lcnHeight) / 2 - 2 * surfaceShape.lcnFr) : 0
+                width: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 && surfaceShape.lcnFr > 0 ? Math.round(2 * surfaceShape.lcnFr) : 0
+                height: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 && surfaceShape.lcnFr > 0 ? Math.round(2 * surfaceShape.lcnFr) : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+        Region {
+            x: 0
+            y: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 && surfaceShape.lcnFr > 0 ? Math.round((root.height + surfaceShape.lcnHeight) / 2) : 0
+            width: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 && surfaceShape.lcnFr > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.lcnFr) : 0
+            height: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 && surfaceShape.lcnFr > 0 ? Math.round(surfaceShape.lcnFr) : 0
+
+            Region {
+                x: surfaceShape.frameThickness
+                y: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 && surfaceShape.lcnFr > 0 ? Math.round((root.height + surfaceShape.lcnHeight) / 2) : 0
+                width: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 && surfaceShape.lcnFr > 0 ? Math.round(2 * surfaceShape.lcnFr) : 0
+                height: !PrefsService.isFloating && surfaceShape.lcnDepth > 1 && surfaceShape.lcnFr > 0 ? Math.round(2 * surfaceShape.lcnFr) : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+
+        // Right Center Notch (Audio / Quick Control)
+        RoundedRegion {
+            rectX: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 ? Math.round(root.width - surfaceShape.frameThickness - surfaceShape.rcnDepth) : 0
+            rectY: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 ? Math.round((root.height - surfaceShape.rcnHeight) / 2) : 0
+            rectWidth: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 ? Math.round(surfaceShape.frameThickness + surfaceShape.rcnDepth) : 0
+            rectHeight: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 ? Math.round(surfaceShape.rcnHeight) : 0
+            cornerRadius: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 ? Math.round(surfaceShape.rcnR) : 0
+            roundTopRight: false
+            roundBottomRight: false
+            roundTopLeft: true
+            roundBottomLeft: true
+        }
+        Region {
+            x: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round(root.width - surfaceShape.frameThickness - surfaceShape.rcnFr) : 0
+            y: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round((root.height - surfaceShape.rcnHeight) / 2 - surfaceShape.rcnFr) : 0
+            width: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.rcnFr) : 0
+            height: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round(surfaceShape.rcnFr) : 0
+
+            Region {
+                x: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round(root.width - surfaceShape.frameThickness - 2 * surfaceShape.rcnFr) : 0
+                y: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round((root.height - surfaceShape.rcnHeight) / 2 - 2 * surfaceShape.rcnFr) : 0
+                width: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round(2 * surfaceShape.rcnFr) : 0
+                height: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round(2 * surfaceShape.rcnFr) : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+        Region {
+            x: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round(root.width - surfaceShape.frameThickness - surfaceShape.rcnFr) : 0
+            y: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round((root.height + surfaceShape.rcnHeight) / 2) : 0
+            width: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.rcnFr) : 0
+            height: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round(surfaceShape.rcnFr) : 0
+
+            Region {
+                x: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round(root.width - surfaceShape.frameThickness - 2 * surfaceShape.rcnFr) : 0
+                y: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round((root.height + surfaceShape.rcnHeight) / 2) : 0
+                width: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round(2 * surfaceShape.rcnFr) : 0
+                height: !PrefsService.isFloating && surfaceShape.rcnDepth > 1 && surfaceShape.rcnFr > 0 ? Math.round(2 * surfaceShape.rcnFr) : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+
+        // Bottom Center Notch (Wallpaper Popup)
+        RoundedRegion {
+            rectX: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 ? Math.round((root.width - surfaceShape.bcnWidth) / 2) : 0
+            rectY: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 ? Math.round(root.height - surfaceShape.frameThickness - surfaceShape.bcnDepth) : 0
+            rectWidth: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 ? Math.round(surfaceShape.bcnWidth) : 0
+            rectHeight: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 ? Math.round(surfaceShape.frameThickness + surfaceShape.bcnDepth) : 0
+            cornerRadius: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 ? Math.round(surfaceShape.bcnR) : 0
+            roundBottomLeft: false
+            roundBottomRight: false
+            roundTopLeft: true
+            roundTopRight: true
+        }
+        Region {
+            x: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round((root.width - surfaceShape.bcnWidth) / 2 - surfaceShape.bcnFr) : 0
+            y: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round(root.height - surfaceShape.frameThickness - surfaceShape.bcnFr) : 0
+            width: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round(surfaceShape.bcnFr) : 0
+            height: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.bcnFr) : 0
+
+            Region {
+                x: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round((root.width - surfaceShape.bcnWidth) / 2 - 2 * surfaceShape.bcnFr) : 0
+                y: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round(root.height - surfaceShape.frameThickness - 2 * surfaceShape.bcnFr) : 0
+                width: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round(2 * surfaceShape.bcnFr) : 0
+                height: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round(2 * surfaceShape.bcnFr) : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+        Region {
+            x: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round((root.width + surfaceShape.bcnWidth) / 2) : 0
+            y: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round(root.height - surfaceShape.frameThickness - surfaceShape.bcnFr) : 0
+            width: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round(surfaceShape.bcnFr) : 0
+            height: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round(surfaceShape.frameThickness + surfaceShape.bcnFr) : 0
+
+            Region {
+                x: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round((root.width + surfaceShape.bcnWidth) / 2) : 0
+                y: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round(root.height - surfaceShape.frameThickness - 2 * surfaceShape.bcnFr) : 0
+                width: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round(2 * surfaceShape.bcnFr) : 0
+                height: !PrefsService.isFloating && surfaceShape.bcnDepth > 1 && surfaceShape.bcnFr > 0 ? Math.round(2 * surfaceShape.bcnFr) : 0
+                shape: RegionShape.Ellipse
+                intersection: Intersection.Subtract
+            }
+        }
+
+        // Bottom Right Notch (Clipboard Popup)
+        RoundedRegion {
+            rectX: !PrefsService.isFloating && surfaceShape.brnDepth > 1 ? Math.round(root.width - surfaceShape.frameThickness - surfaceShape.brnWidth) : 0
+            rectY: !PrefsService.isFloating && surfaceShape.brnDepth > 1 ? Math.round(root.height - surfaceShape.frameThickness - surfaceShape.brnDepth) : 0
+            rectWidth: !PrefsService.isFloating && surfaceShape.brnDepth > 1 ? Math.round(surfaceShape.frameThickness + surfaceShape.brnWidth) : 0
+            rectHeight: !PrefsService.isFloating && surfaceShape.brnDepth > 1 ? Math.round(surfaceShape.frameThickness + surfaceShape.brnDepth) : 0
+            cornerRadius: !PrefsService.isFloating && surfaceShape.brnDepth > 1 ? Math.round(surfaceShape.brnInnerR) : 0
+            roundBottomRight: false
+            roundBottomLeft: false
+            roundTopLeft: true
+            roundTopRight: false
+        }
+    }
+
+    // Pass the blur region to the compositor.
+    // On Hyprland, ignorealpha 0.1 restricts fullRegion blur to non-transparent pixels.
+    // On Niri/other compositors, frameBlurRegion blurs only the frame borders and active notches/popups.
+    BackgroundEffect.blurRegion: PrefsService.bgBlur ? (WM.name === "Hyprland" ? fullRegion : frameBlurRegion) : null
 
     // Mask logic: Combine frame borders + active notches + click shield + edge handles. 
     mask: Region {

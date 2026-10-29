@@ -122,7 +122,7 @@ fi
 echo ""
 echo -e "  ${BOLD}Select your Window Manager / Compositor:${NC}"
 echo -e "    ${CYAN}1)${NC} Hyprland   ${GREEN}(Supported / Default)${NC}"
-echo -e "    ${CYAN}2)${NC} Niri       ${YELLOW}(Unsupported / In Development)${NC}"
+echo -e "    ${CYAN}2)${NC} Niri       ${GREEN}(Supported)${NC}"
 echo -e "    ${CYAN}3)${NC} Sway       ${YELLOW}(Unsupported / In Development)${NC}"
 echo ""
 read -rp "  Enter choice [1-3, default: 1]: " _wm_input < /dev/tty || _wm_input="1"
@@ -135,8 +135,8 @@ case "${_wm_input:-1}" in
 esac
 log_ok "Target Compositor: ${TARGET_WM}"
 
-if [[ "$TARGET_WM" != "hyprland" ]]; then
-    log_warn "${TARGET_WM} support is currently unsupported and in active development."
+if [[ "$TARGET_WM" == "sway" ]]; then
+    log_warn "Sway support is currently unsupported and in active development."
     log_info "Compositor-specific integrations (workspaces, dispatchers, binds) will remain inactive."
 fi
 

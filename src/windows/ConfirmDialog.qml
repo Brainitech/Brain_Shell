@@ -22,6 +22,7 @@ import Quickshell.Wayland
 import Quickshell.Io
 import "../"
 import "../services/"
+import "../components"
 
 // Driven entirely by Popups.confirm* props.
 // Call Popups.showConfirm() to open, Popups.cancelConfirm() to close.
@@ -45,12 +46,20 @@ PanelWindow {
 
     visible: Popups.confirmOpen || Popups.confirmRunning
 
+    WlrLayershell.namespace:     "brain-shell-confirm"
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
     Region {
         id: confirmBlurReg
-        item: confirmBox
+        RoundedRegion {
+            property var activeCard: Popups.confirmRunning ? processingCard : confirmBox
+            rectX: activeCard ? Math.round((root.width - activeCard.width) / 2) : 0
+            rectY: activeCard ? Math.round((root.height - activeCard.height) / 2) : 0
+            rectWidth: activeCard && (Popups.confirmOpen || Popups.confirmRunning) ? Math.round(activeCard.width) : 0
+            rectHeight: activeCard && (Popups.confirmOpen || Popups.confirmRunning) ? Math.round(activeCard.height) : 0
+            cornerRadius: activeCard ? activeCard.radius : 0
+        }
     }
 
     BackgroundEffect.blurRegion: PrefsService.bgBlur ? confirmBlurReg : null
@@ -292,6 +301,7 @@ PanelWindow {
 
     // ── Processing card ───────────────────────────────────────────────────────
     Rectangle {
+        id: processingCard
         anchors.centerIn: parent
         width:  Math.round(300 * localScale)
         height: processingCol.implicitHeight + Math.round(56 * localScale)

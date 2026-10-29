@@ -1,3 +1,5 @@
 HyprlandBackend HyprlandBackend.qml
+NiriBackend NiriBackend.qml
 FocusGrab FocusGrab.qml
+HyprlandFocusGrab HyprlandFocusGrab.qml
 singleton WM WM.qml

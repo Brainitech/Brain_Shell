@@ -25,33 +25,46 @@ Item {
     id: root
 
     // ── Compositor Detection ───────────────────────────────────────────────────
+    function _hasEnv(name) {
+        var val = Quickshell.env(name)
+        return typeof val === "string" && val.trim() !== ""
+    }
+
     readonly property string detectedCompositor: {
         var forced = Quickshell.env("BRAIN_SHELL_WM")
-        if (forced && forced !== "") return forced
-        if (Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") !== "") return "Hyprland"
-        if (Quickshell.env("SWAYSOCK") !== "") return "Sway"
-        if (Quickshell.env("NIRI_SOCKET") !== "") return "Niri"
-        var desk = (Quickshell.env("XDG_CURRENT_DESKTOP") || "").toLowerCase()
-        if (desk.indexOf("hyprland") !== -1) return "Hyprland"
-        if (desk.indexOf("sway") !== -1) return "Sway"
+        if (typeof forced === "string" && forced.trim() !== "") {
+            var f = forced.trim().toLowerCase()
+            if (f === "niri") return "Niri"
+            if (f === "sway") return "Sway"
+            if (f === "hyprland") return "Hyprland"
+            return forced
+        }
+        if (root._hasEnv("NIRI_SOCKET")) return "Niri"
+        if (root._hasEnv("SWAYSOCK")) return "Sway"
+        if (root._hasEnv("HYPRLAND_INSTANCE_SIGNATURE")) return "Hyprland"
+        var desk = (Quickshell.env("XDG_CURRENT_DESKTOP") || "").toString().toLowerCase()
         if (desk.indexOf("niri") !== -1) return "Niri"
+        if (desk.indexOf("sway") !== -1) return "Sway"
+        if (desk.indexOf("hyprland") !== -1) return "Hyprland"
         return "Hyprland"
     }
 
     // ── Backend Provider ──────────────────────────────────────────────────────
-    HyprlandBackend {
-        id: hyprBackend
+    Loader {
+        id: backendLoader
+        source: root.detectedCompositor === "Niri" ? "NiriBackend.qml" : "HyprlandBackend.qml"
     }
 
-    readonly property var backend: {
-        if (root.detectedCompositor === "Hyprland") return hyprBackend
-        return hyprBackend
-    }
+    readonly property var backend: backendLoader.item
 
     // ── Identity ──────────────────────────────────────────────────────────────
     readonly property string name: backend ? backend.name : "Unknown"
     readonly property bool isSupported: backend ? backend.isSupported : false
     readonly property string configProvider: backend ? backend.configProvider : "conf"
+
+    Component.onCompleted: {
+        console.log("[WM] Compositor detected:", root.detectedCompositor, "| Backend:", root.name, "| Supported:", root.isSupported)
+    }
 
     // ── Signals ───────────────────────────────────────────────────────────────
     signal activeWindowChanged(string title, string initialTitle, string windowClass)
@@ -133,6 +146,10 @@ Item {
 
     function refreshLayout() {
         if (backend) backend.refreshLayout()
+    }
+
+    function toggleOverview() {
+        if (backend && backend.toggleOverview) backend.toggleOverview()
     }
 
     // ── Appearance ────────────────────────────────────────────────────────────

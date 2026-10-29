@@ -247,7 +247,7 @@ case "$TARGET_WM" in
         ;;
     niri)
         PACMAN_DEPS+=(
-            niri xdg-desktop-portal-gtk xdg-desktop-portal-gnome
+            niri wlsunset hyprlock hypridle hyprpolkitagent xdg-desktop-portal-gtk xdg-desktop-portal-gnome
         )
         ;;
     sway)
@@ -476,11 +476,13 @@ fi
 
 STARTUP_CONF="$HOME/.config/Brain_Shell/BrainShell-hyprland.conf"
 STARTUP_LUA="$HOME/.config/Brain_Shell/BrainShell-hyprland.lua"
-mkdir -p "$HOME/.config/Brain_Shell/hypr"
+STARTUP_NIRI="$HOME/.config/Brain_Shell/BrainShell-niri.kdl"
+mkdir -p "$HOME/.config/Brain_Shell"
 
 cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.conf" "$STARTUP_CONF"
 cp "$REPO_DIR/src/config/autostart/BrainShell-hyprland.lua"  "$STARTUP_LUA"
-sed -i "s|\$HOME/.local/src/Brain_Shell|$REPO_DIR|g" "$STARTUP_CONF" "$STARTUP_LUA"
+cp "$REPO_DIR/src/config/autostart/BrainShell-niri.kdl"      "$STARTUP_NIRI"
+sed -i "s|\$HOME/.local/src/Brain_Shell|$REPO_DIR|g" "$STARTUP_CONF" "$STARTUP_LUA" "$STARTUP_NIRI"
 sed -i "s|os.getenv(\"HOME\") .. \"/.local/src/Brain_Shell\"|\"$REPO_DIR\"|g" "$STARTUP_LUA"
 log_ok "Generated isolated startup configs"
 
@@ -538,8 +540,49 @@ with open(sys.argv[1], "w") as f: f.write(content.strip() + "\n")
         esac
     fi
 elif [[ "$TARGET_WM" == "niri" ]]; then
-    log_warn "Niri support is currently unsupported / in development."
-    log_info "Manual autostart: add 'spawn-at-startup \"quickshell\"' to ~/.config/niri/config.kdl"
+    NIRI_DIR="$HOME/.config/niri"
+    NIRI_CONF="$NIRI_DIR/config.kdl"
+    if [[ -f "$NIRI_CONF" ]]; then
+        if ! grep -q "BrainShell-niri" "$NIRI_CONF" 2>/dev/null; then
+            cat >> "$NIRI_CONF" <<'EOF'
+
+// >>> Brain Shell Autostart & Integration >>>
+include "~/.config/Brain_Shell/BrainShell-niri.kdl"
+// <<< Brain Shell Autostart & Integration <<<
+EOF
+            log_ok "Brain Shell integration added to config.kdl"
+        fi
+    else
+        mkdir -p "$NIRI_DIR"
+        cat > "$NIRI_CONF" <<'EOF'
+// >>> Brain Shell Autostart & Integration >>>
+include "~/.config/Brain_Shell/BrainShell-niri.kdl"
+// <<< Brain Shell Autostart & Integration <<<
+EOF
+        log_ok "Brain Shell integration seeded to new $NIRI_CONF"
+    fi
+
+    if [[ ! -f "$HOME/.config/Brain_Shell/BrainShell-niri-theme.kdl" ]]; then
+        cat > "$HOME/.config/Brain_Shell/BrainShell-niri-theme.kdl" <<'EOF'
+// Brain Shell Theme (Niri)
+layout {
+    border {
+        active-color "#80c8ff"
+    }
+    focus-ring {
+        active-color "#80c8ff"
+    }
+}
+EOF
+    fi
+
+    if [[ ! -f "$HOME/.config/Brain_Shell/Brain_ShellKeybinds.kdl" ]]; then
+        cat > "$HOME/.config/Brain_Shell/Brain_ShellKeybinds.kdl" <<'EOF'
+// Brain Shell Keybinds (Niri)
+binds {
+}
+EOF
+    fi
 elif [[ "$TARGET_WM" == "sway" ]]; then
     log_warn "Sway support is currently unsupported / in development."
     log_info "Manual autostart: add 'exec quickshell' to ~/.config/sway/config"
@@ -556,7 +599,7 @@ mkdir -p "$USER_DATA" \
          "$HOME/.config/hypr/shaders" \
          "$HOME/.config/matugen/templates"
 
-if [[ "$TARGET_WM" == "hyprland" ]]; then
+if [[ "$TARGET_WM" == "hyprland" || "$TARGET_WM" == "niri" ]]; then
     mkdir -p "$HOME/.config/hypr/shaders"
     # Copy hypridle and hyprlock configs; -n = do not overwrite if already customised
     if cp -n "$REPO_DIR/src/config/hypridle.conf" "$HOME/.config/hypr/" 2>/dev/null; then

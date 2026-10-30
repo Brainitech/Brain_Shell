@@ -18,11 +18,22 @@
 
 pragma Singleton
 import QtQuick
+import "../"
 
 // ClockState — exposes active clock module state for the dynamic island.
 // Written by ClockCard, read by CenterNotch / dynamic island.
 
 QtObject {
+    property string activeMode: "clock"
+
+    function openMode(mode) {
+        activeMode = mode
+        Popups._ignoreDefaultTab = true
+        Popups.dashboardPage = "home"
+        SurfaceState.open("top", "dashboard")
+        Popups.dashboardPinned = true
+    }
+
     // Timer
     property bool   timerRunning: false
     property bool   timerStarted:   false

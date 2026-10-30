@@ -43,8 +43,13 @@ Item {
     function resetScroll() { alarmList.contentY = 0; alarmList.returnToBounds() }
 
     onIsCurrentChanged: {
-        if (!isCurrent) wasCurrent = true;
-        else wasCurrent = false;
+        if (isCurrent) {
+            wasCurrent = false;
+        } else if (Anim.style === "none" || !Popups.dashboardOpen) {
+            wasCurrent = false;
+        } else {
+            wasCurrent = true;
+        }
     }
 
     width: parent ? parent.width : 0
@@ -60,7 +65,7 @@ Item {
 
     x: targetX
     Behavior on x {
-        enabled: Anim.style !== "none"
+        enabled: Anim.style !== "none" && Popups.dashboardOpen
         NumberAnimation {
             duration: Anim.slow; easing.type: Anim.outExpo
             onRunningChanged: { if (!running && !alarmView.isCurrent) alarmView.wasCurrent = false; }
@@ -74,7 +79,7 @@ Item {
     }
     opacity: targetOpacity
     Behavior on opacity {
-        enabled: Anim.style !== "none" && Anim.style !== "slide"
+        enabled: Anim.style !== "none" && Anim.style !== "slide" && Popups.dashboardOpen
         NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
     }
 
@@ -84,7 +89,7 @@ Item {
         return 1.0;
     }
     Behavior on scale {
-        enabled: Anim.style === "scale" || Anim.style === "rise"
+        enabled: (Anim.style === "scale" || Anim.style === "rise") && Popups.dashboardOpen
         NumberAnimation {
             duration: Anim.slow; easing.type: Anim.outExpo
             easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod

@@ -48,11 +48,13 @@ Item {
     onTimerProgressChanged: requestPaint()
 
     onIsCurrentChanged: {
-        if (!isCurrent) {
-            wasCurrent = true;
-        } else {
+        if (isCurrent) {
             wasCurrent = false;
             requestPaint();
+        } else if (Anim.style === "none" || !Popups.dashboardOpen) {
+            wasCurrent = false;
+        } else {
+            wasCurrent = true;
         }
     }
 
@@ -68,7 +70,7 @@ Item {
 
     x: targetX
     Behavior on x {
-        enabled: Anim.style !== "none"
+        enabled: Anim.style !== "none" && Popups.dashboardOpen
         NumberAnimation {
             duration: Anim.slow; easing.type: Anim.outExpo
             onRunningChanged: { if (!running && !timerView.isCurrent) timerView.wasCurrent = false; }
@@ -82,7 +84,7 @@ Item {
     }
     opacity: targetOpacity
     Behavior on opacity {
-        enabled: Anim.style !== "none" && Anim.style !== "slide"
+        enabled: Anim.style !== "none" && Anim.style !== "slide" && Popups.dashboardOpen
         NumberAnimation { duration: Anim.slow; easing.type: Anim.outExpo }
     }
 
@@ -92,7 +94,7 @@ Item {
         return 1.0;
     }
     Behavior on scale {
-        enabled: Anim.style === "scale" || Anim.style === "rise"
+        enabled: (Anim.style === "scale" || Anim.style === "rise") && Popups.dashboardOpen
         NumberAnimation {
             duration: Anim.slow; easing.type: Anim.outExpo
             easing.overshoot: Anim.globalOvershoot; easing.amplitude: Anim.globalAmplitude; easing.period: Anim.globalPeriod
@@ -250,7 +252,9 @@ Item {
                     id: timerTimeInput
                     localScale: timerView.localScale
                     anchors.horizontalCenter: parent.horizontalCenter
+                    showSeconds: true
                     minuteStep: 1
+                    secondStep: 1
                 }
 
                 Rectangle {
@@ -276,7 +280,7 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            var total = timerTimeInput.hours * 3600 + timerTimeInput.minutes * 60
+                            var total = timerTimeInput.hours * 3600 + timerTimeInput.minutes * 60 + timerTimeInput.seconds
                             timerView.addTimerOpen = false
                             if (total > 0) {
                                 timerView.setTimer(total)

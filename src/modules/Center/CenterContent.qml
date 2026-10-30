@@ -379,16 +379,29 @@ Item {
 					anchors.fill: parent
 					visible:      modelData === "timer"
 
-					Text {
+					Item {
 						anchors {
 							left:           parent.left
 							leftMargin:     root.fw
 							verticalCenter: parent.verticalCenter
 						}
-						text:           "󰔟"
-						font.pixelSize: Math.round(16 * localScale)
-						color:          root.timerUrgent ? "#ff5555" : Theme.active
-						Behavior on color { ColorAnimation { duration: Anim.normal} }
+						width:          Math.round(20 * localScale)
+						height:         parent.height
+
+						Text {
+							anchors.centerIn: parent
+							text:           "󰔟"
+							font.pixelSize: Math.round(16 * localScale)
+							color:          _timerIconHov.hovered ? Theme.active : (root.timerUrgent ? "#ff5555" : Theme.active)
+							Behavior on color { ColorAnimation { duration: Anim.normal} }
+						}
+
+						HoverHandler { id: _timerIconHov; cursorShape: Qt.PointingHandCursor }
+						MouseArea {
+							anchors.fill: parent
+							cursorShape: Qt.PointingHandCursor
+							onClicked: ClockState.openMode("timer")
+						}
 					}
 
 					Text {
@@ -464,15 +477,29 @@ Item {
 					anchors.fill: parent
 					visible:      modelData === "stopwatch"
 
-					Text {
+					Item {
 						anchors {
 							left:           parent.left
 							leftMargin:     root.fw
 							verticalCenter: parent.verticalCenter
 						}
-						text:           ""
-						font.pixelSize: Math.round(16 * localScale)
-						color:          Theme.active
+						width:          Math.round(20 * localScale)
+						height:         parent.height
+
+						Text {
+							anchors.centerIn: parent
+							text:           "󰔚"
+							font.pixelSize: Math.round(16 * localScale)
+							color:          _swIconHov.hovered ? Theme.active : Theme.active
+							Behavior on color { ColorAnimation { duration: Anim.fast } }
+						}
+
+						HoverHandler { id: _swIconHov; cursorShape: Qt.PointingHandCursor }
+						MouseArea {
+							anchors.fill: parent
+							cursorShape: Qt.PointingHandCursor
+							onClicked: ClockState.openMode("stopwatch")
+						}
 					}
 
 					Text {

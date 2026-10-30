@@ -21,3 +21,6 @@ singleton BluetoothService   services/BluetoothService.qml
 singleton CaffeineService    services/CaffeineService.qml
 singleton AirplaneService    services/AirplaneService.qml
 singleton ColorPickerService services/ColorPickerService.qml
+singleton TimerService       services/TimerService.qml
+singleton StopwatchService   services/StopwatchService.qml
+singleton AlarmService       services/AlarmService.qml

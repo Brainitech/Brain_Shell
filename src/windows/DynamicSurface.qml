@@ -118,22 +118,22 @@ PanelWindow {
             cornerRadius: PrefsService.isFloating ? floatingShape.cornerRadius : 0
         }
         RoundedRegion {
-            rectX: PrefsService.isFloating && SurfaceState.isRightCenterExpanded ? Math.round(root.width - sideBottomSurfaces.rightCenterNotchArea.width) : 0
+            rectX: PrefsService.isFloating && SurfaceState.isRightCenterExpanded ? Math.round(sideBottomSurfaces.rightCenterNotchArea.x) : 0
             rectY: PrefsService.isFloating && SurfaceState.isRightCenterExpanded ? Math.round(sideBottomSurfaces.rightCenterNotchArea.y) : 0
             rectWidth: PrefsService.isFloating && SurfaceState.isRightCenterExpanded ? Math.round(sideBottomSurfaces.rightCenterNotchArea.width) : 0
             rectHeight: PrefsService.isFloating && SurfaceState.isRightCenterExpanded ? Math.round(sideBottomSurfaces.rightCenterNotchArea.height) : 0
             cornerRadius: PrefsService.isFloating ? floatingShape.cornerRadius : 0
         }
         RoundedRegion {
-            rectX: PrefsService.isFloating && SurfaceState.isBottomCenterExpanded ? Math.round((root.width - sideBottomSurfaces.bottomCenterNotchArea.width) / 2) : 0
-            rectY: PrefsService.isFloating && SurfaceState.isBottomCenterExpanded ? Math.round(root.height - sideBottomSurfaces.bottomCenterNotchArea.height) : 0
+            rectX: PrefsService.isFloating && SurfaceState.isBottomCenterExpanded ? Math.round(sideBottomSurfaces.bottomCenterNotchArea.x) : 0
+            rectY: PrefsService.isFloating && SurfaceState.isBottomCenterExpanded ? Math.round(sideBottomSurfaces.bottomCenterNotchArea.y) : 0
             rectWidth: PrefsService.isFloating && SurfaceState.isBottomCenterExpanded ? Math.round(sideBottomSurfaces.bottomCenterNotchArea.width) : 0
             rectHeight: PrefsService.isFloating && SurfaceState.isBottomCenterExpanded ? Math.round(sideBottomSurfaces.bottomCenterNotchArea.height) : 0
             cornerRadius: PrefsService.isFloating ? floatingShape.cornerRadius : 0
         }
         RoundedRegion {
-            rectX: PrefsService.isFloating && SurfaceState.isBottomRightExpanded ? Math.round(root.width - sideBottomSurfaces.bottomRightNotchArea.width) : 0
-            rectY: PrefsService.isFloating && SurfaceState.isBottomRightExpanded ? Math.round(root.height - sideBottomSurfaces.bottomRightNotchArea.height) : 0
+            rectX: PrefsService.isFloating && SurfaceState.isBottomRightExpanded ? Math.round(sideBottomSurfaces.bottomRightNotchArea.x) : 0
+            rectY: PrefsService.isFloating && SurfaceState.isBottomRightExpanded ? Math.round(sideBottomSurfaces.bottomRightNotchArea.y) : 0
             rectWidth: PrefsService.isFloating && SurfaceState.isBottomRightExpanded ? Math.round(sideBottomSurfaces.bottomRightNotchArea.width) : 0
             rectHeight: PrefsService.isFloating && SurfaceState.isBottomRightExpanded ? Math.round(sideBottomSurfaces.bottomRightNotchArea.height) : 0
             cornerRadius: PrefsService.isFloating ? floatingShape.cornerRadius : 0
@@ -784,9 +784,9 @@ PanelWindow {
         HoverHandler { id: dashboardHover }
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: 0
+        anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : 0
         width: PrefsService.isFloating ? floatingShape.centerPillWidth : surfaceShape.centerNotchWidth
-        height: (PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)) + (PrefsService.isFloating ? floatingShape.centerPillHeight : surfaceShape.centerNotchHeight)
+        height: PrefsService.isFloating ? floatingShape.centerPillHeight : (Math.round(Theme.borderWidth * root.localScale) + surfaceShape.centerNotchHeight)
         clip: true
         visible: SurfaceState.isTopExpanded || dashboardView.opacity > 0
 
@@ -794,7 +794,7 @@ PanelWindow {
             id: dashboardView
             localScale: root.localScale
             anchors.fill: parent
-            anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
+            anchors.topMargin: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * root.localScale)
             screen: root.screen
             
             opacity: SurfaceState.activeContent === "dashboard" ? 1 : 0
@@ -840,9 +840,11 @@ PanelWindow {
         id: rightPopupContainer
         HoverHandler { id: rightPopupHover }
         anchors.right: parent.right
+        anchors.rightMargin: PrefsService.isFloating ? floatingShape.gap : 0
         anchors.top: parent.top
-        width: (PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)) + (PrefsService.isFloating ? floatingShape.rightPillWidth : surfaceShape.rightNotchWidth)
-        height: (PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)) + (PrefsService.isFloating ? floatingShape.rightPillHeight : surfaceShape.rightNotchHeight)
+        anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : 0
+        width: PrefsService.isFloating ? floatingShape.rightPillWidth : (Math.round(Theme.borderWidth * root.localScale) + surfaceShape.rightNotchWidth)
+        height: PrefsService.isFloating ? floatingShape.rightPillHeight : (Math.round(Theme.borderWidth * root.localScale) + surfaceShape.rightNotchHeight)
         clip: true
         visible: SurfaceState.isRightExpanded || Popups.notificationToastOpen || networkPopupView.opacity > 0 || notifsPopupView.opacity > 0 || notificationToastView.opacity > 0
 
@@ -850,8 +852,8 @@ PanelWindow {
             id: networkPopupView
             localScale: root.localScale
             anchors.fill: parent
-            anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
-            anchors.rightMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
+            anchors.topMargin: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * root.localScale)
+            anchors.rightMargin: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * root.localScale)
             screen: root.screen
 
             opacity: SurfaceState.activeContent === "network" ? 1 : 0
@@ -863,8 +865,8 @@ PanelWindow {
             id: notifsPopupView
             localScale: root.localScale
             anchors.fill: parent
-            anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
-            anchors.rightMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
+            anchors.topMargin: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * root.localScale)
+            anchors.rightMargin: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * root.localScale)
 
             opacity: SurfaceState.activeContent === "notifications" ? 1 : 0
             visible: opacity > 0
@@ -875,8 +877,8 @@ PanelWindow {
             id: notificationToastView
             localScale: root.localScale
             anchors.fill: parent
-            anchors.topMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
-            anchors.rightMargin: PrefsService.isFloating ? floatingShape.gap : Math.round(Theme.borderWidth * root.localScale)
+            anchors.topMargin: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * root.localScale)
+            anchors.rightMargin: PrefsService.isFloating ? 0 : Math.round(Theme.borderWidth * root.localScale)
 
             opacity: Popups.notificationToastOpen && !Popups.notificationsOpen ? 1 : 0
             visible: opacity > 0

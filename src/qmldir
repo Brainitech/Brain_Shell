@@ -16,3 +16,8 @@ singleton FrecencyService services/FrecencyService.qml
 singleton Paths          utils/Paths.qml
 singleton KanbanService  services/KanbanService.qml
 singleton WM             services/wm/WM.qml
+singleton WifiService        services/WifiService.qml
+singleton BluetoothService   services/BluetoothService.qml
+singleton CaffeineService    services/CaffeineService.qml
+singleton AirplaneService    services/AirplaneService.qml
+singleton ColorPickerService services/ColorPickerService.qml

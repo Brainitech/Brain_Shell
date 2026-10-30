@@ -19,3 +19,8 @@ MiscPage ./config_tab/MiscPage.qml
 singleton BrightnessService BrightnessService.qml
 singleton NetworkService NetworkService.qml
 singleton MigrationService MigrationService.qml
+singleton WifiService WifiService.qml
+singleton BluetoothService BluetoothService.qml
+singleton CaffeineService CaffeineService.qml
+singleton AirplaneService AirplaneService.qml
+singleton ColorPickerService ColorPickerService.qml

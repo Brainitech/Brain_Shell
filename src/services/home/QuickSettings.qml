@@ -35,163 +35,6 @@ StatCard {
     property real localScale: 1.0
 
     // ─────────────────────────────────────────────────────────────────────────
-    //  Wi-Fi
-    // ─────────────────────────────────────────────────────────────────────────
-    property bool   wifiOn:   false
-    property string wifiSSID: ""
-
-    Process { id: wifiRadioRead; command: ["bash", "-c", "nmcli radio wifi"]; running: false
-        stdout: SplitParser { onRead: function(l) {
-            root.wifiOn = l.trim() === "enabled"
-            ShellState.wifiOn = root.wifiOn && !ShellState.hotspot
-        } } }
-    Process { id: wifiSSIDRead
-        command: ["bash", "-c",
-            "nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | grep '^yes:' | head -1 | cut -d: -f2"]
-        running: false
-        stdout: SplitParser { onRead: function(l) { root.wifiSSID = l.trim() } } }
-    Process { id: wifiToggleProc; command: []; running: false
-        onRunningChanged: if (!running) _wifiPoll() }
-    function _wifiPoll() {
-        wifiRadioRead.running = false; wifiRadioRead.running = true
-        wifiSSIDRead.running  = false; wifiSSIDRead.running  = true
-    }
-    function _wifiToggle() {
-        if (hotspotManager.hotspotOn || hotspotManager.hotspotBusy) return
-        root.wifiOn = !root.wifiOn
-        ShellState.wifiOn = root.wifiOn
-        wifiToggleProc.command = ["bash", "-c",
-            "nmcli radio wifi " + (root.wifiOn ? "on" : "off")]
-        wifiToggleProc.running = false
-        wifiToggleProc.running = true
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Bluetooth
-    // ─────────────────────────────────────────────────────────────────────────
-    property bool   btOn:     false
-    property string btDevice: ""
-
-    Process { id: btPowerRead
-        command: ["bash", "-c",
-            "bluetoothctl show 2>/dev/null | grep '^\\s*Powered:' | awk '{print $2}'"]
-        running: false
-        stdout: SplitParser { onRead: function(l) {
-            root.btOn = l.trim() === "yes"
-            ShellState.btPowered = root.btOn
-        } } }
-    Process { id: btDeviceRead
-        command: ["bash", "-c",
-            "bluetoothctl devices Connected 2>/dev/null | head -1 | cut -d' ' -f3-"]
-        running: false
-        stdout: SplitParser { onRead: function(l) {
-            root.btDevice = l.trim()
-            ShellState.btConnected = (root.btDevice !== "")
-        } } }
-    Process { id: btToggleProc; command: []; running: false
-        onRunningChanged: if (!running) {
-            _btPoll()
-            ShellState.btPowered = root.btOn
-            if (!root.btOn) ShellState.btConnected = false
-        }
-    }        
-    function _btPoll() {
-        btPowerRead.running  = false; btPowerRead.running  = true
-        btDeviceRead.running = false; btDeviceRead.running = true
-    }
-    function _btToggle() {
-        var turningOn = !root.btOn
-        root.btOn = turningOn
-        ShellState.btPowered = turningOn
-        if (!turningOn) ShellState.btConnected = false
-
-        btToggleProc.command = ["bash", "-c",
-            "bluetoothctl power " + (turningOn ? "on" : "off")]
-        btToggleProc.running = false
-        btToggleProc.running = true
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Night Light  (hyprsunset)
-    // ─────────────────────────────────────────────────────────────────────────
-    readonly property bool nightLightOn: WM.nightLightOn
-
-    function _nightLightToggle() {
-        WM.toggleNightLight()
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Caffeine  (systemd-inhibit)
-    // ─────────────────────────────────────────────────────────────────────────
-    property bool caffeineOn: false
-
-    Process { id: caffeineCheck
-        command: ["bash", "-c", "pgrep -f 'systemd-inhibit.*Caffeine'"]; running: false
-        stdout: SplitParser { onRead: function(l) { if (l.trim() !== "") root.caffeineOn = true } } }
-    Process { id: caffeineProc
-        command: ["systemd-inhibit","--what=idle:sleep",
-                  "--who=Brain Shell","--why=Caffeine mode","sleep","infinity"]
-        running: false }
-    Process { id: caffeineKill
-        command: ["bash", "-c", "pkill -f 'systemd-inhibit.*Caffeine'"]; running: false
-        onRunningChanged: if (!running) root.caffeineOn = false }
-    function _caffeineToggle() {
-        if (root.caffeineOn) {
-            caffeineProc.running = false
-            caffeineKill.running = false; caffeineKill.running = true
-        } else { caffeineProc.running = true; root.caffeineOn = true }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Do Not Disturb
-    // ─────────────────────────────────────────────────────────────────────────
-    function _dndToggle() {
-        ShellState.dnd = !ShellState.dnd
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Hotspot Manager Component
-    // ─────────────────────────────────────────────────────────────────────────
-    QuickHotspotManager {
-        id: hotspotManager
-        wifiOn: root.wifiOn
-        onWifiStateChanged: function(on) {
-            root.wifiOn = on
-            ShellState.wifiOn = on
-        }
-        onRequestWifiPoll: root._wifiPoll()
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Airplane Mode  (rfkill)
-    // ─────────────────────────────────────────────────────────────────────────
-    property bool airplaneOn: false
-
-    Process { id: airplaneCheck
-        command: ["bash", "-c",
-            "notBlocked=$(rfkill list all 2>/dev/null | grep -c 'Soft blocked: no');" +
-            " total=$(rfkill list all 2>/dev/null | grep -c 'Soft blocked:');" +
-            " [ \"$total\" -gt 0 ] && [ \"$notBlocked\" -eq 0 ] && echo yes || echo no"]
-        running: false
-        stdout: SplitParser {
-            onRead: function(l) { root.airplaneOn = l.trim() === "yes" }
-        }
-    }
-    Process { id: airplaneOn_proc
-        command: ["bash", "-c", "rfkill block all"]; running: false
-        onRunningChanged: if (!running) root.airplaneOn = true }
-    Process { id: airplaneOff_proc
-        command: ["bash", "-c", "rfkill unblock all"]; running: false
-        onRunningChanged: if (!running) root.airplaneOn = false }
-    function _airplaneToggle() {
-        if (root.airplaneOn) {
-            airplaneOff_proc.running = false; airplaneOff_proc.running = true
-        } else {
-            airplaneOn_proc.running = false; airplaneOn_proc.running = true
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
     //  Focus Mode  (hyprctl gaps)
     // ─────────────────────────────────────────────────────────────────────────
     property int _savedGapsIn: 5
@@ -210,66 +53,20 @@ StatCard {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    //  Color Picker
+    //  Theme Mode Process
     // ─────────────────────────────────────────────────────────────────────────
-    property string pickerFormat: "HEX"
     property var sysThemeProc: Process {}
 
-    function _pickerLaunch() {
-        Popups.colorPickerActive = true;
-        var fmt = root.pickerFormat;
-        
-        pickerProc.command = ["bash", "-c",
-            "geom=$(slurp -p -b 00000000 -c 00000000 2>/dev/null) || exit 0; " +
-            "rgb=$(grim -g \"$geom\" -t ppm - 2>/dev/null | tail -c 3 | od -An -t u1) || exit 0; " +
-            "res=$(echo \"$rgb\" | awk -v fmt=\"" + fmt + "\" '{" +
-            "  r=$1+0; g=$2+0; b=$3+0; " +
-            "  if(fmt==\"RGB\") printf \"rgb(%d, %d, %d)\",r,g,b; " +
-            "  else if(fmt==\"HSL\"){ " +
-            "    rf=r/255;gf=g/255;bf=b/255; mx=rf;mn=rf; " +
-            "    if(gf>mx)mx=gf; if(bf>mx)mx=bf; if(gf<mn)mn=gf; if(bf<mn)mn=bf; " +
-            "    l=(mx+mn)/2; if(mx==mn){h=0;sv=0} else { d=mx-mn; " +
-            "    sv=(l>0.5)?d/(2-mx-mn):d/(mx+mn); " +
-            "    if(mx==rf)h=(gf-bf)/d+(gf<bf?6:0); else if(mx==gf)h=(bf-rf)/d+2; else h=(rf-gf)/d+4; h=h/6; } " +
-            "    printf \"hsl(%d, %d%%, %d%%)\",int(h*360+0.5),int(sv*100+0.5),int(l*100+0.5); " +
-            "  } else { " +
-            "    printf \"#%02x%02x%02x\",r,g,b; " +
-            "  } " +
-            "}'); " +
-            "if [ -n \"$res\" ]; then " +
-            "  printf '%s' \"$res\" | { if command -v wl-copy >/dev/null 2>&1; then setsid -f wl-copy; else wl-copy; fi; }; " +
-            "  echo \"$res\"; " +
-            "fi"
-        ];
-        
-        pickerProc.running = false;
-        pickerProc.running = true;
-    }
-    property var pickerProc: Process {
-        onExited: Popups.colorPickerActive = false
-    }
-
     // ─────────────────────────────────────────────────────────────────────────
-    //  Polling timer
+    //  Hotspot Manager Component
     // ─────────────────────────────────────────────────────────────────────────
-    Timer {
-        interval: 5000; running: Popups.dashboardOpen; repeat: true
-        onTriggered: {
-            _wifiPoll(); _btPoll()
-            hotspotManager.poll()
-            airplaneCheck.running = false; airplaneCheck.running = true
-            if (hotspotManager.hotspotOn && !hotspotManager.hotspotBusy) {
-                hotspotManager.checkEthernetLive()
-            }
+    QuickHotspotManager {
+        id: hotspotManager
+        wifiOn: WifiService.wifiOn
+        onWifiStateChanged: function(on) {
+            WifiService.setWifiState(on)
         }
-    }
-
-    Component.onCompleted: {
-        _wifiPoll(); _btPoll()
-        WM.checkNightLight()
-        caffeineCheck.running   = true
-        airplaneCheck.running   = true
-        hotspotManager.init()
+        onRequestWifiPoll: WifiService.poll()
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -322,23 +119,23 @@ StatCard {
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
                         localScale: root.localScale
-                        on: root.wifiOn && !hotspotManager.hotspotOn
-                        icon: (root.wifiOn && !hotspotManager.hotspotOn) ? "󰤨" : "󰤭"; label: "Wi-Fi"
-                        sublabel: (root.wifiOn && !hotspotManager.hotspotOn) && root.wifiSSID !== "" ? root.wifiSSID : (hotspotManager.hotspotOn ? "Used by Hotspot" : "")
-                        onToggled: root._wifiToggle()
+                        on: WifiService.wifiOn && !hotspotManager.hotspotOn
+                        icon: (WifiService.wifiOn && !hotspotManager.hotspotOn) ? "󰤨" : "󰤭"; label: "Wi-Fi"
+                        sublabel: (WifiService.wifiOn && !hotspotManager.hotspotOn) && WifiService.wifiSSID !== "" ? WifiService.wifiSSID : (hotspotManager.hotspotOn ? "Used by Hotspot" : "")
+                        onToggled: WifiService.toggle()
                     }
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
                         localScale: root.localScale
-                        on: root.btOn; icon: root.btOn ? "󰂱" : "󰂲"; label: "Bluetooth"
-                        sublabel: root.btOn && root.btDevice !== "" ? root.btDevice : ""
-                        onToggled: root._btToggle()
+                        on: BluetoothService.btOn; icon: BluetoothService.btOn ? "󰂱" : "󰂲"; label: "Bluetooth"
+                        sublabel: BluetoothService.btOn && BluetoothService.btDevice !== "" ? BluetoothService.btDevice : ""
+                        onToggled: BluetoothService.toggle()
                     }
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
                         localScale: root.localScale
-                        on: root.airplaneOn; icon: "󰀝"; label: "Airplane Mode"
-                        onToggled: root._airplaneToggle()
+                        on: AirplaneService.airplaneOn; icon: "󰀝"; label: "Airplane Mode"
+                        onToggled: AirplaneService.toggle()
                     }
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
@@ -352,14 +149,14 @@ StatCard {
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
                         localScale: root.localScale
-                        on: root.nightLightOn; icon: "󰖐"; label: "Night Light"
-                        onToggled: root._nightLightToggle()
+                        on: WM.nightLightOn; icon: "󰖐"; label: "Night Light"
+                        onToggled: WM.toggleNightLight()
                     }
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
                         localScale: root.localScale
-                        on: root.caffeineOn; icon: "󰅶"; label: "Caffeine"
-                        onToggled: root._caffeineToggle()
+                        on: CaffeineService.caffeineOn; icon: "󰅶"; label: "Caffeine"
+                        onToggled: CaffeineService.toggle()
                     }
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
@@ -373,7 +170,7 @@ StatCard {
                         localScale: root.localScale
                         on: ShellState.dnd; icon: ShellState.dnd ? "󰂛" : "󰂚"
                         label: "Do Not Disturb"
-                        onToggled: root._dndToggle()
+                        onToggled: ShellState.dnd = !ShellState.dnd
                     }
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
@@ -403,16 +200,12 @@ StatCard {
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
                         localScale: root.localScale
-                        on: false
+                        on: ColorPickerService.picking
                         icon: "󰈊"
                         label: "Picker"
-                        sublabel: root.pickerFormat
-                        onToggled: root._pickerLaunch()
-                        onRightToggled: {
-                            if (root.pickerFormat === "HEX") root.pickerFormat = "RGB";
-                            else if (root.pickerFormat === "RGB") root.pickerFormat = "HSL";
-                            else root.pickerFormat = "HEX";
-                        }
+                        sublabel: ColorPickerService.format
+                        onToggled: ColorPickerService.pick()
+                        onRightToggled: ColorPickerService.cycleFormat()
                     }
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH

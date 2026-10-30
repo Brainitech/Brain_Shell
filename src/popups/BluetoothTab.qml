@@ -28,7 +28,7 @@ Item {
     property real localScale: 1.0
     property var    _allDevices:  []
     property bool   _scanning:    false
-    property bool   _btPowered:   true
+    property bool   _btPowered:   ShellState.btPowered
     property string _actionMac:   ""
     property string _removeMac:   ""
     property string _removingMac: ""
@@ -69,6 +69,16 @@ Item {
                 root._removeMac   = ""
                 root._removingMac = ""
                 root._actionMac   = ""
+                root._loadDevices()
+            }
+        }
+    }
+
+    Connections {
+        target: ShellState
+        function onBtPoweredChanged() {
+            root._btPowered = ShellState.btPowered
+            if (ShellState.btPowered) {
                 root._loadDevices()
             }
         }
@@ -135,7 +145,10 @@ Item {
         id: powerProc
         command: []
         running: false
-        onRunningChanged: if (!running) root._loadDevices()
+        onRunningChanged: if (!running) {
+            root._loadDevices()
+            BluetoothService.poll()
+        }
     }
 
     Process { id: bluemanProc; command: ["blueman-manager"]; running: false }
@@ -198,7 +211,10 @@ Item {
         root._btPowered       = on
         ShellState.btPowered  = on
         if (!on) { ShellState.btConnected = false; root._allDevices = [] }
-        powerProc.command = ["bluetoothctl", "power", on ? "on" : "off"]
+        powerProc.command = ["bash", "-c", on
+            ? "rfkill unblock bluetooth 2>/dev/null; for i in {1..15}; do bluetoothctl power on 2>/dev/null && break; sleep 0.1; done"
+            : "bluetoothctl power off 2>/dev/null; rfkill block bluetooth 2>/dev/null || true"
+        ]
         powerProc.running = false
         powerProc.running = true
     }

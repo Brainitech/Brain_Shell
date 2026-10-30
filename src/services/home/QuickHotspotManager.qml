@@ -169,6 +169,19 @@ Item {
         }
     }
 
+    Timer {
+        id: hsLivePollTimer
+        interval: 5000
+        repeat: true
+        running: hotspotRoot.hotspotOn || Popups.dashboardOpen
+        onTriggered: {
+            hotspotRoot.poll()
+            if (hotspotRoot.hotspotOn && !hotspotRoot.hotspotBusy) {
+                hotspotRoot.checkEthernetLive()
+            }
+        }
+    }
+
     // Ethernet disconnect watcher
     Process {
         id: hsEthernetLiveCheck

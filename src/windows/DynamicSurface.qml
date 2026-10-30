@@ -515,18 +515,41 @@ PanelWindow {
         Region { item: (SurfaceState.isRightExpanded || Popups.notificationToastOpen) ? rightPopupContainer : null }
 
         // 1px Edge Fallback Triggers (Always Active on All 4 Screen Edges for Mouse Access)
-        Region { x: Math.round(root.width / 2 - (160 * root.localScale) / 2); y: 0; width: Math.round(160 * root.localScale); height: 1 }
+        Region { 
+            x: Math.round(root.width / 2 - Math.max(Theme.cNotchMinWidth * root.localScale, surfaceShape.centerNotchWidth) / 2)
+            y: 0 
+            width: PrefsService.isFloating ? 0 : Math.round(Math.max(Theme.cNotchMinWidth * root.localScale, surfaceShape.centerNotchWidth)) 
+            height: PrefsService.isFloating ? 0 : 1 
+        }
         Region { 
             x: PrefsService.isFloating ? Math.round(floatingShape.leftPillX) : 0
             y: 0
             width: PrefsService.isFloating ? Math.round(floatingShape.leftPillIdleWidth) : 0
-            height: (PrefsService.isFloating && ShellState.focusMode && PrefsService.focusModeHoverExpand) ? 1 : 0 
+            height: {
+                if (!PrefsService.isFloating || !ShellState.focusMode || !PrefsService.focusModeHoverExpand) return 0;
+                if (floatingShape.isLeftHovered) return Math.round(floatingShape.gap + floatingShape.barHeight);
+                return Math.max(2, Math.round(2 * root.localScale));
+            }
+        }
+        Region { 
+            x: PrefsService.isFloating ? Math.round(floatingShape.centerPillX) : 0
+            y: 0
+            width: PrefsService.isFloating ? Math.round(floatingShape.centerPillIdleWidth) : 0
+            height: {
+                if (!PrefsService.isFloating || !ShellState.focusMode || !PrefsService.focusModeHoverExpand) return 0;
+                if (floatingShape.isCenterHovered) return Math.round(floatingShape.gap + floatingShape.barHeight);
+                return Math.max(2, Math.round(2 * root.localScale));
+            }
         }
         Region { 
             x: PrefsService.isFloating ? Math.round(floatingShape.rightPillX) : 0
             y: 0
             width: PrefsService.isFloating ? Math.round(floatingShape.rightPillIdleWidth) : 0
-            height: (PrefsService.isFloating && ShellState.focusMode && PrefsService.focusModeHoverExpand) ? 1 : 0 
+            height: {
+                if (!PrefsService.isFloating || !ShellState.focusMode || !PrefsService.focusModeHoverExpand) return 0;
+                if (floatingShape.isRightHovered) return Math.round(floatingShape.gap + floatingShape.barHeight);
+                return Math.max(2, Math.round(2 * root.localScale));
+            }
         }
         Region { x: 0; y: Math.round(root.height / 2 - (200 * root.localScale) / 2); width: 1; height: Math.round(200 * root.localScale) }
         Region { x: root.width - 1; y: Math.round(root.height / 2 - (200 * root.localScale) / 2); width: 1; height: Math.round(200 * root.localScale) }

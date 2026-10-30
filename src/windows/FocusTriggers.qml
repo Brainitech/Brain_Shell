@@ -33,10 +33,20 @@ Item {
     property real rightContentImplicitWidth: rightContent ? rightContent.implicitWidth : 0
 
     // Trigger items
-    readonly property alias topCenterTapTrigger: topCenterTapTrigger
+    readonly property alias topCenterTapTrigger: fmCenterTrigger
     readonly property alias fmLeftTrigger: fmLeftTrigger
     readonly property alias fmCenterTrigger: fmCenterTrigger
     readonly property alias fmRightTrigger: fmRightTrigger
+
+    readonly property int idleTriggerHeight: PrefsService.isFloating
+        ? Math.max(2, Math.round(2 * focusTriggers.localScale))
+        : Math.max(2, Math.round(Theme.borderWidth * focusTriggers.localScale))
+
+    readonly property int activeTriggerHeight: PrefsService.isFloating
+        ? Math.round((Math.max(4, PrefsService.floatingGap) + PrefsService.floatingBarHeight) * focusTriggers.localScale)
+        : Math.round(Theme.notchHeight * focusTriggers.localScale)
+
+    readonly property int triggerHeight: activeTriggerHeight
 
     // Hover handlers
     readonly property alias fmLeftHov: fmLeftHov
@@ -48,37 +58,8 @@ Item {
     readonly property alias fmCenterHovered: fmCenterHov.hovered
     readonly property alias fmRightHovered: fmRightHov.hovered
 
-    // --- TOP CENTER 1PX FALLBACK TRIGGER ---
-    Item {
-        id: topCenterTapTrigger
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        width: Math.round(160 * focusTriggers.localScale)
-        height: 1
-        visible: !SurfaceState.isTopExpanded && (Theme.borderWidth === 0 || ShellState.focusMode || PrefsService.isFloating)
-        z: 9999
-
-        TapHandler {
-            onTapped: {
-                Popups.closeAll()
-                SurfaceState.open("top", "dashboard")
-                Popups.dashboardPinned = true
-            }
-        }
-
-        HoverHandler {
-            onHoveredChanged: {
-                if (hovered) {
-                    Popups.dashboardTriggerHovered = true
-                } else if (!focusTriggers.fmCenterHovered) {
-                    Popups.dashboardTriggerHovered = false
-                }
-            }
-        }
-    }
-
     // --- VECTOR GEOMETRY ---
-    // Focus Mode Independent Hitboxes
+    // Focus Mode & Edge Hitboxes
     Item {
         id: fmLeftTrigger
         anchors {
@@ -87,7 +68,7 @@ Item {
             leftMargin: PrefsService.isFloating ? Math.max(4, Math.round(PrefsService.floatingGap * focusTriggers.localScale)) : Math.round(Theme.borderWidth * focusTriggers.localScale)
         }
         width: Math.max(Math.round(Theme.lNotchMinWidth * focusTriggers.localScale), Math.min(Math.round(Theme.lNotchMaxWidth * focusTriggers.localScale), focusTriggers.leftContentImplicitWidth + Math.round(Theme.notchPadding * 2 * focusTriggers.localScale)))
-        height: Math.round(Theme.notchHeight * focusTriggers.localScale)
+        height: fmLeftHov.hovered ? focusTriggers.activeTriggerHeight : focusTriggers.idleTriggerHeight
         visible: ShellState.focusMode
         z: -1
         HoverHandler { id: fmLeftHov }
@@ -97,8 +78,8 @@ Item {
         id: fmCenterTrigger
         anchors { horizontalCenter: parent.horizontalCenter; top: parent.top }
         width: Math.max(Math.round(Theme.cNotchMinWidth * focusTriggers.localScale), Math.min(Math.round(Theme.cNotchMaxWidth * focusTriggers.localScale), focusTriggers.centerContentImplicitWidth + Math.round(Theme.notchPadding * 2 * focusTriggers.localScale)))
-        height: Math.round(Theme.notchHeight * focusTriggers.localScale)
-        visible: ShellState.focusMode
+        height: fmCenterHov.hovered ? focusTriggers.activeTriggerHeight : focusTriggers.idleTriggerHeight
+        visible: !SurfaceState.isTopExpanded
         z: -1
         HoverHandler { id: fmCenterHov; onHoveredChanged: Popups.dashboardTriggerHovered = hovered }
         TapHandler {
@@ -118,7 +99,7 @@ Item {
             rightMargin: PrefsService.isFloating ? Math.max(4, Math.round(PrefsService.floatingGap * focusTriggers.localScale)) : Math.round(Theme.borderWidth * focusTriggers.localScale)
         }
         width: Math.max(Math.round(Theme.rNotchMinWidth * focusTriggers.localScale), Math.min(Math.round(Theme.rNotchMaxWidth * focusTriggers.localScale), focusTriggers.rightContentImplicitWidth + Math.round(Theme.notchPadding * 2 * focusTriggers.localScale)))
-        height: Math.round(Theme.notchHeight * focusTriggers.localScale)
+        height: fmRightHov.hovered ? focusTriggers.activeTriggerHeight : focusTriggers.idleTriggerHeight
         visible: ShellState.focusMode
         z: -1
         HoverHandler { id: fmRightHov }

@@ -91,6 +91,11 @@ Item {
                     borderWidthSlider.value = PrefsService.borderWidth
                 }
             }
+            function onOuterGapsChanged() {
+                if (outerGapsSlider.value !== PrefsService.outerGaps) {
+                    outerGapsSlider.value = PrefsService.outerGaps
+                }
+            }
         }
 
         SettingsDivider { localScale: root.localScale }
@@ -143,6 +148,31 @@ Item {
                     valueSuffix: "px"
                 }
             }
+        }
+
+        SettingsDivider { localScale: root.localScale }
+
+        SettingsSlider {
+            id: outerGapsSlider
+            localScale: root.localScale
+            text: (WM.name === "Niri" || WM.detectedCompositor === "Niri") ? "Window Gaps" : "Window Outer Gaps"
+            description: (WM.name === "Niri" || WM.detectedCompositor === "Niri")
+                         ? "Spacing around windows and between display edges."
+                         : (PrefsService.isFloating
+                            ? "Outer margin between tiled windows and display edges."
+                            : "Outer margin between tiled windows and panel borders (0px for flush).")
+            from: 0
+            to: 30
+            stepSize: 1
+            value: PrefsService.outerGaps
+            defaultValue: 4
+            onValueChanged: {
+                if (value !== PrefsService.outerGaps) {
+                    PrefsService.outerGaps = value
+                    PrefsService.saveConfig()
+                }
+            }
+            valueSuffix: "px"
         }
 
         SettingsDivider { localScale: root.localScale }

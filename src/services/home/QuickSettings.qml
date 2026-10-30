@@ -203,7 +203,7 @@ StatCard {
             ShellState.focusMode = false
         } else {
             root._savedGapsIn = WM.gapsIn > 0 ? WM.gapsIn : 5
-            root._savedGapsOut = WM.gapsOut > 0 ? WM.gapsOut : 10
+            root._savedGapsOut = PrefsService.outerGaps > 0 ? PrefsService.outerGaps : (WM.gapsOut > 0 ? WM.gapsOut : 10)
             WM.setGaps(0, 10)
             ShellState.focusMode = true
         }

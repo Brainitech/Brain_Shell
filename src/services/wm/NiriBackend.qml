@@ -429,12 +429,20 @@ Item {
 
     function setLayerBlur(namespace, enabled, alpha = 0.1) {}
 
-    function setActiveBorderColor(color) {
-        if (!color || !root.isSupported) return
-        var hex = String(color).trim()
-        if (hex.charAt(0) !== "#") hex = "#" + hex
+    property string _activeBorderColor: "#bec8ce"
+
+    function _writeNiriTheme() {
+        if (!root.isSupported) return
         var themePath = Paths.configDir + "/BrainShell-niri-theme.kdl"
-        var kdl = "layout {\n    border {\n        active-color \"" + hex + "\"\n    }\n    focus-ring {\n        active-color \"" + hex + "\"\n    }\n}\n"
+        var kdl = "layout {\n" +
+                  "    gaps " + root.gapsOut + "\n" +
+                  "    border {\n" +
+                  "        active-color \"" + root._activeBorderColor + "\"\n" +
+                  "    }\n" +
+                  "    focus-ring {\n" +
+                  "        active-color \"" + root._activeBorderColor + "\"\n" +
+                  "    }\n" +
+                  "}\n"
         var escaped = kdl.replace(/\\/g, "\\\\").replace(/'/g, "'\\''")
         themeWriteProc.command = [
             "bash", "-c",
@@ -444,6 +452,14 @@ Item {
         ]
         themeWriteProc.running = false
         themeWriteProc.running = true
+    }
+
+    function setActiveBorderColor(color) {
+        if (!color || !root.isSupported) return
+        var hex = String(color).trim()
+        if (hex.charAt(0) !== "#") hex = "#" + hex
+        root._activeBorderColor = hex
+        _writeNiriTheme()
     }
 
     function setKeybindCaptureSubmap(enabled) {}
@@ -511,10 +527,24 @@ Item {
     // ── Window Gaps ───────────────────────────────────────────────────────────
     property int gapsIn: 5
     property int gapsOut: 10
+    property bool _themeWritten: false
 
     function setGaps(inVal, outVal) {
-        if (inVal !== null && inVal !== undefined && inVal >= 0) root.gapsIn = inVal
-        if (outVal !== null && outVal !== undefined && outVal >= 0) root.gapsOut = outVal
+        if (!root.isSupported) return
+        var changed = false
+        if (inVal !== null && inVal !== undefined && inVal >= 0 && inVal !== root.gapsIn) {
+            root.gapsIn = inVal
+        }
+        if (outVal !== null && outVal !== undefined && outVal >= 0) {
+            if (outVal !== root.gapsOut || !root._themeWritten) {
+                root.gapsOut = outVal
+                changed = true
+            }
+        }
+        if (changed) {
+            root._themeWritten = true
+            _writeNiriTheme()
+        }
     }
 
     // ── Screen Shader ─────────────────────────────────────────────────────────

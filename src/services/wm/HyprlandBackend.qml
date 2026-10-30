@@ -427,6 +427,7 @@ Item {
         } else {
             gapsProc.command = ["bash", "-c", cmds.join(" && ")]
         }
+        gapsProc.running = false
         gapsProc.running = true
     }
 

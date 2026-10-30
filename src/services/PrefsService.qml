@@ -67,6 +67,7 @@ QtObject {
     property bool barEnabled: true
     property int borderWidth: 6
     property int cornerRadius: 17
+    property int outerGaps: 10
     property string sliderStyle: "capsule"
 
     // Workspaces Customization
@@ -164,6 +165,8 @@ QtObject {
             if (o.barEnabled !== undefined) root.barEnabled = o.barEnabled
             if (o.borderWidth !== undefined) root.borderWidth = o.borderWidth
             if (o.cornerRadius !== undefined) root.cornerRadius = o.cornerRadius
+            if (o.outerGaps !== undefined) root.outerGaps = o.outerGaps
+            else root.outerGaps = 4
             if (o.sliderStyle !== undefined) {
                 var s = o.sliderStyle
                 if (s === "classic" || s === "rings" || s === "dots" || s === "dotted") root.sliderStyle = "capsule"
@@ -213,6 +216,9 @@ QtObject {
             if (o.overrideIcon !== undefined) root.overrideIcon = o.overrideIcon
         } catch(e) {}
         root.updateLayerBlur()
+        if (!ShellState.focusMode) {
+            WM.setGaps(WM.gapsIn, root.outerGaps)
+        }
         root._loaded = true
         root.loaded()
     }
@@ -242,6 +248,15 @@ QtObject {
     onFloatingBarHeightChanged: if (_loaded) saveConfig()
     onBarEnabledChanged: if (_loaded) saveConfig()
     onBorderWidthChanged: if (_loaded) saveConfig()
+    onIsFloatingChanged: if (_loaded) saveConfig()
+    onOuterGapsChanged: {
+        if (_loaded) {
+            saveConfig()
+            if (!ShellState.focusMode) {
+                WM.setGaps(WM.gapsIn, outerGaps)
+            }
+        }
+    }
     onCornerRadiusChanged: if (_loaded) saveConfig()
     onSliderStyleChanged: if (_loaded) saveConfig()
     onWsModeChanged: if (_loaded) saveConfig()
@@ -305,6 +320,7 @@ QtObject {
             barEnabled: root.barEnabled,
             borderWidth: root.borderWidth,
             cornerRadius: root.cornerRadius,
+            outerGaps: root.outerGaps,
             sliderStyle: root.sliderStyle,
             wsMode: root.wsMode,
             wsCount: root.wsCount,
@@ -356,4 +372,13 @@ QtObject {
         }
     }
     property var _saveProc: Process { command: []; running: false }
+
+    property var _wmConn: Connections {
+        target: WM
+        function onBackendChanged() {
+            if (WM.backend && root._loaded && !ShellState.focusMode) {
+                WM.setGaps(WM.gapsIn, root.outerGaps)
+            }
+        }
+    }
 }

@@ -153,22 +153,29 @@ if [[ "$TARGET_WM" == "hyprland" ]]; then
         log_info "Make sure Hyprland is installed before launching it."
     fi
 
-    # Hyprland loads .lua first when both exist; mirror that priority here so
-    # the installer always targets the file Hyprland is actually reading.
+    # Hyprland loads .lua first when both exist; mirror that priority here.
+    # Hyprlang (.conf) support is discontinued as of Hyprland 0.57.
+    # Users on Hyprland <0.55 (pre-Lua) or with .conf only will have Brain_Shell's
+    # curated Hyprland Lua config automatically installed to ensure compatibility.
     if [[ -f "$HYPR_DIR/hyprland.lua" ]]; then
         HYPRLAND_CONF="$HYPR_DIR/hyprland.lua"
         CONFIG_TYPE="lua"
         if [[ -f "$HYPR_DIR/hyprland.conf" ]]; then
-            log_ok "Hyprland config: hyprland.lua  ${DIM}(hyprland.conf also present but ignored by Hyprland)${NC}"
+            log_ok "Hyprland config: hyprland.lua  ${DIM}(legacy hyprland.conf ignored by Hyprland)${NC}"
         else
             log_ok "Hyprland config: hyprland.lua"
         fi
     elif [[ -f "$HYPR_DIR/hyprland.conf" ]]; then
-        HYPRLAND_CONF="$HYPR_DIR/hyprland.conf"
-        CONFIG_TYPE="conf"
-        log_ok "Hyprland config: hyprland.conf"
-        log_warn "hyprland.conf support is deprecated as of 0.55 and will be removed in a future release."
-        log_info "Consider migrating to hyprland.lua — see https://wiki.hypr.land/Configuring/Start/"
+        log_warn "Hyprlang (.conf) support is discontinued as of Hyprland 0.57."
+        log_info "Auto-installing Brain Shell's curated hyprland.lua config to ensure compatibility..."
+        if [[ ! -f "$HYPR_DIR/hyprland.conf.bak" ]]; then
+            cp "$HYPR_DIR/hyprland.conf" "$HYPR_DIR/hyprland.conf.bak"
+            log_info "Backed up existing hyprland.conf to hyprland.conf.bak"
+        fi
+        mkdir -p "$HYPR_DIR"
+        HYPRLAND_CONF="$HYPR_DIR/hyprland.lua"
+        CONFIG_TYPE="lua"
+        export FRESH_INSTALL="true"
     else
         log_warn "No Hyprland config found in $HYPR_DIR."
         log_info "A curated base config will be generated."

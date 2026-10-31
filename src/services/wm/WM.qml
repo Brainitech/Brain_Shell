@@ -60,7 +60,7 @@ Item {
     // ── Identity ──────────────────────────────────────────────────────────────
     readonly property string name: backend ? backend.name : "Unknown"
     readonly property bool isSupported: backend ? backend.isSupported : false
-    readonly property string configProvider: backend ? backend.configProvider : "conf"
+    readonly property string configProvider: backend ? backend.configProvider : "lua"
 
     Component.onCompleted: {
         console.log("[WM] Compositor detected:", root.detectedCompositor, "| Backend:", root.name, "| Supported:", root.isSupported)

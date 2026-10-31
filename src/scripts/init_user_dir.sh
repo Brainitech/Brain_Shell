@@ -107,11 +107,7 @@ touch_state "$CONFIG_DIR/src/user_data/shell_prefs.json"
 touch_state "$CONFIG_DIR/src/user_data/wallpaper.json"
 touch_state "$CONFIG_DIR/src/user_data/tasks.json"
 
-if [ "$IS_LUA" -eq 1 ]; then
-    touch_state "$CONFIG_DIR/Brain_ShellKeybinds.lua"
-else
-    touch_state "$CONFIG_DIR/Brain_ShellKeybinds.conf"
-fi
+touch_state "$CONFIG_DIR/Brain_ShellKeybinds.lua"
 
 touch_state "$CONFIG_DIR/Brain_ShellKeybinds.kdl"
 if [ ! -s "$CONFIG_DIR/Brain_ShellKeybinds.kdl" ]; then

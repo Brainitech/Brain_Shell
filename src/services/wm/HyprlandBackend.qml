@@ -41,21 +41,7 @@ Item {
         var desk = (Quickshell.env("XDG_CURRENT_DESKTOP") || "").toString().toLowerCase()
         return desk.indexOf("hyprland") !== -1
     }
-    property string configProvider: "lua"
-
-    property Process configScanProc: Process {
-        command: ["bash", "-c", "hyprctl status 2>/dev/null | grep 'configProvider:' | awk '{print $2}'"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var provider = text.trim()
-                if (provider !== "") {
-                    root.configProvider = provider
-                }
-                root.setGaps(null, 0)
-            }
-        }
-    }
+    readonly property string configProvider: "lua"
 
     // ── Signals ───────────────────────────────────────────────────────────────
     signal activeWindowChanged(string title, string initialTitle, string windowClass)
@@ -74,18 +60,10 @@ Item {
     property bool isScratchpad: false
 
     function switchWorkspace(wsTarget, isSpecialToggle = false) {
-        if (root.configProvider === "lua") {
-            if (isSpecialToggle) {
-                Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${wsTarget}")`)
-            } else {
-                Hyprland.dispatch(`hl.dsp.focus({ workspace = "${wsTarget}" })`)
-            }
+        if (isSpecialToggle) {
+            Hyprland.dispatch(`hl.dsp.workspace.toggle_special("${wsTarget}")`)
         } else {
-            if (isSpecialToggle) {
-                Hyprland.dispatch(`togglespecialworkspace ${wsTarget}`)
-            } else {
-                Hyprland.dispatch(`workspace ${wsTarget}`)
-            }
+            Hyprland.dispatch(`hl.dsp.focus({ workspace = "${wsTarget}" })`)
         }
     }
 
@@ -195,11 +173,8 @@ Item {
     }
 
     function setLayout(newLayout) {
-        if (root.configProvider === "lua") {
-            setLayoutProc.command = ["hyprctl", "eval", `hl.config({ general = { layout = "${newLayout}" } })`]
-        } else {
-            setLayoutProc.command = ["hyprctl", "keyword", "general:layout", newLayout]
-        }
+        setLayoutProc.command = ["hyprctl", "eval", `hl.config({ general = { layout = "${newLayout}" } })`]
+        setLayoutProc.running = false
         setLayoutProc.running = true
         root.currentLayout = newLayout
     }
@@ -273,63 +248,53 @@ Item {
         ]
     }
 
-    // ── Appearance & Commands ─────────────────────────────────────────────────
+    // ── Actions & Submaps ─────────────────────────────────────────────────────
     property Process actionProc: Process {
         command: []
     }
 
-    property Process blurProc: Process {
-        command: []
-        running: false
-    }
-
-    function setLayerBlur(namespace, enabled, alpha = 0.1) {
-        if (!root.isSupported) return
-        if (root.configProvider === "lua") {
-            blurProc.command = enabled
-                ? ["hyprctl", "eval", `hl.layer_rule({ match = { namespace = '${namespace}' }, blur = true, ignore_alpha = ${alpha} })`]
-                : ["hyprctl", "eval", `hl.layer_rule({ match = { namespace = '${namespace}' }, blur = false })`]
-        } else {
-            blurProc.command = enabled
-                ? ["bash", "-c", `hyprctl keyword layerrule 'unset, ${namespace}' && hyprctl keyword layerrule 'blur, ${namespace}' && hyprctl keyword layerrule 'ignorealpha ${alpha}, ${namespace}'`]
-                : ["hyprctl", "keyword", "layerrule", `unset, ${namespace}`]
-        }
-        blurProc.running = true
-    }
-
-    function setActiveBorderColor(color) {
-        let cleanCol = String(color).replace('#', '')
-        if (root.configProvider === "lua") {
-            actionProc.command = [
-                "bash", "-c",
-                "hyprctl eval 'hl.config({ general = { [\"col.active_border\"] = { colors = { \"rgb(" + cleanCol + ")\" } } } })'"
-            ]
-        } else {
-            actionProc.command = [
-                "bash", "-c",
-                "hyprctl keyword general:col.active_border \"rgb(" + cleanCol + ")\""
-            ]
-        }
-        actionProc.running = true
-    }
-
     function setKeybindCaptureSubmap(enabled) {
-        if (root.configProvider === "lua") {
-            actionProc.command = ["hyprctl", "dispatch", enabled ? "hl.dsp.submap('BrainShell_clean')" : "hl.dsp.submap('reset')"]
-        } else {
-            actionProc.command = ["hyprctl", "dispatch", "submap", enabled ? "BrainShell_clean" : "reset"]
-        }
+        actionProc.command = ["hyprctl", "dispatch", enabled ? "hl.dsp.submap('BrainShell_clean')" : "hl.dsp.submap('reset')"]
+        actionProc.running = false
         actionProc.running = true
     }
 
     function focusUrgentOrLast() {
         if (!root.isSupported) return
-        if (root.configProvider === "lua") {
-            actionProc.command = ["hyprctl", "dispatch", "hl.dsp.focusurgentorlast()"]
-        } else {
-            actionProc.command = ["hyprctl", "dispatch", "focusurgentorlast"]
-        }
+        actionProc.command = ["hyprctl", "dispatch", "hl.dsp.focus({ urgent_or_last = true })"]
+        actionProc.running = false
         actionProc.running = true
+    }
+
+    // ── Theme / Border Colors ─────────────────────────────────────────────────
+    HyprlandTheme {
+        id: themeManager
+        isSupported: root.isSupported
+    }
+
+    function setActiveBorderColor(color) {
+        themeManager.setActiveBorderColor(color)
+    }
+
+    // ── Screen Effects (Shader & Layer Blur) ──────────────────────────────────
+    HyprlandEffects {
+        id: effectsManager
+        isSupported: root.isSupported
+    }
+
+    readonly property string defaultShaderPaths: effectsManager.defaultShaderPaths
+    readonly property string currentScreenShader: effectsManager.currentScreenShader
+
+    function checkScreenShader() {
+        effectsManager.checkScreenShader()
+    }
+
+    function setScreenShader(name, shaderPaths) {
+        effectsManager.setScreenShader(name, shaderPaths)
+    }
+
+    function setLayerBlur(namespace, enabled, alpha = 0.1) {
+        effectsManager.setLayerBlur(namespace, enabled, alpha)
     }
 
     // ── Night Light (hyprsunset) ──────────────────────────────────────────────
@@ -361,6 +326,7 @@ Item {
         if (enabled) {
             nlKillProc.running = false
             nlProc.command = ["hyprsunset", "-t", String(temp)]
+            nlProc.running = false
             nlProc.running = true
             root.nightLightOn = true
         } else {
@@ -382,14 +348,11 @@ Item {
 
     function powerCycleDisplays() {
         if (!root.isSupported) return
-        if (root.configProvider === "lua") {
-            dpmsProc.command = [
-                "bash", "-c",
-                "hyprctl dispatch 'hl.dsp.dpms({ action = \"disable\" })' && hyprctl dispatch 'hl.dsp.dpms({ action = \"enable\" })'"
-            ]
-        } else {
-            dpmsProc.command = ["bash", "-c", "hyprctl dispatch dpms off && hyprctl dispatch dpms on"]
-        }
+        dpmsProc.command = [
+            "bash", "-c",
+            "hyprctl dispatch 'hl.dsp.dpms({ action = \"disable\" })' && hyprctl dispatch 'hl.dsp.dpms({ action = \"enable\" })'"
+        ]
+        dpmsProc.running = false
         dpmsProc.running = true
     }
 
@@ -405,86 +368,18 @@ Item {
         var cmds = []
         if (inVal !== null && inVal !== undefined && inVal >= 0) {
             root.gapsIn = inVal
-            if (root.configProvider === "lua") {
-                cmds.push(`hl.config({ general = { gaps_in = ${inVal} } })`)
-            } else {
-                cmds.push(`hyprctl keyword general:gaps_in ${inVal}`)
-            }
+            cmds.push(`hl.config({ general = { gaps_in = ${inVal} } })`)
         }
         if (outVal !== null && outVal !== undefined && outVal >= 0) {
             root.gapsOut = outVal
-            if (root.configProvider === "lua") {
-                cmds.push(`hl.config({ general = { gaps_out = ${outVal} } })`)
-            } else {
-                cmds.push(`hyprctl keyword general:gaps_out ${outVal}`)
-            }
+            cmds.push(`hl.config({ general = { gaps_out = ${outVal} } })`)
         }
         if (cmds.length === 0) return
 
-        if (root.configProvider === "lua") {
-            var evalStr = cmds.map(c => `hyprctl eval "${c}"`).join(" && ")
-            gapsProc.command = ["bash", "-c", evalStr]
-        } else {
-            gapsProc.command = ["bash", "-c", cmds.join(" && ")]
-        }
+        var evalStr = cmds.map(c => `hyprctl eval "${c}"`).join(" && ")
+        gapsProc.command = ["bash", "-c", evalStr]
         gapsProc.running = false
         gapsProc.running = true
-    }
-
-    // ── Screen Shader ─────────────────────────────────────────────────────────
-    readonly property string defaultShaderPaths: Paths.configDir + "/shaders " + Paths.userDataDir + "/shaders ~/.config/hypr/shaders ~/.local/share/hypr/shaders /usr/share/hyprshade/shaders"
-    property string currentScreenShader: ""
-    property Process shaderCheckProc: Process {
-        command: [
-            "bash", "-c",
-            "hyprctl getoption decoration:screen_shader -j 2>/dev/null | python3 -c \"" +
-            "import sys,json,os; d=json.load(sys.stdin); " +
-            "s=d.get('str','').strip(); print('' if s in ('','[[EMPTY]]') else os.path.splitext(os.path.basename(s))[0])\""
-        ]
-        running: false
-        stdout: StdioCollector {
-            id: shaderCollector
-            onStreamFinished: {
-                root.currentScreenShader = shaderCollector.text.trim()
-            }
-        }
-    }
-
-    function checkScreenShader() {
-        if (!shaderCheckProc.running) shaderCheckProc.running = true
-    }
-
-    property Process shaderApplyProc: Process {
-        running: false
-        onExited: function() {
-            root.checkScreenShader()
-        }
-    }
-
-    function setScreenShader(name, shaderPaths) {
-        var isLua = root.configProvider === "lua"
-        var damageCmd = isLua 
-            ? " && hyprctl dispatch 'hl.dsp.dpms({ action = \"disable\" })' && hyprctl dispatch 'hl.dsp.dpms({ action = \"enable\" })'"
-            : " && hyprctl dispatch dpms off && hyprctl dispatch dpms on"
-
-        if (!name || name === "" || name === root.currentScreenShader) {
-            var offCmd = isLua 
-                ? "hyprctl eval \"hl.config({ decoration = { screen_shader = '' } })\""
-                : "hyprctl keyword decoration:screen_shader '[[EMPTY]]'"
-            shaderApplyProc.command = ["bash", "-c", offCmd + damageCmd]
-            root.currentScreenShader = ""
-        } else {
-            var resolveCmd =
-                "TARGET=$(find " + shaderPaths +
-                " -maxdepth 1 -type f \\( -name '" + name + ".glsl' -o -name '" + name + ".frag' \\)" +
-                " 2>/dev/null | head -n 1); "
-            var onCmd = isLua
-                ? "if [ -n \"$TARGET\" ]; then hyprctl eval \"hl.config({ decoration = { screen_shader = '$TARGET' } })\"" + damageCmd + "; fi"
-                : "if [ -n \"$TARGET\" ]; then hyprctl keyword decoration:screen_shader \"$TARGET\"" + damageCmd + "; fi"
-            shaderApplyProc.command = ["bash", "-c", resolveCmd + onCmd]
-            root.currentScreenShader = name
-        }
-        shaderApplyProc.running = true
     }
 
     // ── Keybinds ──────────────────────────────────────────────────────────────
@@ -535,11 +430,7 @@ Item {
 
     function reloadConfig() {
         if (!root.isSupported) return
-        if (root.configProvider === "lua") {
-            reloadProc.command = ["bash", "-c", "hyprctl eval 'hl.reload()' 2>/dev/null || hyprctl reload"]
-        } else {
-            reloadProc.command = ["hyprctl", "reload"]
-        }
+        reloadProc.command = ["hyprctl", "reload"]
         reloadProc.running = false
         reloadProc.running = true
     }
@@ -552,15 +443,11 @@ Item {
     function writeKeybindFiles(keybinds) {
         if (!root.isSupported) return
         var luaPath = Paths.configDir + "/Brain_ShellKeybinds.lua"
-        var confPath = Paths.configDir + "/Brain_ShellKeybinds.conf"
         var lua = _genLua(keybinds)
-        var conf = _genConf(keybinds)
         var le = lua.replace(/\\/g, "\\\\").replace(/'/g, "'\\''")
-        var ce = conf.replace(/\\/g, "\\\\").replace(/'/g, "'\\''")
         
         keybindWriteProc.command = ["bash", "-c",
-            "printf '%s' '" + le + "' > '" + luaPath + "' && " +
-            "printf '%s' '" + ce + "' > '" + confPath + "'"]
+            "printf '%s' '" + le + "' > '" + luaPath + "'"]
         keybindWriteProc.running = false
         keybindWriteProc.running = true
     }
@@ -636,50 +523,6 @@ Item {
         return lines.join("\n")
     }
 
-    function _genConf(keybinds) {
-        var data = _groupedKeybinds(keybinds)
-        
-        var lines = [
-            "# ==============================================================================",
-            "# Brain Shell Keybinds",
-            "# Auto-generated by Quickshell. Do not edit manually.",
-            "# ==============================================================================",
-            "",
-            "# ==============================================================================",
-            "# BrainShell Capture Submap (Disables all normal binds during recording)",
-            "# ==============================================================================",
-            "submap = BrainShell_clean",
-            "bind = CTRL, ESCAPE, exec, notify-send 'BrainShell' 'Emergency Exit: Keybinds re-enabled.'",
-            "bind = CTRL, ESCAPE, submap, reset",
-            "submap = reset",
-            "",
-            "# ==============================================================================",
-            "# User Defined Bindings",
-            "# ==============================================================================",
-            ""
-        ]
-        
-        for (var gi = 0; gi < data.order.length; gi++) {
-            var g = data.order[gi]
-            lines.push("# " + g)
-            var entries = data.groups[g]
-            for (var ei = 0; ei < entries.length; ei++) {
-                var e = entries[ei]
-                var isModOnly = (e.mods === "" && _isModKey(e.key))
-                var confMods = isModOnly
-                    ? _modForModKey(e.key)
-                    : e.mods.replace(/\s*\+\s*/g, " ")
-                var bindDirective = isModOnly ? "bindr" : "bind"
-                var cmd = Paths.isNix
-                    ? ("brain-shell ipc call " + e.k + " toggle")
-                    : ("qs ipc -p " + Paths.installDir + " call " + e.k + " toggle")
-                lines.push(bindDirective + " = " + confMods + ", " + e.key + ", exec, " + cmd)
-            }
-            lines.push("")
-        }
-        return lines.join("\n")
-    }
-
     function _isModKey(key) {
         if (!key) return false
         var u = key.toUpperCase().trim()
@@ -740,15 +583,15 @@ Item {
     // ── Lock Screen ───────────────────────────────────────────────────────────
     function lockScreen() {
         actionProc.command = ["loginctl", "lock-session"]
+        actionProc.running = false
         actionProc.running = true
     }
 
     Component.onCompleted: {
         if (!root.isSupported) return
-        configScanProc.running = true
+        setGaps(null, 0)
         refreshActiveWindow()
         refreshLayout()
         checkNightLight()
-        checkScreenShader()
     }
 }

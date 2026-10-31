@@ -411,35 +411,6 @@ hl.bind("ALT + F9", hl.dsp.exec_cmd("qs ipc -p " .. shell .. " call screenrec-on
 EOF
 fi
 
-if [[ ! -f "$_KB_DIR/Brain_ShellKeybinds.conf" ]]; then
-    cat << EOF > "$_KB_DIR/Brain_ShellKeybinds.conf"
-submap = BrainShell_clean
-bind = CTRL, ESCAPE, exec, notify-send 'BrainShell' 'Emergency Exit: Keybinds re-enabled.'
-bind = CTRL, ESCAPE, submap, reset
-submap = reset
-bind = SUPER, D, exec, qs ipc -p $REPO_DIR call dashboard-home toggle
-bind = CTRL SHIFT, ESCAPE, exec, qs ipc -p $REPO_DIR call dashboard-stats toggle
-bind = SUPER, Z, exec, qs ipc -p $REPO_DIR call dashboard-kanban toggle
-bind = SUPER, Q, exec, qs ipc -p $REPO_DIR call dashboard-launcher toggle
-bind = SUPER, C, exec, qs ipc -p $REPO_DIR call dashboard-config toggle
-bind = SUPER, ESCAPE, exec, qs ipc -p $REPO_DIR call PowerMenu-toggle toggle
-bind = SUPER, N, exec, qs ipc -p $REPO_DIR call notification-toggle toggle
-bind = SUPER, W, exec, qs ipc -p $REPO_DIR call wallpaper-toggle toggle
-bind = SUPER, V, exec, qs ipc -p $REPO_DIR call clipboard-toggle toggle
-bind = SUPER ALT, W, exec, qs ipc -p $REPO_DIR call wifi-toggle toggle
-bind = SUPER ALT, B, exec, qs ipc -p $REPO_DIR call bluetooth-toggle toggle
-bind = SUPER ALT, G, exec, qs ipc -p $REPO_DIR call vpn-toggle toggle
-bind = SUPER ALT, H, exec, qs ipc -p $REPO_DIR call hotspot-toggle toggle
-bind = SUPER, A, exec, qs ipc -p $REPO_DIR call audioOut-toggle toggle
-bind = SUPER ALT, I, exec, qs ipc -p $REPO_DIR call audioIn-toggle toggle
-bind = SUPER, M, exec, qs ipc -p $REPO_DIR call audioMix-toggle toggle
-bind = SUPER, B, exec, qs ipc -p $REPO_DIR call focus-toggle toggle
-bind = SUPER, X, exec, qs ipc -p $REPO_DIR call lock-session toggle
-bind = , PRINT, exec, qs ipc -p $REPO_DIR call screenshot-toggle toggle
-bind = ALT, F9, exec, qs ipc -p $REPO_DIR call screenrec-on toggle
-EOF
-fi
-
 if [[ "${FRESH_INSTALL:-}" == "true" && "$TARGET_WM" == "hyprland" ]]; then
     log_info "Detecting keyboard layout for base config..."
     detect_keyboard_layout() {
@@ -515,29 +486,13 @@ with open(sys.argv[1], "w") as f: f.write(content.strip() + "\n")
     if grep -q "brain-shell" "$HYPRLAND_CONF"; then
         log_ok "Brain Shell startup already sourced in $HYPRLAND_CONF"
     else
-        case "$CONFIG_TYPE" in
-            conf)
-                {
-                    echo ""
-                    echo "$_BEGIN_MARK_CONF"
-                    echo "source = $HOME/.config/Brain_Shell/BrainShell-hyprland.conf"
-                    echo "$_END_MARK_CONF"
-                } >> "$HYPRLAND_CONF"
-                log_ok "Brain Shell startup sourced from hyprland.conf (1 line)"
-                ;;
-            lua)
-                {
-                    echo ""
-                    echo "$_BEGIN_MARK_LUA"
-                    echo 'dofile(os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua")'
-                    echo "$_END_MARK_LUA"
-                } >> "$HYPRLAND_CONF"
-                log_ok "Brain Shell startup loaded from hyprland.lua (1 line)"
-                ;;
-            *)
-                log_warn "Unknown config type '$CONFIG_TYPE' — skipping Hyprland config update."
-                ;;
-        esac
+        {
+            echo ""
+            echo "$_BEGIN_MARK_LUA"
+            echo 'dofile(os.getenv("HOME") .. "/.config/Brain_Shell/BrainShell-hyprland.lua")'
+            echo "$_END_MARK_LUA"
+        } >> "$HYPRLAND_CONF"
+        log_ok "Brain Shell startup loaded from hyprland.lua (1 line)"
     fi
 elif [[ "$TARGET_WM" == "niri" ]]; then
     NIRI_DIR="$HOME/.config/niri"
@@ -760,8 +715,7 @@ with open(config_path, "w") as f:
     json.dump(existing, f, indent=2)
 
 lua_path = os.path.expanduser("~/.config/Brain_Shell/Brain_ShellKeybinds.lua")
-conf_path = os.path.expanduser("~/.config/Brain_Shell/Brain_ShellKeybinds.conf")
-for p in [lua_path, conf_path]:
+for p in [lua_path]:
     if os.path.isfile(p):
         with open(p) as f: lines = f.readlines()
         with open(p, "w") as f:

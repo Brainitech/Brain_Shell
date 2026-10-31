@@ -1,4 +1,6 @@
 HyprlandBackend HyprlandBackend.qml
+HyprlandTheme HyprlandTheme.qml
+HyprlandEffects HyprlandEffects.qml
 NiriBackend NiriBackend.qml
 FocusGrab FocusGrab.qml
 HyprlandFocusGrab HyprlandFocusGrab.qml

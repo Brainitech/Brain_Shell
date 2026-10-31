@@ -18,9 +18,8 @@
 
 import QtQuick
 import Quickshell.Io
-import "../../"
-import "../../components"
-import "../"
+import "../../../"
+import "../../../components"
 
 // ClockCard — Clock / Timer / Alarm / Stopwatch view shell
 

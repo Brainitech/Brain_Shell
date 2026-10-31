@@ -18,7 +18,7 @@
 
 import QtQuick
 import Quickshell
-import "../../"
+import "../../../"
 
 Rectangle {
     id: tileRoot

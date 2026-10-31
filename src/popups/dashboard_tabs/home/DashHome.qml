@@ -19,10 +19,8 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../"
-import "../../components"
-import "../../popups/dashboard_tabs"
-import "../../"
+import "../../../"
+import "../../../components"
 
 // Dashboard Home tab — layout only.
 //

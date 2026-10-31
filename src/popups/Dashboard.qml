@@ -20,6 +20,7 @@ import QtQuick
 import Quickshell
 import "../components"
 import "dashboard_tabs"
+import "dashboard_tabs/home"
 import "dashboard_tabs/stats"
 import '../services/'
 import "../"

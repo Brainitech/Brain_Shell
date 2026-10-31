@@ -17,7 +17,7 @@
  */
 
 import QtQuick
-import "../../"
+import "../../../"
 
 Item {
     id: stopwatchView

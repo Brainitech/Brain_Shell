@@ -24,3 +24,9 @@ singleton ColorPickerService services/ColorPickerService.qml
 singleton TimerService       services/TimerService.qml
 singleton StopwatchService   services/StopwatchService.qml
 singleton AlarmService       services/AlarmService.qml
+singleton HotspotService     services/HotspotService.qml
+singleton BrightnessService  services/BrightnessService.qml
+singleton NetworkService     services/NetworkService.qml
+singleton WallpaperService   services/WallpaperService.qml
+singleton NotificationService services/notifications/NotificationService.qml
+singleton MigrationService   services/MigrationService.qml

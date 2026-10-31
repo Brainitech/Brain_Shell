@@ -19,8 +19,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../../"
-import "../"
+import "../../../"
 
 Rectangle {
     id: filterPickerRoot

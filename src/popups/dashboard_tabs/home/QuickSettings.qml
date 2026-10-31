@@ -20,10 +20,9 @@ import Quickshell
 import QtQuick
 import QtQuick.Controls
 import Quickshell.Io
-import "../../"
-import "../../components"
-import "../../components/sliders"
-import "../"
+import "../../../"
+import "../../../components"
+import "../../../components/sliders"
 
 // Right column — brightness slider + scrollable quick-settings grid.
 
@@ -56,18 +55,6 @@ StatCard {
     //  Theme Mode Process
     // ─────────────────────────────────────────────────────────────────────────
     property var sysThemeProc: Process {}
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Hotspot Manager Component
-    // ─────────────────────────────────────────────────────────────────────────
-    QuickHotspotManager {
-        id: hotspotManager
-        wifiOn: WifiService.wifiOn
-        onWifiStateChanged: function(on) {
-            WifiService.setWifiState(on)
-        }
-        onRequestWifiPoll: WifiService.poll()
-    }
 
     // ─────────────────────────────────────────────────────────────────────────
     //  UI
@@ -119,9 +106,9 @@ StatCard {
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
                         localScale: root.localScale
-                        on: WifiService.wifiOn && !hotspotManager.hotspotOn
-                        icon: (WifiService.wifiOn && !hotspotManager.hotspotOn) ? "󰤨" : "󰤭"; label: "Wi-Fi"
-                        sublabel: (WifiService.wifiOn && !hotspotManager.hotspotOn) && WifiService.wifiSSID !== "" ? WifiService.wifiSSID : (hotspotManager.hotspotOn ? "Used by Hotspot" : "")
+                        on: WifiService.wifiOn && !HotspotService.hotspotOn
+                        icon: (WifiService.wifiOn && !HotspotService.hotspotOn) ? "󰤨" : "󰤭"; label: "Wi-Fi"
+                        sublabel: (WifiService.wifiOn && !HotspotService.hotspotOn) && WifiService.wifiSSID !== "" ? WifiService.wifiSSID : (HotspotService.hotspotOn ? "Used by Hotspot" : "")
                         onToggled: WifiService.toggle()
                     }
                     QuickToggleTile {
@@ -140,11 +127,11 @@ StatCard {
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH
                         localScale: root.localScale
-                        on: hotspotManager.hotspotOn || hotspotManager.hotspotBusy
+                        on: HotspotService.hotspotOn || HotspotService.hotspotBusy
                         icon: "󰀃"
                         label: "Hotspot"
-                        sublabel: hotspotManager.hotspotLabel
-                        onToggled: hotspotManager.toggle()
+                        sublabel: HotspotService.hotspotLabel
+                        onToggled: HotspotService.toggle()
                     }
                     QuickToggleTile {
                         width: tileGrid.btnW; height: tileGrid.btnH

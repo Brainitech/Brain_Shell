@@ -20,8 +20,8 @@ import QtQuick
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
-import "../../"
-import "../../components"
+import "../../../"
+import "../../../components"
 
 // Profile card — circular avatar, username, window manager, uptime.
 

@@ -19,8 +19,8 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell.Io
-import "../../"
-import "../../components"
+import "../../../"
+import "../../../components"
 
 Item {
     id: root

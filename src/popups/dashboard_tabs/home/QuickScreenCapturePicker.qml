@@ -18,8 +18,7 @@
 
 import QtQuick
 import Quickshell
-import "../../"
-import "../"
+import "../../../"
 
 Rectangle {
     id: capturePickerRoot

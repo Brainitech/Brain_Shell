@@ -16,47 +16,40 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../../"
 import "../"
+import "../state"
+import "./"
 
-Item {
-    id: hotspotRoot
-    visible: false
+QtObject {
+    id: root
 
     property bool   hotspotOn:     false
     property bool   hotspotBusy:   false
     property bool   _hsWifiWasOff: false
     property string hotspotLabel:  ""
-    property string _hsSSID:       PrefsService.hotspotSsid
-    property string _hsPassword:   PrefsService.hotspotPassword
+    readonly property string _hsSSID:     PrefsService.hotspotSsid
+    readonly property string _hsPassword: PrefsService.hotspotPassword
     property string _hsWifiIface:  "wlan0"
 
-    // Property bound from host QuickSettings
-    property bool   wifiOn:        false
-
-    signal wifiStateChanged(bool on)
-    signal requestWifiPoll()
-
     // Detect WiFi interface name
-    Process {
-        id: hsIfaceProc
+    property var hsIfaceProc: Process {
         command: ["bash", "-c",
             "nmcli -g DEVICE,TYPE dev 2>/dev/null | awk -F: '$2==\"wifi\"{print $1; exit}'"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
                 var n = text.trim()
-                if (n !== "") hotspotRoot._hsWifiIface = n
+                if (n !== "") root._hsWifiIface = n
             }
         }
     }
 
     // Check if ethernet is connected
-    Process {
-        id: hsEthernetCheck
+    property var hsEthernetCheck: Process {
         command: ["bash", "-c",
             "nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -c 'ethernet:connected'"]
         running: false
@@ -64,152 +57,144 @@ Item {
             onStreamFinished: {
                 var hasEth = parseInt(text.trim()) > 0
                 if (!hasEth) {
-                    hotspotRoot.hotspotLabel = "Not on ethernet"
-                    hotspotRoot.hotspotBusy  = false
+                    root.hotspotLabel = "Not on ethernet"
+                    root.hotspotBusy  = false
                     return
                 }
                 // Remember whether wifi radio was off so we can restore it on stop
-                hotspotRoot._hsWifiWasOff = !hotspotRoot.wifiOn
-                hotspotRoot._hsDoStart()
+                root._hsWifiWasOff = !WifiService.wifiOn
+                root._hsDoStart()
             }
         }
     }
 
     // Check hotspot status
-    Process {
-        id: hotspotCheck
+    property var hotspotCheck: Process {
         command: ["bash", "-c",
             "nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -c 'wifi:connected'"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
-                hsActiveCheckProc.running = false
-                hsActiveCheckProc.running = true
+                root.hsActiveCheckProc.running = false
+                root.hsActiveCheckProc.running = true
             }
         }
     }
 
-    Process {
-        id: hsActiveCheckProc
+    property var hsActiveCheckProc: Process {
         command: ["bash", "-c",
             "nmcli -t -f NAME,STATE,DEVICE con show --active 2>/dev/null" +
             " | awk -F: '$1~/[Hh]otspot/{found=1} END{print found+0}'"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
-                hotspotRoot.hotspotOn     = parseInt(text.trim()) > 0
-                ShellState.hotspot        = hotspotRoot.hotspotOn
-                hotspotRoot.hotspotLabel  = hotspotRoot.hotspotOn ? "Active" : ""
-                if (hotspotRoot.hotspotOn) ShellState.wifiOn = false
+                root.hotspotOn     = parseInt(text.trim()) > 0
+                ShellState.hotspot = root.hotspotOn
+                root.hotspotLabel  = root.hotspotOn ? "Active" : ""
+                if (root.hotspotOn) ShellState.wifiOn = false
             }
         }
     }
 
     // Start hotspot
-    Process {
-        id: hsStartProc
+    property var hsStartProc: Process {
         command: []
         running: false
         onRunningChanged: if (!running) {
-            hotspotRoot.hotspotBusy = false
-            hsActiveCheckProc.running = false
-            hsActiveCheckProc.running = true
+            root.hotspotBusy = false
+            root.hsActiveCheckProc.running = false
+            root.hsActiveCheckProc.running = true
         }
         onExited: function(code, status) {
             if (code === 0) {
-                hotspotRoot.hotspotOn     = true
-                hotspotRoot.hotspotLabel  = "Active"
-                ShellState.hotspot        = true
-                ShellState.wifiOn         = false
+                root.hotspotOn     = true
+                root.hotspotLabel  = "Active"
+                ShellState.hotspot = true
+                ShellState.wifiOn  = false
             } else {
-                hotspotRoot.hotspotOn     = false
-                hotspotRoot.hotspotLabel  = "Failed"
-                ShellState.hotspot        = false
-                hsLabelResetTimer.restart()
+                root.hotspotOn     = false
+                root.hotspotLabel  = "Failed"
+                ShellState.hotspot = false
+                root.hsLabelResetTimer.restart()
             }
         }
     }
 
     // Process to turn off wifi radio when restoring state
-    Process {
-        id: hsWifiOffProc
+    property var hsWifiOffProc: Process {
         command: ["bash", "-c", "nmcli radio wifi off"]
         running: false
     }
 
     // Stop hotspot
-    Process {
-        id: hsStopProc
+    property var hsStopProc: Process {
         command: ["bash", "-c",
-            "nmcli device disconnect " + hotspotRoot._hsWifiIface + " 2>/dev/null; " +
+            "nmcli device disconnect " + root._hsWifiIface + " 2>/dev/null; " +
             "nmcli con delete BrainShellHotspot 2>/dev/null; true"]
         running: false
         onRunningChanged: if (!running) {
-            hotspotRoot.hotspotBusy   = false
-            hotspotRoot.hotspotOn     = false
-            ShellState.hotspot        = false
-            if (hotspotRoot._hsWifiWasOff) {
-                hotspotRoot.wifiStateChanged(false)
-                hsWifiOffProc.running = false
-                hsWifiOffProc.running = true
-                hotspotRoot._hsWifiWasOff = false
+            root.hotspotBusy   = false
+            root.hotspotOn     = false
+            ShellState.hotspot = false
+            if (root._hsWifiWasOff) {
+                WifiService.setWifiState(false)
+                root.hsWifiOffProc.running = false
+                root.hsWifiOffProc.running = true
+                root._hsWifiWasOff = false
             } else {
-                ShellState.wifiOn = hotspotRoot.wifiOn
-                hotspotRoot.requestWifiPoll()
+                ShellState.wifiOn = WifiService.wifiOn
+                WifiService.poll()
             }
         }
     }
 
-    Timer {
-        id: hsLabelResetTimer
+    property var hsLabelResetTimer: Timer {
         interval: 3000
         repeat: false
         onTriggered: {
-            if (hotspotRoot.hotspotLabel === "Failed") hotspotRoot.hotspotLabel = ""
+            if (root.hotspotLabel === "Failed") root.hotspotLabel = ""
         }
     }
 
-    Timer {
-        id: hsLivePollTimer
+    property var hsLivePollTimer: Timer {
         interval: 5000
         repeat: true
-        running: hotspotRoot.hotspotOn || Popups.dashboardOpen
+        running: root.hotspotOn || Popups.dashboardOpen
         onTriggered: {
-            hotspotRoot.poll()
-            if (hotspotRoot.hotspotOn && !hotspotRoot.hotspotBusy) {
-                hotspotRoot.checkEthernetLive()
+            root.poll()
+            if (root.hotspotOn && !root.hotspotBusy) {
+                root.checkEthernetLive()
             }
         }
     }
 
     // Ethernet disconnect watcher
-    Process {
-        id: hsEthernetLiveCheck
+    property var hsEthernetLiveCheck: Process {
         command: ["bash", "-c",
             "nmcli -t -f TYPE,STATE dev 2>/dev/null | grep -c 'ethernet:connected'"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
-                if (!hotspotRoot.hotspotOn || hotspotRoot.hotspotBusy) return
+                if (!root.hotspotOn || root.hotspotBusy) return
                 var hasEth = parseInt(text.trim()) > 0
                 if (!hasEth) {
-                    hotspotRoot.hotspotLabel = "Ethernet lost"
-                    hotspotRoot.hotspotBusy  = true
-                    hsStopProc.command = ["bash", "-c",
-                        "nmcli device disconnect " + hotspotRoot._hsWifiIface + " 2>/dev/null; " +
+                    root.hotspotLabel = "Ethernet lost"
+                    root.hotspotBusy  = true
+                    root.hsStopProc.command = ["bash", "-c",
+                        "nmcli device disconnect " + root._hsWifiIface + " 2>/dev/null; " +
                         "nmcli con delete BrainShellHotspot 2>/dev/null; true"]
-                    hsStopProc.running = false
-                    hsStopProc.running = true
-                    hsLabelResetTimer.restart()
+                    root.hsStopProc.running = false
+                    root.hsStopProc.running = true
+                    root.hsLabelResetTimer.restart()
                 }
             }
         }
     }
 
     function _hsDoStart() {
-        var ssid  = hotspotRoot._hsSSID
-        var pass  = hotspotRoot._hsPassword
-        var iface = hotspotRoot._hsWifiIface
+        var ssid  = root._hsSSID
+        var pass  = root._hsPassword
+        var iface = root._hsWifiIface
         hsStartProc.command = ["bash", "-c",
             "nmcli radio wifi on 2>/dev/null; " +
             "sleep 1; " +
@@ -225,18 +210,18 @@ Item {
     }
 
     function toggle() {
-        if (hotspotRoot.hotspotBusy) return
-        if (hotspotRoot.hotspotOn) {
-            hotspotRoot.hotspotBusy  = true
-            hotspotRoot.hotspotLabel = ""
+        if (root.hotspotBusy) return
+        if (root.hotspotOn) {
+            root.hotspotBusy  = true
+            root.hotspotLabel = ""
             hsStopProc.command = ["bash", "-c",
-                "nmcli device disconnect \"" + hotspotRoot._hsWifiIface + "\" 2>/dev/null; " +
+                "nmcli device disconnect \"" + root._hsWifiIface + "\" 2>/dev/null; " +
                 "nmcli con delete BrainShellHotspot 2>/dev/null; true"]
             hsStopProc.running = false
             hsStopProc.running = true
         } else {
-            hotspotRoot.hotspotBusy  = true
-            hotspotRoot.hotspotLabel = ""
+            root.hotspotBusy  = true
+            root.hotspotLabel = ""
             hsEthernetCheck.running = false
             hsEthernetCheck.running = true
         }

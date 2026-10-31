@@ -7,7 +7,6 @@ CpuFreqService ./system/CpuFreqService.qml
 DiskService ./system/DiskService.qml
 ThermalService ./system/ThermalService.qml
 FanControl ./system/FanControl.qml
-DashHome home/DashHome.qml
 singleton NotificationService ./notifications/NotificationService.qml
 singleton WallpaperService WallpaperService.qml
 ShellConfig ./config_tab/ShellConfig.qml
@@ -27,3 +26,13 @@ singleton ColorPickerService ColorPickerService.qml
 singleton TimerService TimerService.qml
 singleton StopwatchService StopwatchService.qml
 singleton AlarmService AlarmService.qml
+singleton HotspotService HotspotService.qml
+singleton PrefsService PrefsService.qml
+singleton KeybindService KeybindService.qml
+singleton UpdateService UpdateService.qml
+singleton ScreenRecService ScreenRecService.qml
+singleton CavaService CavaService.qml
+singleton ClipboardService ClipboardService.qml
+singleton MediaService MediaService.qml
+singleton FrecencyService FrecencyService.qml
+singleton KanbanService KanbanService.qml

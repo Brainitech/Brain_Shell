@@ -162,18 +162,18 @@ Item {
     }
 
     // ── Night Light ───────────────────────────────────────────────────────────
-    readonly property bool nightLightOn: backend ? backend.nightLightOn : false
+    readonly property bool nightLightOn: NightLightService.nightLightOn
 
     function setNightLight(enabled, temp = "5600") {
-        if (backend) backend.setNightLight(enabled, temp)
+        NightLightService.setNightLight(enabled, temp)
     }
 
     function toggleNightLight(temp = "5600") {
-        if (backend) backend.toggleNightLight(temp)
+        NightLightService.toggleNightLight(temp)
     }
 
     function checkNightLight() {
-        if (backend) backend.checkNightLight()
+        NightLightService.checkNightLight()
     }
 
     // ── Displays & Gaps ───────────────────────────────────────────────────────

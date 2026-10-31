@@ -423,43 +423,20 @@ Item {
         running: false
     }
 
-    property Process themeWriteProc: Process {
-        running: false
+    NiriTheme {
+        id: themeManager
+        isSupported: root.isSupported
+        gapsOut: root.gapsOut
     }
 
     function setLayerBlur(namespace, enabled, alpha = 0.1) {}
 
-    property string _activeBorderColor: "#bec8ce"
-
     function _writeNiriTheme() {
-        if (!root.isSupported) return
-        var themePath = Paths.configDir + "/BrainShell-niri-theme.kdl"
-        var kdl = "layout {\n" +
-                  "    gaps " + root.gapsOut + "\n" +
-                  "    border {\n" +
-                  "        active-color \"" + root._activeBorderColor + "\"\n" +
-                  "    }\n" +
-                  "    focus-ring {\n" +
-                  "        active-color \"" + root._activeBorderColor + "\"\n" +
-                  "    }\n" +
-                  "}\n"
-        var escaped = kdl.replace(/\\/g, "\\\\").replace(/'/g, "'\\''")
-        themeWriteProc.command = [
-            "bash", "-c",
-            "mkdir -p \"$(dirname '" + themePath + "')\" && " +
-            "printf '%s' '" + escaped + "' > '" + themePath + "' && " +
-            "(niri msg action load-config-file 2>/dev/null || true)"
-        ]
-        themeWriteProc.running = false
-        themeWriteProc.running = true
+        themeManager.writeNiriTheme()
     }
 
     function setActiveBorderColor(color) {
-        if (!color || !root.isSupported) return
-        var hex = String(color).trim()
-        if (hex.charAt(0) !== "#") hex = "#" + hex
-        root._activeBorderColor = hex
-        _writeNiriTheme()
+        themeManager.setActiveBorderColor(color)
     }
 
     function setKeybindCaptureSubmap(enabled) {}
@@ -468,49 +445,6 @@ Item {
         if (!root.isSupported) return
         actionProc.command = ["niri", "msg", "action", "focus-window-previous"]
         actionProc.running = true
-    }
-
-    // ── Night Light ───────────────────────────────────────────────────────────
-    property bool nightLightOn: false
-    property Process nlCheckProc: Process {
-        command: ["bash", "-c", "pgrep -x wlsunset || pgrep -x hyprsunset"]
-        running: false
-        onExited: function(code) {
-            root.nightLightOn = (code === 0)
-        }
-    }
-    property Process nlProc: Process {
-        command: ["wlsunset", "-t", "5600"]
-        running: false
-    }
-    property Process nlKillProc: Process {
-        command: ["bash", "-c", "pkill wlsunset || pkill hyprsunset"]
-        running: false
-        onExited: function() {
-            root.nightLightOn = false
-        }
-    }
-
-    function checkNightLight() {
-        if (!nlCheckProc.running) nlCheckProc.running = true
-    }
-
-    function setNightLight(enabled, temp = "5600") {
-        if (enabled) {
-            nlKillProc.running = false
-            nlProc.command = ["wlsunset", "-t", String(temp)]
-            nlProc.running = true
-            root.nightLightOn = true
-        } else {
-            nlProc.running = false
-            nlKillProc.running = false
-            nlKillProc.running = true
-            root.nightLightOn = false
-        }
-    }
-
-    function toggleNightLight(temp = "5600") {
-        setNightLight(!root.nightLightOn, temp)
     }
 
     // ── Display Power Cycling (DPMS) ──────────────────────────────────────────
@@ -614,182 +548,17 @@ Item {
         }
     }
 
-    function _isModKey(key) {
-        if (!key) return false
-        var u = key.toUpperCase().trim()
-        return u === "SUPER_L" || u === "SUPER_R" ||
-               u === "ALT_L"   || u === "ALT_R"   ||
-               u === "CONTROL_L" || u === "CONTROL_R" ||
-               u === "SHIFT_L" || u === "SHIFT_R" ||
-               u === "SUPER"   || u === "ALT"     ||
-               u === "CTRL"    || u === "SHIFT"
-    }
-
-    function _modForModKey(key) {
-        if (!key) return ""
-        var u = key.toUpperCase().trim()
-        if (u === "SUPER_L" || u === "SUPER_R" || u === "SUPER") return "SUPER"
-        if (u === "ALT_L" || u === "ALT_R" || u === "ALT" || u === "ALTGR") return "ALT"
-        if (u === "CONTROL_L" || u === "CONTROL_R" || u === "CTRL_L" || u === "CTRL_R" || u === "CTRL") return "CTRL"
-        if (u === "SHIFT_L" || u === "SHIFT_R" || u === "SHIFT") return "SHIFT"
-        return ""
-    }
-
-    function _modsToMask(modsStr) {
-        var mask = 0
-        var parts = modsStr.toUpperCase().split("+")
-        for (var i = 0; i < parts.length; i++) {
-            var p = parts[i].trim()
-            if      (p === "SUPER" || p === "MOD") mask |= 64
-            else if (p === "SHIFT") mask |= 1
-            else if (p === "CTRL" || p === "CONTROL")  mask |= 4
-            else if (p === "ALT")   mask |= 8
-        }
-        return mask
-    }
-
-    function _effectiveMods(mods, key) {
-        if ((!mods || mods === "") && _isModKey(key)) {
-            return _modForModKey(key)
-        }
-        return mods || ""
-    }
-
-    function _normalizeKey(key) {
-        if (!key) return ""
-        var s = key.trim()
-        var u = s.toUpperCase()
-        if (u === "UNKNOWN") return ""
-        if (u === "SUPER_L" || u === "SUPER") return "SUPER_L"
-        if (u === "SUPER_R") return "SUPER_R"
-        if (u === "ALT_L" || u === "ALT") return "Alt_L"
-        if (u === "ALT_R" || u === "ALTGR") return "Alt_R"
-        if (u === "CONTROL_L" || u === "CTRL_L" || u === "CTRL") return "Control_L"
-        if (u === "CONTROL_R" || u === "CTRL_R") return "Control_R"
-        if (u === "SHIFT_L" || u === "SHIFT") return "Shift_L"
-        if (u === "SHIFT_R") return "Shift_R"
-        return u
-    }
-
     function wouldConflictCompositor(action, mods, key) {
-        if (!key || key === "") return ""
-        var mask = _modsToMask(_effectiveMods(mods, key))
-        var k = _normalizeKey(key).toLowerCase()
-        for (var i = 0; i < root.rawKeybinds.length; i++) {
-            var b = root.rawKeybinds[i]
-            if (b.submap !== "") continue
-            if (b.mouse) continue
-            if (b.arg && (b.arg.indexOf("qs ipc") >= 0 || b.arg.indexOf("quickshell ipc") >= 0 || b.arg.indexOf("brain-shell ipc") >= 0)) continue
-            if (b.description && b.description.toLowerCase().indexOf("brain shell") >= 0) continue
-            
-            if (b.modmask === mask && (b.key || "").toLowerCase() === k) {
-                if (b.description && b.description.trim() !== "") return b.description
-                var desc = b.dispatcher || ""
-                if (b.arg) desc += ": " + b.arg.substring(0, 36)
-                return desc || "Niri bind"
-            }
-        }
-        return ""
+        return KeyUtils.wouldConflict(root.rawKeybinds, action, mods, key, "Niri bind")
     }
 
-    property Process keybindWriteProc: Process {
-        running: false
+    NiriKeybinds {
+        id: keybindManager
+        isSupported: root.isSupported
     }
 
     function writeKeybindFiles(keybinds) {
-        if (!root.isSupported) return
-        var kdlPath = Paths.configDir + "/Brain_ShellKeybinds.kdl"
-        var kdl = _genKdl(keybinds)
-        var escaped = kdl.replace(/\\/g, "\\\\").replace(/'/g, "'\\''")
-        keybindWriteProc.command = [
-            "bash", "-c",
-            "mkdir -p \"$(dirname '" + kdlPath + "')\" && " +
-            "printf '%s' '" + escaped + "' > '" + kdlPath + "' && " +
-            "(niri msg action load-config-file 2>/dev/null || true)"
-        ]
-        keybindWriteProc.running = false
-        keybindWriteProc.running = true
-    }
-
-    function _groupedKeybinds(keybinds) {
-        var groups = {}; var order = []
-        var ks = Object.keys(keybinds || {})
-        for (var i = 0; i < ks.length; i++) {
-            var k = ks[i]; var b = keybinds[k]
-            if (!b || b.mods === undefined || !b.key || b.key === "" || b.key.toUpperCase() === "UNKNOWN") continue
-            var g = b.group || "Other"
-            if (!groups[g]) { groups[g] = []; order.push(g) }
-            var entry = { k: k, mods: b.mods, key: b.key, label: b.label }
-            groups[g].push(entry)
-        }
-        return { groups: groups, order: order }
-    }
-
-    function _toNiriCombo(mods, key) {
-        if (!key || key === "" || key.toUpperCase() === "UNKNOWN") return ""
-        var modParts = []
-        if (mods && mods !== "") {
-            var parts = mods.toUpperCase().split("+")
-            for (var i = 0; i < parts.length; i++) {
-                var p = parts[i].trim()
-                if (p === "SUPER") modParts.push("Mod")
-                else if (p === "CTRL") modParts.push("Ctrl")
-                else if (p === "ALT") modParts.push("Alt")
-                else if (p === "SHIFT") modParts.push("Shift")
-            }
-        }
-        var k = key.trim()
-        var ku = k.toUpperCase()
-        if (ku === "ESCAPE") k = "Escape"
-        else if (ku === "PRINT") k = "Print"
-        else if (ku === "RETURN" || ku === "ENTER") k = "Return"
-        else if (ku === "SPACE") k = "Space"
-        else if (ku === "TAB") k = "Tab"
-        else if (ku === "BACKSPACE") k = "BackSpace"
-        else if (ku === "DELETE") k = "Delete"
-        else if (ku.startsWith("F") && ku.length <= 3 && !isNaN(ku.slice(1))) k = "F" + ku.slice(1)
-        else if (k.length === 1) k = ku
-
-        if (_isModKey(key) && modParts.length === 0) {
-            var m = _modForModKey(key)
-            if (m === "SUPER") return "Mod"
-            if (m === "CTRL") return "Ctrl"
-            if (m === "ALT") return "Alt"
-            if (m === "SHIFT") return "Shift"
-        }
-        if (modParts.length === 0) return k
-        return modParts.join("+") + "+" + k
-    }
-
-    function _genKdl(keybinds) {
-        var sd = Paths.installDir.replace(/"/g, "\\\"")
-        var data = _groupedKeybinds(keybinds)
-        var lines = [
-            "// ==============================================================================",
-            "// Brain Shell Keybinds",
-            "// Auto-generated by Quickshell. Do not edit manually.",
-            "// ==============================================================================",
-            "",
-            "binds {"
-        ]
-        for (var gi = 0; gi < data.order.length; gi++) {
-            var g = data.order[gi]
-            lines.push("    // " + g)
-            var entries = data.groups[g]
-            for (var ei = 0; ei < entries.length; ei++) {
-                var e = entries[ei]
-                var kdlCombo = _toNiriCombo(e.mods, e.key)
-                if (!kdlCombo) continue
-                var title = "Brain Shell: " + (e.label || e.k).replace(/"/g, "\\\"")
-                var execCmd = Paths.isNix
-                    ? ("brain-shell ipc call " + e.k + " toggle")
-                    : ("qs ipc -p " + sd + " call " + e.k + " toggle")
-                lines.push("    " + kdlCombo + " hotkey-overlay-title=\"" + title + "\" { spawn-sh \"" + execCmd + "\"; }")
-            }
-            lines.push("")
-        }
-        lines.push("}")
-        return lines.join("\n")
+        keybindManager.writeKeybindFiles(keybinds)
     }
 
     function reloadConfig() {
@@ -841,7 +610,6 @@ Item {
         initWsProc.running = true
         initWinProc.running = true
         refreshActiveWindow()
-        checkNightLight()
         loadRawKeybinds()
     }
 }

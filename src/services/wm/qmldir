@@ -2,6 +2,9 @@ HyprlandBackend HyprlandBackend.qml
 HyprlandTheme HyprlandTheme.qml
 HyprlandEffects HyprlandEffects.qml
 NiriBackend NiriBackend.qml
+NiriTheme NiriTheme.qml
+NiriKeybinds NiriKeybinds.qml
 FocusGrab FocusGrab.qml
 HyprlandFocusGrab HyprlandFocusGrab.qml
+singleton KeyUtils KeyUtils.qml
 singleton WM WM.qml

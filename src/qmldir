@@ -15,6 +15,7 @@ singleton MediaService services/MediaService.qml
 singleton FrecencyService services/FrecencyService.qml
 singleton Paths          utils/Paths.qml
 singleton KanbanService  services/KanbanService.qml
+singleton KeyUtils       services/wm/KeyUtils.qml
 singleton WM             services/wm/WM.qml
 singleton WifiService        services/WifiService.qml
 singleton BluetoothService   services/BluetoothService.qml
@@ -28,5 +29,6 @@ singleton HotspotService     services/HotspotService.qml
 singleton BrightnessService  services/BrightnessService.qml
 singleton NetworkService     services/NetworkService.qml
 singleton WallpaperService   services/WallpaperService.qml
+singleton NightLightService  services/NightLightService.qml
 singleton NotificationService services/notifications/NotificationService.qml
 singleton MigrationService   services/MigrationService.qml

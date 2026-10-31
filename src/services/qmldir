@@ -36,3 +36,4 @@ singleton ClipboardService ClipboardService.qml
 singleton MediaService MediaService.qml
 singleton FrecencyService FrecencyService.qml
 singleton KanbanService KanbanService.qml
+singleton NightLightService NightLightService.qml
